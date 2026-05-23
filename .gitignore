@@ -1,0 +1,35 @@
+# Env e secrets
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+
+# Django
+*.sqlite3
+staticfiles/
+media/
+
+# uv
+.python-version
+
+# Ferramentas
+.ruff_cache/
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo

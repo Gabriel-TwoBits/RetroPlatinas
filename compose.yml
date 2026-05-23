@@ -1,0 +1,54 @@
+services:
+  db:
+    image: docker.io/library/postgres:16-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-retrocheevos}
+      POSTGRES_USER: ${POSTGRES_USER:-retrocheevos}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-retrocheevos}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-retrocheevos}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: docker.io/library/redis:7-alpine
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  web:
+    build:
+      context: .
+      dockerfile: Containerfile
+    volumes:
+      - ./:/app:Z
+      - media_data:/app/media
+    ports:
+      - "8000:8000"
+    environment:
+      DJANGO_SETTINGS_MODULE: ${DJANGO_SETTINGS_MODULE:-retrocheevos.settings.dev}
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-dev-insecure-change-me}
+      POSTGRES_DB: ${POSTGRES_DB:-retrocheevos}
+      POSTGRES_USER: ${POSTGRES_USER:-retrocheevos}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-retrocheevos}
+      POSTGRES_HOST: db
+      POSTGRES_PORT: "5432"
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  redis_data:
+  media_data:
