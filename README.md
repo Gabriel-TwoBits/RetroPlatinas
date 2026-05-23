@@ -1,130 +1,121 @@
-# RetroCheevos — Servidor
+# RetroCheevos — Server
 
-Plataforma alternativa ao RetroAchievements.org com compatibilidade total de protocolo (rcheevos).
+Alternative platform to RetroAchievements.org with full protocol compatibility (rcheevos).
 
-## Pré-requisitos
+## Prerequisites
 
 - **Podman** 4+ (`podman --version`)
-- **podman-compose** — o subcomando `podman compose` nativo requer docker-compose como provedor externo, que geralmente não está instalado. Instale via pip:
+- **podman-compose** — the native `podman compose` subcommand requires an external docker-compose provider that is usually not installed. Install via pip:
 
 ```bash
 pip install --user podman-compose
-# Ou, se precisar de sudo:
-pip install podman-compose
 ```
 
-## Setup inicial
+## Initial setup
 
 ```bash
-# 1. Clonar o repositório
+# 1. Clone the repository
 git clone ssh://git@codeberg.org/Gabriel-TwoBits/retrocheevos.git
 cd retrocheevos
 
-# 2. Copiar variáveis de ambiente
+# 2. Copy environment variables
 cp .env.example .env
-# Edite .env se precisar de senhas diferentes em dev
+# Edit .env if you need different passwords in dev
 
-# 3. Subir os serviços (constrói a imagem na primeira vez)
+# 3. Start services (builds the image on first run)
 podman-compose up --build
 ```
 
-O servidor estará disponível em http://localhost:8000
+The server will be available at http://localhost:8000
 
-## Comandos comuns
+## Common commands
 
 ```bash
-# Aplicar migrations
+# Apply migrations
 podman-compose exec web python manage.py migrate
 
-# Criar superusuário para o admin
+# Create a superuser for the admin
 podman-compose exec web python manage.py createsuperuser
 
-# Abrir shell Django
+# Open Django shell
 podman-compose exec web python manage.py shell
 
-# Rodar testes
+# Run tests
 podman-compose exec web python -m pytest
 
-# Gerar lockfile após adicionar dependências em pyproject.toml
+# Regenerate lockfile after changing dependencies in pyproject.toml
 podman-compose exec web uv lock
-# Depois: git add uv.lock && git commit
+# Then: git add uv.lock && git commit
 
-# Instalar nova dependência
-podman-compose exec web uv add nome-do-pacote
-# Depois: git add pyproject.toml uv.lock && git commit
+# Add a new dependency
+podman-compose exec web uv add package-name
+# Then: git add pyproject.toml uv.lock && git commit
 ```
 
-## Acessar o admin
+## Accessing the admin
 
-http://localhost:8000/admin/ → login com o superusuário criado acima.
+http://localhost:8000/admin/ → log in with the superuser created above.
 
-## Subir em background
+## Running in background
 
 ```bash
-podman-compose up -d          # sobe em background
-podman-compose logs -f web    # acompanha logs do servidor Django
-podman-compose down           # derruba tudo (dados persistem nos volumes)
-podman-compose down -v        # derruba E apaga os volumes (reset total)
+podman-compose up -d          # start in background
+podman-compose logs -f web    # follow Django server logs
+podman-compose down           # stop all (data persists in volumes)
+podman-compose down -v        # stop AND delete volumes (full reset)
 ```
 
-## Primeira vez: gerar uv.lock
+## First time: generate uv.lock
 
-O lockfile `uv.lock` deve ser commitado no repositório para builds reproduzíveis.
-Na primeira vez após o `podman-compose up --build`, gere-o assim:
+The `uv.lock` lockfile should be committed to the repository for reproducible builds.
+After the first `podman-compose up --build`, generate it with:
 
 ```bash
 podman-compose exec web uv lock
 git add uv.lock
-git commit -m "adiciona uv.lock inicial"
+git commit -m "chore: add initial uv.lock"
 ```
 
 ## Troubleshooting
 
-### SELinux: permissão negada nos bind mounts
+### SELinux: permission denied on bind mounts
 
-O Fedora usa SELinux em modo Enforcing. O `compose.yml` já adiciona `:Z` nos bind mounts,
-o que relabela o diretório automaticamente. Se ainda ocorrer erro de permissão:
+Fedora uses SELinux in Enforcing mode. The `compose.yml` already adds `:Z` to bind mounts,
+which relabels the directory automatically. If you still get a permission error:
 
 ```bash
-# Verificar contexto SELinux do diretório
+# Check SELinux context of the directory
 ls -lZ .
 
-# Relabelar manualmente se necessário
+# Relabel manually if needed
 chcon -Rt svirt_sandbox_file_t .
 ```
 
-### Ownership de arquivos criados pelo container
+### Ownership of files created by the container
 
-O container usa o usuário `app` com UID/GID 1000. No Fedora, o primeiro usuário
-criado geralmente tem UID 1000, então os arquivos aparecem como seu usuário no host.
+The container uses `userns_mode: keep-id`, which maps your host UID into the container.
+Files created inside the container will appear with your user's ownership on the host.
 
-Se o seu UID for diferente de 1000, arquivos criados pelo container aparecerão como
-UID 1000 no host. Soluções:
-
-- Adicionar flag `:U` no bind mount do `compose.yml` (Podman remapeia UIDs automaticamente):
-  ```yaml
-  - ./:/app:Z,U
-  ```
-- Ou reconstruir a imagem com seu UID:
-  ```bash
-  # (requer ajuste no Containerfile para aceitar build arg UID)
-  podman-compose build --build-arg UID=$(id -u)
-  ```
-
-### Porta 8000 já em uso
+If you run into ownership issues, verify your UID matches what Podman is using:
 
 ```bash
-# Verificar o processo
-ss -tlnp | grep 8000
-# Mudar a porta no compose.yml: "8001:8000"
+podman-compose exec web id
 ```
 
-### Container `web` reiniciando em loop
+### Port 8000 already in use
 
 ```bash
-# Ver logs completos
+# Check which process is using it
+ss -tlnp | grep 8000
+# Change the port in compose.yml: "8001:8000"
+```
+
+### Container `web` restarting in a loop
+
+```bash
+# View full logs
 podman-compose logs web
 
-# Problema comum: db ou redis ainda não prontos
-# O compose já usa healthchecks, mas em hardware lento pode precisar de mais retries
+# Common cause: db or redis not ready yet
+# The compose already uses healthchecks, but on slow hardware you may need more retries
 ```
