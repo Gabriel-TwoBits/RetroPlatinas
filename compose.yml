@@ -28,6 +28,7 @@ services:
     build:
       context: .
       dockerfile: Containerfile
+    userns_mode: keep-id
     volumes:
       - ./:/app:Z
       - media_data:/app/media
