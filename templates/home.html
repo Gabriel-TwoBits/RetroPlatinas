@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block title %}Home — RetroCheevos{% endblock %}
+
+{% block content %}
+<h1>Welcome to RetroCheevos</h1>
+{% if user.is_authenticated %}
+  <p>You are logged in as <strong>{{ user.username }}</strong>.</p>
+{% else %}
+  <p><a href="{% url 'register' %}">Register</a> or <a href="{% url 'login' %}">log in</a> to get started.</p>
+{% endif %}
+{% endblock %}
