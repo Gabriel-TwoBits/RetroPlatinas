@@ -1,13 +1,14 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block title %}Register — RetroCheevos{% endblock %}
+{% block title %}{% trans "Register" %} — RetroCheevos{% endblock %}
 
 {% block content %}
-<h1>Create account</h1>
+<h1>{% trans "Create account" %}</h1>
 <form method="post">
   {% csrf_token %}
   {{ form.as_p }}
-  <button type="submit">Register</button>
+  <button type="submit">{% trans "Register" %}</button>
 </form>
-<p>Already have an account? <a href="{% url 'login' %}">Log in</a></p>
+<p>{% trans "Already have an account?" %} <a href="{% url 'login' %}">{% trans "Log in" %}</a></p>
 {% endblock %}

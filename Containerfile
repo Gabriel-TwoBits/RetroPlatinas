@@ -9,6 +9,7 @@ ENV UV_PROJECT_ENVIRONMENT=/opt/venv \
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
+    gettext \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 

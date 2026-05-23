@@ -1,12 +1,15 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block title %}Home — RetroCheevos{% endblock %}
+{% block title %}{% trans "Home" %} — RetroCheevos{% endblock %}
 
 {% block content %}
-<h1>Welcome to RetroCheevos</h1>
+<h1>{% trans "Welcome to RetroCheevos" %}</h1>
 {% if user.is_authenticated %}
-  <p>You are logged in as <strong>{{ user.username }}</strong>.</p>
+  <p>{% blocktrans with username=user.username %}You are logged in as <strong>{{ username }}</strong>.{% endblocktrans %}</p>
 {% else %}
-  <p><a href="{% url 'register' %}">Register</a> or <a href="{% url 'login' %}">log in</a> to get started.</p>
+  {% url 'register' as register_url %}
+  {% url 'login' as login_url %}
+  <p>{% blocktrans %}<a href="{{ register_url }}">Register</a> or <a href="{{ login_url }}">log in</a> to get started.{% endblocktrans %}</p>
 {% endif %}
 {% endblock %}

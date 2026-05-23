@@ -1,6 +1,8 @@
 import pytest
 from django.contrib.auth import get_user_model
 
+from apps.accounts.forms import RegistrationForm
+
 User = get_user_model()
 
 
@@ -19,16 +21,16 @@ def test_register_creates_user_and_logs_in(client):
 
 
 @pytest.mark.django_db
-def test_register_rejects_duplicate_email(client):
+def test_register_rejects_duplicate_email():
     User.objects.create_user(username="alice", email="dup@example.com", password="irrelevant")
-    resp = client.post("/register/", {
+    form = RegistrationForm(data={
         "username": "bob",
         "email": "dup@example.com",
         "password1": "very-strong-pw-1",
         "password2": "very-strong-pw-1",
     })
-    assert resp.status_code == 200
-    assert b"already exists" in resp.content
+    assert not form.is_valid()
+    assert "email" in form.errors
     assert not User.objects.filter(username="bob").exists()
 
 
@@ -55,3 +57,17 @@ def test_logout_ends_session(client):
     assert "_auth_user_id" in client.session
     client.post("/logout/")
     assert "_auth_user_id" not in client.session
+
+
+@pytest.mark.django_db
+def test_homepage_renders_portuguese_by_default(client):
+    resp = client.get("/", HTTP_ACCEPT_LANGUAGE="pt")
+    assert resp.status_code == 200
+    assert "Bem-vindo" in resp.content.decode()
+
+
+@pytest.mark.django_db
+def test_set_language_switches_to_english(client):
+    resp = client.post("/i18n/setlang/", {"language": "en", "next": "/"}, follow=True)
+    assert resp.status_code == 200
+    assert "Welcome to RetroCheevos" in resp.content.decode()
