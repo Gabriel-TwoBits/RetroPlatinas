@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RetroCheevos\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-23 18:15-0300\n"
+"POT-Creation-Date: 2026-05-25 15:55-0300\n"
 "PO-Revision-Date: 2026-05-23 18:15-0300\n"
 "Last-Translator: RetroCheevos\n"
 "Language-Team: Portuguese\n"
@@ -19,6 +19,159 @@ msgstr ""
 #: apps/accounts/forms.py:18
 msgid "A user with that email already exists."
 msgstr "Já existe um usuário com esse email."
+
+#: apps/achievements/admin.py:21 apps/achievements/models.py:40
+msgid "status"
+msgstr "status"
+
+#: apps/achievements/models.py:13
+msgid "Draft"
+msgstr "Rascunho"
+
+#: apps/achievements/models.py:14
+msgid "Community"
+msgstr "Comunidade"
+
+#: apps/achievements/models.py:15
+msgid "Verified"
+msgstr "Verificado"
+
+#: apps/achievements/models.py:22 apps/achievements/models.py:85
+#: apps/games/models.py:33 apps/games/models.py:46
+msgid "game"
+msgstr "jogo"
+
+#: apps/achievements/models.py:27 apps/achievements/models.py:90
+msgid "author"
+msgstr "autor"
+
+#: apps/achievements/models.py:29 apps/games/models.py:20
+msgid "title"
+msgstr "título"
+
+#: apps/achievements/models.py:30 apps/games/models.py:28
+msgid "description"
+msgstr "descrição"
+
+#: apps/achievements/models.py:31
+msgid "points"
+msgstr "pontos"
+
+#: apps/achievements/models.py:32
+msgid "memory address expression"
+msgstr "expressão de endereço de memória"
+
+#: apps/achievements/models.py:34
+msgid "badge"
+msgstr "emblema"
+
+#: apps/achievements/models.py:42
+msgid "flags"
+msgstr "flags"
+
+#: apps/achievements/models.py:43 apps/games/models.py:30
+msgid "created at"
+msgstr "criado em"
+
+#: apps/achievements/models.py:44 apps/achievements/models.py:94
+msgid "updated at"
+msgstr "atualizado em"
+
+#: apps/achievements/models.py:47 apps/achievements/models.py:65
+msgid "achievement"
+msgstr "conquista"
+
+#: apps/achievements/models.py:48
+msgid "achievements"
+msgstr "conquistas"
+
+#: apps/achievements/models.py:60
+msgid "user"
+msgstr "usuário"
+
+#: apps/achievements/models.py:67 apps/achievements/models.py:76
+msgid "hardcore"
+msgstr "hardcore"
+
+#: apps/achievements/models.py:68
+msgid "unlocked at"
+msgstr "desbloqueado em"
+
+#: apps/achievements/models.py:71
+msgid "user unlock"
+msgstr "desbloqueio de usuário"
+
+#: apps/achievements/models.py:72
+msgid "user unlocks"
+msgstr "desbloqueios de usuário"
+
+#: apps/achievements/models.py:76
+msgid "softcore"
+msgstr "softcore"
+
+#: apps/achievements/models.py:92
+msgid "address"
+msgstr "endereço"
+
+#: apps/achievements/models.py:93
+msgid "note"
+msgstr "nota"
+
+#: apps/achievements/models.py:97
+msgid "code note"
+msgstr "anotação de código"
+
+#: apps/achievements/models.py:98
+msgid "code notes"
+msgstr "anotações de código"
+
+#: apps/games/models.py:6
+msgid "RA ID"
+msgstr "ID no RA"
+
+#: apps/games/models.py:7
+msgid "name"
+msgstr "nome"
+
+#: apps/games/models.py:8
+msgid "short name"
+msgstr "nome curto"
+
+#: apps/games/models.py:11 apps/games/models.py:25
+msgid "console"
+msgstr "console"
+
+#: apps/games/models.py:12
+msgid "consoles"
+msgstr "consoles"
+
+#: apps/games/models.py:27
+msgid "icon"
+msgstr "ícone"
+
+#: apps/games/models.py:29
+msgid "rich presence patch"
+msgstr "script de rich presence"
+
+#: apps/games/models.py:34
+msgid "games"
+msgstr "jogos"
+
+#: apps/games/models.py:48
+msgid "MD5"
+msgstr "MD5"
+
+#: apps/games/models.py:49
+msgid "label"
+msgstr "rótulo"
+
+#: apps/games/models.py:52
+msgid "game hash"
+msgstr "hash do jogo"
+
+#: apps/games/models.py:53
+msgid "game hashes"
+msgstr "hashes do jogo"
 
 #: templates/accounts/login.html:4 templates/accounts/login.html:7
 #: templates/accounts/login.html:11 templates/accounts/register.html:13
@@ -96,4 +249,5 @@ msgid ""
 "<a href=\"%(register_url)s\">Register</a> or <a href=\"%(login_url)s\">log "
 "in</a> to get started."
 msgstr ""
-"<a href=\"%(register_url)s\">Cadastrar</a> ou <a href=\"%(login_url)s\">entrar</a> para começar."
+"<a href=\"%(register_url)s\">Cadastrar</a> ou <a "
+"href=\"%(login_url)s\">entrar</a> para começar."

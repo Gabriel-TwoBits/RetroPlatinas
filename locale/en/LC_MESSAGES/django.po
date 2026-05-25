@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RetroCheevos\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-23 18:15-0300\n"
+"POT-Creation-Date: 2026-05-25 15:55-0300\n"
 "PO-Revision-Date: 2026-05-23 18:15-0300\n"
 "Last-Translator: RetroCheevos\n"
 "Language-Team: English\n"
@@ -15,8 +15,162 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
 #: apps/accounts/forms.py:18
 msgid "A user with that email already exists."
+msgstr ""
+
+#: apps/achievements/admin.py:21 apps/achievements/models.py:40
+msgid "status"
+msgstr ""
+
+#: apps/achievements/models.py:13
+msgid "Draft"
+msgstr ""
+
+#: apps/achievements/models.py:14
+msgid "Community"
+msgstr ""
+
+#: apps/achievements/models.py:15
+msgid "Verified"
+msgstr ""
+
+#: apps/achievements/models.py:22 apps/achievements/models.py:85
+#: apps/games/models.py:33 apps/games/models.py:46
+msgid "game"
+msgstr ""
+
+#: apps/achievements/models.py:27 apps/achievements/models.py:90
+msgid "author"
+msgstr ""
+
+#: apps/achievements/models.py:29 apps/games/models.py:20
+msgid "title"
+msgstr ""
+
+#: apps/achievements/models.py:30 apps/games/models.py:28
+msgid "description"
+msgstr ""
+
+#: apps/achievements/models.py:31
+msgid "points"
+msgstr ""
+
+#: apps/achievements/models.py:32
+msgid "memory address expression"
+msgstr ""
+
+#: apps/achievements/models.py:34
+msgid "badge"
+msgstr ""
+
+#: apps/achievements/models.py:42
+msgid "flags"
+msgstr ""
+
+#: apps/achievements/models.py:43 apps/games/models.py:30
+msgid "created at"
+msgstr ""
+
+#: apps/achievements/models.py:44 apps/achievements/models.py:94
+msgid "updated at"
+msgstr ""
+
+#: apps/achievements/models.py:47 apps/achievements/models.py:65
+msgid "achievement"
+msgstr ""
+
+#: apps/achievements/models.py:48
+msgid "achievements"
+msgstr ""
+
+#: apps/achievements/models.py:60
+msgid "user"
+msgstr ""
+
+#: apps/achievements/models.py:67 apps/achievements/models.py:76
+msgid "hardcore"
+msgstr ""
+
+#: apps/achievements/models.py:68
+msgid "unlocked at"
+msgstr ""
+
+#: apps/achievements/models.py:71
+msgid "user unlock"
+msgstr ""
+
+#: apps/achievements/models.py:72
+msgid "user unlocks"
+msgstr ""
+
+#: apps/achievements/models.py:76
+msgid "softcore"
+msgstr ""
+
+#: apps/achievements/models.py:92
+msgid "address"
+msgstr ""
+
+#: apps/achievements/models.py:93
+msgid "note"
+msgstr ""
+
+#: apps/achievements/models.py:97
+msgid "code note"
+msgstr ""
+
+#: apps/achievements/models.py:98
+msgid "code notes"
+msgstr ""
+
+#: apps/games/models.py:6
+msgid "RA ID"
+msgstr ""
+
+#: apps/games/models.py:7
+msgid "name"
+msgstr ""
+
+#: apps/games/models.py:8
+msgid "short name"
+msgstr ""
+
+#: apps/games/models.py:11 apps/games/models.py:25
+msgid "console"
+msgstr ""
+
+#: apps/games/models.py:12
+msgid "consoles"
+msgstr ""
+
+#: apps/games/models.py:27
+msgid "icon"
+msgstr ""
+
+#: apps/games/models.py:29
+msgid "rich presence patch"
+msgstr ""
+
+#: apps/games/models.py:34
+msgid "games"
+msgstr ""
+
+#: apps/games/models.py:48
+msgid "MD5"
+msgstr ""
+
+#: apps/games/models.py:49
+msgid "label"
+msgstr ""
+
+#: apps/games/models.py:52
+msgid "game hash"
+msgstr ""
+
+#: apps/games/models.py:53
+msgid "game hashes"
 msgstr ""
 
 #: templates/accounts/login.html:4 templates/accounts/login.html:7
