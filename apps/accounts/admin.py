@@ -6,7 +6,9 @@ from apps.accounts.models import User
 
 @admin.register(User)
 class UserAdmin(DjangoUserAdmin):
-    list_display = ("username", "email", "softcore_points", "hardcore_points", "is_staff", "date_joined")
+    list_display = (
+        "username", "email", "softcore_points", "hardcore_points", "is_staff", "date_joined"
+    )
     fieldsets = DjangoUserAdmin.fieldsets + (
         (
             "RetroCheevos",

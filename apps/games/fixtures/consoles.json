@@ -1,0 +1,12 @@
+[
+  {"model": "games.console", "pk": 1, "fields": {"ra_id": 1, "name": "Mega Drive / Genesis", "short_name": "MD"}},
+  {"model": "games.console", "pk": 2, "fields": {"ra_id": 2, "name": "Nintendo 64", "short_name": "N64"}},
+  {"model": "games.console", "pk": 3, "fields": {"ra_id": 3, "name": "Super Nintendo", "short_name": "SNES"}},
+  {"model": "games.console", "pk": 4, "fields": {"ra_id": 4, "name": "Game Boy", "short_name": "GB"}},
+  {"model": "games.console", "pk": 5, "fields": {"ra_id": 5, "name": "Game Boy Advance", "short_name": "GBA"}},
+  {"model": "games.console", "pk": 6, "fields": {"ra_id": 6, "name": "Game Boy Color", "short_name": "GBC"}},
+  {"model": "games.console", "pk": 7, "fields": {"ra_id": 7, "name": "NES / Famicom", "short_name": "NES"}},
+  {"model": "games.console", "pk": 8, "fields": {"ra_id": 8, "name": "PC Engine / TurboGrafx-16", "short_name": "PCE"}},
+  {"model": "games.console", "pk": 11, "fields": {"ra_id": 11, "name": "Master System", "short_name": "SMS"}},
+  {"model": "games.console", "pk": 12, "fields": {"ra_id": 12, "name": "PlayStation", "short_name": "PS1"}}
+]
