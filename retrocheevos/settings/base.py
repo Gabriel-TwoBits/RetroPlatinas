@@ -16,6 +16,7 @@ INSTALLED_APPS = [
     "apps.accounts",
     "apps.games",
     "apps.achievements",
+    "apps.api",
 ]
 
 AUTH_USER_MODEL = "accounts.User"
@@ -29,6 +30,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "apps.api.middleware.RequestLogMiddleware",
 ]
 
 ROOT_URLCONF = "retrocheevos.urls"
@@ -99,3 +101,15 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 LOGIN_URL = "/login/"
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {"class": "logging.StreamHandler"},
+    },
+    "root": {"handlers": ["console"], "level": "WARNING"},
+    "loggers": {
+        "apps": {"level": "INFO"},
+    },
+}
