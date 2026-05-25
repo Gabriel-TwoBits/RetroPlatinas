@@ -16,7 +16,7 @@ class AchievementAdmin(admin.ModelAdmin):
     list_display = ("title", "game", "colored_status", "points", "flags", "author", "created_at")
     list_filter = ("status", "game__console")
     search_fields = ("title", "description", "mem_addr")
-    raw_id_fields = ("author", "game")
+    autocomplete_fields = ("author", "game")
 
     @admin.display(description=_("status"))
     def colored_status(self, obj):
@@ -30,7 +30,7 @@ class UserUnlockAdmin(admin.ModelAdmin):
     list_display = ("user", "achievement", "hardcore", "unlocked_at")
     list_filter = ("hardcore",)
     search_fields = ("user__username", "achievement__title")
-    raw_id_fields = ("user", "achievement")
+    autocomplete_fields = ("user", "achievement")
 
 
 @admin.register(CodeNote)
@@ -38,4 +38,4 @@ class CodeNoteAdmin(admin.ModelAdmin):
     list_display = ("game", "address", "author", "updated_at")
     list_filter = ("game",)
     search_fields = ("address", "note")
-    raw_id_fields = ("author", "game")
+    autocomplete_fields = ("author", "game")
