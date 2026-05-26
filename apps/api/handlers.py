@@ -4,7 +4,9 @@ from datetime import timedelta
 from django.contrib.auth import authenticate
 from django.utils import timezone
 
-from apps.games.models import GameHash
+from apps.achievements.models import Achievement
+from apps.api.auth import user_from_token
+from apps.games.models import Game, GameHash
 
 _NOT_IMPLEMENTED = {"Success": False, "Error": "not implemented"}
 _INVALID_CREDENTIALS = {"Success": False, "Error": "Credentials invalid.", "Status": 401}
@@ -41,8 +43,55 @@ def handle_gameid(request):
     return {"Success": True, "GameID": game_id if game_id is not None else 0}
 
 
+def _serialize_achievement(a):
+    flags = 3 if a.status == Achievement.STATUS_VERIFIED else 5
+    return {
+        "ID": a.id,
+        "MemAddr": a.mem_addr,
+        "Title": a.title,
+        "Description": a.description,
+        "Points": a.points,
+        "Author": a.author.username,
+        "Modified": int(a.updated_at.timestamp()),
+        "Created": int(a.created_at.timestamp()),
+        "BadgeName": f"{a.id:05d}",
+        "Flags": flags,
+    }
+
+
 def handle_patch(request):
-    return _NOT_IMPLEMENTED
+    user = user_from_token(request.POST.get("t", ""))
+    if user is None:
+        return _INVALID_CREDENTIALS
+
+    try:
+        game_id = int(request.POST.get("g", ""))
+    except (ValueError, TypeError):
+        return {"Success": False, "Error": "Unknown game"}
+
+    game = Game.objects.select_related("console").filter(pk=game_id).first()
+    if game is None:
+        return {"Success": False, "Error": "Unknown game"}
+
+    achievements = (
+        game.achievements
+        .filter(status__in=[Achievement.STATUS_COMMUNITY, Achievement.STATUS_VERIFIED])
+        .select_related("author")
+        .order_by("id")
+    )
+    image_icon = game.icon.url if game.icon else "/Images/000000.png"
+    return {
+        "Success": True,
+        "PatchData": {
+            "ID": game.pk,
+            "Title": game.title,
+            "ConsoleID": game.console.ra_id,
+            "ImageIcon": image_icon,
+            "RichPresencePatch": game.rich_presence_patch,
+            "Achievements": [_serialize_achievement(a) for a in achievements],
+            "Leaderboards": [],
+        },
+    }
 
 
 def handle_postactivity(request):

@@ -5,13 +5,14 @@ import pytest
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 
+from apps.achievements.models import Achievement
 from apps.api.auth import user_from_token
 from apps.api.handlers import HANDLERS
 from apps.games.models import Console, Game, GameHash
 
 User = get_user_model()
 
-STUB_ACTIONS = [k for k in HANDLERS if k not in ("login2", "gameid")]
+STUB_ACTIONS = [k for k in HANDLERS if k not in ("login2", "gameid", "patch")]
 
 
 @pytest.mark.django_db
@@ -210,3 +211,163 @@ def test_gameid_is_case_insensitive(client, game_with_hash):
     data = response.json()
     assert data["Success"] is True
     assert data["GameID"] == game.pk
+
+
+# --- patch ---
+
+
+@pytest.fixture
+def authed_user(db):
+    user = User.objects.create_user(username="player", password="pw")
+    token = "t" * 64
+    user.api_token = token
+    user.api_token_expires_at = timezone.now() + timedelta(days=14)
+    user.save(update_fields=["api_token", "api_token_expires_at"])
+    return user, token
+
+
+@pytest.fixture
+def game_with_achievements(authed_user):
+    user, _ = authed_user
+    console = Console.objects.create(ra_id=12, name="PlayStation", short_name="PS1")
+    game = Game.objects.create(
+        title="Crash Bandicoot", console=console, rich_presence_patch="Display:\nCrash!"
+    )
+    Achievement.objects.create(
+        game=game, author=user, title="Draft One", description="d",
+        points=5, mem_addr="0xH0001=1", status=Achievement.STATUS_DRAFT,
+    )
+    Achievement.objects.create(
+        game=game, author=user, title="Community One", description="c",
+        points=10, mem_addr="0xH0002=1", status=Achievement.STATUS_COMMUNITY,
+    )
+    Achievement.objects.create(
+        game=game, author=user, title="Verified One", description="v",
+        points=25, mem_addr="0xH0003=1", status=Achievement.STATUS_VERIFIED,
+    )
+    return game
+
+
+@pytest.mark.django_db
+def test_patch_returns_full_set_excluding_drafts(client, authed_user, game_with_achievements):
+    _, token = authed_user
+    game = game_with_achievements
+    response = client.post("/dorequest.php", {"r": "patch", "t": token, "g": game.pk})
+    data = response.json()
+    assert data["Success"] is True
+    achievements = data["PatchData"]["Achievements"]
+    assert len(achievements) == 2
+    titles = {a["Title"] for a in achievements}
+    assert titles == {"Community One", "Verified One"}
+    community = next(a for a in achievements if a["Title"] == "Community One")
+    verified = next(a for a in achievements if a["Title"] == "Verified One")
+    assert community["Flags"] == 5
+    assert verified["Flags"] == 3
+
+
+@pytest.mark.django_db
+def test_patch_empty_game(client, authed_user):
+    _, token = authed_user
+    console = Console.objects.create(ra_id=7, name="NES", short_name="NES")
+    game = Game.objects.create(title="Empty Game", console=console)
+    response = client.post("/dorequest.php", {"r": "patch", "t": token, "g": game.pk})
+    data = response.json()
+    assert data["Success"] is True
+    assert data["PatchData"]["Achievements"] == []
+
+
+@pytest.mark.django_db
+def test_patch_unknown_game(client, authed_user):
+    _, token = authed_user
+    response = client.post("/dorequest.php", {"r": "patch", "t": token, "g": 99999})
+    data = response.json()
+    assert data["Success"] is False
+    assert data["Error"] == "Unknown game"
+
+
+@pytest.mark.django_db
+def test_patch_missing_game_param(client, authed_user):
+    _, token = authed_user
+    response = client.post("/dorequest.php", {"r": "patch", "t": token})
+    data = response.json()
+    assert data["Success"] is False
+    assert data["Error"] == "Unknown game"
+
+
+@pytest.mark.django_db
+def test_patch_missing_token(client, game_with_achievements):
+    game = game_with_achievements
+    response = client.post("/dorequest.php", {"r": "patch", "g": game.pk})
+    data = response.json()
+    assert data["Success"] is False
+    assert data["Error"] == "Credentials invalid."
+
+
+@pytest.mark.django_db
+def test_patch_invalid_token(client, game_with_achievements):
+    game = game_with_achievements
+    response = client.post("/dorequest.php", {"r": "patch", "t": "z" * 64, "g": game.pk})
+    data = response.json()
+    assert data["Success"] is False
+    assert data["Error"] == "Credentials invalid."
+
+
+@pytest.mark.django_db
+def test_patch_expired_token(client, game_with_achievements):
+    game = game_with_achievements
+    user = User.objects.create_user(username="expired", password="pw", email="expired@test.com")
+    user.api_token = "e" * 64
+    user.api_token_expires_at = timezone.now() - timedelta(seconds=1)
+    user.save(update_fields=["api_token", "api_token_expires_at"])
+    response = client.post("/dorequest.php", {"r": "patch", "t": "e" * 64, "g": game.pk})
+    data = response.json()
+    assert data["Success"] is False
+    assert data["Error"] == "Credentials invalid."
+
+
+@pytest.mark.django_db
+def test_patch_response_shape(client, authed_user, game_with_achievements):
+    _, token = authed_user
+    game = game_with_achievements
+    response = client.post("/dorequest.php", {"r": "patch", "t": token, "g": game.pk})
+    patch_data = response.json()["PatchData"]
+    assert patch_data["ID"] == game.pk
+    assert patch_data["Title"] == game.title
+    assert patch_data["ConsoleID"] == game.console.ra_id
+    assert "ImageIcon" in patch_data
+    assert "RichPresencePatch" in patch_data
+    assert "Achievements" in patch_data
+    assert patch_data["Leaderboards"] == []
+
+
+@pytest.mark.django_db
+def test_patch_achievement_shape(client, authed_user, game_with_achievements):
+    _, token = authed_user
+    game = game_with_achievements
+    response = client.post("/dorequest.php", {"r": "patch", "t": token, "g": game.pk})
+    ach = response.json()["PatchData"]["Achievements"][0]
+    required_fields = (
+        "ID", "MemAddr", "Title", "Description", "Points",
+        "Author", "Modified", "Created", "BadgeName", "Flags",
+    )
+    for field in required_fields:
+        assert field in ach, f"Missing field: {field}"
+
+
+@pytest.mark.django_db
+def test_patch_badge_name_zero_padded(client, authed_user, game_with_achievements):
+    _, token = authed_user
+    game = game_with_achievements
+    response = client.post("/dorequest.php", {"r": "patch", "t": token, "g": game.pk})
+    for ach in response.json()["PatchData"]["Achievements"]:
+        badge = ach["BadgeName"]
+        assert len(badge) == 5
+        assert badge == f"{ach['ID']:05d}"
+
+
+@pytest.mark.django_db
+def test_patch_rich_presence_passthrough(client, authed_user, game_with_achievements):
+    _, token = authed_user
+    game = game_with_achievements
+    response = client.post("/dorequest.php", {"r": "patch", "t": token, "g": game.pk})
+    assert response.json()["PatchData"]["RichPresencePatch"] == game.rich_presence_patch
