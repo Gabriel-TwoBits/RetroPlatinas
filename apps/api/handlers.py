@@ -4,6 +4,8 @@ from datetime import timedelta
 from django.contrib.auth import authenticate
 from django.utils import timezone
 
+from apps.games.models import GameHash
+
 _NOT_IMPLEMENTED = {"Success": False, "Error": "not implemented"}
 _INVALID_CREDENTIALS = {"Success": False, "Error": "Credentials invalid.", "Status": 401}
 
@@ -32,7 +34,11 @@ def handle_login2(request):
 
 
 def handle_gameid(request):
-    return _NOT_IMPLEMENTED
+    md5 = request.POST.get("m", "").lower()
+    if not md5:
+        return {"Success": True, "GameID": 0}
+    game_id = GameHash.objects.filter(md5=md5).values_list("game_id", flat=True).first()
+    return {"Success": True, "GameID": game_id if game_id is not None else 0}
 
 
 def handle_patch(request):

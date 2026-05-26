@@ -7,10 +7,11 @@ from django.utils import timezone
 
 from apps.api.auth import user_from_token
 from apps.api.handlers import HANDLERS
+from apps.games.models import Console, Game, GameHash
 
 User = get_user_model()
 
-STUB_ACTIONS = [k for k in HANDLERS if k != "login2"]
+STUB_ACTIONS = [k for k in HANDLERS if k not in ("login2", "gameid")]
 
 
 @pytest.mark.django_db
@@ -160,3 +161,52 @@ def test_user_from_token_returns_none_for_expired_token():
 @pytest.mark.django_db
 def test_user_from_token_returns_none_for_empty_token():
     assert user_from_token("") is None
+
+
+# --- gameid ---
+
+
+@pytest.fixture
+def game_with_hash(db):
+    console = Console.objects.create(ra_id=12, name="PlayStation", short_name="PS1")
+    game = Game.objects.create(title="Crash Bandicoot", console=console)
+    gh = GameHash.objects.create(game=game, md5="a" * 32, label="NTSC-US")
+    return game, gh
+
+
+@pytest.mark.django_db
+def test_gameid_returns_game_id_for_known_hash(client, game_with_hash):
+    game, gh = game_with_hash
+    response = client.post("/dorequest.php", {"r": "gameid", "m": gh.md5})
+    data = response.json()
+    assert response.status_code == 200
+    assert data["Success"] is True
+    assert data["GameID"] == game.pk
+
+
+@pytest.mark.django_db
+def test_gameid_returns_zero_for_unknown_hash(client):
+    response = client.post("/dorequest.php", {"r": "gameid", "m": "b" * 32})
+    data = response.json()
+    assert response.status_code == 200
+    assert data["Success"] is True
+    assert data["GameID"] == 0
+
+
+@pytest.mark.django_db
+def test_gameid_returns_zero_for_missing_hash(client):
+    response = client.post("/dorequest.php", {"r": "gameid"})
+    data = response.json()
+    assert response.status_code == 200
+    assert data["Success"] is True
+    assert data["GameID"] == 0
+
+
+@pytest.mark.django_db
+def test_gameid_is_case_insensitive(client, game_with_hash):
+    game, gh = game_with_hash
+    uppercase_md5 = gh.md5.upper()
+    response = client.post("/dorequest.php", {"r": "gameid", "m": uppercase_md5})
+    data = response.json()
+    assert data["Success"] is True
+    assert data["GameID"] == game.pk
