@@ -1,17 +1,23 @@
 import logging
+from datetime import timedelta
 
 import pytest
+from django.contrib.auth import get_user_model
+from django.utils import timezone
 
+from apps.api.auth import user_from_token
 from apps.api.handlers import HANDLERS
+
+User = get_user_model()
+
+STUB_ACTIONS = [k for k in HANDLERS if k != "login2"]
 
 
 @pytest.mark.django_db
-def test_dorequest_login2_stub(client):
-    response = client.post("/dorequest.php", {"r": "login2"})
-    data = response.json()
-    assert response.status_code == 200
-    assert data["Success"] is False
-    assert data["Error"] == "not implemented"
+def test_dorequest_login2_stub_replaced(client):
+    User.objects.create_user(username="alice", password="valid-pw-123")
+    response = client.post("/dorequest.php", {"r": "login2", "u": "alice", "p": "valid-pw-123"})
+    assert response.json()["Success"] is True
 
 
 @pytest.mark.django_db
@@ -33,7 +39,7 @@ def test_dorequest_unknown_action(client):
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize("action", list(HANDLERS.keys()))
+@pytest.mark.parametrize("action", STUB_ACTIONS)
 def test_all_handlers_stubbed(client, action):
     response = client.post("/dorequest.php", {"r": action})
     data = response.json()
@@ -57,3 +63,100 @@ def test_middleware_logs_request_without_credentials(client, caplog):
     assert any("u=alice" in record.message for record in caplog.records)
     assert not any("secret" in record.message for record in caplog.records)
     assert not any("tok" in record.message for record in caplog.records)
+
+
+# --- login2 ---
+
+
+@pytest.mark.django_db
+def test_login2_returns_token_for_valid_credentials(client):
+    User.objects.create_user(
+        username="alice", password="valid-pw-123", hardcore_points=10, softcore_points=5
+    )
+    response = client.post("/dorequest.php", {"r": "login2", "u": "alice", "p": "valid-pw-123"})
+    data = response.json()
+    assert response.status_code == 200
+    assert data["Success"] is True
+    assert data["User"] == "alice"
+    assert len(data["Token"]) == 64
+    assert data["Score"] == 10
+    assert data["SoftcoreScore"] == 5
+    assert data["Messages"] == 0
+    assert data["AccountType"] == "Registered"
+
+
+@pytest.mark.django_db
+def test_login2_persists_token_and_expiration(client):
+    user = User.objects.create_user(username="alice", password="valid-pw-123")
+    client.post("/dorequest.php", {"r": "login2", "u": "alice", "p": "valid-pw-123"})
+    user.refresh_from_db()
+    assert user.api_token is not None
+    assert len(user.api_token) == 64
+    delta = user.api_token_expires_at - timezone.now()
+    assert timedelta(days=13) < delta < timedelta(days=15)
+
+
+@pytest.mark.django_db
+def test_login2_wrong_password(client):
+    User.objects.create_user(username="alice", password="correct-pw-123")
+    response = client.post("/dorequest.php", {"r": "login2", "u": "alice", "p": "wrong"})
+    data = response.json()
+    assert data["Success"] is False
+    assert data["Error"] == "Credentials invalid."
+    assert data["Status"] == 401
+
+
+@pytest.mark.django_db
+def test_login2_unknown_user(client):
+    response = client.post("/dorequest.php", {"r": "login2", "u": "nobody", "p": "pw"})
+    data = response.json()
+    assert data["Success"] is False
+    assert data["Error"] == "Credentials invalid."
+    assert data["Status"] == 401
+
+
+@pytest.mark.django_db
+def test_login2_missing_username(client):
+    response = client.post("/dorequest.php", {"r": "login2", "p": "pw"})
+    data = response.json()
+    assert data["Success"] is False
+    assert data["Error"] == "Credentials invalid."
+
+
+@pytest.mark.django_db
+def test_login2_missing_password(client):
+    response = client.post("/dorequest.php", {"r": "login2", "u": "alice"})
+    data = response.json()
+    assert data["Success"] is False
+    assert data["Error"] == "Credentials invalid."
+
+
+# --- user_from_token ---
+
+
+@pytest.mark.django_db
+def test_user_from_token_returns_user():
+    user = User.objects.create_user(username="alice", password="pw")
+    user.api_token = "a" * 64
+    user.api_token_expires_at = timezone.now() + timedelta(days=14)
+    user.save(update_fields=["api_token", "api_token_expires_at"])
+    assert user_from_token("a" * 64) == user
+
+
+@pytest.mark.django_db
+def test_user_from_token_returns_none_for_unknown_token():
+    assert user_from_token("z" * 64) is None
+
+
+@pytest.mark.django_db
+def test_user_from_token_returns_none_for_expired_token():
+    user = User.objects.create_user(username="alice", password="pw")
+    user.api_token = "b" * 64
+    user.api_token_expires_at = timezone.now() - timedelta(seconds=1)
+    user.save(update_fields=["api_token", "api_token_expires_at"])
+    assert user_from_token("b" * 64) is None
+
+
+@pytest.mark.django_db
+def test_user_from_token_returns_none_for_empty_token():
+    assert user_from_token("") is None
