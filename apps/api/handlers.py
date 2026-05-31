@@ -2,9 +2,10 @@ import secrets
 from datetime import timedelta
 
 from django.contrib.auth import authenticate
+from django.db import transaction
 from django.utils import timezone
 
-from apps.achievements.models import Achievement
+from apps.achievements.models import Achievement, UserUnlock
 from apps.api.auth import user_from_token
 from apps.games.models import Game, GameHash
 
@@ -102,8 +103,62 @@ def handle_startsession(request):
     return _NOT_IMPLEMENTED
 
 
+def _remaining_in_set(user, game, hardcore):
+    visible_statuses = [Achievement.STATUS_COMMUNITY, Achievement.STATUS_VERIFIED]
+    total = game.achievements.filter(status__in=visible_statuses).count()
+    unlocked = UserUnlock.objects.filter(
+        user=user,
+        hardcore=hardcore,
+        achievement__game=game,
+        achievement__status__in=visible_statuses,
+    ).count()
+    return max(total - unlocked, 0)
+
+
 def handle_awardachievement(request):
-    return _NOT_IMPLEMENTED
+    user = user_from_token(request.POST.get("t", ""))
+    if user is None:
+        return _INVALID_CREDENTIALS
+
+    try:
+        achievement_id = int(request.POST.get("a", ""))
+    except (ValueError, TypeError):
+        return {"Success": False, "Error": "Unknown achievement"}
+
+    achievement = (
+        Achievement.objects.select_related("game").filter(pk=achievement_id).first()
+    )
+    if achievement is None:
+        return {"Success": False, "Error": "Unknown achievement"}
+
+    hardcore = request.POST.get("h", "0") == "1"
+
+    with transaction.atomic():
+        locked_user = user.__class__.objects.select_for_update().get(pk=user.pk)
+
+        _, softcore_created = UserUnlock.objects.get_or_create(
+            user=locked_user, achievement=achievement, hardcore=False
+        )
+        if softcore_created:
+            locked_user.softcore_points += achievement.points
+
+        if hardcore:
+            _, hardcore_created = UserUnlock.objects.get_or_create(
+                user=locked_user, achievement=achievement, hardcore=True
+            )
+            if hardcore_created:
+                locked_user.hardcore_points += achievement.points
+
+        locked_user.save(update_fields=["softcore_points", "hardcore_points"])
+        remaining = _remaining_in_set(locked_user, achievement.game, hardcore)
+
+    return {
+        "Success": True,
+        "Score": locked_user.hardcore_points,
+        "SoftcoreScore": locked_user.softcore_points,
+        "AchievementID": achievement_id,
+        "AchievementsRemaining": remaining,
+    }
 
 
 def handle_ping(request):

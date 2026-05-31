@@ -5,14 +5,16 @@ import pytest
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 
-from apps.achievements.models import Achievement
+from apps.achievements.models import Achievement, UserUnlock
 from apps.api.auth import user_from_token
 from apps.api.handlers import HANDLERS
 from apps.games.models import Console, Game, GameHash
 
 User = get_user_model()
 
-STUB_ACTIONS = [k for k in HANDLERS if k not in ("login2", "gameid", "patch")]
+STUB_ACTIONS = [
+    k for k in HANDLERS if k not in ("login2", "gameid", "patch", "awardachievement")
+]
 
 
 @pytest.mark.django_db
@@ -371,3 +373,130 @@ def test_patch_rich_presence_passthrough(client, authed_user, game_with_achievem
     game = game_with_achievements
     response = client.post("/dorequest.php", {"r": "patch", "t": token, "g": game.pk})
     assert response.json()["PatchData"]["RichPresencePatch"] == game.rich_presence_patch
+
+
+# --- awardachievement ---
+
+
+@pytest.mark.django_db
+def test_awardachievement_softcore_creates_unlock_and_points(
+    client, authed_user, game_with_achievements
+):
+    user, token = authed_user
+    achievement = game_with_achievements.achievements.get(title="Community One")
+    response = client.post(
+        "/dorequest.php",
+        {"r": "awardachievement", "t": token, "a": achievement.pk, "h": "0"},
+    )
+    data = response.json()
+    assert data["Success"] is True
+    assert data["AchievementID"] == achievement.pk
+    assert UserUnlock.objects.filter(
+        user=user, achievement=achievement, hardcore=False
+    ).exists()
+    user.refresh_from_db()
+    assert user.softcore_points == 10
+    assert user.hardcore_points == 0
+    assert data["SoftcoreScore"] == 10
+    assert data["Score"] == 0
+
+
+@pytest.mark.django_db
+def test_awardachievement_is_idempotent(client, authed_user, game_with_achievements):
+    user, token = authed_user
+    achievement = game_with_achievements.achievements.get(title="Community One")
+    payload = {"r": "awardachievement", "t": token, "a": achievement.pk, "h": "0"}
+    client.post("/dorequest.php", payload)
+    response = client.post("/dorequest.php", payload)
+    assert response.json()["Success"] is True
+    assert (
+        UserUnlock.objects.filter(
+            user=user, achievement=achievement, hardcore=False
+        ).count()
+        == 1
+    )
+    user.refresh_from_db()
+    assert user.softcore_points == 10
+
+
+@pytest.mark.django_db
+def test_awardachievement_hardcore_creates_both_unlocks(
+    client, authed_user, game_with_achievements
+):
+    user, token = authed_user
+    achievement = game_with_achievements.achievements.get(title="Verified One")
+    response = client.post(
+        "/dorequest.php",
+        {"r": "awardachievement", "t": token, "a": achievement.pk, "h": "1"},
+    )
+    data = response.json()
+    assert data["Success"] is True
+    assert UserUnlock.objects.filter(
+        user=user, achievement=achievement, hardcore=True
+    ).exists()
+    assert UserUnlock.objects.filter(
+        user=user, achievement=achievement, hardcore=False
+    ).exists()
+    user.refresh_from_db()
+    assert user.hardcore_points == 25
+    assert user.softcore_points == 25
+    assert data["Score"] == 25
+    assert data["SoftcoreScore"] == 25
+
+
+@pytest.mark.django_db
+def test_awardachievement_remaining_decrements(
+    client, authed_user, game_with_achievements
+):
+    _, token = authed_user
+    achievement = game_with_achievements.achievements.get(title="Community One")
+    response = client.post(
+        "/dorequest.php",
+        {"r": "awardachievement", "t": token, "a": achievement.pk, "h": "0"},
+    )
+    assert response.json()["AchievementsRemaining"] == 1
+
+
+@pytest.mark.django_db
+def test_awardachievement_unknown_achievement(client, authed_user):
+    _, token = authed_user
+    response = client.post(
+        "/dorequest.php", {"r": "awardachievement", "t": token, "a": 99999, "h": "0"}
+    )
+    data = response.json()
+    assert data["Success"] is False
+    assert data["Error"] == "Unknown achievement"
+
+
+@pytest.mark.django_db
+def test_awardachievement_invalid_achievement_param(client, authed_user):
+    _, token = authed_user
+    response = client.post(
+        "/dorequest.php", {"r": "awardachievement", "t": token, "a": "abc", "h": "0"}
+    )
+    data = response.json()
+    assert data["Success"] is False
+    assert data["Error"] == "Unknown achievement"
+
+
+@pytest.mark.django_db
+def test_awardachievement_missing_token(client, game_with_achievements):
+    achievement = game_with_achievements.achievements.get(title="Community One")
+    response = client.post(
+        "/dorequest.php", {"r": "awardachievement", "a": achievement.pk, "h": "0"}
+    )
+    data = response.json()
+    assert data["Success"] is False
+    assert data["Error"] == "Credentials invalid."
+
+
+@pytest.mark.django_db
+def test_awardachievement_invalid_token(client, game_with_achievements):
+    achievement = game_with_achievements.achievements.get(title="Community One")
+    response = client.post(
+        "/dorequest.php",
+        {"r": "awardachievement", "t": "z" * 64, "a": achievement.pk, "h": "0"},
+    )
+    data = response.json()
+    assert data["Success"] is False
+    assert data["Error"] == "Credentials invalid."
