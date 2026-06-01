@@ -2,6 +2,7 @@ import secrets
 from datetime import timedelta
 
 from django.contrib.auth import authenticate
+from django.core.cache import cache
 from django.db import transaction
 from django.utils import timezone
 
@@ -11,6 +12,8 @@ from apps.games.models import Game, GameHash
 
 _NOT_IMPLEMENTED = {"Success": False, "Error": "not implemented"}
 _INVALID_CREDENTIALS = {"Success": False, "Error": "Credentials invalid.", "Status": 401}
+
+PRESENCE_TTL_SECONDS = 300
 
 
 def handle_login2(request):
@@ -100,7 +103,37 @@ def handle_postactivity(request):
 
 
 def handle_startsession(request):
-    return _NOT_IMPLEMENTED
+    user = user_from_token(request.POST.get("t", ""))
+    if user is None:
+        return _INVALID_CREDENTIALS
+
+    try:
+        game_id = int(request.POST.get("g", ""))
+    except (ValueError, TypeError):
+        return {"Success": False, "Error": "Unknown game"}
+
+    unlocks = UserUnlock.objects.filter(
+        user=user, achievement__game_id=game_id
+    ).values("achievement_id", "hardcore", "unlocked_at")
+
+    softcore = []
+    hardcore = []
+    for unlock in unlocks:
+        entry = {
+            "ID": unlock["achievement_id"],
+            "When": int(unlock["unlocked_at"].timestamp()),
+        }
+        if unlock["hardcore"]:
+            hardcore.append(entry)
+        else:
+            softcore.append(entry)
+
+    return {
+        "Success": True,
+        "Unlocks": softcore,
+        "HardcoreUnlocks": hardcore,
+        "ServerNow": int(timezone.now().timestamp()),
+    }
 
 
 def _remaining_in_set(user, game, hardcore):
@@ -162,7 +195,18 @@ def handle_awardachievement(request):
 
 
 def handle_ping(request):
-    return _NOT_IMPLEMENTED
+    user = user_from_token(request.POST.get("t", ""))
+    if user is None:
+        return _INVALID_CREDENTIALS
+
+    try:
+        game_id = int(request.POST.get("g", ""))
+    except (ValueError, TypeError):
+        return {"Success": False, "Error": "Unknown game"}
+
+    rich_presence = request.POST.get("m", "")
+    cache.set(f"presence:{user.id}:{game_id}", rich_presence, PRESENCE_TTL_SECONDS)
+    return {"Success": True}
 
 
 def handle_submitlbentry(request):
