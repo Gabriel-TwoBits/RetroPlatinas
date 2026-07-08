@@ -2,6 +2,9 @@
 
 Alternative platform to RetroAchievements.org with full protocol compatibility (rcheevos).
 
+Copyright (C) 2026 Gabriel-TwoBits. Licensed under the [GNU AGPL-3.0](LICENSE) —
+if you run a modified version as a network service, you must offer its source to your users.
+
 ## Prerequisites
 
 - **Podman** 4+ (`podman --version`)
