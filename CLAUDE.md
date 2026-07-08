@@ -30,13 +30,23 @@ podman-compose exec web python manage.py compilemessages
 - Good: `feat: add game search endpoint`
 - Bad: `adiciona busca de jogo` / multi-line with bullets
 
-**Naming** — kebab-case in all repo files, directories, and configs. Only forced exception: gettext locale directories that require a country code (`pt_BR`, `en_US`). That's why we use `pt` and `en` — no underscores needed.
+**Naming** — kebab-case in all repo files, directories, and configs. Forced exceptions: (1) gettext locale directories that require a country code (`pt_BR`, `en_US`) — that's why we use `pt` and `en`, no underscores needed; (2) Python modules and packages, which must be importable and so stay snake_case (migrations, management commands, app modules).
 
 **i18n mandatory** — every user-visible string is born inside `{% trans %}` / `{% blocktrans %}` (templates) or `gettext_lazy` (forms/models). No "we'll translate later" PRs.
 
 **Comments** — default is none. Only add a comment when the *why* is non-obvious.
 
 **No opportunistic cleanup** — a bugfix is not a refactor. Don't introduce abstractions beyond what the task requires.
+
+## Documentation
+
+- **Language** — repo docs are written in **English**, like the rest of the codebase (only user-facing UI strings are i18n'd).
+- **Location** — reference/design docs live beside the app they describe (`apps/<app>/…`). Game memory maps live in `apps/games/code-notes/<game-slug>.md`, one file per game.
+- **Filenames** — kebab-case (`.md`), same as every other non-module file.
+- **Structured technical references use tables** — e.g. a memory map is `| Address | Type | Description |`.
+- **Credit external sources** — a short header with the URL and attribution.
+- **No ephemeral progress** — same rule as the roadmap: state and history belong in `git log`, not in docs.
+- **Seed data is not a data migration** — data migrations run against the test DB and collide with test fixtures. Seed reference data with a fixture (`loaddata`) or an idempotent management command instead (e.g. `manage.py seed_crash1_code_notes`).
 
 ## Workflow
 
