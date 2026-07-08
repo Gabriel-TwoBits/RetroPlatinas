@@ -1,3 +1,4 @@
+import logging
 import secrets
 from datetime import timedelta
 
@@ -10,23 +11,41 @@ from apps.achievements.models import Achievement, UserUnlock
 from apps.api.auth import user_from_token
 from apps.games.models import Game, GameHash
 
+logger = logging.getLogger("apps.api")
+
 _NOT_IMPLEMENTED = {"Success": False, "Error": "not implemented"}
 _INVALID_CREDENTIALS = {"Success": False, "Error": "Credentials invalid.", "Status": 401}
+_GAME_NOT_FOUND = {"Success": False, "Error": "Unknown game.", "Status": 404, "Code": "not_found"}
 
 PRESENCE_TTL_SECONDS = 300
+DEFAULT_GAME_ICON_PATH = "/Images/000001.png"
 
 
 def handle_login2(request):
     username = request.POST.get("u")
     password = request.POST.get("p")
-    if not username or not password:
+    request_token = request.POST.get("t")
+    if not username:
         return _INVALID_CREDENTIALS
-    user = authenticate(username=username, password=password)
+    if password:
+        user = authenticate(username=username, password=password)
+    elif request_token:
+        user = user_from_token(request_token)
+        if user is not None and user.username != username:
+            user = None
+    else:
+        user = None
     if user is None:
         return _INVALID_CREDENTIALS
-    token = secrets.token_hex(32)
+    # Echo the existing valid token instead of rotating: rc_client fires login2
+    # twice on connect, and rotating would invalidate the second call's token.
+    now = timezone.now()
+    if user.api_token and user.api_token_expires_at and user.api_token_expires_at > now:
+        token = user.api_token
+    else:
+        token = secrets.token_hex(32)
     user.api_token = token
-    user.api_token_expires_at = timezone.now() + timedelta(days=14)
+    user.api_token_expires_at = now + timedelta(days=14)
     user.save(update_fields=["api_token", "api_token_expires_at"])
     return {
         "Success": True,
@@ -96,6 +115,65 @@ def handle_patch(request):
             "Leaderboards": [],
         },
     }
+
+
+def handle_achievementsets(request):
+    user = user_from_token(request.POST.get("t", ""))
+    if user is None:
+        return _INVALID_CREDENTIALS
+
+    md5 = request.POST.get("m", "").lower()
+    game_id_param = request.POST.get("g", "")
+    game = None
+    if md5:
+        game = Game.objects.select_related("console").filter(hashes__md5=md5).first()
+    elif game_id_param:
+        try:
+            game = Game.objects.select_related("console").filter(pk=int(game_id_param)).first()
+        except (ValueError, TypeError):
+            game = None
+
+    if game is None:
+        logger.info("achievementsets unknown game hash=%s g=%s", md5, game_id_param)
+        return _GAME_NOT_FOUND
+
+    achievements = (
+        game.achievements
+        .filter(status__in=[Achievement.STATUS_COMMUNITY, Achievement.STATUS_VERIFIED])
+        .select_related("author")
+        .order_by("id")
+    )
+    icon_path = game.icon.url if game.icon else DEFAULT_GAME_ICON_PATH
+    icon_url = request.build_absolute_uri(icon_path)
+    return {
+        "Success": True,
+        "GameId": game.pk,
+        "Title": game.title,
+        "ConsoleId": game.console.ra_id,
+        "ImageIconUrl": icon_url,
+        "RichPresenceGameId": game.pk,
+        "RichPresencePatch": game.rich_presence_patch,
+        # ponytail: single core set per game — no subset model, game.pk is a stable set id
+        "Sets": [
+            {
+                "AchievementSetId": game.pk,
+                "GameId": game.pk,
+                "Title": game.title,
+                "Type": "core",
+                "ImageIconUrl": icon_url,
+                "Achievements": [_serialize_achievement(a) for a in achievements],
+                "Leaderboards": [],
+            }
+        ],
+    }
+
+
+def handle_allprogress(request):
+    user = user_from_token(request.POST.get("t", ""))
+    if user is None:
+        return _INVALID_CREDENTIALS
+    # ponytail: per-console progress hints are informational, not on the load path — empty is valid
+    return {"Success": True, "Response": {}}
 
 
 def handle_postactivity(request):
@@ -217,6 +295,8 @@ HANDLERS = {
     "login2": handle_login2,
     "gameid": handle_gameid,
     "patch": handle_patch,
+    "achievementsets": handle_achievementsets,
+    "allprogress": handle_allprogress,
     "postactivity": handle_postactivity,
     "startsession": handle_startsession,
     "awardachievement": handle_awardachievement,

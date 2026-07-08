@@ -18,6 +18,8 @@ IMPLEMENTED_ACTIONS = (
     "login2",
     "gameid",
     "patch",
+    "achievementsets",
+    "allprogress",
     "awardachievement",
     "startsession",
     "ping",
@@ -138,6 +140,65 @@ def test_login2_missing_username(client):
 @pytest.mark.django_db
 def test_login2_missing_password(client):
     response = client.post("/dorequest.php", {"r": "login2", "u": "alice"})
+    data = response.json()
+    assert data["Success"] is False
+    assert data["Error"] == "Credentials invalid."
+
+
+@pytest.mark.django_db
+def test_login2_with_token_reauthenticates(client):
+    user = User.objects.create_user(
+        username="alice", password="pw", hardcore_points=7, softcore_points=3
+    )
+    user.api_token = "a" * 64
+    user.api_token_expires_at = timezone.now() + timedelta(days=14)
+    user.save(update_fields=["api_token", "api_token_expires_at"])
+    response = client.post("/dorequest.php", {"r": "login2", "u": "alice", "t": "a" * 64})
+    data = response.json()
+    assert data["Success"] is True
+    assert data["User"] == "alice"
+    assert len(data["Token"]) == 64
+    assert data["Score"] == 7
+    assert data["SoftcoreScore"] == 3
+
+
+@pytest.mark.django_db
+def test_login2_echoes_existing_valid_token(client):
+    # rc_client fires login2 twice on connect; rotating the token would invalidate
+    # the second call. A valid token must be echoed, not replaced.
+    user = User.objects.create_user(username="alice", password="pw")
+    user.api_token = "a" * 64
+    user.api_token_expires_at = timezone.now() + timedelta(days=14)
+    user.save(update_fields=["api_token", "api_token_expires_at"])
+    token_response = client.post("/dorequest.php", {"r": "login2", "u": "alice", "t": "a" * 64})
+    assert token_response.json()["Token"] == "a" * 64
+    password_response = client.post(
+        "/dorequest.php", {"r": "login2", "u": "alice", "p": "pw"}
+    )
+    assert password_response.json()["Token"] == "a" * 64
+    user.refresh_from_db()
+    assert user.api_token == "a" * 64
+
+
+@pytest.mark.django_db
+def test_login2_with_token_wrong_username(client):
+    owner = User.objects.create_user(username="alice", password="pw")
+    owner.api_token = "a" * 64
+    owner.api_token_expires_at = timezone.now() + timedelta(days=14)
+    owner.save(update_fields=["api_token", "api_token_expires_at"])
+    response = client.post("/dorequest.php", {"r": "login2", "u": "mallory", "t": "a" * 64})
+    data = response.json()
+    assert data["Success"] is False
+    assert data["Error"] == "Credentials invalid."
+
+
+@pytest.mark.django_db
+def test_login2_with_expired_token(client):
+    user = User.objects.create_user(username="alice", password="pw")
+    user.api_token = "a" * 64
+    user.api_token_expires_at = timezone.now() - timedelta(seconds=1)
+    user.save(update_fields=["api_token", "api_token_expires_at"])
+    response = client.post("/dorequest.php", {"r": "login2", "u": "alice", "t": "a" * 64})
     data = response.json()
     assert data["Success"] is False
     assert data["Error"] == "Credentials invalid."
@@ -381,6 +442,99 @@ def test_patch_rich_presence_passthrough(client, authed_user, game_with_achievem
     game = game_with_achievements
     response = client.post("/dorequest.php", {"r": "patch", "t": token, "g": game.pk})
     assert response.json()["PatchData"]["RichPresencePatch"] == game.rich_presence_patch
+
+
+# --- achievementsets ---
+
+
+@pytest.mark.django_db
+def test_achievementsets_by_hash_returns_core_set(client, authed_user, game_with_achievements):
+    _, token = authed_user
+    game = game_with_achievements
+    gh = GameHash.objects.create(game=game, md5="c" * 32, label="NTSC-US")
+    response = client.post("/dorequest.php", {"r": "achievementsets", "t": token, "m": gh.md5})
+    data = response.json()
+    assert data["Success"] is True
+    assert data["GameId"] == game.pk
+    assert data["Title"] == game.title
+    assert data["ConsoleId"] == game.console.ra_id
+    assert data["RichPresenceGameId"] == game.pk
+    assert len(data["Sets"]) == 1
+    core = data["Sets"][0]
+    assert core["Type"] == "core"
+    assert core["GameId"] == game.pk
+    assert core["Leaderboards"] == []
+    titles = {a["Title"] for a in core["Achievements"]}
+    assert titles == {"Community One", "Verified One"}
+
+
+@pytest.mark.django_db
+def test_achievementsets_achievement_shape(client, authed_user, game_with_achievements):
+    _, token = authed_user
+    GameHash.objects.create(game=game_with_achievements, md5="c" * 32, label="NTSC-US")
+    response = client.post("/dorequest.php", {"r": "achievementsets", "t": token, "m": "c" * 32})
+    ach = response.json()["Sets"][0]["Achievements"][0]
+    required_fields = (
+        "ID", "MemAddr", "Title", "Description", "Points",
+        "Author", "Modified", "Created", "BadgeName", "Flags",
+    )
+    for field in required_fields:
+        assert field in ach, f"Missing field: {field}"
+
+
+@pytest.mark.django_db
+def test_achievementsets_case_insensitive_hash(client, authed_user, game_with_achievements):
+    _, token = authed_user
+    game = game_with_achievements
+    GameHash.objects.create(game=game, md5="c" * 32, label="NTSC-US")
+    response = client.post("/dorequest.php", {"r": "achievementsets", "t": token, "m": "C" * 32})
+    assert response.json()["GameId"] == game.pk
+
+
+@pytest.mark.django_db
+def test_achievementsets_by_game_id(client, authed_user, game_with_achievements):
+    _, token = authed_user
+    game = game_with_achievements
+    response = client.post("/dorequest.php", {"r": "achievementsets", "t": token, "g": game.pk})
+    assert response.json()["GameId"] == game.pk
+
+
+@pytest.mark.django_db
+def test_achievementsets_unknown_hash_returns_not_found(client, authed_user):
+    _, token = authed_user
+    response = client.post("/dorequest.php", {"r": "achievementsets", "t": token, "m": "d" * 32})
+    data = response.json()
+    assert data["Success"] is False
+    assert data["Code"] == "not_found"
+    assert data["Status"] == 404
+
+
+@pytest.mark.django_db
+def test_achievementsets_missing_token(client, game_with_achievements):
+    response = client.post("/dorequest.php", {"r": "achievementsets", "m": "c" * 32})
+    data = response.json()
+    assert data["Success"] is False
+    assert data["Error"] == "Credentials invalid."
+
+
+# --- allprogress ---
+
+
+@pytest.mark.django_db
+def test_allprogress_returns_empty_response(client, authed_user):
+    _, token = authed_user
+    response = client.post("/dorequest.php", {"r": "allprogress", "t": token, "c": 12})
+    data = response.json()
+    assert data["Success"] is True
+    assert data["Response"] == {}
+
+
+@pytest.mark.django_db
+def test_allprogress_missing_token(client):
+    response = client.post("/dorequest.php", {"r": "allprogress", "c": 12})
+    data = response.json()
+    assert data["Success"] is False
+    assert data["Error"] == "Credentials invalid."
 
 
 # --- awardachievement ---
