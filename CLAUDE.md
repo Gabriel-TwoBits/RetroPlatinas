@@ -6,12 +6,12 @@ Guidance for Claude Code working in this repository. See `README.md` for human s
 
 RetroCheevos is an alternative to RetroAchievements.org with full protocol compatibility (rcheevos). MVP targets Crash Bandicoot 1 (PS1).
 
-- **Full roadmap (40 PRs):** `/run/media/nitrus/HD/RetroCheevos/PLANO_DESENVOLVIMENTO.md` (external drive)
+- **Full roadmap (40 PRs):** `/mnt/HD/RetroCheevos/PLANO_DESENVOLVIMENTO.md` (external drive)
 - **Current state:** `git log` — do not document progress here, it decays fast
 
 ## Stack
 
-Django 5.2 · Python 3.12 · Postgres 16 · Redis 7 · uv · podman-compose · Fedora 44 + SELinux Enforcing
+Django 5.2 · Python 3.12 · Postgres 16 · Redis 7 · uv · podman-compose · Debian 13 (trixie)
 
 **Everything runs in the container. Never call `python` or `manage.py` on the host.** All commands go through:
 
@@ -50,7 +50,8 @@ podman-compose exec web python manage.py compilemessages
 
 - **`AUTH_USER_MODEL`** is only safe to change before any `migrate` has run. If changed after: `podman-compose down -v` to destroy the Postgres volume before migrating.
 - **`userns_mode: keep-id`** in `compose.yml` is required for Podman rootless UID mapping. Do not remove it.
-- **SELinux:** bind mounts use `:Z` (already set). If you see permission errors on bind mounts, check SELinux context first.
+- **Bind mounts:** the `:Z` suffix (SELinux relabel) is inert on Debian 13 — harmless, kept for portability. Dev host migrated from Fedora 44 to Debian; there is no SELinux/`dnf`/`rpm` here — use `apt`.
+- **`podman-compose` orphaned:** it was `pip --user` installed for python3.14; the Debian upgrade moved system `python3` to 3.13 (no `pip`), so the module is unreachable and `podman-compose` fails with `ModuleNotFoundError: podman_compose`. Fix: `sudo apt install podman-compose`.
 - **`gettext` lives in the container only.** Run `makemessages` and `compilemessages` inside the container, not on the host.
 - **After `makemessages`:** remove the `#, fuzzy` flag from the `.po` header and set `Language:` correctly before running `compilemessages`, or Django silently ignores the translations.
 
