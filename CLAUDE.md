@@ -77,6 +77,17 @@ The server never evaluates `mem_addr` — rcheevos does, inside the emulator. Au
 only prove the backend cycle and the shape of the expression. **Every `mem_addr` must be
 validated in game before it ships.**
 
+**Check the syntax before asking anyone to boot a game.** The rcheevos parser is vendored in
+`vendor/rcheevos/`, so a malformed condition is caught locally instead of silently becoming an
+"unsupported" achievement in the emulator:
+
+```bash
+podman-compose exec web bash scripts/check-mem-addr.sh '0xH61998=1_d0xH61998=0'
+```
+
+`apps/achievements/tests.py` runs it over every generated condition, so `pytest` already fails on a
+syntax error. It compiles on first use into `.cache/` (gitignored).
+
 - **Code notes are best-effort, not truth.** They come from the RA community and describe another
   region/revision as often as not. Verify each address before relying on it.
 - **Console RAM is zeroed at reset, so `0` means "not initialised yet", not "state zero".** Any

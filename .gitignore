@@ -33,3 +33,6 @@ htmlcov/
 .vscode/
 *.swp
 *.swo
+
+# Binário do validador de mem_addr (scripts/check-mem-addr.sh)
+.cache/

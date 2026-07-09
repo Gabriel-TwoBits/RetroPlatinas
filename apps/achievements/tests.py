@@ -1,5 +1,7 @@
 import re
+import subprocess
 from datetime import timedelta
+from pathlib import Path
 
 import pytest
 from django.core.management import call_command
@@ -13,6 +15,7 @@ from apps.achievements.management.commands.seed_crash1_level_achievements import
     GAME_TITLE,
     IMPORT_AUTHOR,
     LEVEL_ACHIEVEMENTS,
+    build_mem_addr,
 )
 from apps.achievements.models import Achievement, CodeNote, UserUnlock
 from apps.games.models import Console, Game
@@ -24,6 +27,16 @@ MEM_ADDR_PATTERN = re.compile(
     r"0xH61998=1_d0xH61998=0_0xH619c5=(?P<stage_id>\d+)_0xH61994=0$"
 )
 LEVEL_COUNT = len(LEVEL_ACHIEVEMENTS)
+MEM_ADDR_CHECKER = Path(__file__).resolve().parents[2] / "scripts" / "check-mem-addr.sh"
+
+
+def run_mem_addr_checker(*mem_addrs):
+    return subprocess.run(
+        ["bash", str(MEM_ADDR_CHECKER), *mem_addrs],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
 
 
 @pytest.fixture
@@ -140,6 +153,16 @@ def test_seed_level_achievements_mem_addr_is_well_formed(seeded_game):
         assert match.group("armed_stage_id") == match.group("stage_id"), achievement.mem_addr
         found_stage_ids.add(int(match.group("stage_id")))
     assert found_stage_ids == expected_stage_ids
+
+
+def test_seed_level_achievements_mem_addr_parses_in_rcheevos():
+    result = run_mem_addr_checker(*(build_mem_addr(stage_id) for _, stage_id in LEVEL_ACHIEVEMENTS))
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
+def test_mem_addr_checker_rejects_a_malformed_condition():
+    result = run_mem_addr_checker("0xH61998=@@@")
+    assert result.returncode == 1, result.stdout + result.stderr
 
 
 @pytest.mark.django_db
