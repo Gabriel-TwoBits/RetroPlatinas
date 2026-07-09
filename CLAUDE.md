@@ -67,6 +67,12 @@ podman-compose exec web python manage.py compilemessages
 
 ## Writing `mem_addr` (achievement conditions)
 
+**Mandatory before writing or debugging any condition:** read
+`apps/achievements/ra-developer-docs/README.md` and the files it lists. The RetroAchievements
+developer documentation is vendored into that directory precisely so the logic is written against
+the specification instead of reverse-engineered by trial and error in the emulator. Guessing at
+condition semantics has already cost several play-through debugging sessions.
+
 The server never evaluates `mem_addr` — rcheevos does, inside the emulator. Automated tests can
 only prove the backend cycle and the shape of the expression. **Every `mem_addr` must be
 validated in game before it ships.**
