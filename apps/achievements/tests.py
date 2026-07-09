@@ -9,6 +9,7 @@ from django.utils import timezone
 from apps.accounts.models import User
 from apps.achievements.management.commands.seed_crash1_level_achievements import (
     ACHIEVEMENT_POINTS,
+    FRAMES_OF_PLAY_BEFORE_ARMED,
     GAME_TITLE,
     IMPORT_AUTHOR,
     LEVEL_ACHIEVEMENTS,
@@ -17,7 +18,10 @@ from apps.achievements.models import Achievement, CodeNote, UserUnlock
 from apps.games.models import Console, Game
 
 MEM_ADDR_PATTERN = re.compile(
-    r"^0xH61998=1_d0xH61998=0_0xH61994=0_0xH619c5=(?P<stage_id>\d+)_0xW618cc!=0$"
+    r"^N:0xW618cc!=0_N:0xH61994=0_N:0xH619c5=(?P<armed_stage_id>\d+)_"
+    rf"0xH61998=0\.{FRAMES_OF_PLAY_BEFORE_ARMED}\._"
+    r"R:0xH61994=1_R:0xW618cc=0_"
+    r"0xH61998=1_d0xH61998=0_0xH619c5=(?P<stage_id>\d+)_0xH61994=0$"
 )
 LEVEL_COUNT = len(LEVEL_ACHIEVEMENTS)
 
@@ -133,6 +137,7 @@ def test_seed_level_achievements_mem_addr_is_well_formed(seeded_game):
         assert achievement.title in expected_titles
         match = MEM_ADDR_PATTERN.match(achievement.mem_addr)
         assert match, achievement.mem_addr
+        assert match.group("armed_stage_id") == match.group("stage_id"), achievement.mem_addr
         found_stage_ids.add(int(match.group("stage_id")))
     assert found_stage_ids == expected_stage_ids
 

@@ -9,10 +9,14 @@ PS1_RA_ID = 12
 IMPORT_AUTHOR = "ra-import"
 
 ACHIEVEMENT_POINTS = 5
-RESULTS_SCREEN_RISING_EDGE = "0xH61998=1_d0xH61998=0"
-INSIDE_STAGE_GUARD = "0xH61994=0"
+STAGE_LOADED = "0xW618cc!=0"
+NO_STAGE_LOADED = "0xW618cc=0"
+INSIDE_STAGE = "0xH61994=0"
+ON_THE_MAP = "0xH61994=1"
 CURRENT_STAGE_ADDRESS = "0xH619c5"
-STAGE_LOADED_GUARD = "0xW618cc!=0"
+RESULTS_SCREEN_OFF = "0xH61998=0"
+RESULTS_SCREEN_RISING_EDGE = "0xH61998=1_d0xH61998=0"
+FRAMES_OF_PLAY_BEFORE_ARMED = 300
 
 LEVEL_ACHIEVEMENTS = [
     ("N. Sanity Beach", 0),
@@ -25,9 +29,15 @@ LEVEL_ACHIEVEMENTS = [
 
 
 def build_mem_addr(stage_id):
+    this_stage = f"{CURRENT_STAGE_ADDRESS}={stage_id}"
+    armed_after_playing = (
+        f"N:{STAGE_LOADED}_N:{INSIDE_STAGE}_N:{this_stage}_"
+        f"{RESULTS_SCREEN_OFF}.{FRAMES_OF_PLAY_BEFORE_ARMED}."
+    )
+    disarmed_when_out_of_the_stage = f"R:{ON_THE_MAP}_R:{NO_STAGE_LOADED}"
     return (
-        f"{RESULTS_SCREEN_RISING_EDGE}_{INSIDE_STAGE_GUARD}_"
-        f"{CURRENT_STAGE_ADDRESS}={stage_id}_{STAGE_LOADED_GUARD}"
+        f"{armed_after_playing}_{disarmed_when_out_of_the_stage}_"
+        f"{RESULTS_SCREEN_RISING_EDGE}_{this_stage}_{INSIDE_STAGE}"
     )
 
 

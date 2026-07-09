@@ -1,6 +1,7 @@
 # Crash Bandicoot 1 — Level-Completion Achievements (Batch 1)
 
 > **Addresses:** from the Crash Bandicoot code notes — see `apps/games/code-notes/crash-bandicoot-1.md` (RetroAchievements game id 10434).
+> **Condition syntax:** see the vendored `ra-developer-docs/` in this directory.
 > **Validated in-game** on DuckStation against `SCUS-94900 — Crash Bandicoot (USA)`.
 
 The first six "complete the level" achievements. Seed them as `Achievement` rows with
@@ -9,35 +10,43 @@ published as `community`.
 
 ## Achievements
 
-| Title | Stage id (`0x619c5`) | `mem_addr` |
-| --- | --- | --- |
-| N. Sanity Beach | 0 | `0xH61998=1_d0xH61998=0_0xH61994=0_0xH619c5=0_0xW618cc!=0` |
-| Jungle Rollers | 1 | `0xH61998=1_d0xH61998=0_0xH61994=0_0xH619c5=1_0xW618cc!=0` |
-| The Great Gate | 2 | `0xH61998=1_d0xH61998=0_0xH61994=0_0xH619c5=2_0xW618cc!=0` |
-| Boulders | 3 | `0xH61998=1_d0xH61998=0_0xH61994=0_0xH619c5=3_0xW618cc!=0` |
-| Upstream | 4 | `0xH61998=1_d0xH61998=0_0xH61994=0_0xH619c5=4_0xW618cc!=0` |
-| Rolling Stones | 6 | `0xH61998=1_d0xH61998=0_0xH61994=0_0xH619c5=6_0xW618cc!=0` |
+Every condition is `build_mem_addr(stage_id)`; only the stage id changes.
+
+| Title | Stage id (`0x619c5`) |
+| --- | --- |
+| N. Sanity Beach | 0 |
+| Jungle Rollers | 1 |
+| The Great Gate | 2 |
+| Boulders | 3 |
+| Upstream | 4 |
+| Rolling Stones | 6 |
+
+```
+N:0xW618cc!=0_N:0xH61994=0_N:0xH619c5=<id>_0xH61998=0.300._R:0xH61994=1_R:0xW618cc=0_0xH61998=1_d0xH61998=0_0xH619c5=<id>_0xH61994=0
+```
 
 ## Logic
 
-The condition fires on the frame the results screen appears, while a stage is loaded:
+This is the standard "start marker, cancel, trigger at the end" shape described in
+`ra-developer-docs/flags/resetif.md`.
 
-| Term | Meaning |
+| Part | Role |
 | --- | --- |
-| `0xH61998=1_d0xH61998=0` | the results-screen flag just rose 0→1 (rising edge, not a level state) |
-| `0xH61994=0` | overworld status is "in a stage", not "on the map" |
-| `0xH619c5=<id>` | the stage that was just finished |
-| `0xW618cc!=0` | the Aku Aku pointer is non-null, i.e. a stage's RAM is actually loaded |
+| `N:0xW618cc!=0_N:0xH61994=0_N:0xH619c5=<id>_0xH61998=0.300.` | **arm.** `AndNext` chains three checks onto one hit count: a stage is loaded (Aku Aku pointer non-null), the player is inside a stage, it is *this* stage, and the results screen is off. Only counts as true once it has held for 300 frames — i.e. the player really played the level |
+| `R:0xH61994=1_R:0xW618cc=0` | **disarm.** Returning to the map, or unloading the stage, resets every hit count |
+| `0xH61998=1_d0xH61998=0_0xH619c5=<id>_0xH61994=0` | **trigger.** The results-screen flag rises 0→1 on this frame, in this stage |
 
-Two guards exist because of measured false positives, not caution:
+Each guard exists because of a *measured* false positive, not caution:
 
-- **The rising edge** is needed because `0x61998` also reads 1 during the boot sequence (on the
-  "Sony Computer Entertainment America" screen), before the title menu. A bare `0xH61998=1`
-  unlocks every achievement the moment the game boots.
-- **The pointer guard** is needed because at boot `0x61994` and `0x619c5` are both still 0 —
-  identical to "in a stage, stage 0" — so the rising edge alone still false-fires on stage 0.
-  During boot no stage is loaded and `0x618cc` reads 0; inside a stage it holds a real pointer
-  (`0x9276D0` on the N. Sanity Beach results screen).
+- **The rising edge (`d`)** — `0x61998` also reads 1 during the boot sequence (on the "Sony
+  Computer Entertainment America" screen). A bare `0xH61998=1` unlocks everything at boot.
+- **The pointer** — at boot `0x61994` and `0x619c5` both read 0, which is indistinguishable from
+  "inside stage 0". `0x618cc` is null until a stage's RAM is loaded (`0x9276D0` in game).
+- **The 300-frame arm** — the same `0x61998` spike happens again while a stage *loads*, by which
+  point the pointer is already valid and `0x61994`/`0x619c5` already hold their in-stage values.
+  A purely instantaneous condition therefore fires on stage entry. Requiring 300 frames of actual
+  play before the trigger is even considered separates "loading" from "finished". `ResetIf` on the
+  map re-arms it for the next attempt.
 
 `0x61a68` ("FF = finished/quit a level" in the code notes) is **not** usable: it reads 0 while
 playing, on the results screen and on the map, spiking to 255 only transiently on stage entry.
