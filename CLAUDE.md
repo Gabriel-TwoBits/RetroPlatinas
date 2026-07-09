@@ -56,6 +56,22 @@ podman-compose exec web python manage.py compilemessages
 - Never use `--force`, `--no-verify`, or `reset --hard` unless explicitly asked.
 - There is no PR mechanism — push directly to `main` when approved.
 
+## Definition of done
+
+No task is finished until all of these pass, in the container, with the real output shown:
+
+```bash
+podman-compose exec web python -m pytest              # whole suite, not just your file
+podman-compose exec web ruff check apps/ && podman-compose exec web ruff format --check apps/
+podman-compose exec web python manage.py check
+podman-compose exec web python manage.py makemigrations --check --dry-run
+podman-compose build                                  # the deploy image must build
+```
+
+Pre-existing lint failures in files you did not touch are not yours to fix (**no opportunistic
+cleanup**) — say so and move on. Then re-check every commit of the change against this file and the
+user's global `CLAUDE.md`, line by line.
+
 ## Common traps
 
 - **`AUTH_USER_MODEL`** is only safe to change before any `migrate` has run. If changed after: `podman-compose down -v` to destroy the Postgres volume before migrating.
