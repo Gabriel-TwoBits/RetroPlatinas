@@ -19,6 +19,9 @@ class RequestLogMiddleware:
 
         logger.info(
             "api request r=%s u=%s ip=%s status=%s",
-            action, username, ip, response.status_code,
+            action,
+            username,
+            ip,
+            response.status_code,
         )
         return response

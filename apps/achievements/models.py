@@ -30,9 +30,7 @@ class Achievement(models.Model):
     description = models.TextField(verbose_name=_("description"))
     points = models.IntegerField(default=0, verbose_name=_("points"))
     mem_addr = models.TextField(verbose_name=_("memory address expression"))
-    badge = models.ImageField(
-        upload_to="badges/", null=True, blank=True, verbose_name=_("badge")
-    )
+    badge = models.ImageField(upload_to="badges/", null=True, blank=True, verbose_name=_("badge"))
     status = models.CharField(
         max_length=16,
         choices=STATUS_CHOICES,

@@ -6,66 +6,145 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('games', '0001_initial'),
+        ("games", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Achievement',
+            name="Achievement",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('title', models.CharField(max_length=255, verbose_name='title')),
-                ('description', models.TextField(verbose_name='description')),
-                ('points', models.IntegerField(default=0, verbose_name='points')),
-                ('mem_addr', models.TextField(verbose_name='memory address expression')),
-                ('badge', models.ImageField(blank=True, null=True, upload_to='badges/', verbose_name='badge')),
-                ('status', models.CharField(choices=[('draft', 'Draft'), ('community', 'Community'), ('verified', 'Verified')], default='draft', max_length=16, verbose_name='status')),
-                ('flags', models.IntegerField(default=5, verbose_name='flags')),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='created at')),
-                ('updated_at', models.DateTimeField(auto_now=True, verbose_name='updated at')),
-                ('author', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to=settings.AUTH_USER_MODEL, verbose_name='author')),
-                ('game', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='achievements', to='games.game', verbose_name='game')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("title", models.CharField(max_length=255, verbose_name="title")),
+                ("description", models.TextField(verbose_name="description")),
+                ("points", models.IntegerField(default=0, verbose_name="points")),
+                ("mem_addr", models.TextField(verbose_name="memory address expression")),
+                (
+                    "badge",
+                    models.ImageField(
+                        blank=True, null=True, upload_to="badges/", verbose_name="badge"
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("draft", "Draft"),
+                            ("community", "Community"),
+                            ("verified", "Verified"),
+                        ],
+                        default="draft",
+                        max_length=16,
+                        verbose_name="status",
+                    ),
+                ),
+                ("flags", models.IntegerField(default=5, verbose_name="flags")),
+                ("created_at", models.DateTimeField(auto_now_add=True, verbose_name="created at")),
+                ("updated_at", models.DateTimeField(auto_now=True, verbose_name="updated at")),
+                (
+                    "author",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name="author",
+                    ),
+                ),
+                (
+                    "game",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="achievements",
+                        to="games.game",
+                        verbose_name="game",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'achievement',
-                'verbose_name_plural': 'achievements',
-                'ordering': ['game', 'title'],
+                "verbose_name": "achievement",
+                "verbose_name_plural": "achievements",
+                "ordering": ["game", "title"],
             },
         ),
         migrations.CreateModel(
-            name='CodeNote',
+            name="CodeNote",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('address', models.CharField(max_length=16, verbose_name='address')),
-                ('note', models.TextField(verbose_name='note')),
-                ('updated_at', models.DateTimeField(auto_now=True, verbose_name='updated at')),
-                ('author', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to=settings.AUTH_USER_MODEL, verbose_name='author')),
-                ('game', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='code_notes', to='games.game', verbose_name='game')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("address", models.CharField(max_length=16, verbose_name="address")),
+                ("note", models.TextField(verbose_name="note")),
+                ("updated_at", models.DateTimeField(auto_now=True, verbose_name="updated at")),
+                (
+                    "author",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name="author",
+                    ),
+                ),
+                (
+                    "game",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="code_notes",
+                        to="games.game",
+                        verbose_name="game",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'code note',
-                'verbose_name_plural': 'code notes',
-                'ordering': ['game', 'address'],
+                "verbose_name": "code note",
+                "verbose_name_plural": "code notes",
+                "ordering": ["game", "address"],
             },
         ),
         migrations.CreateModel(
-            name='UserUnlock',
+            name="UserUnlock",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('hardcore', models.BooleanField(default=False, verbose_name='hardcore')),
-                ('unlocked_at', models.DateTimeField(auto_now_add=True, verbose_name='unlocked at')),
-                ('achievement', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='achievements.achievement', verbose_name='achievement')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='unlocks', to=settings.AUTH_USER_MODEL, verbose_name='user')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("hardcore", models.BooleanField(default=False, verbose_name="hardcore")),
+                (
+                    "unlocked_at",
+                    models.DateTimeField(auto_now_add=True, verbose_name="unlocked at"),
+                ),
+                (
+                    "achievement",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="achievements.achievement",
+                        verbose_name="achievement",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="unlocks",
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name="user",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'user unlock',
-                'verbose_name_plural': 'user unlocks',
-                'unique_together': {('user', 'achievement', 'hardcore')},
+                "verbose_name": "user unlock",
+                "verbose_name_plural": "user unlocks",
+                "unique_together": {("user", "achievement", "hardcore")},
             },
         ),
     ]

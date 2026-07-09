@@ -8,12 +8,15 @@ User = get_user_model()
 
 @pytest.mark.django_db
 def test_register_creates_user_and_logs_in(client):
-    resp = client.post("/register/", {
-        "username": "alice",
-        "email": "alice@example.com",
-        "password1": "very-strong-pw-1",
-        "password2": "very-strong-pw-1",
-    })
+    resp = client.post(
+        "/register/",
+        {
+            "username": "alice",
+            "email": "alice@example.com",
+            "password1": "very-strong-pw-1",
+            "password2": "very-strong-pw-1",
+        },
+    )
     assert resp.status_code == 302
     assert resp.url == "/"
     assert User.objects.filter(username="alice").exists()
@@ -23,12 +26,14 @@ def test_register_creates_user_and_logs_in(client):
 @pytest.mark.django_db
 def test_register_rejects_duplicate_email():
     User.objects.create_user(username="alice", email="dup@example.com", password="irrelevant")
-    form = RegistrationForm(data={
-        "username": "bob",
-        "email": "dup@example.com",
-        "password1": "very-strong-pw-1",
-        "password2": "very-strong-pw-1",
-    })
+    form = RegistrationForm(
+        data={
+            "username": "bob",
+            "email": "dup@example.com",
+            "password1": "very-strong-pw-1",
+            "password2": "very-strong-pw-1",
+        }
+    )
     assert not form.is_valid()
     assert "email" in form.errors
     assert not User.objects.filter(username="bob").exists()

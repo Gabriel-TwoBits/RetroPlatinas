@@ -172,9 +172,7 @@ def test_login2_echoes_existing_valid_token(client):
     user.save(update_fields=["api_token", "api_token_expires_at"])
     token_response = client.post("/dorequest.php", {"r": "login2", "u": "alice", "t": "a" * 64})
     assert token_response.json()["Token"] == "a" * 64
-    password_response = client.post(
-        "/dorequest.php", {"r": "login2", "u": "alice", "p": "pw"}
-    )
+    password_response = client.post("/dorequest.php", {"r": "login2", "u": "alice", "p": "pw"})
     assert password_response.json()["Token"] == "a" * 64
     user.refresh_from_db()
     assert user.api_token == "a" * 64
@@ -305,16 +303,31 @@ def game_with_achievements(authed_user):
         title="Crash Bandicoot", console=console, rich_presence_patch="Display:\nCrash!"
     )
     Achievement.objects.create(
-        game=game, author=user, title="Draft One", description="d",
-        points=5, mem_addr="0xH0001=1", status=Achievement.STATUS_DRAFT,
+        game=game,
+        author=user,
+        title="Draft One",
+        description="d",
+        points=5,
+        mem_addr="0xH0001=1",
+        status=Achievement.STATUS_DRAFT,
     )
     Achievement.objects.create(
-        game=game, author=user, title="Community One", description="c",
-        points=10, mem_addr="0xH0002=1", status=Achievement.STATUS_COMMUNITY,
+        game=game,
+        author=user,
+        title="Community One",
+        description="c",
+        points=10,
+        mem_addr="0xH0002=1",
+        status=Achievement.STATUS_COMMUNITY,
     )
     Achievement.objects.create(
-        game=game, author=user, title="Verified One", description="v",
-        points=25, mem_addr="0xH0003=1", status=Achievement.STATUS_VERIFIED,
+        game=game,
+        author=user,
+        title="Verified One",
+        description="v",
+        points=25,
+        mem_addr="0xH0003=1",
+        status=Achievement.STATUS_VERIFIED,
     )
     return game
 
@@ -418,8 +431,16 @@ def test_patch_achievement_shape(client, authed_user, game_with_achievements):
     response = client.post("/dorequest.php", {"r": "patch", "t": token, "g": game.pk})
     ach = response.json()["PatchData"]["Achievements"][0]
     required_fields = (
-        "ID", "MemAddr", "Title", "Description", "Points",
-        "Author", "Modified", "Created", "BadgeName", "Flags",
+        "ID",
+        "MemAddr",
+        "Title",
+        "Description",
+        "Points",
+        "Author",
+        "Modified",
+        "Created",
+        "BadgeName",
+        "Flags",
     )
     for field in required_fields:
         assert field in ach, f"Missing field: {field}"
@@ -475,8 +496,16 @@ def test_achievementsets_achievement_shape(client, authed_user, game_with_achiev
     response = client.post("/dorequest.php", {"r": "achievementsets", "t": token, "m": "c" * 32})
     ach = response.json()["Sets"][0]["Achievements"][0]
     required_fields = (
-        "ID", "MemAddr", "Title", "Description", "Points",
-        "Author", "Modified", "Created", "BadgeName", "Flags",
+        "ID",
+        "MemAddr",
+        "Title",
+        "Description",
+        "Points",
+        "Author",
+        "Modified",
+        "Created",
+        "BadgeName",
+        "Flags",
     )
     for field in required_fields:
         assert field in ach, f"Missing field: {field}"
@@ -553,9 +582,7 @@ def test_awardachievement_softcore_creates_unlock_and_points(
     data = response.json()
     assert data["Success"] is True
     assert data["AchievementID"] == achievement.pk
-    assert UserUnlock.objects.filter(
-        user=user, achievement=achievement, hardcore=False
-    ).exists()
+    assert UserUnlock.objects.filter(user=user, achievement=achievement, hardcore=False).exists()
     user.refresh_from_db()
     assert user.softcore_points == 10
     assert user.hardcore_points == 0
@@ -572,10 +599,7 @@ def test_awardachievement_is_idempotent(client, authed_user, game_with_achieveme
     response = client.post("/dorequest.php", payload)
     assert response.json()["Success"] is True
     assert (
-        UserUnlock.objects.filter(
-            user=user, achievement=achievement, hardcore=False
-        ).count()
-        == 1
+        UserUnlock.objects.filter(user=user, achievement=achievement, hardcore=False).count() == 1
     )
     user.refresh_from_db()
     assert user.softcore_points == 10
@@ -593,12 +617,8 @@ def test_awardachievement_hardcore_creates_both_unlocks(
     )
     data = response.json()
     assert data["Success"] is True
-    assert UserUnlock.objects.filter(
-        user=user, achievement=achievement, hardcore=True
-    ).exists()
-    assert UserUnlock.objects.filter(
-        user=user, achievement=achievement, hardcore=False
-    ).exists()
+    assert UserUnlock.objects.filter(user=user, achievement=achievement, hardcore=True).exists()
+    assert UserUnlock.objects.filter(user=user, achievement=achievement, hardcore=False).exists()
     user.refresh_from_db()
     assert user.hardcore_points == 25
     assert user.softcore_points == 25
@@ -607,9 +627,7 @@ def test_awardachievement_hardcore_creates_both_unlocks(
 
 
 @pytest.mark.django_db
-def test_awardachievement_remaining_decrements(
-    client, authed_user, game_with_achievements
-):
+def test_awardachievement_remaining_decrements(client, authed_user, game_with_achievements):
     _, token = authed_user
     achievement = game_with_achievements.achievements.get(title="Community One")
     response = client.post(
@@ -738,9 +756,7 @@ def test_startsession_softcore_unlock_only_in_softcore_array(
 
 
 @pytest.mark.django_db
-def test_startsession_hardcore_unlock_in_both_arrays(
-    client, authed_user, game_with_achievements
-):
+def test_startsession_hardcore_unlock_in_both_arrays(client, authed_user, game_with_achievements):
     _, token = authed_user
     achievement = game_with_achievements.achievements.get(title="Verified One")
     client.post(

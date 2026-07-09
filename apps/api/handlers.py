@@ -97,8 +97,9 @@ def handle_patch(request):
         return {"Success": False, "Error": "Unknown game"}
 
     achievements = (
-        game.achievements
-        .filter(status__in=[Achievement.STATUS_COMMUNITY, Achievement.STATUS_VERIFIED])
+        game.achievements.filter(
+            status__in=[Achievement.STATUS_COMMUNITY, Achievement.STATUS_VERIFIED]
+        )
         .select_related("author")
         .order_by("id")
     )
@@ -138,8 +139,9 @@ def handle_achievementsets(request):
         return _GAME_NOT_FOUND
 
     achievements = (
-        game.achievements
-        .filter(status__in=[Achievement.STATUS_COMMUNITY, Achievement.STATUS_VERIFIED])
+        game.achievements.filter(
+            status__in=[Achievement.STATUS_COMMUNITY, Achievement.STATUS_VERIFIED]
+        )
         .select_related("author")
         .order_by("id")
     )
@@ -190,9 +192,9 @@ def handle_startsession(request):
     except (ValueError, TypeError):
         return {"Success": False, "Error": "Unknown game"}
 
-    unlocks = UserUnlock.objects.filter(
-        user=user, achievement__game_id=game_id
-    ).values("achievement_id", "hardcore", "unlocked_at")
+    unlocks = UserUnlock.objects.filter(user=user, achievement__game_id=game_id).values(
+        "achievement_id", "hardcore", "unlocked_at"
+    )
 
     softcore = []
     hardcore = []
@@ -236,9 +238,7 @@ def handle_awardachievement(request):
     except (ValueError, TypeError):
         return {"Success": False, "Error": "Unknown achievement"}
 
-    achievement = (
-        Achievement.objects.select_related("game").filter(pk=achievement_id).first()
-    )
+    achievement = Achievement.objects.select_related("game").filter(pk=achievement_id).first()
     if achievement is None:
         return {"Success": False, "Error": "Unknown achievement"}
 
