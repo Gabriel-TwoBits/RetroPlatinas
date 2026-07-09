@@ -36,7 +36,7 @@ podman-compose exec web python manage.py compilemessages
 
 **Comments** — default is none. Only add a comment when the *why* is non-obvious.
 
-**No opportunistic cleanup** — a bugfix is not a refactor. Don't introduce abstractions beyond what the task requires.
+**A bugfix is not a refactor** — don't introduce abstractions beyond what the task requires. This is not licence to walk past a failing check: see **Definition of done**.
 
 ## Documentation
 
@@ -68,9 +68,10 @@ podman-compose exec web python manage.py makemigrations --check --dry-run
 podman-compose build                                  # the deploy image must build
 ```
 
-Pre-existing lint failures in files you did not touch are not yours to fix (**no opportunistic
-cleanup**) — say so and move on. Then re-check every commit of the change against this file and the
-user's global `CLAUDE.md`, line by line.
+Every one of these must pass over the **whole tree**, not just the files you touched. A failing test,
+lint error or unformatted file is a defect in the repository — fix it, whoever wrote it, and commit
+the fix separately from the feature. Then re-check every commit of the change against this file and
+the user's global `CLAUDE.md`, line by line.
 
 ## Common traps
 
