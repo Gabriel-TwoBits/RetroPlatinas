@@ -1,10 +1,23 @@
+import re
+from datetime import timedelta
+
 import pytest
 from django.core.management import call_command
 from django.db import IntegrityError
+from django.utils import timezone
 
 from apps.accounts.models import User
+from apps.achievements.management.commands.seed_crash1_level_achievements import (
+    ACHIEVEMENT_POINTS,
+    GAME_TITLE,
+    IMPORT_AUTHOR,
+    LEVEL_ACHIEVEMENTS,
+)
 from apps.achievements.models import Achievement, CodeNote, UserUnlock
 from apps.games.models import Console, Game
+
+MEM_ADDR_PATTERN = re.compile(r"^0xH61a68=255_0xH619c5=\d+_0xH61998=1$")
+LEVEL_COUNT = len(LEVEL_ACHIEVEMENTS)
 
 
 @pytest.fixture
@@ -79,3 +92,116 @@ def test_seed_crash1_code_notes_command_is_idempotent():
     call_command("seed_crash1_code_notes", verbosity=0)
     call_command("seed_crash1_code_notes", verbosity=0)
     assert CodeNote.objects.filter(game__title="Crash Bandicoot").count() == 108
+
+
+@pytest.fixture
+def seeded_game(db):
+    call_command("seed_crash1_level_achievements", verbosity=0)
+    return Game.objects.get(title=GAME_TITLE)
+
+
+@pytest.fixture
+def player_token(db):
+    user = User.objects.create_user(
+        username="unlocker", password="pw-test-123", email="unlocker@test.local"
+    )
+    token = "t" * 64
+    user.api_token = token
+    user.api_token_expires_at = timezone.now() + timedelta(days=14)
+    user.save(update_fields=["api_token", "api_token_expires_at"])
+    return user, token
+
+
+@pytest.mark.django_db
+def test_seed_level_achievements_creates_community_set(seeded_game):
+    achievements = seeded_game.achievements.all()
+    assert achievements.count() == LEVEL_COUNT
+    for achievement in achievements:
+        assert achievement.points == ACHIEVEMENT_POINTS
+        assert achievement.status == Achievement.STATUS_COMMUNITY
+        assert achievement.author.username == IMPORT_AUTHOR
+
+
+@pytest.mark.django_db
+def test_seed_level_achievements_mem_addr_is_well_formed(seeded_game):
+    expected_titles = {title for title, _ in LEVEL_ACHIEVEMENTS}
+    expected_stage_ids = {stage_id for _, stage_id in LEVEL_ACHIEVEMENTS}
+    found_stage_ids = set()
+    for achievement in seeded_game.achievements.all():
+        assert achievement.title in expected_titles
+        assert MEM_ADDR_PATTERN.match(achievement.mem_addr), achievement.mem_addr
+        found_stage_ids.add(int(achievement.mem_addr.split("_")[1].split("=")[1]))
+    assert found_stage_ids == expected_stage_ids
+
+
+@pytest.mark.django_db
+def test_seed_level_achievements_is_idempotent(seeded_game):
+    call_command("seed_crash1_level_achievements", verbosity=0)
+    assert seeded_game.achievements.count() == LEVEL_COUNT
+
+
+@pytest.mark.django_db
+def test_patch_exposes_seeded_level_achievements(client, seeded_game, player_token):
+    _, token = player_token
+    response = client.post("/dorequest.php", {"r": "patch", "t": token, "g": seeded_game.pk})
+    data = response.json()
+
+    assert data["Success"] is True
+    achievements = data["PatchData"]["Achievements"]
+    assert len(achievements) == LEVEL_COUNT
+    for achievement in achievements:
+        assert achievement["Flags"] == 5
+        assert achievement["Points"] == ACHIEVEMENT_POINTS
+        assert MEM_ADDR_PATTERN.match(achievement["MemAddr"]), achievement["MemAddr"]
+
+
+@pytest.mark.django_db
+def test_awardachievement_unlocks_seeded_achievement(client, seeded_game, player_token):
+    user, token = player_token
+    achievement = seeded_game.achievements.get(title="N. Sanity Beach")
+
+    response = client.post(
+        "/dorequest.php",
+        {"r": "awardachievement", "t": token, "a": achievement.pk, "h": "0"},
+    )
+    data = response.json()
+
+    assert data["Success"] is True
+    assert data["SoftcoreScore"] == ACHIEVEMENT_POINTS
+    assert data["Score"] == 0
+    assert data["AchievementsRemaining"] == LEVEL_COUNT - 1
+    assert UserUnlock.objects.filter(user=user, achievement=achievement, hardcore=False).exists()
+
+    user.refresh_from_db()
+    assert user.softcore_points == ACHIEVEMENT_POINTS
+
+
+@pytest.mark.django_db
+def test_awardachievement_seeded_is_one_shot(client, seeded_game, player_token):
+    user, token = player_token
+    achievement = seeded_game.achievements.get(title="Jungle Rollers")
+    payload = {"r": "awardachievement", "t": token, "a": achievement.pk, "h": "0"}
+
+    client.post("/dorequest.php", payload)
+    client.post("/dorequest.php", payload)
+
+    assert UserUnlock.objects.filter(user=user, achievement=achievement).count() == 1
+    user.refresh_from_db()
+    assert user.softcore_points == ACHIEVEMENT_POINTS
+
+
+@pytest.mark.django_db
+def test_awardachievement_seeded_hardcore_creates_both_unlocks(client, seeded_game, player_token):
+    user, token = player_token
+    achievement = seeded_game.achievements.get(title="The Great Gate")
+
+    client.post(
+        "/dorequest.php",
+        {"r": "awardachievement", "t": token, "a": achievement.pk, "h": "1"},
+    )
+
+    assert UserUnlock.objects.filter(user=user, achievement=achievement, hardcore=False).exists()
+    assert UserUnlock.objects.filter(user=user, achievement=achievement, hardcore=True).exists()
+    user.refresh_from_db()
+    assert user.softcore_points == ACHIEVEMENT_POINTS
+    assert user.hardcore_points == ACHIEVEMENT_POINTS
