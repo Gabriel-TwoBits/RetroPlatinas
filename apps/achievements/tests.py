@@ -16,7 +16,9 @@ from apps.achievements.management.commands.seed_crash1_level_achievements import
 from apps.achievements.models import Achievement, CodeNote, UserUnlock
 from apps.games.models import Console, Game
 
-MEM_ADDR_PATTERN = re.compile(r"^0xH61a68=255_0xH619c5=\d+_0xH61998=1$")
+MEM_ADDR_PATTERN = re.compile(
+    r"^0xH61998=1_d0xH61998=0_0xH61994=0_0xH619c5=(?P<stage_id>\d+)_0xW618cc!=0$"
+)
 LEVEL_COUNT = len(LEVEL_ACHIEVEMENTS)
 
 
@@ -129,8 +131,9 @@ def test_seed_level_achievements_mem_addr_is_well_formed(seeded_game):
     found_stage_ids = set()
     for achievement in seeded_game.achievements.all():
         assert achievement.title in expected_titles
-        assert MEM_ADDR_PATTERN.match(achievement.mem_addr), achievement.mem_addr
-        found_stage_ids.add(int(achievement.mem_addr.split("_")[1].split("=")[1]))
+        match = MEM_ADDR_PATTERN.match(achievement.mem_addr)
+        assert match, achievement.mem_addr
+        found_stage_ids.add(int(match.group("stage_id")))
     assert found_stage_ids == expected_stage_ids
 
 
