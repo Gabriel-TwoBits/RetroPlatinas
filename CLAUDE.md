@@ -65,6 +65,36 @@ podman-compose exec web python manage.py compilemessages
 - **`gettext` lives in the container only.** Run `makemessages` and `compilemessages` inside the container, not on the host.
 - **After `makemessages`:** remove the `#, fuzzy` flag from the `.po` header and set `Language:` correctly before running `compilemessages`, or Django silently ignores the translations.
 
+## Writing `mem_addr` (achievement conditions)
+
+The server never evaluates `mem_addr` — rcheevos does, inside the emulator. Automated tests can
+only prove the backend cycle and the shape of the expression. **Every `mem_addr` must be
+validated in game before it ships.**
+
+- **Code notes are best-effort, not truth.** They come from the RA community and describe another
+  region/revision as often as not. Verify each address before relying on it.
+- **Console RAM is zeroed at reset, so `0` means "not initialised yet", not "state zero".** Any
+  address that legitimately holds `0` during play (`0x61994` = in a stage, `0x619c5` = stage 0)
+  is indistinguishable from the boot sequence. Add a guard that is provably non-zero only when
+  the game is really running — a pointer (e.g. `0xW618cc!=0`) is the reliable one.
+- **Prefer rising edges to level comparisons** for anything that means "an event happened":
+  `0xHaddr=1_d0xHaddr=0` instead of `0xHaddr=1`. A transient spike during boot will otherwise
+  unlock the achievement the moment the game loads.
+- **rcheevos suppresses achievements whose condition is already true at load**, so a bad condition
+  that is true on the results screen will not re-fire after a save-state load. Re-test from a
+  state saved *before* the trigger.
+- **Debug memory with Rich Presence.** Put a dump in `Game.rich_presence_patch` and read the
+  values off the emulator overlay; clear it afterwards:
+  ```
+  Format:Val
+  FormatType=VALUE
+
+  Display:
+  ovw @Val(0xH61994) stg @Val(0xH619c5) res @Val(0xH61998)
+  ```
+- **DuckStation only fetches the patch (conditions + Rich Presence) when the game loads.** A reset
+  is not enough — close the game and open it again, or you are testing the old conditions.
+
 ## i18n workflow
 
 When any UI-touching change adds new visible strings:
