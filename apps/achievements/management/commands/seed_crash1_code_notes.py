@@ -16,6 +16,7 @@ CODE_NOTES_PATH = (
 )
 CODE_NOTES_TABLE_HEADING = "## All code notes"
 CODE_NOTES_ROW = re.compile(r"^\| `(0x[0-9a-f]+)` \| [^|]* \| (.*) \|$", re.MULTILINE)
+CODE_NOTES_ROW_START = re.compile(r"^\| `0x", re.MULTILINE)
 
 
 def load_code_notes():
@@ -28,8 +29,16 @@ def load_code_notes():
         (address, note.replace("<br>", "\n").replace(r"\|", "|"))
         for address, note in CODE_NOTES_ROW.findall(table)
     ]
-    if not notes:
-        raise ValueError(f"{CODE_NOTES_PATH} has no parsable code-note rows")
+
+    expected = len(CODE_NOTES_ROW_START.findall(table))
+    if not expected:
+        raise ValueError(f"{CODE_NOTES_PATH} has no code-note rows")
+    if len(notes) != expected:
+        raise ValueError(
+            f"{CODE_NOTES_PATH}: parsed {len(notes)} of {expected} code-note rows — "
+            "a row does not match the expected `| \\`0xADDR\\` | type | note |` layout"
+        )
+
     return notes
 
 

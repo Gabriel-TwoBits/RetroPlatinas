@@ -9,6 +9,7 @@ from django.db import IntegrityError
 from django.utils import timezone
 
 from apps.accounts.models import User
+from apps.achievements.management.commands import seed_crash1_code_notes as seed_code_notes
 from apps.achievements.management.commands.seed_crash1_code_notes import load_code_notes
 from apps.achievements.management.commands.seed_crash1_level_achievements import (
     ACHIEVEMENT_POINTS,
@@ -114,6 +115,42 @@ def test_load_code_notes_unescapes_the_markdown_table():
     assert notes["0x54b84"] == "Frames"
     assert notes["0x61994"].startswith("Overworld Status:\n00 - In a Stage")
     assert "+0x105 | Papu Papu" in notes["0x60ddc"]
+
+
+@pytest.mark.parametrize(
+    ("original", "corrupted_by", "message"),
+    [
+        ("## All code notes", "## Renamed heading", "has no '## All code notes' table"),
+        (
+            "| `0x54b84` | 8-bit | Frames |",
+            "| `0x54b84` | Frames |",
+            "parsed 107 of 108 code-note rows",
+        ),
+    ],
+)
+def test_load_code_notes_refuses_a_malformed_memory_map(
+    monkeypatch, tmp_path, original, corrupted_by, message
+):
+    document = seed_code_notes.CODE_NOTES_PATH.read_text(encoding="utf-8")
+    assert original in document
+
+    corrupted = tmp_path / "crash-bandicoot-1.md"
+    corrupted.write_text(document.replace(original, corrupted_by), encoding="utf-8")
+    monkeypatch.setattr(seed_code_notes, "CODE_NOTES_PATH", corrupted)
+
+    with pytest.raises(ValueError, match=re.escape(message)):
+        load_code_notes()
+
+
+def test_load_code_notes_refuses_an_empty_table(monkeypatch, tmp_path):
+    empty = tmp_path / "crash-bandicoot-1.md"
+    empty.write_text(
+        "## All code notes\n\n| Address | Type | Note |\n| --- | --- | --- |\n", encoding="utf-8"
+    )
+    monkeypatch.setattr(seed_code_notes, "CODE_NOTES_PATH", empty)
+
+    with pytest.raises(ValueError, match="has no code-note rows"):
+        load_code_notes()
 
 
 @pytest.mark.django_db
