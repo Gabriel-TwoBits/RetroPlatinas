@@ -95,6 +95,19 @@ validated in game before it ships.**
 - **DuckStation only fetches the patch (conditions + Rich Presence) when the game loads.** A reset
   is not enough — close the game and open it again, or you are testing the old conditions.
 
+### Testing a `community` achievement in game
+
+`community` maps to `Flags=5` (*unofficial*). Enable "Test Unofficial Achievements"
+(`Cheevos/UnofficialTestMode`) and reload the game, then read the **achievement list**, not the
+pause-screen counter:
+
+- The "X of Y" counter only counts `core` achievements, so it stays put no matter how many
+  unofficial ones loaded. Unofficial ones live in their own list bucket, suffixed `(Unofficial)`.
+- The in-game popup **does** fire for them, which is what proves the `mem_addr` is right.
+- rcheevos **never sends `awardachievement` for an unofficial achievement**, so no `UserUnlock`
+  and no points — by design, and the server cannot override it. Promote to `verified` to see the
+  full cycle. `handle_awardachievement` ignores `status`/`flags`, so both go through the same code.
+
 ## i18n workflow
 
 When any UI-touching change adds new visible strings:
