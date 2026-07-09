@@ -9,6 +9,7 @@ from django.db import IntegrityError
 from django.utils import timezone
 
 from apps.accounts.models import User
+from apps.achievements.management.commands.seed_crash1_code_notes import load_code_notes
 from apps.achievements.management.commands.seed_crash1_level_achievements import (
     ACHIEVEMENT_POINTS,
     FRAMES_OF_PLAY_BEFORE_ARMED,
@@ -104,6 +105,15 @@ def test_seed_crash1_code_notes_command():
     assert notes.count() == 108
     assert "N. Sanity Beach" in notes.get(address="0x619c5").note
     assert "Overworld" in notes.get(address="0x61994").note
+
+
+def test_load_code_notes_unescapes_the_markdown_table():
+    notes = dict(load_code_notes())
+
+    assert len(notes) == 108
+    assert notes["0x54b84"] == "Frames"
+    assert notes["0x61994"].startswith("Overworld Status:\n00 - In a Stage")
+    assert "+0x105 | Papu Papu" in notes["0x60ddc"]
 
 
 @pytest.mark.django_db
