@@ -18,6 +18,9 @@ venv/
 staticfiles/
 media/
 
+# Compiled translations — build artifacts, generated at container startup
+*.mo
+
 # uv
 .python-version
 
