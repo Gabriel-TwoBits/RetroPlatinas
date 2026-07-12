@@ -5,7 +5,7 @@
 > **Licence:** GPL-3.0 (see `LICENSE` in this directory). © RetroAchievements contributors.
 
 Vendored verbatim so achievement logic is written against the specification rather than guessed at.
-Do not edit these files — refresh them from upstream instead. RetroCheevos' own notes on Crash
+Do not edit these files — refresh them from upstream instead. RetroPlatinas' own notes on Crash
 Bandicoot conditions live in `../crash-bandicoot-1-level-achievements.md`.
 
 ## Read these before writing or debugging any `mem_addr`

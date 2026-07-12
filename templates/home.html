@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 {% load i18n %}
 
-{% block title %}{% trans "Home" %} — RetroCheevos{% endblock %}
+{% block title %}{% trans "Home" %} — RetroPlatinas{% endblock %}
 
 {% block content %}
-<h1>{% trans "Welcome to RetroCheevos" %}</h1>
+<h1>{% trans "Welcome to RetroPlatinas" %}</h1>
 {% if user.is_authenticated %}
   <p>{% blocktrans with username=user.username %}You are logged in as <strong>{{ username }}</strong>.{% endblocktrans %}</p>
 {% else %}

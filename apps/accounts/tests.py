@@ -75,4 +75,4 @@ def test_homepage_renders_portuguese_by_default(client):
 def test_set_language_switches_to_english(client):
     resp = client.post("/i18n/setlang/", {"language": "en", "next": "/"}, follow=True)
     assert resp.status_code == 200
-    assert "Welcome to RetroCheevos" in resp.content.decode()
+    assert "Welcome to RetroPlatinas" in resp.content.decode()

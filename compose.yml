@@ -4,11 +4,11 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-retrocheevos}
-      POSTGRES_USER: ${POSTGRES_USER:-retrocheevos}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-retrocheevos}
+      POSTGRES_DB: ${POSTGRES_DB:-retroplatinas}
+      POSTGRES_USER: ${POSTGRES_USER:-retroplatinas}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-retroplatinas}
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-retrocheevos}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-retroplatinas}"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -35,11 +35,11 @@ services:
     ports:
       - "8000:8000"
     environment:
-      DJANGO_SETTINGS_MODULE: ${DJANGO_SETTINGS_MODULE:-retrocheevos.settings.dev}
+      DJANGO_SETTINGS_MODULE: ${DJANGO_SETTINGS_MODULE:-retroplatinas.settings.dev}
       DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-dev-insecure-change-me}
-      POSTGRES_DB: ${POSTGRES_DB:-retrocheevos}
-      POSTGRES_USER: ${POSTGRES_USER:-retrocheevos}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-retrocheevos}
+      POSTGRES_DB: ${POSTGRES_DB:-retroplatinas}
+      POSTGRES_USER: ${POSTGRES_USER:-retroplatinas}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-retroplatinas}
       POSTGRES_HOST: db
       POSTGRES_PORT: "5432"
       REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}

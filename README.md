@@ -1,4 +1,4 @@
-# RetroCheevos — Server
+# RetroPlatinas — Server
 
 Alternative platform to RetroAchievements.org with full protocol compatibility (rcheevos).
 
@@ -18,8 +18,8 @@ pip install --user podman-compose
 
 ```bash
 # 1. Clone the repository
-git clone ssh://git@codeberg.org/Gabriel-TwoBits/retrocheevos.git
-cd retrocheevos
+git clone ssh://git@codeberg.org/Gabriel-TwoBits/retroplatinas.git
+cd retroplatinas
 
 # 2. Copy environment variables
 cp .env.example .env

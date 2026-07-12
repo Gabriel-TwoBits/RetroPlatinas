@@ -1,14 +1,14 @@
-# RetroCheevos Portuguese translations.
-# Copyright (C) 2026 RetroCheevos
-# This file is distributed under the same license as the RetroCheevos package.
+# RetroPlatinas Portuguese translations.
+# Copyright (C) 2026 RetroPlatinas
+# This file is distributed under the same license as the RetroPlatinas package.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: RetroCheevos\n"
+"Project-Id-Version: RetroPlatinas\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-05-25 15:55-0300\n"
 "PO-Revision-Date: 2026-05-23 18:15-0300\n"
-"Last-Translator: RetroCheevos\n"
+"Last-Translator: RetroPlatinas\n"
 "Language-Team: Portuguese\n"
 "Language: pt\n"
 "MIME-Version: 1.0\n"
@@ -235,8 +235,8 @@ msgid "Home"
 msgstr "Início"
 
 #: templates/home.html:7
-msgid "Welcome to RetroCheevos"
-msgstr "Bem-vindo ao RetroCheevos"
+msgid "Welcome to RetroPlatinas"
+msgstr "Bem-vindo ao RetroPlatinas"
 
 #: templates/home.html:9
 #, python-format

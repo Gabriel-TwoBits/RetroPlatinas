@@ -1,5 +1,5 @@
 [project]
-name = "retrocheevos"
+name = "retroplatinas"
 version = "0.1.0"
 requires-python = ">=3.12"
 dependencies = [
@@ -31,5 +31,5 @@ select = ["E", "F", "I", "UP"]
 "*/migrations/*.py" = ["E501"]
 
 [tool.pytest.ini_options]
-DJANGO_SETTINGS_MODULE = "retrocheevos.settings.dev"
+DJANGO_SETTINGS_MODULE = "retroplatinas.settings.dev"
 python_files = ["tests.py", "test_*.py"]

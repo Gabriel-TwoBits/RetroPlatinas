@@ -244,7 +244,7 @@ wheels = [
 ]
 
 [[package]]
-name = "retrocheevos"
+name = "retroplatinas"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [

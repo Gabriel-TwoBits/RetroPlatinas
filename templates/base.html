@@ -4,11 +4,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}RetroCheevos{% endblock %}</title>
+  <title>{% block title %}RetroPlatinas{% endblock %}</title>
 </head>
 <body>
   <nav>
-    <strong><a href="/">RetroCheevos</a></strong>
+    <strong><a href="/">RetroPlatinas</a></strong>
     &nbsp;|&nbsp;
     {% if user.is_authenticated %}
       {% blocktrans with username=user.username %}Hello, {{ username }}{% endblocktrans %}

@@ -33,7 +33,7 @@ MIDDLEWARE = [
     "apps.api.middleware.RequestLogMiddleware",
 ]
 
-ROOT_URLCONF = "retrocheevos.urls"
+ROOT_URLCONF = "retroplatinas.urls"
 
 TEMPLATES = [
     {
@@ -52,14 +52,14 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "retrocheevos.wsgi.application"
+WSGI_APPLICATION = "retroplatinas.wsgi.application"
 
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.environ.get("POSTGRES_DB", "retrocheevos"),
-        "USER": os.environ.get("POSTGRES_USER", "retrocheevos"),
-        "PASSWORD": os.environ.get("POSTGRES_PASSWORD", "retrocheevos"),
+        "NAME": os.environ.get("POSTGRES_DB", "retroplatinas"),
+        "USER": os.environ.get("POSTGRES_USER", "retroplatinas"),
+        "PASSWORD": os.environ.get("POSTGRES_PASSWORD", "retroplatinas"),
         "HOST": os.environ.get("POSTGRES_HOST", "db"),
         "PORT": os.environ.get("POSTGRES_PORT", "5432"),
     }

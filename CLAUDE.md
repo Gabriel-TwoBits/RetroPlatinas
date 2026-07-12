@@ -4,9 +4,9 @@ Guidance for Claude Code working in this repository. See `README.md` for human s
 
 ## Project
 
-RetroCheevos is an alternative to RetroAchievements.org with full protocol compatibility (rcheevos). MVP targets Crash Bandicoot 1 (PS1).
+RetroPlatinas is an alternative to RetroAchievements.org with full protocol compatibility (rcheevos). MVP targets Crash Bandicoot 1 (PS1).
 
-- **Full roadmap (40 PRs):** `/mnt/HD/RetroCheevos/PLANO_DESENVOLVIMENTO.md` (external drive)
+- **Full roadmap (40 PRs):** `/mnt/HD/RetroPlatinas/PLANO_DESENVOLVIMENTO.md` (external drive)
 - **Current state:** `git log` — do not document progress here, it decays fast
 
 ## Stack
