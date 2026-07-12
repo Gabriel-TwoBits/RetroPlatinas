@@ -26,7 +26,7 @@ cp .env.example .env
 # Edit .env if you need different passwords in dev
 
 # 3. Start services (builds the image on first run)
-podman-compose up --build
+podman-compose --in-pod=false up --build
 ```
 
 The server will be available at http://localhost:8000
@@ -62,7 +62,7 @@ http://localhost:8000/admin/ → log in with the superuser created above.
 ## Running in background
 
 ```bash
-podman-compose up -d          # start in background
+podman-compose --in-pod=false up -d   # start in background
 podman-compose logs -f web    # follow Django server logs
 podman-compose down           # stop all (data persists in volumes)
 podman-compose down -v        # stop AND delete volumes (full reset)
@@ -71,7 +71,7 @@ podman-compose down -v        # stop AND delete volumes (full reset)
 ## First time: generate uv.lock
 
 The `uv.lock` lockfile should be committed to the repository for reproducible builds.
-After the first `podman-compose up --build`, generate it with:
+After the first `podman-compose --in-pod=false up --build`, generate it with:
 
 ```bash
 podman-compose exec web uv lock
@@ -80,6 +80,16 @@ git commit -m "chore: add initial uv.lock"
 ```
 
 ## Troubleshooting
+
+### `podman-compose up` fails: `--userns and --pod cannot be set together`
+
+podman-compose 1.x creates a pod by default, which is incompatible with the
+`userns_mode: keep-id` this project uses. Pass `--in-pod=false` on every `up`
+(already shown in the commands above):
+
+```bash
+podman-compose --in-pod=false up --build
+```
 
 ### SELinux: permission denied on bind mounts
 
