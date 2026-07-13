@@ -11,6 +11,7 @@ from apps.achievements.models import Achievement, UserUnlock
 from apps.api.auth import user_from_token
 from apps.api.handlers import HANDLERS, PRESENCE_TTL_SECONDS
 from apps.games.models import Console, Game, GameHash
+from apps.leaderboards.models import Leaderboard, LeaderboardEntry
 
 User = get_user_model()
 
@@ -23,6 +24,7 @@ IMPLEMENTED_ACTIONS = (
     "awardachievement",
     "startsession",
     "ping",
+    "submitlbentry",
 )
 STUB_ACTIONS = [k for k in HANDLERS if k not in IMPLEMENTED_ACTIONS]
 
@@ -851,3 +853,153 @@ def test_ping_uses_five_minute_ttl(client, authed_user, game_with_achievements):
     args, kwargs = mock_set.call_args
     assert PRESENCE_TTL_SECONDS == 300
     assert 300 in args or kwargs.get("timeout") == 300
+
+
+# --- leaderboards (patch + submitlbentry) ---
+
+LEADERBOARD_MEM = "STA:0xH0001=1::CAN:0xH0002=1::SUB:0xH0003=1::VAL:M:1=1"
+
+
+@pytest.fixture
+def game_with_leaderboards(authed_user):
+    console = Console.objects.create(ra_id=12, name="PlayStation", short_name="PS1")
+    game = Game.objects.create(title="Crash Bandicoot", console=console)
+    lb = Leaderboard.objects.create(
+        game=game,
+        title="N. Sanity Beach — Fastest Clear",
+        description="Fastest time to clear N. Sanity Beach.",
+        mem_addr=LEADERBOARD_MEM,
+        format="FRAMES",
+        lower_is_better=True,
+    )
+    return game, lb
+
+
+def _make_user(username, token):
+    user = User.objects.create_user(username=username, password="pw", email=f"{username}@test.com")
+    user.api_token = token
+    user.api_token_expires_at = timezone.now() + timedelta(days=14)
+    user.save(update_fields=["api_token", "api_token_expires_at"])
+    return user
+
+
+@pytest.mark.django_db
+def test_patch_serializes_leaderboard(client, authed_user, game_with_leaderboards):
+    _, token = authed_user
+    game, lb = game_with_leaderboards
+    response = client.post("/dorequest.php", {"r": "patch", "t": token, "g": game.pk})
+    leaderboards = response.json()["PatchData"]["Leaderboards"]
+    assert len(leaderboards) == 1
+    entry = leaderboards[0]
+    assert entry["ID"] == lb.id
+    assert entry["Mem"] == LEADERBOARD_MEM
+    assert entry["Format"] == "FRAMES"
+    assert entry["LowerIsBetter"] is True
+    assert entry["Title"] == lb.title
+    assert entry["Description"] == lb.description
+    assert entry["Hidden"] is False
+
+
+@pytest.mark.django_db
+def test_achievementsets_serializes_leaderboard(client, authed_user, game_with_leaderboards):
+    _, token = authed_user
+    game, lb = game_with_leaderboards
+    GameHash.objects.create(game=game, md5="d" * 32, label="NTSC-US")
+    response = client.post("/dorequest.php", {"r": "achievementsets", "t": token, "m": "d" * 32})
+    leaderboards = response.json()["Sets"][0]["Leaderboards"]
+    assert len(leaderboards) == 1
+    assert leaderboards[0]["ID"] == lb.id
+    assert leaderboards[0]["Mem"] == LEADERBOARD_MEM
+
+
+@pytest.mark.django_db
+def test_submitlbentry_creates_entry(client, authed_user, game_with_leaderboards):
+    user, token = authed_user
+    _, lb = game_with_leaderboards
+    response = client.post(
+        "/dorequest.php", {"r": "submitlbentry", "t": token, "i": lb.id, "s": 1234}
+    )
+    data = response.json()
+    assert data["Success"] is True
+    assert data["Response"]["Score"] == 1234
+    assert data["Response"]["BestScore"] == 1234
+    entry = LeaderboardEntry.objects.get(leaderboard=lb, user=user)
+    assert entry.score == 1234
+
+
+@pytest.mark.django_db
+def test_submitlbentry_keeps_best_when_worse(client, authed_user, game_with_leaderboards):
+    user, token = authed_user
+    _, lb = game_with_leaderboards
+    # lower_is_better: 500 is better than 900.
+    client.post("/dorequest.php", {"r": "submitlbentry", "t": token, "i": lb.id, "s": 500})
+    response = client.post(
+        "/dorequest.php", {"r": "submitlbentry", "t": token, "i": lb.id, "s": 900}
+    )
+    data = response.json()
+    assert data["Response"]["Score"] == 900
+    assert data["Response"]["BestScore"] == 500
+    assert LeaderboardEntry.objects.get(leaderboard=lb, user=user).score == 500
+    assert LeaderboardEntry.objects.filter(leaderboard=lb, user=user).count() == 1
+
+
+@pytest.mark.django_db
+def test_submitlbentry_updates_when_better(client, authed_user, game_with_leaderboards):
+    user, token = authed_user
+    _, lb = game_with_leaderboards
+    client.post("/dorequest.php", {"r": "submitlbentry", "t": token, "i": lb.id, "s": 900})
+    response = client.post(
+        "/dorequest.php", {"r": "submitlbentry", "t": token, "i": lb.id, "s": 500}
+    )
+    assert response.json()["Response"]["BestScore"] == 500
+    assert LeaderboardEntry.objects.get(leaderboard=lb, user=user).score == 500
+
+
+@pytest.mark.django_db
+def test_submitlbentry_top_entries_and_rank(client, authed_user, game_with_leaderboards):
+    _, token = authed_user
+    game, lb = game_with_leaderboards
+    rival = _make_user("rival", "r" * 64)
+    LeaderboardEntry.objects.create(leaderboard=lb, user=rival, score=300)
+    response = client.post(
+        "/dorequest.php", {"r": "submitlbentry", "t": token, "i": lb.id, "s": 800}
+    )
+    resp = response.json()["Response"]
+    # lower_is_better: rival (300) ranks above player (800).
+    assert resp["RankInfo"]["Rank"] == 2
+    assert resp["RankInfo"]["NumEntries"] == 2
+    top = resp["TopEntries"]
+    assert [e["Rank"] for e in top] == [1, 2]
+    assert top[0]["User"] == "rival"
+    assert top[0]["Score"] == 300
+    assert top[1]["User"] == "player"
+
+
+@pytest.mark.django_db
+def test_submitlbentry_unknown_leaderboard(client, authed_user):
+    _, token = authed_user
+    response = client.post("/dorequest.php", {"r": "submitlbentry", "t": token, "i": 999, "s": 1})
+    data = response.json()
+    assert data["Success"] is False
+    assert data["Error"] == "Unknown leaderboard"
+
+
+@pytest.mark.django_db
+def test_submitlbentry_invalid_score(client, authed_user, game_with_leaderboards):
+    _, token = authed_user
+    _, lb = game_with_leaderboards
+    response = client.post(
+        "/dorequest.php", {"r": "submitlbentry", "t": token, "i": lb.id, "s": "abc"}
+    )
+    data = response.json()
+    assert data["Success"] is False
+    assert data["Error"] == "Invalid score"
+
+
+@pytest.mark.django_db
+def test_submitlbentry_missing_token(client, game_with_leaderboards):
+    _, lb = game_with_leaderboards
+    response = client.post("/dorequest.php", {"r": "submitlbentry", "i": lb.id, "s": 1})
+    data = response.json()
+    assert data["Success"] is False
+    assert data["Error"] == "Credentials invalid."

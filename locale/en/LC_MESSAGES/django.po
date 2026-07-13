@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RetroPlatinas\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-12 22:14-0300\n"
+"POT-Creation-Date: 2026-07-13 09:11-0300\n"
 "PO-Revision-Date: 2026-05-23 18:15-0300\n"
 "Last-Translator: RetroPlatinas\n"
 "Language-Team: English\n"
@@ -38,6 +38,7 @@ msgstr ""
 
 #: apps/achievements/models.py:22 apps/achievements/models.py:83
 #: apps/games/models.py:33 apps/games/models.py:46
+#: apps/leaderboards/models.py:13
 msgid "game"
 msgstr ""
 
@@ -46,10 +47,12 @@ msgid "author"
 msgstr ""
 
 #: apps/achievements/models.py:29 apps/games/models.py:20
+#: apps/leaderboards/models.py:15
 msgid "title"
 msgstr ""
 
 #: apps/achievements/models.py:30 apps/games/models.py:28
+#: apps/leaderboards/models.py:16
 msgid "description"
 msgstr ""
 
@@ -57,7 +60,7 @@ msgstr ""
 msgid "points"
 msgstr ""
 
-#: apps/achievements/models.py:32
+#: apps/achievements/models.py:32 apps/leaderboards/models.py:17
 msgid "memory address expression"
 msgstr ""
 
@@ -85,7 +88,7 @@ msgstr ""
 msgid "achievements"
 msgstr ""
 
-#: apps/achievements/models.py:58
+#: apps/achievements/models.py:58 apps/leaderboards/models.py:40
 msgid "user"
 msgstr ""
 
@@ -173,6 +176,38 @@ msgstr ""
 msgid "game hashes"
 msgstr ""
 
+#: apps/leaderboards/models.py:18
+msgid "format"
+msgstr ""
+
+#: apps/leaderboards/models.py:19
+msgid "lower is better"
+msgstr ""
+
+#: apps/leaderboards/models.py:22 apps/leaderboards/models.py:35
+msgid "leaderboard"
+msgstr ""
+
+#: apps/leaderboards/models.py:23
+msgid "leaderboards"
+msgstr ""
+
+#: apps/leaderboards/models.py:42
+msgid "score"
+msgstr ""
+
+#: apps/leaderboards/models.py:43
+msgid "submitted at"
+msgstr ""
+
+#: apps/leaderboards/models.py:46
+msgid "leaderboard entry"
+msgstr ""
+
+#: apps/leaderboards/models.py:47
+msgid "leaderboard entries"
+msgstr ""
+
 #: templates/accounts/login.html:4 templates/accounts/login.html:7
 #: templates/accounts/login.html:11 templates/accounts/register.html:13
 msgid "Log in"
@@ -183,7 +218,7 @@ msgid "No account yet?"
 msgstr ""
 
 #: templates/accounts/login.html:13 templates/accounts/register.html:4
-#: templates/accounts/register.html:11 templates/base.html:48
+#: templates/accounts/register.html:11 templates/base.html:49
 msgid "Register"
 msgstr ""
 
@@ -341,7 +376,7 @@ msgstr ""
 
 #: templates/accounts/password_change_form.html:4
 #: templates/accounts/password_change_form.html:7
-#: templates/accounts/password_change_form.html:11
+#: templates/accounts/password_change_form.html:11 templates/base.html:42
 msgid "Change password"
 msgstr ""
 
@@ -350,7 +385,7 @@ msgid "Overview"
 msgstr ""
 
 #: templates/accounts/profile.html:28 templates/base.html:33
-#: templates/base.html:80
+#: templates/base.html:81
 msgid "Games"
 msgstr ""
 
@@ -374,11 +409,11 @@ msgstr ""
 msgid "Already have an account?"
 msgstr ""
 
-#: templates/base.html:34 templates/base.html:81
+#: templates/base.html:34 templates/base.html:82
 msgid "Ranking"
 msgstr ""
 
-#: templates/base.html:35 templates/base.html:82
+#: templates/base.html:35 templates/base.html:83
 msgid "Feed"
 msgstr ""
 
@@ -386,15 +421,15 @@ msgstr ""
 msgid "Search"
 msgstr ""
 
-#: templates/base.html:44
+#: templates/base.html:45
 msgid "Logout"
 msgstr ""
 
-#: templates/base.html:47
+#: templates/base.html:48
 msgid "Login"
 msgstr ""
 
-#: templates/base.html:60
+#: templates/base.html:61
 msgid "Change language"
 msgstr ""
 

@@ -10,6 +10,7 @@ from django.utils import timezone
 from apps.achievements.models import Achievement, UserUnlock
 from apps.api.auth import user_from_token
 from apps.games.models import Game, GameHash
+from apps.leaderboards.models import Leaderboard, LeaderboardEntry
 
 logger = logging.getLogger("apps.api")
 
@@ -82,6 +83,18 @@ def _serialize_achievement(a):
     }
 
 
+def _serialize_leaderboard(lb):
+    return {
+        "ID": lb.id,
+        "Mem": lb.mem_addr,
+        "Format": lb.format,
+        "LowerIsBetter": lb.lower_is_better,
+        "Title": lb.title,
+        "Description": lb.description,
+        "Hidden": False,
+    }
+
+
 def handle_patch(request):
     user = user_from_token(request.POST.get("t", ""))
     if user is None:
@@ -113,7 +126,7 @@ def handle_patch(request):
             "ImageIcon": image_icon,
             "RichPresencePatch": game.rich_presence_patch,
             "Achievements": [_serialize_achievement(a) for a in achievements],
-            "Leaderboards": [],
+            "Leaderboards": [_serialize_leaderboard(lb) for lb in game.leaderboards.all()],
         },
     }
 
@@ -164,7 +177,7 @@ def handle_achievementsets(request):
                 "Type": "core",
                 "ImageIconUrl": icon_url,
                 "Achievements": [_serialize_achievement(a) for a in achievements],
-                "Leaderboards": [],
+                "Leaderboards": [_serialize_leaderboard(lb) for lb in game.leaderboards.all()],
             }
         ],
     }
@@ -287,8 +300,63 @@ def handle_ping(request):
     return {"Success": True}
 
 
+TOP_ENTRIES_LIMIT = 10
+
+
+def _rank_of(leaderboard, score):
+    better = "score__lt" if leaderboard.lower_is_better else "score__gt"
+    return leaderboard.entries.filter(**{better: score}).count() + 1
+
+
 def handle_submitlbentry(request):
-    return _NOT_IMPLEMENTED
+    user = user_from_token(request.POST.get("t", ""))
+    if user is None:
+        return _INVALID_CREDENTIALS
+
+    try:
+        leaderboard_id = int(request.POST.get("i", ""))
+    except (ValueError, TypeError):
+        return {"Success": False, "Error": "Unknown leaderboard"}
+
+    leaderboard = Leaderboard.objects.filter(pk=leaderboard_id).first()
+    if leaderboard is None:
+        return {"Success": False, "Error": "Unknown leaderboard"}
+
+    try:
+        score = int(request.POST.get("s", ""))
+    except (ValueError, TypeError):
+        return {"Success": False, "Error": "Invalid score"}
+
+    with transaction.atomic():
+        entry, created = LeaderboardEntry.objects.get_or_create(
+            leaderboard=leaderboard, user=user, defaults={"score": score}
+        )
+        if not created:
+            improved = score < entry.score if leaderboard.lower_is_better else score > entry.score
+            if improved:
+                entry.score = score
+                entry.submitted_at = timezone.now()
+                entry.save(update_fields=["score", "submitted_at"])
+
+    order = "score" if leaderboard.lower_is_better else "-score"
+    ranked = leaderboard.entries.select_related("user").order_by(order, "submitted_at")
+    top_entries = [
+        {"User": e.user.username, "Score": e.score, "Rank": rank}
+        for rank, e in enumerate(ranked[:TOP_ENTRIES_LIMIT], start=1)
+    ]
+
+    return {
+        "Success": True,
+        "Response": {
+            "Score": score,
+            "BestScore": entry.score,
+            "RankInfo": {
+                "Rank": _rank_of(leaderboard, entry.score),
+                "NumEntries": leaderboard.entries.count(),
+            },
+            "TopEntries": top_entries,
+        },
+    }
 
 
 HANDLERS = {

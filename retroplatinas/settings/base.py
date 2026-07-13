@@ -16,6 +16,7 @@ INSTALLED_APPS = [
     "apps.accounts",
     "apps.games",
     "apps.achievements",
+    "apps.leaderboards",
     "apps.api",
 ]
 
