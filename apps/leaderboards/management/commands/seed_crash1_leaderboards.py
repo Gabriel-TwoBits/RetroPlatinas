@@ -9,7 +9,7 @@ PS1_RA_ID = 12
 STAGE_LOADED = "0xW618cc!=0"
 CURRENT_STAGE_ADDRESS = "0xH619c5"
 INSIDE_STAGE = "0xH61994=0"
-LEAVING_STAGE = "0xH61994!=0"
+STAGE_UNLOADED = "0xW618cc=0"
 RETURNED_TO_MAP = "0xH61994=1_d0xH61994!=1"
 RESULTS_SCREEN = "0xH61998=1"
 NEVER = "0=1"
@@ -34,11 +34,13 @@ def build_leaderboard_mem(stage_id):
     # `d=0`) because leaving a stage passes through a transition value (05/06), never a clean 0→1.
     cancel = f"CAN:{NEVER}"
     submit = f"SUB:{RETURNED_TO_MAP}"
-    # Count only active gameplay frames: pause on the results screen (0x61998) and whenever the
-    # overworld status leaves "in a stage" (the transition/loading state on the way to the map),
-    # so neither the tally nor the load-out is measured. A respawn returns to 0x61994=0, so a
-    # death still costs time. A results-screen latch is unusable here — 0x61998 spikes on death.
-    value = f"VAL:P:{RESULTS_SCREEN}_P:{LEAVING_STAGE}_M:1=1"
+    # Count only active gameplay frames: pause on the results screen (0x61998) and once the stage
+    # RAM is unloaded (0x618cc null) on the way back to the map, so neither the tally nor the
+    # load-out is measured. The achievement notes treat "unloaded" (0x618cc=0) as distinct from
+    # "on the map" (0x61994=1): the load-out sits at 0x61994=0 but 0x618cc=0. A respawn keeps the
+    # stage loaded, so a death still costs time. A results-screen latch is unusable — 0x61998
+    # spikes on death.
+    value = f"VAL:P:{RESULTS_SCREEN}_P:{STAGE_UNLOADED}_M:1=1"
     return f"{start}::{cancel}::{submit}::{value}"
 
 
