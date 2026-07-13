@@ -1,6 +1,5 @@
 from django.core.management.base import BaseCommand
 
-from apps.achievements.management.commands.seed_crash1_level_achievements import build_mem_addr
 from apps.games.models import Console, Game
 from apps.leaderboards.models import Leaderboard
 
@@ -10,8 +9,9 @@ PS1_RA_ID = 12
 STAGE_LOADED = "0xW618cc!=0"
 CURRENT_STAGE_ADDRESS = "0xH619c5"
 INSIDE_STAGE = "0xH61994=0"
-ON_THE_MAP = "0xH61994=1"
-FRAME_COUNT_VALUE = "M:1=1"
+RETURNED_TO_MAP = "0xH61994=1_d0xH61994=0"
+RESULTS_SCREEN = "0xH61998=1"
+NEVER = "0=1"
 
 LEADERBOARD_FORMAT = "FRAMES"
 
@@ -24,16 +24,16 @@ LEADERBOARDS = [
 
 def build_leaderboard_mem(stage_id):
     this_stage = f"{CURRENT_STAGE_ADDRESS}={stage_id}"
-    # Start as a level condition, not a single-frame map→stage edge: requiring the edge and the
-    # stage id to align on the same frame silently failed to start on stage 0. Per the RA docs
-    # a submitted leaderboard cannot restart until STA goes false (leave the stage) then true again.
+    # Start as a level condition (not a single-frame map→stage edge, which failed to align on
+    # stage 0). Per the RA docs a submitted board only re-arms after STA goes false then true.
     start = f"STA:{STAGE_LOADED}_{this_stage}_{INSIDE_STAGE}"
-    cancel = f"CAN:{ON_THE_MAP}"
-    # Submit the moment the level-completion achievement would trigger — the same in-game
-    # validated detector. A bare results-screen edge (0xH61998) also spikes on stage load,
-    # which submitted the timer at 0.01s the instant the level began.
-    submit = f"SUB:{build_mem_addr(stage_id)}"
-    value = f"VAL:{FRAME_COUNT_VALUE}"
+    # Submit only on the return to the overworld map. The results-screen flag (0x61998) rises on
+    # death too, so any 0x61998-based submit fired on death; a death respawns in-stage and never
+    # returns to the map, so this cannot. No cancel is needed for the same reason.
+    cancel = f"CAN:{NEVER}"
+    submit = f"SUB:{RETURNED_TO_MAP}"
+    # Count gameplay frames, paused across the results screen so its tally time is not measured.
+    value = f"VAL:P:{RESULTS_SCREEN}_M:1=1"
     return f"{start}::{cancel}::{submit}::{value}"
 
 
