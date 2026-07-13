@@ -9,7 +9,7 @@ PS1_RA_ID = 12
 STAGE_LOADED = "0xW618cc!=0"
 CURRENT_STAGE_ADDRESS = "0xH619c5"
 INSIDE_STAGE = "0xH61994=0"
-RETURNED_TO_MAP = "0xH61994=1_d0xH61994=0"
+RETURNED_TO_MAP = "0xH61994=1_d0xH61994!=1"
 RESULTS_SCREEN = "0xH61998=1"
 NEVER = "0=1"
 
@@ -29,7 +29,8 @@ def build_leaderboard_mem(stage_id):
     start = f"STA:{STAGE_LOADED}_{this_stage}_{INSIDE_STAGE}"
     # Submit only on the return to the overworld map. The results-screen flag (0x61998) rises on
     # death too, so any 0x61998-based submit fired on death; a death respawns in-stage and never
-    # returns to the map, so this cannot. No cancel is needed for the same reason.
+    # returns to the map, so this cannot. No cancel is needed for the same reason. `d!=1` (not
+    # `d=0`) because leaving a stage passes through a transition value (05/06), never a clean 0→1.
     cancel = f"CAN:{NEVER}"
     submit = f"SUB:{RETURNED_TO_MAP}"
     # Count gameplay frames, paused across the results screen so its tally time is not measured.
