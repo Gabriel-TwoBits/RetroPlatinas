@@ -202,10 +202,8 @@ msgid "active %(active_ago)s ago"
 msgstr "ativo há %(active_ago)s"
 
 #: templates/accounts/partials/identity-header.html:29
-#, fuzzy
-#| msgid "points"
 msgid "Total points"
-msgstr "pontos"
+msgstr "Pontos totais"
 
 #: templates/accounts/partials/identity-header.html:31
 #, python-format
@@ -261,16 +259,12 @@ msgid "Game"
 msgstr "Jogo"
 
 #: templates/accounts/partials/sec-completion.html:10
-#, fuzzy
-#| msgid "console"
 msgid "Console"
-msgstr "console"
+msgstr "Console"
 
 #: templates/accounts/partials/sec-completion.html:11
-#, fuzzy
-#| msgid "achievements"
 msgid "Achievements"
-msgstr "conquistas"
+msgstr "Conquistas"
 
 #: templates/accounts/partials/sec-completion.html:12
 msgid "Completion"
@@ -357,10 +351,8 @@ msgstr "Visão geral"
 
 #: templates/accounts/profile.html:28 templates/base.html:33
 #: templates/base.html:80
-#, fuzzy
-#| msgid "games"
 msgid "Games"
-msgstr "jogos"
+msgstr "Jogos"
 
 #: templates/accounts/profile.html:29
 msgid "Progress"
@@ -407,10 +399,8 @@ msgid "Change language"
 msgstr "Mudar idioma"
 
 #: templates/components/logo.html:10
-#, fuzzy
-#| msgid "Welcome to RetroPlatinas"
 msgid "RetroPlatinas"
-msgstr "Bem-vindo ao RetroPlatinas"
+msgstr "RetroPlatinas"
 
 #: templates/home.html:4
 msgid "Home"
@@ -421,24 +411,22 @@ msgid "Welcome to RetroPlatinas"
 msgstr "Bem-vindo ao RetroPlatinas"
 
 #: templates/home.html:12
-#, fuzzy, python-format
-#| msgid "You are logged in as <strong>%(username)s</strong>."
+#, python-format
 msgid ""
 "You are logged in as <a class=\"text-brand\" "
 "href=\"%(profile_url)s\">%(username)s</a>."
-msgstr "Você está logado como <strong>%(username)s</strong>."
+msgstr ""
+"Você está logado como <a class=\"text-brand\" "
+"href=\"%(profile_url)s\">%(username)s</a>."
 
 #: templates/home.html:17
-#, fuzzy, python-format
-#| msgid ""
-#| "<a href=\"%(register_url)s\">Register</a> or <a "
-#| "href=\"%(login_url)s\">log in</a> to get started."
+#, python-format
 msgid ""
 "<a class=\"text-brand\" href=\"%(register_url)s\">Register</a> or <a "
 "class=\"text-brand\" href=\"%(login_url)s\">log in</a> to get started."
 msgstr ""
-"<a href=\"%(register_url)s\">Cadastrar</a> ou <a "
-"href=\"%(login_url)s\">entrar</a> para começar."
+"<a class=\"text-brand\" href=\"%(register_url)s\">Cadastrar</a> ou <a "
+"class=\"text-brand\" href=\"%(login_url)s\">entrar</a> para começar."
 
 #, python-format
 #~ msgid "Hello, %(username)s"
