@@ -1,5 +1,6 @@
 from django.core.management.base import BaseCommand
 
+from apps.achievements.management.commands.seed_crash1_level_achievements import build_mem_addr
 from apps.games.models import Console, Game
 from apps.leaderboards.models import Leaderboard
 
@@ -11,7 +12,6 @@ CURRENT_STAGE_ADDRESS = "0xH619c5"
 INSIDE_STAGE = "0xH61994=0"
 ON_THE_MAP = "0xH61994=1"
 JUST_ENTERED_STAGE = "d0xH61994=1"
-RESULTS_SCREEN_RISING_EDGE = "0xH61998=1_d0xH61998=0"
 FRAME_COUNT_VALUE = "M:1=1"
 
 LEADERBOARD_FORMAT = "FRAMES"
@@ -27,7 +27,10 @@ def build_leaderboard_mem(stage_id):
     this_stage = f"{CURRENT_STAGE_ADDRESS}={stage_id}"
     start = f"STA:{STAGE_LOADED}_{this_stage}_{INSIDE_STAGE}_{JUST_ENTERED_STAGE}"
     cancel = f"CAN:{ON_THE_MAP}"
-    submit = f"SUB:{RESULTS_SCREEN_RISING_EDGE}"
+    # Submit the moment the level-completion achievement would trigger — the same in-game
+    # validated detector. A bare results-screen edge (0xH61998) also spikes on stage load,
+    # which submitted the timer at 0.01s the instant the level began.
+    submit = f"SUB:{build_mem_addr(stage_id)}"
     value = f"VAL:{FRAME_COUNT_VALUE}"
     return f"{start}::{cancel}::{submit}::{value}"
 
