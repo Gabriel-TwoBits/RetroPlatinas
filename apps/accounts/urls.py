@@ -23,4 +23,6 @@ urlpatterns = [
         ),
         name="password_change_done",
     ),
+    path("users/<str:username>/", views.user_detail, name="user_detail"),
+    path("users/<str:username>/panel/<slug:tab>/", views.user_panel, name="user_panel"),
 ]

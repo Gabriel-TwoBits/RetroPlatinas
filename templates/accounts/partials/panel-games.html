@@ -1,0 +1,12 @@
+{% load i18n %}
+<div class="flex flex-col gap-4">
+  <div>
+    <h3 class="mb-3 font-display text-[17px] font-semibold text-txt">{% trans "Recently played" %}</h3>
+    <div class="flex flex-col gap-3">
+      {% for g in recent_games %}
+        {% include "components/game-card.html" with initials=g.initials title=g.title meta=g.meta state=g.state state_label=g.state_label pct=g.pct %}
+      {% endfor %}
+    </div>
+  </div>
+  {% include "accounts/partials/sec-completion.html" %}
+</div>

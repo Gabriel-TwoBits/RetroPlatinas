@@ -76,3 +76,53 @@ def test_set_language_switches_to_english(client):
     resp = client.post("/i18n/setlang/", {"language": "en", "next": "/"}, follow=True)
     assert resp.status_code == 200
     assert "Welcome to RetroPlatinas" in resp.content.decode()
+
+
+@pytest.mark.django_db
+def test_profile_renders_for_existing_user(client):
+    User.objects.create_user(username="teste", password="pw-secret-123")
+    resp = client.get("/users/teste/")
+    assert resp.status_code == 200
+    body = resp.content.decode()
+    assert "teste" in body
+    assert "Slime Quest VII" in body  # placeholder data rendered
+
+
+@pytest.mark.django_db
+def test_profile_404_for_missing_user(client):
+    resp = client.get("/users/ghost/")
+    assert resp.status_code == 404
+
+
+@pytest.mark.django_db
+def test_profile_panel_returns_fragment(client):
+    User.objects.create_user(username="teste", password="pw-secret-123")
+    resp = client.get("/users/teste/panel/progress/")
+    assert resp.status_code == 200
+    body = resp.content.decode()
+    assert "<!DOCTYPE" not in body  # HTMX fragment, not the full page
+    assert "PlayStation 2" in body  # progression section rendered
+
+
+@pytest.mark.django_db
+def test_profile_panel_rejects_unknown_tab(client):
+    User.objects.create_user(username="teste", password="pw-secret-123")
+    resp = client.get("/users/teste/panel/bogus/")
+    assert resp.status_code == 404
+
+
+@pytest.mark.django_db
+def test_edit_button_only_for_owner(client):
+    User.objects.create_user(username="teste", email="teste@example.com", password="pw-secret-123")
+    User.objects.create_user(username="other", email="other@example.com", password="pw-secret-123")
+
+    resp = client.get("/users/teste/", HTTP_ACCEPT_LANGUAGE="en")
+    assert "Edit profile" not in resp.content.decode()
+
+    client.login(username="other", password="pw-secret-123")
+    resp = client.get("/users/teste/", HTTP_ACCEPT_LANGUAGE="en")
+    assert "Edit profile" not in resp.content.decode()
+
+    client.login(username="teste", password="pw-secret-123")
+    resp = client.get("/users/teste/", HTTP_ACCEPT_LANGUAGE="en")
+    assert "Edit profile" in resp.content.decode()

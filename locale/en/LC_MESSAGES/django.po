@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RetroPlatinas\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-25 15:55-0300\n"
+"POT-Creation-Date: 2026-07-12 22:14-0300\n"
 "PO-Revision-Date: 2026-05-23 18:15-0300\n"
 "Last-Translator: RetroPlatinas\n"
 "Language-Team: English\n"
@@ -20,7 +20,7 @@ msgstr ""
 msgid "A user with that email already exists."
 msgstr ""
 
-#: apps/achievements/admin.py:21 apps/achievements/models.py:40
+#: apps/achievements/admin.py:21 apps/achievements/models.py:38
 msgid "status"
 msgstr ""
 
@@ -36,12 +36,12 @@ msgstr ""
 msgid "Verified"
 msgstr ""
 
-#: apps/achievements/models.py:22 apps/achievements/models.py:85
+#: apps/achievements/models.py:22 apps/achievements/models.py:83
 #: apps/games/models.py:33 apps/games/models.py:46
 msgid "game"
 msgstr ""
 
-#: apps/achievements/models.py:27 apps/achievements/models.py:90
+#: apps/achievements/models.py:27 apps/achievements/models.py:88
 msgid "author"
 msgstr ""
 
@@ -61,67 +61,67 @@ msgstr ""
 msgid "memory address expression"
 msgstr ""
 
-#: apps/achievements/models.py:34
+#: apps/achievements/models.py:33
 msgid "badge"
 msgstr ""
 
-#: apps/achievements/models.py:42
+#: apps/achievements/models.py:40
 msgid "flags"
 msgstr ""
 
-#: apps/achievements/models.py:43 apps/games/models.py:30
+#: apps/achievements/models.py:41 apps/games/models.py:30
 msgid "created at"
 msgstr ""
 
-#: apps/achievements/models.py:44 apps/achievements/models.py:94
+#: apps/achievements/models.py:42 apps/achievements/models.py:92
 msgid "updated at"
 msgstr ""
 
-#: apps/achievements/models.py:47 apps/achievements/models.py:65
+#: apps/achievements/models.py:45 apps/achievements/models.py:63
 msgid "achievement"
 msgstr ""
 
-#: apps/achievements/models.py:48
+#: apps/achievements/models.py:46
 msgid "achievements"
 msgstr ""
 
-#: apps/achievements/models.py:60
+#: apps/achievements/models.py:58
 msgid "user"
 msgstr ""
 
-#: apps/achievements/models.py:67 apps/achievements/models.py:76
+#: apps/achievements/models.py:65 apps/achievements/models.py:74
 msgid "hardcore"
 msgstr ""
 
-#: apps/achievements/models.py:68
+#: apps/achievements/models.py:66
 msgid "unlocked at"
 msgstr ""
 
-#: apps/achievements/models.py:71
+#: apps/achievements/models.py:69
 msgid "user unlock"
 msgstr ""
 
-#: apps/achievements/models.py:72
+#: apps/achievements/models.py:70
 msgid "user unlocks"
 msgstr ""
 
-#: apps/achievements/models.py:76
+#: apps/achievements/models.py:74
 msgid "softcore"
 msgstr ""
 
-#: apps/achievements/models.py:92
+#: apps/achievements/models.py:90
 msgid "address"
 msgstr ""
 
-#: apps/achievements/models.py:93
+#: apps/achievements/models.py:91
 msgid "note"
 msgstr ""
 
-#: apps/achievements/models.py:97
+#: apps/achievements/models.py:95
 msgid "code note"
 msgstr ""
 
-#: apps/achievements/models.py:98
+#: apps/achievements/models.py:96
 msgid "code notes"
 msgstr ""
 
@@ -183,8 +183,148 @@ msgid "No account yet?"
 msgstr ""
 
 #: templates/accounts/login.html:13 templates/accounts/register.html:4
-#: templates/accounts/register.html:11 templates/base.html:24
+#: templates/accounts/register.html:11 templates/base.html:48
 msgid "Register"
+msgstr ""
+
+#: templates/accounts/partials/identity-header.html:14
+msgid "HARDCORE"
+msgstr ""
+
+#: templates/accounts/partials/identity-header.html:21
+#, python-format
+msgid "member since %(member_since)s"
+msgstr ""
+
+#: templates/accounts/partials/identity-header.html:22
+#, python-format
+msgid "active %(active_ago)s ago"
+msgstr ""
+
+#: templates/accounts/partials/identity-header.html:29
+msgid "Total points"
+msgstr ""
+
+#: templates/accounts/partials/identity-header.html:31
+#, python-format
+msgid "%(points_weighted)s weighted"
+msgstr ""
+
+#: templates/accounts/partials/identity-header.html:34
+msgid "Global rank"
+msgstr ""
+
+#: templates/accounts/partials/identity-header.html:36
+#, python-format
+msgid "Top %(top_pct)s"
+msgstr ""
+
+#: templates/accounts/partials/identity-header.html:44
+msgid "Playing now"
+msgstr ""
+
+#: templates/accounts/partials/identity-header.html:54
+msgid "Edit profile"
+msgstr ""
+
+#: templates/accounts/partials/panel-games.html:4
+#: templates/accounts/partials/sec-recent-games.html:4
+msgid "Recently played"
+msgstr ""
+
+#: templates/accounts/partials/sec-awards.html:3
+msgid "Event awards"
+msgstr ""
+
+#: templates/accounts/partials/sec-awards.html:18
+msgid "Platinums & awards"
+msgstr ""
+
+#: templates/accounts/partials/sec-awards.html:19
+#, python-format
+msgid "%(game_awards_total)s total"
+msgstr ""
+
+#: templates/accounts/partials/sec-completion.html:4
+msgid "Completion progress"
+msgstr ""
+
+#: templates/accounts/partials/sec-completion.html:5
+#, python-format
+msgid "%(completion_count)s games"
+msgstr ""
+
+#: templates/accounts/partials/sec-completion.html:9
+msgid "Game"
+msgstr ""
+
+#: templates/accounts/partials/sec-completion.html:10
+msgid "Console"
+msgstr ""
+
+#: templates/accounts/partials/sec-completion.html:11
+msgid "Achievements"
+msgstr ""
+
+#: templates/accounts/partials/sec-completion.html:12
+msgid "Completion"
+msgstr ""
+
+#: templates/accounts/partials/sec-completion.html:30
+msgid "Load more games"
+msgstr ""
+
+#: templates/accounts/partials/sec-heat.html:4
+msgid "Recent progress"
+msgstr ""
+
+#: templates/accounts/partials/sec-heat.html:5
+msgid "14 days"
+msgstr ""
+
+#: templates/accounts/partials/sec-heat.html:15
+msgid "today"
+msgstr ""
+
+#: templates/accounts/partials/sec-progression.html:4
+msgid "Progress by console"
+msgstr ""
+
+#: templates/accounts/partials/sec-progression.html:6
+msgid "Not finished"
+msgstr ""
+
+#: templates/accounts/partials/sec-progression.html:7
+msgid "Beaten"
+msgstr ""
+
+#: templates/accounts/partials/sec-progression.html:8
+msgid "Platinum"
+msgstr ""
+
+#: templates/accounts/partials/sec-recent-games.html:5
+msgid "see all →"
+msgstr ""
+
+#: templates/accounts/partials/sec-stats.html:3
+msgid "Player statistics"
+msgstr ""
+
+#: templates/accounts/partials/sec-wall.html:3
+msgid "User wall"
+msgstr ""
+
+#: templates/accounts/partials/sec-wall.html:5
+msgid "you"
+msgstr ""
+
+#: templates/accounts/partials/sec-wall.html:6
+#, python-format
+msgid "Leave a comment on %(username)s's wall…"
+msgstr ""
+
+#: templates/accounts/partials/sec-wall.html:14
+msgid "owner"
 msgstr ""
 
 #: templates/accounts/password_change_done.html:4
@@ -201,8 +341,29 @@ msgstr ""
 
 #: templates/accounts/password_change_form.html:4
 #: templates/accounts/password_change_form.html:7
-#: templates/accounts/password_change_form.html:11 templates/base.html:15
+#: templates/accounts/password_change_form.html:11
 msgid "Change password"
+msgstr ""
+
+#: templates/accounts/profile.html:27
+msgid "Overview"
+msgstr ""
+
+#: templates/accounts/profile.html:28 templates/base.html:33
+#: templates/base.html:80
+msgid "Games"
+msgstr ""
+
+#: templates/accounts/profile.html:29
+msgid "Progress"
+msgstr ""
+
+#: templates/accounts/profile.html:30
+msgid "Awards"
+msgstr ""
+
+#: templates/accounts/profile.html:31
+msgid "Wall"
 msgstr ""
 
 #: templates/accounts/register.html:7
@@ -213,39 +374,52 @@ msgstr ""
 msgid "Already have an account?"
 msgstr ""
 
-#: templates/base.html:14
-#, python-format
-msgid "Hello, %(username)s"
+#: templates/base.html:34 templates/base.html:81
+msgid "Ranking"
 msgstr ""
 
-#: templates/base.html:19
-msgid "Logout"
-msgstr ""
-
-#: templates/base.html:22
-msgid "Login"
+#: templates/base.html:35 templates/base.html:82
+msgid "Feed"
 msgstr ""
 
 #: templates/base.html:36
+msgid "Search"
+msgstr ""
+
+#: templates/base.html:44
+msgid "Logout"
+msgstr ""
+
+#: templates/base.html:47
+msgid "Login"
+msgstr ""
+
+#: templates/base.html:60
 msgid "Change language"
+msgstr ""
+
+#: templates/components/logo.html:10
+msgid "RetroPlatinas"
 msgstr ""
 
 #: templates/home.html:4
 msgid "Home"
 msgstr ""
 
-#: templates/home.html:7
+#: templates/home.html:8
 msgid "Welcome to RetroPlatinas"
 msgstr ""
 
-#: templates/home.html:9
-#, python-format
-msgid "You are logged in as <strong>%(username)s</strong>."
-msgstr ""
-
-#: templates/home.html:13
+#: templates/home.html:12
 #, python-format
 msgid ""
-"<a href=\"%(register_url)s\">Register</a> or <a href=\"%(login_url)s\">log "
-"in</a> to get started."
+"You are logged in as <a class=\"text-brand\" "
+"href=\"%(profile_url)s\">%(username)s</a>."
+msgstr ""
+
+#: templates/home.html:17
+#, python-format
+msgid ""
+"<a class=\"text-brand\" href=\"%(register_url)s\">Register</a> or <a "
+"class=\"text-brand\" href=\"%(login_url)s\">log in</a> to get started."
 msgstr ""

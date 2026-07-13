@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{{ profile_user.username }} — RetroPlatinas{% endblock %}
+
+{% block content %}
+{% include "accounts/partials/identity-header.html" %}
+
+{# ===== Desktop: two columns, everything visible ===== #}
+<div class="mx-auto hidden max-w-6xl gap-6 px-4 py-6 lg:grid lg:grid-cols-[328px_1fr] lg:items-start">
+  <aside class="flex flex-col gap-5">
+    {% include "accounts/partials/sec-stats.html" %}
+    {% include "accounts/partials/sec-heat.html" %}
+    {% include "accounts/partials/sec-awards.html" %}
+  </aside>
+  <div class="flex flex-col gap-6">
+    {% include "accounts/partials/sec-recent-games.html" %}
+    {% include "accounts/partials/sec-progression.html" %}
+    {% include "accounts/partials/sec-completion.html" %}
+    {% include "accounts/partials/sec-wall.html" %}
+  </div>
+</div>
+
+{# ===== Mobile: sticky tab bar swaps one panel at a time via HTMX ===== #}
+<div class="lg:hidden">
+  <div id="profile-tabs" class="sticky top-14 z-10 flex gap-1.5 overflow-x-auto border-b border-line bg-bg/90 px-3 py-2 backdrop-blur">
+    <button data-tab class="rp-tab is-active" hx-get="{% url 'user_panel' profile_user.username 'overview' %}" hx-target="#mobile-panel">{% trans "Overview" %}</button>
+    <button data-tab class="rp-tab" hx-get="{% url 'user_panel' profile_user.username 'games' %}" hx-target="#mobile-panel">{% trans "Games" %}</button>
+    <button data-tab class="rp-tab" hx-get="{% url 'user_panel' profile_user.username 'progress' %}" hx-target="#mobile-panel">{% trans "Progress" %}</button>
+    <button data-tab class="rp-tab" hx-get="{% url 'user_panel' profile_user.username 'awards' %}" hx-target="#mobile-panel">{% trans "Awards" %}</button>
+    <button data-tab class="rp-tab" hx-get="{% url 'user_panel' profile_user.username 'wall' %}" hx-target="#mobile-panel">{% trans "Wall" %}</button>
+  </div>
+  <div id="mobile-panel" class="px-4 py-4">
+    {% include "accounts/partials/panel-overview.html" %}
+  </div>
+</div>
+
+<script>
+  document.getElementById("profile-tabs")?.addEventListener("click", function (e) {
+    const btn = e.target.closest("[data-tab]");
+    if (!btn) return;
+    this.querySelectorAll("[data-tab]").forEach((b) => b.classList.remove("is-active"));
+    btn.classList.add("is-active");
+  });
+</script>
+{% endblock %}

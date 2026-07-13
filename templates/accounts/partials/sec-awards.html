@@ -1,0 +1,28 @@
+{% load i18n %}
+<div class="rounded-card border border-line bg-surface p-4">
+  <div class="mb-3 font-display text-sm font-semibold text-txt">{% trans "Event awards" %}</div>
+  <div class="mb-4 flex flex-col gap-2">
+    {% for a in event_awards %}
+      <div class="flex items-center gap-3">
+        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border bg-elevated font-display text-[10px] font-bold"
+             style="border-color:{{ a.color }};color:{{ a.color }}">{{ a.ini }}</div>
+        <div>
+          <div class="text-[12.5px] font-semibold text-txt">{{ a.name }}</div>
+          <div class="font-mono text-[9.5px] text-txt-faint">{{ a.when }}</div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <div class="mb-2.5 flex items-baseline justify-between">
+    <div class="font-display text-sm font-semibold text-txt">{% trans "Platinums & awards" %}</div>
+    <span class="font-mono text-[9.5px] text-txt-faint">{% blocktrans %}{{ game_awards_total }} total{% endblocktrans %}</span>
+  </div>
+  <div class="grid grid-cols-5 gap-2">
+    {% for a in game_awards %}
+      <div class="rp-hatch flex aspect-square items-center justify-center rounded-lg border font-display text-[10px] font-bold"
+           style="border-color:{{ a.color }};color:{{ a.color }}">{{ a.ini }}</div>
+    {% endfor %}
+    <div class="flex aspect-square items-center justify-center rounded-lg border border-line2 bg-surface2 font-mono text-[11px] text-brand">+{{ game_awards_more }}</div>
+  </div>
+</div>

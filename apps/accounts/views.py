@@ -1,7 +1,11 @@
-from django.contrib.auth import login
-from django.shortcuts import redirect, render
+from django.contrib.auth import get_user_model, login
+from django.http import Http404
+from django.shortcuts import get_object_or_404, redirect, render
 
+from apps.accounts.fake_profile import VALID_TABS, fake_profile_context
 from apps.accounts.forms import RegistrationForm
+
+User = get_user_model()
 
 
 def register(request):
@@ -14,3 +18,18 @@ def register(request):
     else:
         form = RegistrationForm()
     return render(request, "accounts/register.html", {"form": form})
+
+
+def user_detail(request, username):
+    profile_user = get_object_or_404(User, username=username)
+    context = fake_profile_context(profile_user)
+    context["is_owner"] = request.user.is_authenticated and request.user == profile_user
+    return render(request, "accounts/profile.html", context)
+
+
+def user_panel(request, username, tab):
+    if tab not in VALID_TABS:
+        raise Http404("Unknown profile tab")
+    profile_user = get_object_or_404(User, username=username)
+    context = fake_profile_context(profile_user)
+    return render(request, f"accounts/partials/panel-{tab}.html", context)
