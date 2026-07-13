@@ -5,28 +5,136 @@
 
 RetroAchievements maps system memory at `$00000000` immediately followed by cartridge memory, so the addresses below may not correspond to real-hardware addresses. The `Type` column is inferred from each note's text and is best-effort. Seed these notes into the database as `CodeNote` rows with `python manage.py seed_crash1_code_notes` (idempotent).
 
-## Key addresses
+Target ROM: **NTSC-US, SCUS-94900**.
 
-| Address | Type | Description |
-| --- | --- | --- |
-| `0x619c5` | enum/flag | Current stage (00 = N. Sanity Beach, 01 = Jungle Rollers, ...) |
-| `0x61994` | enum/flag | Overworld status (00 = in a stage, 01 = on the map) |
-| `0x9e215` | 8-bit | Wumpa fruit count |
-| `0x9e219` | 8-bit | Lives |
-| `0x61988` | bitfield | Gems collected bitfield, part 1 of 4 (0x61988-0x6198b) |
-| `0x619ad` | bitfield | Keys/gems collected bitfield |
-| `0x618cc` | pointer | Aku Aku pointer (shield level at +0x189) |
-| `0x618a4` | pointer | Wumpa fruits (via pointer) |
-| `0x618a8` | pointer | Lives counter (via pointer) |
-| `0x61985` | 8-bit | Boxes destroyed/missed |
-| `0x61665` | 8-bit | Crates broken/missed (EU) |
-| `0x60ddc` | pointer | Boss health pointer (Papu/Ripper/Pinstripe/Cortex/Brio) |
-| `0x6197c` | enum/flag | Current bonus stage |
-| `0x61974` | 8-bit | Game progress (updates on progress screen) |
-| `0x61a10` | 8-bit | Gems total (updates on progress screen) |
-| `0x61a68` | enum/flag | FF = finished/quit a level |
-| `0x61998` | 8-bit | On results screen |
-| `0x54b84` | 8-bit | Frames |
+## Scope
+
+- **The set (game 10434) supports exactly one hash:** *Crash Bandicoot (USA)*, md5
+  `35386fd0891e594c9b6d8a4a5baa0027`. There is no registered EU/PAL hash. The 46 official achievements were
+  written and tested against the USA ROM only, so every address the set actually uses is, by definition, a
+  USA address.
+- **Untagged notes = the canonical USA map.** This is where the `0x619xx` block lives — the block validated
+  in-game, whose four addresses the code notes agree with.
+- **`(EU)`-tagged notes are out of scope.** They are annotations for a different ROM left in the shared
+  code-note file; they are not our target (NTSC-US, SCUS-94900) and are **not addresses to validate** —
+  rechecking them makes no sense. They are kept in the raw dump below only as a record that they exist and
+  why they were excluded.
+- **Timing / region note (future).** PAL runs at 50 Hz and NTSC at 60 Hz. Because leaderboards count
+  **frames**, times from ROMs of different regions are not comparable. Out of scope today (USA only),
+  recorded here for when the catalogue grows.
+
+## Read this before trusting anything below
+
+- **The public API does not expose achievement conditions.** `API_GetGameExtended` returns `MemAddr` as an
+  **MD5 hash** for non-authors, so no address here is inferred from the working RA condition logic — every
+  entry is sourced from a **code note** or from **in-game validation**, never from the set's `MemAddr`.
+- **Only untagged notes describe the USA target.** `(EU)`-tagged notes belong to another ROM and are out of
+  scope (see **Scope** above); the canonical USA map is the untagged `0x619xx` family.
+- **Console RAM is zeroed at reset,** so `0` means "not initialised yet" as often as it means "state 0".
+  Guard any `0`-valued read with the pointer at `0x618cc` (`0xW618cc!=0`), which is provably non-zero only
+  while a game is actually running.
+
+## Validated addresses (in-game, by maintainer)
+
+These four are confirmed on SCUS-94900. **The code notes agree** with all four (same address, same meaning) —
+no disagreement to flag.
+
+| Address (rcheevos) | Size | Meaning | Code note | Status |
+| --- | --- | --- | --- | --- |
+| `0xW618cc` | 24-bit ptr | Aku Aku struct pointer (shield level at `+0x189`). Use `!=0` as the "game running" guard. | `0x618cc` [24-bit Pointer] | **VALIDATED** ✓ (notes agree) |
+| `0xH61994` | 8-bit | Overworld status: `00` in a stage · `01` on the map · `05` going to prev world · `06` going to next world | `0x61994` Overworld Status | **VALIDATED** ✓ (notes agree) |
+| `0xH619c5` | 8-bit | Current stage / stage-select id (`00`=N.Sanity Beach … `20`=Whole Hog; full table below) | `0x619c5` Stage Select/Current Stage | **VALIDATED** ✓ (notes agree) |
+| `0xH61998` | 8-bit | On results screen (non-zero on the end-of-stage tally) | `0x61998` On Results Screen | **VALIDATED** ✓ (notes agree) |
+
+## Key addresses (code note only — NOT yet validated in game)
+
+Same `0x619xx` block as the validated four, so high confidence for NTSC-US, but each still needs an in-game
+check before shipping a condition against it.
+
+| Address | Size | Meaning | Notes |
+| --- | --- | --- | --- |
+| `0x61988`–`0x6198b` | bitfield ×4 | Gems collected, 1 bit per stage (see 100% table) | Core of the 26-gem tracking |
+| `0x619ad` | bitfield | Key/Gem pt1: bit0 Fumbling-in-the-Dark gem, bit2 Jaws-of-Darkness **key** | Secret / key-gated |
+| `0x619ae` | bitfield | Key/Gem pt2: bit2 Whole Hog gem, bit4 Sunset Vista **key** | Secret / key-gated |
+| `0x61985` | 8-bit | Boxes destroyed/missed (running counter, per stage) | The USA note; its `(EU)` twin `0x61665` is out of scope |
+| `0x6197c` | 8-bit | Current bonus stage id (Tawna/Brio/Cortex) | Bonus-round identity, not token count |
+| `0x61974` | 8-bit | Game progress — **updates only while the progress screen is shown** | Laggy; not a live counter |
+| `0x61a10` | 8-bit | Gems total — **updates only while the progress screen is shown** | Laggy aggregate |
+| `0x61a68` | 8-bit | `FF` = finished/quit a level (approx) | "Kinda", per author |
+| `0x618a4` | 24-bit ptr | Wumpa fruit count (deref `+0x6c → +0xe4 → +0x0c`) | In-stage Wumpa |
+| `0x618a8` | 24-bit ptr | Lives counter (deref `+0x06 → +0xe4 → +0x0c`) | In-stage lives |
+| `0x618ed` / `0x618f1` / `0x618f5` | 8-bit | Lives / Aku Aku / Wumpas — **map screen** copies | Map-side mirror |
+| `0x60ddc` | 24-bit ptr | Boss health (Papu/Ripper/Pinstripe/Cortex/Brio via offsets) | Hit-counter semantics, see raw dump |
+| `0x61898` | 24-bit ptr | Koala Kong health (deref `+0x6c → +0x105`) | |
+| `0x54b84` | 8-bit | Frame counter | For the timed-boss achievements |
+| `0x56400` | 8-bit | `01` = game paused | Pause guard for timed runs |
+| `0x5e720` / `0x5e721` | bitfield | Controller inputs pt1/pt2 (buttons + dpad) | For "without jumping / without pressing up" achievements |
+
+The boss-specific and per-stage `0x9xxxx` notes below (Aku-Aku-per-stage, per-stage lives counters, boss "First
+Try" health) are **untagged USA addresses but unvalidated** — check them in game before building against them.
+Their `(EU)`-tagged siblings in the same dump are out of scope (see **Scope**), kept only as a record.
+
+### Stage id table (`0xH619c5`)
+
+`00` N.Sanity Beach · `01` Jungle Rollers · `02` The Great Gate · `03` Boulders · `04` Upstream ·
+`05` Papu Papu · `06` Rolling Stones · `07` Hog Wild · `08` Native Fortress · `09` Up The Creek ·
+`0A` Ripper Roo · `0B` The Lost City · `0C` Temple Ruins · `0D` Road To Nowhere · `0E` Boulder Dash ·
+`0F` Sunset Vista · `10` Koala Kong · `11` Heavy Machinery · `12` Cortex Power · `13` Generator Room ·
+`14` Toxic Waste · `15` Pinstripe · `16` The High Road · `17` Slippery Climb · `18` Lights Out ·
+`19` Jaws of Darkness · `1A` Castle Machinery · `1B` Nitrus Brio · `1C` The Lab · `1D` The Great Wall ·
+`1E` Dr. Neo Cortex · `1F` Fumbling In The Dark · `20` Whole Hog.
+
+## Traps
+
+- **`0x61998` spikes on death.** The results-screen flag also pulses during the death/back-to-map sequence, so
+  a bare `0xH61998=1` will fire on a death, not only on a real clear. Use a rising edge and gate it on a genuine
+  stage clear (`0xH61998=1_d0xH61998=0`, plus a guard that a gem/box condition actually completed).
+- **Load-out vs. map.** `0xH61994` passes through `05`/`06` ("going to prev/next world") during the map
+  transition, and stage RAM is unloaded/reloaded across it. A timer or counter read during this window sees
+  stale/zeroed RAM — pause any timing and don't sample stage addresses until `0xH61994` settles to `01` (map)
+  or `00` (in stage). (This is exactly the leaderboard-timer bug fixed in recent commits.)
+- **Demo mode / attract loop.** The title-screen demo boots a stage and runs the game engine, so `0xH61994`
+  can read `00` (in a stage) with no player present. **No code note documents a demo-mode flag** → the reliable
+  guard is still the pointer (`0xW618cc!=0`) *plus* confirming the player actually has control; a real
+  demo-mode discriminator is an **in-game TODO**.
+
+## 100% (secret ending) — what the data covers
+
+Achievement set target: **26 gems + secret ending** (`A Shining Ending`), plus per-stage "all boxes + gem",
+both **keys**, and the three bonus rounds.
+
+"Destroy all boxes and collect the gem" is stored as the stage's **gem bit** (the game only awards the gem when
+every box is broken and you reach the end without dying), so the per-stage box achievements map onto these bits
+— there is no need for a separate per-stage box total.
+
+| Byte | Bit → stage (gem) |
+| --- | --- |
+| `0x61988` | b1 N.Sanity Beach · b2 Jungle Rollers · b3 The Great Gate · b4 Boulders · b5 Upstream · b7 Rolling Stones · *(b0 = ??? unmapped, b6 Papu Papu = NO GEM)* |
+| `0x61989` | b0 Hog Wild · b1 Native Fortress · b2 Up The Creek · b4 The Lost City **(Green)** · b5 Temple Ruins · b6 Road To Nowhere · b7 Boulder Dash · *(b3 Ripper Roo = NO GEM)* |
+| `0x6198a` | b0 Sunset Vista · b2 Heavy Machinery · b3 Cortex Power · b4 Generator Room **(Orange)** · b5 Toxic Waste **(Blue)** · b7 The High Road · *(b1 Koala Kong, b6 Pinstripe = NO GEM)* |
+| `0x6198b` | b0 Slippery Climb **(Red)** · b1 Lights Out **(Purple)** · b2 Fumbling In The Dark · b3 Castle Machinery · b5 The Lab **(Yellow)** · *(b4 Nitrus Brio = NO GEM)* |
+| `0x619ad` | b0 Fumbling in the Dark gem · **b2 Jaws of Darkness KEY** |
+| `0x619ae` | **b2 Whole Hog gem** · **b4 Sunset Vista KEY** |
+
+Colored gems (6 named in notes): Green (Lost City), Orange (Generator Room), Blue (Toxic Waste), Red (Slippery
+Climb), Purple (Lights Out), Yellow (The Lab). **Keys:** Sunset Vista → `0x619ae` bit4; Jaws of Darkness →
+`0x619ad` bit2.
+
+### What the data does NOT cover — in-game discovery required
+
+1. **Bonus-round token count.** Achievements need "collect 3 Tawna / 3 Brio tokens". `0x6197c` gives the
+   bonus-stage **identity** but **no note documents the token counter**. → find the token count address in game.
+2. **Per-stage box totals.** Only a single running "boxes destroyed/missed" counter (`0x61985`) exists — no
+   per-stage "X of Y" totals. Fine for standard 100% (gem bit = all boxes); any "N of M boxes" achievement needs
+   the per-stage total discovered in game. The missed-vs-broken semantics of `0x61985` also need confirming.
+3. **Gem-bitfield redundancy / gaps.** `0x61988` bit0 is unmapped (`???`); Fumbling-in-the-Dark appears at both
+   `0x6198b` bit2 **and** `0x619ad` bit0; Whole Hog lives only in `0x619ae`. Which bit the game actually sets on
+   collection (and whether both mirror) must be confirmed in game before a 26-gem "all set" mask is trusted.
+4. **The 26-gem completion mask.** `0x61a10` ("gems total") only updates on the progress screen, so it is not a
+   reliable live "26/26" trigger. A robust all-gems condition has to AND the individual bits above — build the
+   exact mask and verify the total lands at 26 in game.
+5. **Demo-mode discriminator** (see Traps) — no documented flag.
+6. **`0x61a68` "finished/quit" semantics** are approximate ("kinda") — confirm before relying on it.
 
 ## All code notes (108)
 
