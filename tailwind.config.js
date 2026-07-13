@@ -46,6 +46,10 @@ module.exports = {
         card: "0.75rem",
         tile: "0.625rem",
       },
+      gridTemplateColumns: {
+        // Desktop achievement grid: one row of 20 icon cells.
+        20: "repeat(20, minmax(0, 1fr))",
+      },
       keyframes: {
         "rp-shimmer": {
           "0%": { backgroundPosition: "-120% 0" },
