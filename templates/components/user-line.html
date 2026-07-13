@@ -1,0 +1,16 @@
+{% comment %}
+  Compact user row (leaderboard / list). Args:
+    initials, name, meta (e.g. "#1.204 · 89.320 pts"), delta (optional, e.g. "▲ 12"), href (optional)
+{% endcomment %}
+<div class="flex items-center gap-2.5 border-t border-line py-2">
+  <div class="rp-hatch flex h-8 w-8 shrink-0 items-center justify-center rounded-lg font-display text-[11px] text-brand">{{ initials }}</div>
+  <div class="min-w-0 flex-1">
+    {% if href %}
+      <a href="{{ href }}" class="text-sm font-semibold text-txt no-underline hover:text-brand">{{ name }}</a>
+    {% else %}
+      <div class="text-sm font-semibold text-txt">{{ name }}</div>
+    {% endif %}
+    <div class="font-mono text-[10px] text-txt-faint">{{ meta }}</div>
+  </div>
+  {% if delta %}<span class="font-mono text-xs text-gold">{{ delta }}</span>{% endif %}
+</div>

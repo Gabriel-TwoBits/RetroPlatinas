@@ -4,12 +4,17 @@
 {% block title %}{% trans "Home" %} — RetroPlatinas{% endblock %}
 
 {% block content %}
-<h1>{% trans "Welcome to RetroPlatinas" %}</h1>
-{% if user.is_authenticated %}
-  <p>{% blocktrans with username=user.username %}You are logged in as <strong>{{ username }}</strong>.{% endblocktrans %}</p>
-{% else %}
-  {% url 'register' as register_url %}
-  {% url 'login' as login_url %}
-  <p>{% blocktrans %}<a href="{{ register_url }}">Register</a> or <a href="{{ login_url }}">log in</a> to get started.{% endblocktrans %}</p>
-{% endif %}
+<section class="mx-auto max-w-6xl px-4 py-16">
+  <h1 class="font-display text-3xl font-bold tracking-tight text-txt">{% trans "Welcome to RetroPlatinas" %}</h1>
+  {% if user.is_authenticated %}
+    <p class="mt-3 text-txt-muted">
+      {% url 'user_detail' user.username as profile_url %}
+      {% blocktrans with username=user.username %}You are logged in as <a class="text-brand" href="{{ profile_url }}">{{ username }}</a>.{% endblocktrans %}
+    </p>
+  {% else %}
+    {% url 'register' as register_url %}
+    {% url 'login' as login_url %}
+    <p class="mt-3 text-txt-muted">{% blocktrans %}<a class="text-brand" href="{{ register_url }}">Register</a> or <a class="text-brand" href="{{ login_url }}">log in</a> to get started.{% endblocktrans %}</p>
+  {% endif %}
+</section>
 {% endblock %}

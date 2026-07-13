@@ -1,0 +1,28 @@
+{% load i18n %}
+{% comment %}
+  RetroPlatinas "Medalha RP" logo. Gradient defs (#plat / #platV) are rendered
+  once in base.html. Args:
+    variant : "lockup" (mark + wordmark, default) | "selo" (mark only)
+    size    : mark height in px (default 30)
+{% endcomment %}
+{% with variant=variant|default:"lockup" size=size|default:30 %}
+<span class="inline-flex items-center gap-3 align-middle">
+  <svg viewBox="6 6 52 52" width="{{ size }}" height="{{ size }}" class="shrink-0" role="img" aria-label="{% trans 'RetroPlatinas' %}">
+    <circle cx="32" cy="32" r="24" fill="url(#plat-v)" stroke="#7c8ba1" stroke-width="1"/>
+    <polygon points="32.00,8.80 35.65,13.66 40.88,10.57 42.39,16.45 48.40,15.60 47.55,21.61 53.43,23.12 50.34,28.35 55.20,32.00 50.34,35.65 53.43,40.88 47.55,42.39 48.40,48.40 42.39,47.55 40.88,53.43 35.65,50.34 32.00,55.20 28.35,50.34 23.12,53.43 21.61,47.55 15.60,48.40 16.45,42.39 10.57,40.88 13.66,35.65 8.80,32.00 13.66,28.35 10.57,23.12 16.45,21.61 15.60,15.60 21.61,16.45 23.12,10.57 28.35,13.66" fill="#9aa9c1"/>
+    <circle cx="32" cy="32" r="18.4" fill="url(#plat-v)"/>
+    <circle cx="32" cy="32" r="17.2" fill="none" stroke="#6f7d92" stroke-width="1" stroke-dasharray="0.5 1.5"/>
+    <circle cx="32" cy="32" r="15.8" fill="url(#plat-d)"/>
+    <circle cx="32" cy="32" r="15.8" fill="none" stroke="#ffffff" stroke-opacity=".5" stroke-width="1"/>
+    <text x="32" y="30" font-family="Tahoma,Verdana,sans-serif" font-weight="700" font-size="14.5" fill="#20242c" text-anchor="middle" dominant-baseline="central" letter-spacing="-1">RP</text>
+    <path d="M27,41.2 L27.7,42.2 L28.7,43 L27.7,43.8 L27,44.8 L26.3,43.8 L25.3,43 L26.3,42.2 Z" fill="#22b39c"/>
+    <path d="M32,41.2 L32.7,42.2 L33.7,43 L32.7,43.8 L32,44.8 L31.3,43.8 L30.3,43 L31.3,42.2 Z" fill="#22b39c"/>
+    <path d="M37,41.2 L37.7,42.2 L38.7,43 L37.7,43.8 L37,44.8 L36.3,43.8 L35.3,43 L36.3,42.2 Z" fill="#22b39c"/>
+  </svg>
+  {% if variant == "lockup" %}
+    <span class="font-display font-bold text-xl tracking-tight leading-none">
+      <span class="text-txt">Retro</span><span class="bg-gradient-to-r from-[#f2f5fa] to-[#aab8cd] bg-clip-text text-transparent">Platinas</span>
+    </span>
+  {% endif %}
+</span>
+{% endwith %}

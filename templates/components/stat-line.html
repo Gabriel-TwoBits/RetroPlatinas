@@ -1,0 +1,10 @@
+{% comment %}
+  Statistic row. Args: label, value, sub (optional secondary label under `label`).
+{% endcomment %}
+<div class="flex items-baseline justify-between border-t border-line py-2">
+  <div>
+    <div class="text-sm text-txt">{{ label }}</div>
+    {% if sub %}<div class="font-mono text-[10px] text-txt-faint">{{ sub }}</div>{% endif %}
+  </div>
+  <span class="font-mono text-base font-bold text-txt">{{ value }}</span>
+</div>

@@ -1,47 +1,88 @@
-{% load i18n %}
+{% load i18n static %}
 <!DOCTYPE html>
 <html lang="{{ LANGUAGE_CODE }}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}RetroPlatinas{% endblock %}</title>
+  <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}">
+  <link rel="stylesheet" href="{% static 'css/output.css' %}">
 </head>
-<body>
-  <nav>
-    <strong><a href="/">RetroPlatinas</a></strong>
-    &nbsp;|&nbsp;
-    {% if user.is_authenticated %}
-      {% blocktrans with username=user.username %}Hello, {{ username }}{% endblocktrans %}
-      &nbsp;|&nbsp;<a href="{% url 'password_change' %}">{% trans "Change password" %}</a>
-      &nbsp;|&nbsp;
-      <form method="post" action="{% url 'logout' %}" style="display:inline">
-        {% csrf_token %}
-        <button type="submit">{% trans "Logout" %}</button>
-      </form>
-    {% else %}
-      <a href="{% url 'login' %}">{% trans "Login" %}</a>
-      &nbsp;|&nbsp;
-      <a href="{% url 'register' %}">{% trans "Register" %}</a>
-    {% endif %}
-    &nbsp;|&nbsp;
-    <form action="{% url 'set_language' %}" method="post" style="display:inline">
-      {% csrf_token %}
-      <input name="next" type="hidden" value="{{ request.get_full_path }}">
-      <select name="language" onchange="this.form.submit()">
-        {% get_current_language as CURRENT_LANGUAGE %}
-        {% for code, name in LANGUAGES %}
-          <option value="{{ code }}"{% if code == CURRENT_LANGUAGE %} selected{% endif %}>{{ name }}</option>
-        {% endfor %}
-      </select>
-      <noscript><button type="submit">{% trans "Change language" %}</button></noscript>
-    </form>
-  </nav>
-  <hr>
+<body class="min-h-screen flex flex-col bg-bg font-sans text-txt antialiased">
+
+  {# Shared logo gradient defs — rendered once, referenced by every logo mark. #}
+  <svg width="0" height="0" class="absolute" aria-hidden="true">
+    <defs>
+      <linearGradient id="plat-v" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#f4f7fb"/>
+        <stop offset="1" stop-color="#aab8cd"/>
+      </linearGradient>
+      <linearGradient id="plat-d" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#f2f5fa"/>
+        <stop offset=".45" stop-color="#cdd7e6"/>
+        <stop offset="1" stop-color="#9aa9c1"/>
+      </linearGradient>
+    </defs>
+  </svg>
+
+  <header class="sticky top-0 z-20 border-b border-line bg-bg/90 backdrop-blur">
+    <div class="mx-auto flex max-w-6xl items-center gap-6 px-4 py-3">
+      <a href="/" class="no-underline hover:no-underline">{% include "components/logo.html" %}</a>
+
+      <nav class="hidden flex-1 items-center gap-5 font-display text-sm font-semibold text-txt-muted md:flex">
+        <a class="text-txt-muted no-underline hover:text-brand hover:no-underline" href="/games/">{% trans "Games" %}</a>
+        <a class="text-txt-muted no-underline hover:text-brand hover:no-underline" href="/ranking/">{% trans "Ranking" %}</a>
+        <a class="text-txt-muted no-underline hover:text-brand hover:no-underline" href="/feed/">{% trans "Feed" %}</a>
+        <a class="text-txt-muted no-underline hover:text-brand hover:no-underline" href="/games/">{% trans "Search" %}</a>
+      </nav>
+
+      <div class="ml-auto flex items-center gap-3 font-mono text-xs md:ml-0">
+        {% if user.is_authenticated %}
+          <a class="text-txt no-underline hover:text-brand" href="{% url 'user_detail' user.username %}">{{ user.username }}</a>
+          <form method="post" action="{% url 'logout' %}" class="inline">
+            {% csrf_token %}
+            <button class="text-txt-muted hover:text-brand" type="submit">{% trans "Logout" %}</button>
+          </form>
+        {% else %}
+          <a class="text-txt-muted no-underline hover:text-brand" href="{% url 'login' %}">{% trans "Login" %}</a>
+          <a class="rounded-md border border-brand-dim bg-brand/10 px-3 py-1.5 text-brand no-underline hover:no-underline" href="{% url 'register' %}">{% trans "Register" %}</a>
+        {% endif %}
+        <form action="{% url 'set_language' %}" method="post" class="inline">
+          {% csrf_token %}
+          <input name="next" type="hidden" value="{{ request.get_full_path }}">
+          {% get_current_language as CURRENT_LANGUAGE %}
+          <select name="language" onchange="this.form.submit()"
+                  class="rounded-md border border-line2 bg-surface px-1.5 py-1 text-txt-muted">
+            {% for code, name in LANGUAGES %}
+              <option value="{{ code }}"{% if code == CURRENT_LANGUAGE %} selected{% endif %}>{{ code|upper }}</option>
+            {% endfor %}
+          </select>
+          <noscript><button type="submit">{% trans "Change language" %}</button></noscript>
+        </form>
+      </div>
+    </div>
+  </header>
+
   {% if messages %}
-    <ul>
-      {% for message in messages %}<li>{{ message }}</li>{% endfor %}
-    </ul>
+    <div class="mx-auto w-full max-w-6xl px-4 pt-4">
+      {% for message in messages %}
+        <div class="mb-2 rounded-card border border-line bg-surface px-4 py-2 text-sm text-txt-muted">{{ message }}</div>
+      {% endfor %}
+    </div>
   {% endif %}
-  {% block content %}{% endblock %}
+
+  <main class="flex-1">{% block content %}{% endblock %}</main>
+
+  <footer class="border-t border-line">
+    <div class="mx-auto flex max-w-6xl flex-wrap items-center gap-4 px-4 py-6 font-mono text-xs text-txt-faint">
+      {% include "components/logo.html" with variant="selo" size=22 %}
+      <span>© RetroPlatinas</span>
+      <a class="text-txt-faint no-underline hover:text-brand" href="/games/">{% trans "Games" %}</a>
+      <a class="text-txt-faint no-underline hover:text-brand" href="/ranking/">{% trans "Ranking" %}</a>
+      <a class="text-txt-faint no-underline hover:text-brand" href="/feed/">{% trans "Feed" %}</a>
+    </div>
+  </footer>
+
+  <script src="{% static 'js/htmx.min.js' %}" defer></script>
 </body>
 </html>
