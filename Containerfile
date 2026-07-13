@@ -9,9 +9,16 @@ ENV UV_PROJECT_ENVIRONMENT=/opt/venv \
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
+    curl \
     gettext \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
+
+# Tailwind standalone CLI (no Node). CSS is compiled at startup in entrypoint.sh.
+ARG TAILWIND_VERSION=v3.4.17
+RUN curl -fsSL -o /usr/local/bin/tailwindcss \
+    "https://github.com/tailwindlabs/tailwindcss/releases/download/${TAILWIND_VERSION}/tailwindcss-linux-x64" \
+    && chmod +x /usr/local/bin/tailwindcss
 
 # Usuário não-root com UID/GID 1000 (mesmo UID do desenvolvedor no Fedora)
 RUN groupadd --gid 1000 app && \

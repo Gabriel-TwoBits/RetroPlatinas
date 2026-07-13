@@ -21,6 +21,9 @@ media/
 # Compiled translations — build artifacts, generated at container startup
 *.mo
 
+# Compiled Tailwind CSS — build artifact, generated at container startup
+static/css/output.css
+
 # uv
 .python-version
 
