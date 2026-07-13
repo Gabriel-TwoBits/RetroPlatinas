@@ -11,7 +11,6 @@ STAGE_LOADED = "0xW618cc!=0"
 CURRENT_STAGE_ADDRESS = "0xH619c5"
 INSIDE_STAGE = "0xH61994=0"
 ON_THE_MAP = "0xH61994=1"
-JUST_ENTERED_STAGE = "d0xH61994=1"
 FRAME_COUNT_VALUE = "M:1=1"
 
 LEADERBOARD_FORMAT = "FRAMES"
@@ -25,7 +24,10 @@ LEADERBOARDS = [
 
 def build_leaderboard_mem(stage_id):
     this_stage = f"{CURRENT_STAGE_ADDRESS}={stage_id}"
-    start = f"STA:{STAGE_LOADED}_{this_stage}_{INSIDE_STAGE}_{JUST_ENTERED_STAGE}"
+    # Start as a level condition, not a single-frame map→stage edge: requiring the edge and the
+    # stage id to align on the same frame silently failed to start on stage 0. Per the RA docs
+    # a submitted leaderboard cannot restart until STA goes false (leave the stage) then true again.
+    start = f"STA:{STAGE_LOADED}_{this_stage}_{INSIDE_STAGE}"
     cancel = f"CAN:{ON_THE_MAP}"
     # Submit the moment the level-completion achievement would trigger — the same in-game
     # validated detector. A bare results-screen edge (0xH61998) also spikes on stage load,
