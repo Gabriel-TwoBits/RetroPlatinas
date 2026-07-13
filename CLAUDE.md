@@ -24,6 +24,25 @@ podman-compose exec web python manage.py makemessages -l pt -l en --ignore=stati
 podman-compose exec web python manage.py compilemessages
 ```
 
+## Frontend
+
+Dark-first, mobile-first SSR: Django templates + **HTMX** (vendored, `static/js/htmx.min.js`)
++ **Tailwind CSS**. Full visual reference in `DESIGN.md`.
+
+- **Tailwind is the Tailwind v3 standalone CLI** (no Node). The binary is installed in the
+  `Containerfile`; `entrypoint.sh` compiles `static/css/input.css` → `static/css/output.css`
+  **at container startup**, same pattern as `compilemessages`. `output.css` is a build artifact
+  (gitignored), `input.css` and `tailwind.config.js` are tracked.
+- **Design tokens live in `tailwind.config.js`** (`theme.extend`) — colours, `font-*`, radii,
+  the `rp-shimmer`/`rp-glow` animations. Do not hardcode brand hexes in markup; add or reuse a
+  token. Spacing/type use Tailwind's default 4px scale.
+- **`state-*` colour utilities are safelisted** — they're composed from data (`state='beaten'` →
+  `text-state-beaten`), so scanning the markup can't find them.
+- **Reusable components are partials in `templates/components/`** (`{% include ... with ... %}`),
+  meant for reuse across screens. No web fonts — the type roles are system-font stacks.
+- After changing `input.css`/`tailwind.config.js`, rebuild the container (or re-run the CLI) so
+  `output.css` regenerates; `podman-compose up` needs `--in-pod=false`.
+
 ## Conventions (non-negotiable)
 
 **Commits** — English, Conventional Commits, **one line, no body**.
