@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RetroPlatinas\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-13 09:11-0300\n"
+"POT-Creation-Date: 2026-07-15 13:14-0300\n"
 "PO-Revision-Date: 2026-05-23 18:15-0300\n"
 "Last-Translator: RetroPlatinas\n"
 "Language-Team: English\n"
@@ -28,7 +28,7 @@ msgstr ""
 msgid "Draft"
 msgstr ""
 
-#: apps/achievements/models.py:14
+#: apps/achievements/models.py:14 templates/home.html:79
 msgid "Community"
 msgstr ""
 
@@ -297,7 +297,7 @@ msgstr ""
 msgid "Console"
 msgstr ""
 
-#: templates/accounts/partials/sec-completion.html:11
+#: templates/accounts/partials/sec-completion.html:11 templates/home.html:8
 msgid "Achievements"
 msgstr ""
 
@@ -385,7 +385,7 @@ msgid "Overview"
 msgstr ""
 
 #: templates/accounts/profile.html:28 templates/base.html:33
-#: templates/base.html:81
+#: templates/base.html:81 templates/home.html:7
 msgid "Games"
 msgstr ""
 
@@ -401,7 +401,7 @@ msgstr ""
 msgid "Wall"
 msgstr ""
 
-#: templates/accounts/register.html:7
+#: templates/accounts/register.html:7 templates/home.html:28
 msgid "Create account"
 msgstr ""
 
@@ -441,20 +441,195 @@ msgstr ""
 msgid "Home"
 msgstr ""
 
-#: templates/home.html:8
-msgid "Welcome to RetroPlatinas"
+#: templates/home.html:9
+msgid "Players"
 msgstr ""
 
-#: templates/home.html:12
-#, python-format
-msgid ""
-"You are logged in as <a class=\"text-brand\" "
-"href=\"%(profile_url)s\">%(username)s</a>."
+#: templates/home.html:10
+msgid "Unlocks"
 msgstr ""
 
-#: templates/home.html:17
-#, python-format
+#: templates/home.html:18
+msgid "Achievements for retro games, truly open."
+msgstr ""
+
+#: templates/home.html:19
 msgid ""
-"<a class=\"text-brand\" href=\"%(register_url)s\">Register</a> or <a "
-"class=\"text-brand\" href=\"%(login_url)s\">log in</a> to get started."
+"RetroPlatinas adds achievements to classics running on an emulator. Play, "
+"unlock and show up on the board."
+msgstr ""
+
+#: templates/home.html:21
+msgid "New project · under construction"
+msgstr ""
+
+#: templates/home.html:29
+msgid "See the games"
+msgstr ""
+
+#: templates/home.html:31
+msgid "We're new: 1 game, few players. We'd rather show that than fake scale."
+msgstr ""
+
+#: templates/home.html:37 templates/home.html:149
+msgid "The project in numbers"
+msgstr ""
+
+#: templates/home.html:64
+msgid "What's new"
+msgstr ""
+
+#: templates/home.html:65
+msgid "project highlights"
+msgstr ""
+
+#: templates/home.html:69
+msgid "New set"
+msgstr ""
+
+#: templates/home.html:70
+msgid "First set: Crash Bandicoot (PS1)"
+msgstr ""
+
+#: templates/home.html:71
+msgid "Our first set, with hardcore and softcore seals."
+msgstr ""
+
+#: templates/home.html:74
+msgid "Platform"
+msgstr ""
+
+#: templates/home.html:75
+msgid "Hardcore & softcore"
+msgstr ""
+
+#: templates/home.html:76
+msgid "Unlocks without save-states get the hardcore seal and are worth more."
+msgstr ""
+
+#: templates/home.html:80
+msgid "Open source on Codeberg"
+msgstr ""
+
+#: templates/home.html:81
+msgid "RetroPlatinas is AGPL-3.0. Issues and roadmap are public."
+msgstr ""
+
+#: templates/home.html:88
+msgid "Available sets"
+msgstr ""
+
+#: templates/home.html:89
+#, python-format
+msgid "%(n)s game"
+msgid_plural "%(n)s games"
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/home.html:98
+msgid "NEW"
+msgstr ""
+
+#: templates/home.html:112
+msgid "Suggest the next game"
+msgstr ""
+
+#: templates/home.html:113
+msgid "the set queue is open — propose a classic"
+msgstr ""
+
+#: templates/home.html:121
+msgid "How to contribute"
+msgstr ""
+
+#: templates/home.html:122
+msgid "open to everyone"
+msgstr ""
+
+#: templates/home.html:128
+msgid "Create achievement sets"
+msgstr ""
+
+#: templates/home.html:129
+msgid "Pick a game, design the achievements and publish a set. No gatekeeping."
+msgstr ""
+
+#: templates/home.html:130
+msgid "Create account →"
+msgstr ""
+
+#: templates/home.html:136
+msgid "Contribute code"
+msgstr ""
+
+#: templates/home.html:137
+msgid "AGPL-3.0 on Codeberg. Bugs, features and roadmap are open."
+msgstr ""
+
+#: templates/home.html:138
+msgid "See the repository →"
+msgstr ""
+
+#: templates/home.html:150
+msgid "first weeks"
+msgstr ""
+
+#: templates/home.html:158
+msgid "Online now"
+msgstr ""
+
+#: templates/home.html:166
+msgid "Recent activity"
+msgstr ""
+
+#: templates/home.html:167
+msgid "real time"
+msgstr ""
+
+#: templates/home.html:188
+msgid "No unlocks yet"
+msgstr ""
+
+#: templates/home.html:189
+msgid "As soon as someone plays, unlocks show up here in real time."
+msgstr ""
+
+#: templates/home.html:190
+msgid "Be the first to play →"
+msgstr ""
+
+#: templates/home.html:197
+msgid "Open source"
+msgstr ""
+
+#: templates/home.html:201
+msgid "Codeberg — repository"
+msgstr ""
+
+#: templates/home.html:206
+msgid "Licensed under AGPL-3.0"
+msgstr ""
+
+#: templates/home.html:212
+msgid "How to start playing"
+msgstr ""
+
+#: templates/home.html:217
+msgid "Get a compatible emulator (DuckStation)"
+msgstr ""
+
+#: templates/home.html:221
+msgid "Create your account and sign in from the emulator"
+msgstr ""
+
+#: templates/home.html:225
+msgid "Load the game and start unlocking"
+msgstr ""
+
+#: templates/home.html:228
+msgid "Compatible emulators"
+msgstr ""
+
+#: templates/home.html:232
+msgid "Today: PlayStation (PS1). More consoles as sets arrive."
 msgstr ""
