@@ -63,6 +63,28 @@ Each is a small `{% include ... with ... %}` partial, reused across screens:
 | `user-line.html` | `initials, name, meta, delta, href` | leaderboards/lists |
 | `stat-line.html` | `label, value, sub` | profile stats rail |
 
+## Home landing page
+
+`templates/home.html` is assembled almost entirely from the tokens above; a few small
+patterns are written inline (no new partial — Django `{% include %}` has no body slot, so a
+one-off box shell isn't worth a file):
+
+- **Module box** — the 2000s-style bordered card with a header bar: `rounded-card border
+  border-line bg-surface` over a `bg-surface2` header holding a 3px accent strip
+  (`bg-brand`/`bg-gold`/`bg-state-platinum`) + title + optional mono meta. The recurring
+  container for every home block.
+- **Hero strip** — compact conversion header (`from-brand/5` gradient) with headline, sub,
+  honesty chips, dual CTA. One strip, never a full-height hero.
+- **Changelog entry** — tag pill (colour per category) + title + body; dateless (real
+  highlights only, no invented history).
+- **Empty-state card** — dashed border + pulsing `animate-rp-glow` dot + honest line + CTA.
+  The fallback for any data block with nothing to show; keeps "new", never "dead".
+- **Contribute path** — token icon tile + title + description + link, one per path.
+
+The dynamic blocks (numbers, activity, sets) render placeholder data from
+`apps/core/fake_home.py`, same stand-in approach as the profile; delete that module when real
+aggregation lands.
+
 ## Identity
 
 The **"Medalha RP"** logo is a struck platinum medal: serrated crown, dotted ring,
@@ -103,3 +125,6 @@ the design are intentionally deferred:
 - Progression becomes an accordion (currently a responsive stacking table).
 - Completion becomes a sortable table with a "hide completed" toggle (currently a static
   responsive list).
+- On the home, the sidebar blocks (open source, how to start) collapse into accordions and the
+  main/sidebar blocks interleave (numbers promoted up); currently the home stacks the numbers
+  tiles up top and keeps every block expanded in a single column.

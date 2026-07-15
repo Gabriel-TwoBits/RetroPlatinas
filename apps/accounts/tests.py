@@ -68,14 +68,14 @@ def test_logout_ends_session(client):
 def test_homepage_renders_portuguese_by_default(client):
     resp = client.get("/", HTTP_ACCEPT_LANGUAGE="pt")
     assert resp.status_code == 200
-    assert "Bem-vindo" in resp.content.decode()
+    assert "Ver os jogos" in resp.content.decode()
 
 
 @pytest.mark.django_db
 def test_set_language_switches_to_english(client):
     resp = client.post("/i18n/setlang/", {"language": "en", "next": "/"}, follow=True)
     assert resp.status_code == 200
-    assert "Welcome to RetroPlatinas" in resp.content.decode()
+    assert "See the games" in resp.content.decode()
 
 
 @pytest.mark.django_db
