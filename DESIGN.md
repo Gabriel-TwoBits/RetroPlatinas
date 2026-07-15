@@ -9,25 +9,30 @@ Tokens live in `tailwind.config.js`; spacing and type use Tailwind's default 4px
 Reusable partials live in `templates/components/`. See `CLAUDE.md` → *Frontend* for the
 build pipeline.
 
-## Palette ("Platina Fria")
+## Palette ("Platina Quente")
+
+Warm amber-graphite base with a complementary identity: indigo-violet (opposite of the
+reference's yellow) on identifiers and orange (opposite of blue) on highlights. Gold stays
+for medals, steel-platinum for the mastered state.
 
 | Token | Hex | Use |
 | --- | --- | --- |
-| `bg` | `#0b0e13` | page background |
-| `surface` | `#12161d` | cards |
-| `surface2` | `#171c25` | nested tiles |
-| `elevated` | `#1e242f` | bar tracks, chips |
-| `line` / `line2` | `#262d39` / `#39434f` | borders (rest / hover) |
-| `txt` / `txt-muted` / `txt-faint` | `#e8ebf1` / `#98a2b3` / `#5c6675` | text ramp |
-| `brand` (`dim`/`ink`) | `#34dcc4` (`#1c8f80`/`#05221e`) | teal accent |
-| `gold` | `#f2b84b` | points, unlocked badges |
+| `bg` | `#100d09` | page background |
+| `surface` | `#181510` | cards |
+| `surface2` | `#1e1a13` | nested tiles |
+| `elevated` | `#252017` | bar tracks, chips |
+| `line` / `line2` | `#302a20` / `#463d2e` | borders (rest / hover) |
+| `txt` / `txt-muted` / `txt-faint` | `#ece5d6` / `#a89d87` / `#6d6353` | text ramp |
+| `brand` (`dim`/`ink`) | `#6a67e0` (`#35356f`/`#f2f3ff`) | indigo-violet accent |
+| `brand2` | `#ef7f2b` | orange secondary highlight |
+| `gold` (`dim`) | `#f0c04a` (`#8a6a2c`) | points, unlocked badges |
 
 ## Typography
 
 Three system-font roles — **no web fonts are loaded** (deliberate; keeps it fast and
 period-appropriate):
 
-- `font-display` — Tahoma, Verdana, Geneva, sans-serif — titles, labels, UI.
+- `font-display` — 'Arial Narrow', 'Roboto Condensed', Arial, sans-serif — titles, labels, UI.
 - `font-sans` — Arial, Helvetica, sans-serif — body, bio, comments.
 - `font-mono` — 'Courier New', Courier, monospace — numbers, points, tags.
 
@@ -37,13 +42,13 @@ Each state has its own colour (`state-*` tokens) reused across the whole product
 
 | State | Token | Meaning |
 | --- | --- | --- |
-| locked | `state-locked` `#3a434f` | not yet unlocked; desaturated, no glow |
+| locked | `state-locked` `#3a342a` | not yet unlocked; desaturated, no glow |
 | unlocked | `gold` | solid gold + subtle shimmer on hover |
-| hardcore | `state-hardcore` `#ff6b57` | red border over gold; no save states |
-| softcore | `state-softcore` `#8aa4c8` | blue border; valid unlock, lower weight |
-| progress | `state-progress` `#eab04d` | amber; set started, not beaten |
-| beaten | `state-beaten` `#48c78e` | green; core set conditions met |
-| platinum | `state-platinum` `#b09cff` | violet-platinum + glow; 100% hardcore |
+| hardcore | `state-hardcore` `#e0552f` | red border over gold; no save states |
+| softcore | `state-softcore` `#7e93b1` | blue border; valid unlock, lower weight |
+| progress | `state-progress` `#d8922f` | amber; set started, not beaten |
+| beaten | `state-beaten` `#93aa4e` | green; core set conditions met |
+| platinum | `state-platinum` `#c2c9d8` | steel-platinum + glow; 100% hardcore |
 
 `state-*` colour utilities are **safelisted** in `tailwind.config.js` because they're
 composed from data (`state='beaten'` → `text-state-beaten`) and can't be found by
@@ -88,7 +93,7 @@ aggregation lands.
 ## Identity
 
 The **"Medalha RP"** logo is a struck platinum medal: serrated crown, dotted ring,
-`RP` monogram, three teal sparks, teal ribbon. All SVG, on the same tokens.
+`RP` monogram, three amber sparks, amber ribbon. All SVG, on the same tokens.
 
 - **Variants** — *Emblema* (with ribbon; achievement screens, sharing), *Selo* (no ribbon;
   header/small), *Monocromático* (single colour stamp). `components/logo.html` ships the
@@ -97,8 +102,8 @@ The **"Medalha RP"** logo is a struck platinum medal: serrated crown, dotted rin
   design's singular "RetroPlatina" wordmark is adapted to the plural. "Platinas" uses the
   platinum gradient.
 - **Minimum sizes** — emblem 40px, selo 20px, lockup 130px. Clear space = the disc radius.
-- **Favicon** (`static/img/favicon.svg`) — Selo at larger sizes; at 16px it degrades to a
-  teal spark inside a platinum coin. Self-contained (its own gradient defs), since an
+- **Favicon** (`static/img/favicon.svg`) — Selo at larger sizes; at 16px it degrades to an
+  amber spark inside a platinum coin. Self-contained (its own gradient defs), since an
   external favicon can't reference the document's shared defs.
 
 ### Deferred: branded console-icon system
