@@ -1,5 +1,5 @@
 /** @type {import('tailwindcss').Config} */
-// Design tokens from the "Platina Fria" system (see DESIGN.md). Spacing and type
+// Design tokens from the "Platina Quente" system (see DESIGN.md). Spacing and type
 // use Tailwind's default 4px scale; only the brand-specific axes are extended here.
 module.exports = {
   content: ["./templates/**/*.html", "./apps/**/templates/**/*.html"],
@@ -11,34 +11,38 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        bg: "#0b0e13",
-        surface: "#12161d",
-        surface2: "#171c25",
-        elevated: "#1e242f",
-        line: "#262d39",
-        line2: "#39434f",
+        bg: "#100d09",
+        surface: "#181510",
+        surface2: "#1e1a13",
+        elevated: "#252017",
+        line: "#302a20",
+        line2: "#463d2e",
         txt: {
-          DEFAULT: "#e8ebf1",
-          muted: "#98a2b3",
-          faint: "#5c6675",
+          DEFAULT: "#ece5d6",
+          muted: "#a89d87",
+          faint: "#6d6353",
         },
         brand: {
-          DEFAULT: "#34dcc4",
-          dim: "#1c8f80",
-          ink: "#05221e",
+          DEFAULT: "#6a67e0",
+          dim: "#35356f",
+          ink: "#f2f3ff",
         },
-        gold: "#f2b84b",
+        brand2: "#ef7f2b",
+        gold: {
+          DEFAULT: "#f0c04a",
+          dim: "#8a6a2c",
+        },
         state: {
-          locked: "#3a434f",
-          beaten: "#48c78e",
-          platinum: "#b09cff",
-          hardcore: "#ff6b57",
-          softcore: "#8aa4c8",
-          progress: "#eab04d",
+          locked: "#3a342a",
+          beaten: "#93aa4e",
+          platinum: "#c2c9d8",
+          hardcore: "#e0552f",
+          softcore: "#7e93b1",
+          progress: "#d8922f",
         },
       },
       fontFamily: {
-        display: ["Tahoma", "Verdana", "Geneva", "sans-serif"],
+        display: ["'Arial Narrow'", "'Roboto Condensed'", "Arial", "sans-serif"],
         sans: ["Arial", "Helvetica", "sans-serif"],
         mono: ["'Courier New'", "Courier", "monospace"],
       },
@@ -56,8 +60,8 @@ module.exports = {
           "100%": { backgroundPosition: "220% 0" },
         },
         "rp-glow": {
-          "0%, 100%": { boxShadow: "0 0 0 1px #b09cff, 0 0 12px -2px #b09cff" },
-          "50%": { boxShadow: "0 0 0 1px #b09cff, 0 0 22px 1px #b09cff" },
+          "0%, 100%": { boxShadow: "0 0 0 1px #c2c9d8, 0 0 12px -2px #c2c9d8" },
+          "50%": { boxShadow: "0 0 0 1px #c2c9d8, 0 0 22px 1px #c2c9d8" },
         },
       },
       animation: {

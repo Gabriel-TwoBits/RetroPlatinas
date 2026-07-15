@@ -9,10 +9,10 @@
   .rp-hatch {
     background: repeating-linear-gradient(
       135deg,
-      #2a3542,
-      #2a3542 5px,
-      #222c38 5px,
-      #222c38 10px
+      #3a352a,
+      #3a352a 5px,
+      #2e2a20 5px,
+      #2e2a20 10px
     );
   }
 
