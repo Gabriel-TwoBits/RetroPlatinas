@@ -21,12 +21,12 @@
         <span class="font-mono text-[11px] {% if g.done %}text-state-platinum{% else %}text-txt-muted{% endif %} sm:text-right">{{ g.a }} / {{ g.t }}</span>
         <div class="flex items-center gap-2 sm:justify-end">
           <div class="h-1.5 w-20 overflow-hidden rounded-full bg-elevated">
-            <div class="h-full bg-state-{{ g.state }}" style="width:{{ g.pct }}%"></div>
+            <div class="h-full bg-{{ g.bar_tone }}" style="width:{{ g.pct }}%"></div>
           </div>
           <span class="w-9 text-right font-mono text-[10px] text-txt-faint">{{ g.pct }}%</span>
         </div>
       </div>
     {% endfor %}
-    <button class="my-3 w-full rounded-card border border-line2 bg-transparent py-2 font-display text-xs font-semibold text-brand">{% trans "Load more games" %}</button>
+    <button class="my-3 w-full rounded-card border border-line2 bg-transparent py-2 font-display text-xs font-semibold text-brand">{% blocktrans %}Load more {{ completion_more }} games{% endblocktrans %}</button>
   </div>
 </div>

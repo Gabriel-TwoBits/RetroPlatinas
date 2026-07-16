@@ -7,7 +7,7 @@ module.exports = {
   // text-state-beaten), so their utilities can't be found by scanning the markup.
   safelist: [
     { pattern: /(bg|text|border)-state-(locked|beaten|platinum|hardcore|softcore|progress)/ },
-    { pattern: /text-(brand|gold)/ },
+    { pattern: /(text|bg)-(brand|gold)/ },
   ],
   theme: {
     extend: {

@@ -73,14 +73,24 @@ def _consoles():
     return out
 
 
-_GRID_CELLS = 20
+_DESKTOP_ICON_CAP = 40
+_MOBILE_ICON_CELLS = 14
+# The mobile strip always keeps one locked cell visible, so it never reads as complete.
+_MOBILE_ICON_UNLOCKED_CAP = 13
 
 
-def _icons(got, total):
-    shown = min(total, _GRID_CELLS)
+def _icons(got, cells, total):
     return {
-        "cells": [{"unlocked": i < got} for i in range(shown)],
-        "more": max(0, total - _GRID_CELLS),
+        "cells": [{"unlocked": i < got} for i in range(cells)],
+        "more": max(0, total - cells),
+    }
+
+
+def _icon_grids(got, total):
+    desktop_cells = min(total, _DESKTOP_ICON_CAP)
+    return {
+        "grid": _icons(min(got, desktop_cells), desktop_cells, total),
+        "grid_mobile": _icons(min(got, _MOBILE_ICON_UNLOCKED_CAP), _MOBILE_ICON_CELLS, total),
     }
 
 
@@ -91,7 +101,7 @@ def _recent_games():
             "title": "Slime Quest VII",
             "state": "beaten",
             "state_label": "BEATEN",
-            "meta": "SNES · 34/48 · 420/620 pts · 21h · 6s ago",
+            "meta": "SNES · 34/48 ach · 420/620 pts · 21h played · 6s ago",
             "pct": 71,
             "got": 34,
             "total": 48,
@@ -101,7 +111,7 @@ def _recent_games():
             "title": "Kart Rumble 64",
             "state": "platinum",
             "state_label": "PLATINUM",
-            "meta": "N64 · 48/48 · 700/700 pts · 38h · 2d ago",
+            "meta": "N64 · 48/48 ach · 700/700 pts · 38h played · 2d ago",
             "pct": 100,
             "got": 48,
             "total": 48,
@@ -111,7 +121,7 @@ def _recent_games():
             "title": "Astral Raiders",
             "state": "progress",
             "state_label": "IN PROGRESS",
-            "meta": "PS1 · 12/55 · 140/890 pts · 7h · 5d ago",
+            "meta": "PS1 · 12/55 ach · 140/890 pts · 7h played · 5d ago",
             "pct": 22,
             "got": 12,
             "total": 55,
@@ -121,7 +131,7 @@ def _recent_games():
             "title": "Metro Knights",
             "state": "beaten",
             "state_label": "BEATEN",
-            "meta": "GBA · 29/40 · 310/500 pts · 15h · 1w ago",
+            "meta": "GBA · 29/40 ach · 310/500 pts · 15h played · 1w ago",
             "pct": 73,
             "got": 29,
             "total": 40,
@@ -131,15 +141,18 @@ def _recent_games():
             "title": "Turbo Circuit 99",
             "state": "softcore",
             "state_label": "STARTED",
-            "meta": "PS2 · 3/62 · 25/950 pts · 2h · 2w ago",
+            "meta": "PS2 · 3/62 ach · 25/950 pts · 2h played · 2w ago",
             "pct": 5,
             "got": 3,
             "total": 62,
         },
     ]
     for game in raw:
-        game["grid"] = _icons(game["got"], game["total"])
+        game.update(_icon_grids(game["got"], game["total"]))
     return raw
+
+
+_COMPLETION_TOTAL = 74
 
 
 def _completion():
@@ -156,7 +169,7 @@ def _completion():
     for game in raw:
         game["pct"] = round(game["a"] / game["t"] * 100)
         game["done"] = game["a"] == game["t"]
-        game["state"] = "platinum" if game["done"] else "progress"
+        game["bar_tone"] = "state-platinum" if game["done"] else "brand"
     return raw
 
 
@@ -175,6 +188,7 @@ def _game_awards():
 
 
 def fake_profile_context(user):
+    completion = _completion()
     return {
         "profile_user": user,
         "bio": "Platinum hunter since the cartridge days. RPGs and 16-bit platformers.",
@@ -197,13 +211,16 @@ def fake_profile_context(user):
             {"label": "Points (30d)", "value": "5.980", "sub": "last 30 days"},
             {"label": "Avg / week", "value": "890", "sub": "pts/week"},
             {"label": "Avg completion", "value": "47%", "sub": "per game"},
+            {"label": "Forum posts", "value": "212", "sub": "social"},
+            {"label": "Sets requested", "value": "7", "sub": "social"},
         ],
         "heat": _heat_bars(),
         "heat_rate": "1.240 pts / week",
         "recent_games": _recent_games(),
         "consoles": _consoles(),
-        "completion": _completion(),
-        "completion_count": 74,
+        "completion": completion,
+        "completion_count": _COMPLETION_TOTAL,
+        "completion_more": _COMPLETION_TOTAL - len(completion),
         "event_awards": [
             {
                 "ini": "AoM",
