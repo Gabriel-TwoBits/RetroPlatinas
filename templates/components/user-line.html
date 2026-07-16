@@ -3,7 +3,7 @@
     initials, name, meta (e.g. "#1.204 · 89.320 pts"), delta (optional, e.g. "▲ 12"), href (optional)
 {% endcomment %}
 <div class="flex items-center gap-2.5 border-t border-line py-2">
-  <div class="rp-hatch flex h-8 w-8 shrink-0 items-center justify-center rounded-lg font-display text-[11px] text-brand">{{ initials }}</div>
+  <div class="rp-hatch flex h-8 w-8 shrink-0 items-center justify-center rounded-card font-display text-[11px] text-brand">{{ initials }}</div>
   <div class="min-w-0 flex-1">
     {% if href %}
       <a href="{{ href }}" class="text-sm font-semibold text-txt no-underline hover:text-brand-hi">{{ name }}</a>

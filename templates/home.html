@@ -25,8 +25,8 @@
       </div>
       <div class="flex flex-shrink-0 flex-col items-start md:items-end">
         <div class="flex flex-wrap gap-2.5">
-          <a href="{{ register_url }}" class="rounded-lg bg-brand px-4 py-2.5 font-display text-sm font-bold text-brand-ink no-underline hover:no-underline">{% trans "Create account" %}</a>
-          <a href="/games/" class="rounded-lg border border-line2 px-4 py-2.5 font-display text-sm font-semibold text-txt no-underline hover:text-txt hover:no-underline">{% trans "See the games" %}</a>
+          <a href="{{ register_url }}" class="rounded-tile bg-brand px-4 py-2.5 font-display text-sm font-bold text-brand-ink no-underline hover:no-underline">{% trans "Create account" %}</a>
+          <a href="/games/" class="rounded-tile border border-line2 px-4 py-2.5 font-display text-sm font-semibold text-txt no-underline hover:text-txt hover:no-underline">{% trans "See the games" %}</a>
         </div>
         <p class="mt-2.5 max-w-[260px] font-mono text-[10px] leading-relaxed text-txt-faint">{% trans "We're new: 1 game, few players. We'd rather show that than fake scale." %}</p>
       </div>
@@ -91,7 +91,7 @@
         <div class="flex flex-col gap-2.5 px-3.5 py-3">
           {% for s in sets %}
             <div class="flex gap-3 rounded-tile border border-line bg-surface2 p-3">
-              <div class="rp-hatch flex h-[54px] w-[54px] flex-shrink-0 items-center justify-center rounded-lg border border-line2 font-display text-sm font-bold text-brand">{{ s.initials }}</div>
+              <div class="rp-hatch flex h-[54px] w-[54px] flex-shrink-0 items-center justify-center rounded-tile border border-line2 font-display text-sm font-bold text-brand">{{ s.initials }}</div>
               <div class="min-w-0 flex-1">
                 <div class="flex items-start justify-between gap-2">
                   <span class="font-display text-[15px] font-semibold text-txt">{{ s.title }}</span>
@@ -107,7 +107,7 @@
             </div>
           {% endfor %}
           <div class="flex items-center gap-3 rounded-tile border border-dashed border-line2 p-3">
-            <div class="flex h-[38px] w-[38px] flex-shrink-0 items-center justify-center rounded-lg border border-dashed border-line2 text-xl text-txt-faint">+</div>
+            <div class="flex h-[38px] w-[38px] flex-shrink-0 items-center justify-center rounded-tile border border-dashed border-line2 text-xl text-txt-faint">+</div>
             <div>
               <div class="font-display text-[13px] font-semibold text-txt-muted">{% trans "Suggest the next game" %}</div>
               <div class="text-[11px] text-txt-faint">{% trans "the set queue is open — propose a classic" %}</div>
@@ -123,7 +123,7 @@
         </div>
         <div class="flex flex-col gap-2.5 px-3.5 py-3">
           <div class="flex gap-3 rounded-tile border border-line bg-surface2 p-3">
-            <div class="flex h-[34px] w-[34px] flex-shrink-0 items-center justify-center rounded-lg border border-gold bg-elevated font-mono text-gold">✦</div>
+            <div class="flex h-[34px] w-[34px] flex-shrink-0 items-center justify-center rounded-card border border-gold bg-elevated font-mono text-gold">✦</div>
             <div class="flex-1">
               <div class="font-display text-[13px] font-semibold text-txt">{% trans "Create achievement sets" %}</div>
               <div class="mt-0.5 text-xs leading-snug text-txt-muted">{% trans "Pick a game, design the achievements and publish a set. No gatekeeping." %}</div>
@@ -131,7 +131,7 @@
             </div>
           </div>
           <div class="flex gap-3 rounded-tile border border-line bg-surface2 p-3">
-            <div class="flex h-[34px] w-[34px] flex-shrink-0 items-center justify-center rounded-lg border border-brand bg-elevated font-mono text-brand">{ }</div>
+            <div class="flex h-[34px] w-[34px] flex-shrink-0 items-center justify-center rounded-card border border-brand bg-elevated font-mono text-brand">{ }</div>
             <div class="flex-1">
               <div class="font-display text-[13px] font-semibold text-txt">{% trans "Contribute code" %}</div>
               <div class="mt-0.5 text-xs leading-snug text-txt-muted">{% trans "AGPL-3.0 on Codeberg. Bugs, features and roadmap are open." %}</div>
@@ -170,9 +170,9 @@
           {% for a in activity %}
             <div class="flex items-center gap-2.5 border-t border-line py-2.5 first:border-t-0">
               {% if a.hardcore %}
-                <div class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg border border-state-hardcore bg-gold font-display text-[10px] font-bold text-bg">{{ a.initials }}</div>
+                <div class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-card border border-state-hardcore bg-gold font-display text-[10px] font-bold text-bg">{{ a.initials }}</div>
               {% else %}
-                <div class="rp-hatch flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg border border-line2 font-display text-[10px] font-bold text-brand">{{ a.initials }}</div>
+                <div class="rp-hatch flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-card border border-line2 font-display text-[10px] font-bold text-brand">{{ a.initials }}</div>
               {% endif %}
               <div class="min-w-0 flex-1">
                 <div class="text-xs leading-tight text-txt"><strong class="font-display text-txt">{{ a.who }}</strong> {{ a.verb }} {% if a.ach %}<span class="text-gold">“{{ a.ach }}”</span>{% else %}<span class="text-brand">{{ a.game }}</span>{% endif %}</div>
@@ -227,7 +227,7 @@
           </div>
           <div class="mb-2 mt-3 font-mono text-[9px] uppercase tracking-wide text-txt-faint">{% trans "Compatible emulators" %}</div>
           <div class="flex flex-wrap gap-1.5">
-            <span class="rounded-md border border-line2 bg-surface2 px-2 py-1 font-mono text-[10px] text-txt-muted">DuckStation</span>
+            <span class="rounded-chip border border-line2 bg-surface2 px-2 py-1 font-mono text-[10px] text-txt-muted">DuckStation</span>
           </div>
           <div class="mt-2.5 font-mono text-[10px] leading-relaxed text-txt-faint">{% trans "Today: PlayStation (PS1). More consoles as sets arrive." %}</div>
         </div>

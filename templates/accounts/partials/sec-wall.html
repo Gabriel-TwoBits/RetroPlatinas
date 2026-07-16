@@ -2,14 +2,14 @@
 <div>
   <h3 class="mb-3 font-display text-[17px] font-semibold text-txt">{% trans "User wall" %}</h3>
   <div class="mb-3.5 flex gap-2.5">
-    <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-line2 bg-surface2 font-display text-[10px] text-txt-faint">{% trans "you" %}</div>
-    <div class="flex-1 rounded-lg border border-line2 bg-surface px-3.5 py-2.5 text-sm text-txt-faint">{% blocktrans with username=profile_user.username %}Leave a comment on {{ username }}'s wall…{% endblocktrans %}</div>
+    <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-tile border border-line2 bg-surface2 font-display text-[10px] text-txt-faint">{% trans "you" %}</div>
+    <div class="flex-1 rounded-tile border border-line2 bg-surface px-3.5 py-2.5 text-sm text-txt-faint">{% blocktrans with username=profile_user.username %}Leave a comment on {{ username }}'s wall…{% endblocktrans %}</div>
   </div>
   <div class="flex flex-col gap-2.5">
     {% for c in wall %}
       <div class="flex gap-2.5 {% if c.owner %}pl-11{% endif %}">
-        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-line2 font-display text-[11px] font-bold {% if c.owner %}bg-gradient-to-br from-brand to-brand-dim text-brand-ink{% else %}rp-hatch text-brand{% endif %}">{{ c.ini }}</div>
-        <div class="flex-1 rounded-lg border px-3.5 py-2.5 {% if c.owner %}border-brand-dim bg-brand/[0.06]{% else %}border-line bg-surface{% endif %}">
+        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-card border border-line2 font-display text-[11px] font-bold {% if c.owner %}bg-gradient-to-br from-brand to-brand-dim text-brand-ink{% else %}rp-hatch text-brand{% endif %}">{{ c.ini }}</div>
+        <div class="flex-1 rounded-tile border px-3.5 py-2.5 {% if c.owner %}border-brand-dim bg-brand/[0.06]{% else %}border-line bg-surface{% endif %}">
           <div class="mb-1 flex items-baseline justify-between">
             <span class="font-display text-[12.5px] font-semibold {% if c.owner %}text-brand{% else %}text-txt{% endif %}">{{ c.name }}{% if c.owner %} · {% trans "owner" %}{% endif %}</span>
             <span class="font-mono text-[9.5px] text-txt-faint">{{ c.when }}</span>

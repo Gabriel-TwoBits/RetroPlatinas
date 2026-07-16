@@ -14,7 +14,7 @@
     {% for g in completion %}
       <div class="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-line py-2.5 sm:grid sm:grid-cols-[1fr_70px_96px_150px]">
         <div class="flex min-w-0 flex-1 items-center gap-2.5 sm:flex-none">
-          <div class="rp-hatch flex h-7 w-7 shrink-0 items-center justify-center rounded-md font-display text-[9px] font-bold text-brand">{{ g.initials }}</div>
+          <div class="rp-hatch flex h-7 w-7 shrink-0 items-center justify-center rounded-card font-display text-[9px] font-bold text-brand">{{ g.initials }}</div>
           <span class="truncate text-[13px] font-medium text-txt">{{ g.title }}</span>
         </div>
         <span class="font-mono text-[10px] text-txt-muted">{{ g.tag }}</span>
@@ -27,6 +27,6 @@
         </div>
       </div>
     {% endfor %}
-    <button class="my-3 w-full rounded-lg border border-line2 bg-transparent py-2 font-display text-xs font-semibold text-brand">{% trans "Load more games" %}</button>
+    <button class="my-3 w-full rounded-card border border-line2 bg-transparent py-2 font-display text-xs font-semibold text-brand">{% trans "Load more games" %}</button>
   </div>
 </div>

@@ -46,14 +46,14 @@
           </form>
         {% else %}
           <a class="text-txt-muted no-underline hover:text-brand-hi" href="{% url 'login' %}">{% trans "Login" %}</a>
-          <a class="rounded-md border border-brand-dim bg-brand/10 px-3 py-1.5 text-brand no-underline hover:no-underline" href="{% url 'register' %}">{% trans "Register" %}</a>
+          <a class="rounded-card border border-brand-dim bg-brand/10 px-3 py-1.5 text-brand no-underline hover:no-underline" href="{% url 'register' %}">{% trans "Register" %}</a>
         {% endif %}
         <form action="{% url 'set_language' %}" method="post" class="inline">
           {% csrf_token %}
           <input name="next" type="hidden" value="{{ request.get_full_path }}">
           {% get_current_language as CURRENT_LANGUAGE %}
           <select name="language" onchange="this.form.submit()"
-                  class="rounded-md border border-line2 bg-surface px-1.5 py-1 text-txt-muted">
+                  class="rounded-card border border-line2 bg-surface px-1.5 py-1 text-txt-muted">
             {% for code, name in LANGUAGES %}
               <option value="{{ code }}"{% if code == CURRENT_LANGUAGE %} selected{% endif %}>{{ code|upper }}</option>
             {% endfor %}

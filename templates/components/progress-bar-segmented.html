@@ -3,7 +3,7 @@
     not_pct, beaten_pct, plat_pct : CSS widths as strings (e.g. "52%")
     height : Tailwind height class (default h-3.5)
 {% endcomment %}
-<div class="flex {{ height|default:'h-3.5' }} overflow-hidden rounded-full border border-line2">
+<div class="flex {{ height|default:'h-3.5' }} overflow-hidden rounded-chip border border-line2">
   <div class="bg-state-locked" style="width:{{ not_pct }}"></div>
   <div class="bg-state-beaten" style="width:{{ beaten_pct }}"></div>
   <div class="bg-gradient-to-r from-state-platinum to-[#dfe4ee]" style="width:{{ plat_pct }}"></div>
