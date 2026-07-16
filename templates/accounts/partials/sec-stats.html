@@ -1,5 +1,5 @@
 {% load i18n %}
-<div class="rounded-card border border-line bg-surface p-4">
+<div class="rounded-card border border-line p-4">
   <div class="mb-1.5 font-display text-sm font-semibold text-txt">{% trans "Player statistics" %}</div>
   {% for s in stats %}
     {% include "components/stat-line.html" with label=s.label value=s.value sub=s.sub %}
