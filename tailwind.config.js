@@ -65,14 +65,14 @@ module.exports = {
           "0%": { backgroundPosition: "-120% 0" },
           "100%": { backgroundPosition: "220% 0" },
         },
-        "rp-glow": {
-          "0%, 100%": { boxShadow: "0 0 0 1px #c2c9d8, 0 0 12px -2px #c2c9d8" },
-          "50%": { boxShadow: "0 0 0 1px #c2c9d8, 0 0 22px 1px #c2c9d8" },
+        "rp-pulse": {
+          "0%, 100%": { opacity: "1" },
+          "50%": { opacity: ".4" },
         },
       },
       animation: {
         "rp-shimmer": "rp-shimmer 3.2s linear infinite",
-        "rp-glow": "rp-glow 2.4s ease-in-out infinite",
+        "rp-pulse": "rp-pulse 2s ease-in-out infinite",
       },
     },
   },
