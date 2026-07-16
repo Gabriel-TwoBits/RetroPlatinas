@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RetroPlatinas\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-15 13:14-0300\n"
+"POT-Creation-Date: 2026-07-16 16:04-0300\n"
 "PO-Revision-Date: 2026-05-23 18:15-0300\n"
 "Last-Translator: RetroPlatinas\n"
 "Language-Team: Portuguese\n"
@@ -28,7 +28,7 @@ msgstr "status"
 msgid "Draft"
 msgstr "Rascunho"
 
-#: apps/achievements/models.py:14 templates/home.html:79
+#: apps/achievements/models.py:14 templates/home.html:78
 msgid "Community"
 msgstr "Comunidade"
 
@@ -251,38 +251,112 @@ msgstr "Ranking global"
 
 #: templates/accounts/partials/identity-header.html:36
 #, python-format
-msgid "Top %(top_pct)s"
-msgstr "Top %(top_pct)s"
+msgid "of %(rank_total)s · Top %(top_pct)s"
+msgstr "de %(rank_total)s · Top %(top_pct)s"
 
 #: templates/accounts/partials/identity-header.html:44
 msgid "Playing now"
 msgstr "Jogando agora"
 
-#: templates/accounts/partials/identity-header.html:54
+#: templates/accounts/partials/identity-header.html:50
+msgid "active session"
+msgstr "sessão ativa"
+
+#: templates/accounts/partials/identity-header.html:56
 msgid "Edit profile"
 msgstr "Editar perfil"
 
-#: templates/accounts/partials/panel-games.html:4
+#: templates/accounts/partials/panel-awards.html:3
+#: templates/accounts/partials/sec-awards.html:11
+msgid "Event awards"
+msgstr "Prêmios de evento"
+
+#: templates/accounts/partials/panel-awards.html:16
+msgid "Platinums & game awards"
+msgstr "Platinas & prêmios de jogo"
+
+#: templates/accounts/partials/panel-games.html:3
 #: templates/accounts/partials/sec-recent-games.html:4
 msgid "Recently played"
 msgstr "Últimos jogos jogados"
 
-#: templates/accounts/partials/sec-awards.html:3
-msgid "Event awards"
-msgstr "Prêmios de evento"
+#: templates/accounts/partials/panel-overview.html:3
+msgid "Statistics"
+msgstr "Estatísticas"
 
-#: templates/accounts/partials/sec-awards.html:18
-msgid "Platinums & awards"
-msgstr "Platinas & prêmios"
+#: templates/accounts/partials/panel-overview.html:13
+msgid "+ more statistics (social, averages)"
+msgstr "+ mais estatísticas (sociais, médias)"
 
-#: templates/accounts/partials/sec-awards.html:19
+#: templates/accounts/partials/panel-overview.html:26
+#: templates/accounts/partials/sec-heat.html:3
+msgid "Recent progress"
+msgstr "Progresso recente"
+
+#: templates/accounts/partials/panel-overview.html:34
+msgid "14d ago"
+msgstr "14d atrás"
+
+#: templates/accounts/partials/panel-overview.html:36
+#: templates/accounts/partials/sec-heat.html:12
+msgid "today"
+msgstr "hoje"
+
+#: templates/accounts/partials/panel-progress.html:3
+#: templates/accounts/partials/sec-progression.html:4
+msgid "Progress by console"
+msgstr "Progressão por console"
+
+#: templates/accounts/partials/panel-progress.html:16
 #, python-format
-msgid "%(game_awards_total)s total"
-msgstr "%(game_awards_total)s no total"
+msgid "%(n)s game"
+msgid_plural "%(n)s games"
+msgstr[0] "%(n)s jogo"
+msgstr[1] "%(n)s jogos"
 
+#: templates/accounts/partials/panel-progress.html:20
+#, python-format
+msgid "%(n)s open"
+msgid_plural "%(n)s open"
+msgstr[0] "%(n)s aberto"
+msgstr[1] "%(n)s abertos"
+
+#: templates/accounts/partials/panel-progress.html:21
+#, python-format
+msgid "%(n)s beaten"
+msgid_plural "%(n)s beaten"
+msgstr[0] "%(n)s zerado"
+msgstr[1] "%(n)s zerados"
+
+#: templates/accounts/partials/panel-progress.html:22
+#, python-format
+msgid "%(n)s platinum"
+msgid_plural "%(n)s platinum"
+msgstr[0] "%(n)s platinado"
+msgstr[1] "%(n)s platinados"
+
+#: templates/accounts/partials/panel-progress.html:29
 #: templates/accounts/partials/sec-completion.html:4
 msgid "Completion progress"
 msgstr "Progresso de conclusão"
+
+#: templates/accounts/partials/panel-progress.html:30
+msgid "hide completed"
+msgstr "esconder completos"
+
+#: templates/accounts/partials/panel-progress.html:34
+#, python-format
+msgid "Search across %(completion_count)s games…"
+msgstr "Buscar entre %(completion_count)s jogos…"
+
+#: templates/accounts/partials/panel-progress.html:55
+#, python-format
+msgid "Show %(completion_more)s more games"
+msgstr "Ver mais %(completion_more)s jogos"
+
+#: templates/accounts/partials/sec-awards.html:3
+msgid "Platinums & awards"
+msgstr "Platinas & prêmios"
 
 #: templates/accounts/partials/sec-completion.html:5
 #, python-format
@@ -306,24 +380,9 @@ msgid "Completion"
 msgstr "Conclusão"
 
 #: templates/accounts/partials/sec-completion.html:30
-msgid "Load more games"
-msgstr "Carregar mais jogos"
-
-#: templates/accounts/partials/sec-heat.html:4
-msgid "Recent progress"
-msgstr "Progresso recente"
-
-#: templates/accounts/partials/sec-heat.html:5
-msgid "14 days"
-msgstr "14 dias"
-
-#: templates/accounts/partials/sec-heat.html:15
-msgid "today"
-msgstr "hoje"
-
-#: templates/accounts/partials/sec-progression.html:4
-msgid "Progress by console"
-msgstr "Progressão por console"
+#, python-format
+msgid "Load more %(completion_more)s games"
+msgstr "Carregar mais %(completion_more)s jogos"
 
 #: templates/accounts/partials/sec-progression.html:6
 msgid "Not finished"
@@ -471,11 +530,11 @@ msgstr "Ver os jogos"
 
 #: templates/home.html:31
 msgid "We're new: 1 game, few players. We'd rather show that than fake scale."
-msgstr ""
+msgstr "Somos novos: 1 jogo, poucos jogadores. Preferimos mostrar isso a fingir escala."
 "Somos novos: 1 jogo, poucos jogadores. Preferimos mostrar isso a fingir "
 "escala."
 
-#: templates/home.html:37 templates/home.html:149
+#: templates/home.html:37 templates/home.html:172
 msgid "The project in numbers"
 msgstr "O projeto em números"
 
@@ -483,161 +542,167 @@ msgstr "O projeto em números"
 msgid "What's new"
 msgstr "Novidades"
 
-#: templates/home.html:65
-msgid "project highlights"
-msgstr "destaques do projeto"
-
-#: templates/home.html:69
+#: templates/home.html:68
 msgid "New set"
 msgstr "Novo set"
 
-#: templates/home.html:70
+#: templates/home.html:69
 msgid "First set: Crash Bandicoot (PS1)"
 msgstr "Primeiro set: Crash Bandicoot (PS1)"
 
-#: templates/home.html:71
+#: templates/home.html:70
 msgid "Our first set, with hardcore and softcore seals."
 msgstr "Nosso primeiro set, com selos hardcore e softcore."
 
-#: templates/home.html:74
+#: templates/home.html:73
 msgid "Platform"
 msgstr "Plataforma"
 
-#: templates/home.html:75
+#: templates/home.html:74
 msgid "Hardcore & softcore"
 msgstr "Hardcore & softcore"
 
-#: templates/home.html:76
+#: templates/home.html:75
 msgid "Unlocks without save-states get the hardcore seal and are worth more."
 msgstr "Desbloqueios sem save-state ganham o selo hardcore e valem mais."
 
-#: templates/home.html:80
+#: templates/home.html:79
 msgid "Open source on Codeberg"
 msgstr "Código aberto no Codeberg"
 
-#: templates/home.html:81
+#: templates/home.html:80
 msgid "RetroPlatinas is AGPL-3.0. Issues and roadmap are public."
 msgstr "O RetroPlatinas é AGPL-3.0. Issues e roadmap são públicos."
 
-#: templates/home.html:88
+#: templates/home.html:87
 msgid "Available sets"
 msgstr "Sets disponíveis"
 
-#: templates/home.html:89
-#, python-format
-msgid "%(n)s game"
-msgid_plural "%(n)s games"
-msgstr[0] "%(n)s jogo"
-msgstr[1] "%(n)s jogos"
-
-#: templates/home.html:98
+#: templates/home.html:96
 msgid "NEW"
 msgstr "NOVO"
 
-#: templates/home.html:112
+#: templates/home.html:110
 msgid "Suggest the next game"
 msgstr "Sugerir o próximo jogo"
 
-#: templates/home.html:113
+#: templates/home.html:111
 msgid "the set queue is open — propose a classic"
 msgstr "a fila de sets é aberta — proponha um clássico"
 
-#: templates/home.html:121
+#: templates/home.html:119
 msgid "How to contribute"
 msgstr "Como contribuir"
 
-#: templates/home.html:122
+#: templates/home.html:120
 msgid "open to everyone"
 msgstr "aberto a todos"
 
-#: templates/home.html:128
+#: templates/home.html:126
 msgid "Create achievement sets"
 msgstr "Criar conjuntos de conquistas"
 
-#: templates/home.html:129
+#: templates/home.html:127
 msgid "Pick a game, design the achievements and publish a set. No gatekeeping."
-msgstr ""
+msgstr "Escolha um jogo, desenhe as conquistas e publique um set. Sem gatekeeping."
 "Escolha um jogo, desenhe as conquistas e publique um set. Sem gatekeeping."
 
-#: templates/home.html:130
+#: templates/home.html:128
 msgid "Create account →"
 msgstr "Criar conta →"
 
-#: templates/home.html:136
+#: templates/home.html:134
 msgid "Contribute code"
 msgstr "Contribuir com código"
 
-#: templates/home.html:137
+#: templates/home.html:135
 msgid "AGPL-3.0 on Codeberg. Bugs, features and roadmap are open."
 msgstr "AGPL-3.0 no Codeberg. Bugs, features e roadmap são abertos."
 
-#: templates/home.html:138
+#: templates/home.html:136
 msgid "See the repository →"
 msgstr "Ver o repositório →"
 
-#: templates/home.html:150
-msgid "first weeks"
-msgstr "primeiras semanas"
-
-#: templates/home.html:158
-msgid "Online now"
-msgstr "Online agora"
-
-#: templates/home.html:166
-msgid "Recent activity"
-msgstr "Atividade recente"
-
-#: templates/home.html:167
-msgid "real time"
-msgstr "tempo real"
-
-#: templates/home.html:188
-msgid "No unlocks yet"
-msgstr "Nenhum desbloqueio ainda"
-
-#: templates/home.html:189
-msgid "As soon as someone plays, unlocks show up here in real time."
-msgstr "Assim que alguém jogar, os desbloqueios aparecem aqui em tempo real."
-
-#: templates/home.html:190
-msgid "Be the first to play →"
-msgstr "Seja o primeiro a jogar →"
-
-#: templates/home.html:197
-msgid "Open source"
-msgstr "Código aberto"
-
-#: templates/home.html:201
-msgid "Codeberg — repository"
-msgstr "Codeberg — repositório"
-
-#: templates/home.html:206
-msgid "Licensed under AGPL-3.0"
-msgstr "Licenciado sob AGPL-3.0"
-
-#: templates/home.html:212
+#: templates/home.html:146
 msgid "How to start playing"
 msgstr "Como começar a jogar"
 
-#: templates/home.html:217
+#: templates/home.html:151
 msgid "Get a compatible emulator (DuckStation)"
 msgstr "Baixe um emulador compatível (DuckStation)"
 
-#: templates/home.html:221
+#: templates/home.html:155
 msgid "Create your account and sign in from the emulator"
 msgstr "Crie sua conta e entre pelo emulador"
 
-#: templates/home.html:225
+#: templates/home.html:159
 msgid "Load the game and start unlocking"
 msgstr "Carregue o jogo e comece a desbloquear"
 
-#: templates/home.html:228
+#: templates/home.html:162
 msgid "Compatible emulators"
 msgstr "Emuladores compatíveis"
 
-#: templates/home.html:232
+#: templates/home.html:166
 msgid "Today: PlayStation (PS1). More consoles as sets arrive."
 msgstr "Hoje: PlayStation (PS1). Mais consoles conforme os sets chegam."
+
+#: templates/home.html:173
+msgid "first weeks"
+msgstr "primeiras semanas"
+
+#: templates/home.html:182
+msgid "Online now"
+msgstr "Online agora"
+
+#: templates/home.html:195
+msgid "Recent activity"
+msgstr "Atividade recente"
+
+#: templates/home.html:196
+msgid "real time"
+msgstr "tempo real"
+
+#: templates/home.html:217
+msgid "No unlocks yet"
+msgstr "Nenhum desbloqueio ainda"
+
+#: templates/home.html:218
+msgid "As soon as someone plays, unlocks show up here in real time."
+msgstr "Assim que alguém jogar, os desbloqueios aparecem aqui em tempo real."
+
+#: templates/home.html:219
+msgid "Be the first to play →"
+msgstr "Seja o primeiro a jogar →"
+
+#: templates/home.html:226
+msgid "Open source"
+msgstr "Código aberto"
+
+#: templates/home.html:230
+msgid "Codeberg — repository"
+msgstr "Codeberg — repositório"
+
+#: templates/home.html:235
+msgid "Licensed under AGPL-3.0"
+msgstr "Licenciado sob AGPL-3.0"
+
+#, python-format
+#~ msgid "Top %(top_pct)s"
+#~ msgstr "Top %(top_pct)s"
+
+#, python-format
+#~ msgid "%(game_awards_total)s total"
+#~ msgstr "%(game_awards_total)s no total"
+
+#~ msgid "Load more games"
+#~ msgstr "Carregar mais jogos"
+
+#~ msgid "14 days"
+#~ msgstr "14 dias"
+
+#~ msgid "project highlights"
+#~ msgstr "destaques do projeto"
 
 #~ msgid "Welcome to RetroPlatinas"
 #~ msgstr "Bem-vindo ao RetroPlatinas"
