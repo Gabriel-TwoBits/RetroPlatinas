@@ -13,17 +13,37 @@ _HEAT_VALUES = [0, 0, 40, 120, 0, 260, 80, 0, 0, 190, 340, 60, 0, 220]
 _HEAT_MAX = 340
 _MIN_BAR_PX = 3
 _BASE_BAR_PX = 8
-_BAR_SPAN_PX = 74
+_DESKTOP_BAR_SPAN_PX = 74
+_MOBILE_BAR_SPAN_PX = 52
+_MIN_HEAT_OPACITY = 0.35
+_HEAT_OPACITY_SPAN = 0.65
+_FULL_OPACITY = "1"
 
 
 def _heat_bars():
     bars = []
     for value in _HEAT_VALUES:
         if value == 0:
-            bars.append({"height": _MIN_BAR_PX, "on": False})
+            bars.append(
+                {
+                    "height": _MIN_BAR_PX,
+                    "height_mobile": _MIN_BAR_PX,
+                    "opacity": _FULL_OPACITY,
+                    "on": False,
+                }
+            )
         else:
-            height = _BASE_BAR_PX + round(value / _HEAT_MAX * _BAR_SPAN_PX)
-            bars.append({"height": height, "on": True})
+            intensity = value / _HEAT_MAX
+            bars.append(
+                {
+                    "height": _BASE_BAR_PX + round(intensity * _DESKTOP_BAR_SPAN_PX),
+                    "height_mobile": _BASE_BAR_PX + round(intensity * _MOBILE_BAR_SPAN_PX),
+                    # Formatted here, not in the template: Django localises floats,
+                    # so a pt-BR "0,74" would silently break the inline style.
+                    "opacity": f"{_MIN_HEAT_OPACITY + intensity * _HEAT_OPACITY_SPAN:.2f}",
+                    "on": True,
+                }
+            )
     return bars
 
 
