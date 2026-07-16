@@ -2,10 +2,11 @@
   Plain console chip. Args:
     label   : e.g. "SNES"
     variant : "table" (fixed-width cell for the progression table) | default (free-width chip)
+    tone    : text-colour utility for the "table" variant (default text-txt-muted)
   The branded SVG console-icon system is a deferred component (see DESIGN.md).
 {% endcomment %}
 {% if variant == "table" %}
-  <span class="inline-block min-w-[42px] rounded-chip border border-line2 bg-elevated px-1.5 py-0.5 text-center font-mono text-[10px] text-txt-muted">{{ label }}</span>
+  <span class="inline-block min-w-[42px] rounded-chip border border-line2 bg-elevated px-1.5 py-0.5 text-center font-mono text-[10px] {{ tone|default:'text-txt-muted' }}">{{ label }}</span>
 {% else %}
   <span class="inline-block rounded-chip border border-line2 bg-surface2 px-[9px] py-1 font-mono text-[11px] text-txt-muted">{{ label }}</span>
 {% endif %}

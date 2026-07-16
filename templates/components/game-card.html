@@ -4,6 +4,8 @@
     state       : colour key — beaten | platinum | progress | softcore
     state_label : pill text (e.g. "BEATEN")
     pct         : completion percent (integer)
+    icons       : optional achievement cells [{unlocked}] — renders the strip
+    icons_more  : count of achievements beyond the strip
 {% endcomment %}
 <div class="rounded-card border border-line bg-surface p-3">
   <div class="flex gap-3">
@@ -19,4 +21,16 @@
       </div>
     </div>
   </div>
+  {% if icons %}
+    <div class="mt-3 flex items-center gap-1.5">
+      <div class="grid flex-1 grid-cols-7 gap-1.5">
+        {% for c in icons %}
+          <div class="aspect-square rounded-chip {% if c.unlocked %}border border-gold/40 bg-gradient-to-br from-gold to-gold-deep{% else %}border border-line bg-surface2 opacity-45{% endif %}"></div>
+        {% endfor %}
+      </div>
+      {% if icons_more %}
+        <div class="flex h-[38px] shrink-0 items-center rounded-card border border-line2 bg-surface2 px-2 font-mono text-[10px] text-brand">+{{ icons_more }}</div>
+      {% endif %}
+    </div>
+  {% endif %}
 </div>
