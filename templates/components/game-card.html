@@ -2,19 +2,21 @@
   Game card. Args:
     initials, title, meta (e.g. "SNES · 34/48 · 420/620 pts · 21h")
     state       : colour key — beaten | platinum | progress | softcore
-    state_label : pill text (e.g. "ZERADO")
+    state_label : pill text (e.g. "BEATEN")
     pct         : completion percent (integer)
 {% endcomment %}
-<div class="flex gap-3.5 rounded-tile border border-line bg-surface2 p-3.5">
-  <div class="rp-hatch flex h-14 w-14 shrink-0 items-center justify-center rounded-tile border border-line2 font-display font-bold text-brand">{{ initials }}</div>
-  <div class="min-w-0 flex-1">
-    <div class="flex items-start justify-between gap-2">
-      <div class="font-display text-[15px] font-semibold text-txt">{{ title }}</div>
-      <span class="whitespace-nowrap rounded-full border border-state-{{ state }} px-2 py-0.5 font-mono text-[9.5px] text-state-{{ state }}">{{ state_label }}</span>
-    </div>
-    <div class="mb-2 mt-1 font-mono text-[10.5px] text-txt-faint">{{ meta }}</div>
-    <div class="h-1.5 overflow-hidden rounded-full bg-elevated">
-      <div class="h-full bg-state-{{ state }}" style="width:{{ pct }}%"></div>
+<div class="rounded-card border border-line bg-surface p-3">
+  <div class="flex gap-3">
+    <div class="rp-hatch flex h-[46px] w-[46px] shrink-0 items-center justify-center rounded-tile border border-line2 font-display font-bold text-brand">{{ initials }}</div>
+    <div class="min-w-0 flex-1">
+      <div class="flex items-start justify-between gap-1.5">
+        <div class="font-display text-sm font-semibold text-txt">{{ title }}</div>
+        <span class="whitespace-nowrap rounded-full border border-state-{{ state }} px-1.5 py-0.5 font-mono text-[8.5px] text-state-{{ state }}">{{ state_label }}</span>
+      </div>
+      <div class="mb-2 mt-1 font-mono text-[9.5px] text-txt-faint">{{ meta }}</div>
+      <div class="h-1.5 overflow-hidden rounded-card bg-elevated">
+        <div class="h-full bg-state-{{ state }}" style="width:{{ pct }}%"></div>
+      </div>
     </div>
   </div>
 </div>

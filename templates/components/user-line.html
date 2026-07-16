@@ -6,11 +6,11 @@
   <div class="rp-hatch flex h-8 w-8 shrink-0 items-center justify-center rounded-card font-display text-[11px] text-brand">{{ initials }}</div>
   <div class="min-w-0 flex-1">
     {% if href %}
-      <a href="{{ href }}" class="text-sm font-semibold text-txt no-underline hover:text-brand-hi">{{ name }}</a>
+      <a href="{{ href }}" class="text-[13px] font-semibold text-txt no-underline hover:text-brand-hi">{{ name }}</a>
     {% else %}
-      <div class="text-sm font-semibold text-txt">{{ name }}</div>
+      <div class="text-[13px] font-semibold text-txt">{{ name }}</div>
     {% endif %}
     <div class="font-mono text-[10px] text-txt-faint">{{ meta }}</div>
   </div>
-  {% if delta %}<span class="font-mono text-xs text-gold">{{ delta }}</span>{% endif %}
+  {% if delta %}<span class="font-mono text-[11px] text-gold">{{ delta }}</span>{% endif %}
 </div>

@@ -12,7 +12,7 @@
     {% for c in consoles %}
       <div class="flex flex-col gap-2 border-t border-line py-2.5 sm:grid sm:grid-cols-[190px_1fr_150px] sm:items-center sm:gap-4">
         <div class="flex min-w-0 items-center gap-2.5">
-          {% include "components/console-tag.html" with label=c.tag %}
+          {% include "components/console-tag.html" with label=c.tag variant="table" %}
           <span class="truncate font-display text-[13px] font-medium text-txt">{{ c.name }}</span>
         </div>
         {% include "components/progress-bar-segmented.html" with not_pct=c.not_pct beaten_pct=c.beaten_pct plat_pct=c.plat_pct height="h-3" %}
