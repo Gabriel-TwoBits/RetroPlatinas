@@ -148,7 +148,7 @@ def _game_awards():
         awards.append(
             {
                 "ini": inis[i % len(inis)],
-                "color": "#b09cff" if plat else "#f2b84b",
+                "tone": "state-platinum" if plat else "gold",
             }
         )
     return awards
@@ -189,10 +189,10 @@ def fake_profile_context(user):
                 "ini": "AoM",
                 "name": "Achievement of the Month",
                 "when": "jun/2025",
-                "color": "#f2b84b",
+                "tone": "gold",
             },
-            {"ini": "M16", "name": "16-bit Marathon", "when": "mar/2025", "color": "#34dcc4"},
-            {"ini": "DC", "name": "Devlog Challenge", "when": "nov/2024", "color": "#b09cff"},
+            {"ini": "M16", "name": "16-bit Marathon", "when": "mar/2025", "tone": "brand"},
+            {"ini": "DC", "name": "Devlog Challenge", "when": "nov/2024", "tone": "state-platinum"},
         ],
         "game_awards": _game_awards(),
         "game_awards_total": 58,

@@ -7,22 +7,22 @@
 {% with size=size|default:52 %}
 <div class="inline-flex flex-col items-center gap-1.5">
   {% if state == "locked" %}
-    <div class="flex items-center justify-center rounded-tile border border-dashed border-line2 bg-surface2 opacity-65"
+    <div class="flex items-center justify-center rounded-tile border border-dashed border-line2 bg-surface2 text-txt-faint opacity-65"
          style="width:{{ size }}px;height:{{ size }}px">
-      <svg width="40%" height="40%" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <rect x="5" y="10" width="14" height="10" rx="2" fill="#6d6353"/>
-        <path d="M8 10 V7 a4 4 0 0 1 8 0 V10" stroke="#5c6675" stroke-width="2" fill="none"/>
+      <svg width="35%" height="35%" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <rect x="5" y="10" width="14" height="10" rx="2" fill="currentColor"/>
+        <path d="M8 10 V7 a4 4 0 0 1 8 0 V10" stroke="currentColor" stroke-width="2" fill="none"/>
       </svg>
     </div>
   {% elif state == "hardcore" %}
-    <div class="rounded-tile border border-state-hardcore bg-gradient-to-br from-gold to-[#c98d2e]"
-         style="width:{{ size }}px;height:{{ size }}px;box-shadow:0 0 12px -3px #e0552f"></div>
+    <div class="rounded-tile border border-state-hardcore bg-gradient-to-br from-gold to-gold-deep shadow-[0_0_12px_-3px_theme(colors.state.hardcore)]"
+         style="width:{{ size }}px;height:{{ size }}px"></div>
   {% elif state == "softcore" %}
-    <div class="rounded-tile border border-state-softcore bg-gradient-to-br from-gold to-[#c98d2e] opacity-90"
+    <div class="rounded-tile border border-state-softcore bg-gradient-to-br from-gold to-gold-deep opacity-90"
          style="width:{{ size }}px;height:{{ size }}px"></div>
   {% else %}
-    <div class="rp-sheen relative overflow-hidden rounded-tile border border-gold/50 bg-gradient-to-br from-gold to-[#c98d2e]"
-         style="width:{{ size }}px;height:{{ size }}px;box-shadow:0 0 14px -3px #f0c04a"></div>
+    <div class="rp-sheen relative overflow-hidden rounded-tile border border-gold/50 bg-gradient-to-br from-gold to-gold-deep shadow-[0_0_14px_-3px_theme(colors.gold.DEFAULT)]"
+         style="width:{{ size }}px;height:{{ size }}px"></div>
   {% endif %}
   {% if label %}<span class="font-mono text-[9px] text-txt-faint">{{ label }}</span>{% endif %}
 </div>

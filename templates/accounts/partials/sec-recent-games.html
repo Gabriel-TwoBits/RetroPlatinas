@@ -25,7 +25,7 @@
         </div>
         <div class="mt-3.5 grid grid-cols-10 gap-1.5 sm:grid-cols-20">
           {% for c in g.grid.cells %}
-            <div class="aspect-square rounded-chip {% if c.unlocked %}border border-gold/40 bg-gradient-to-br from-gold to-[#c98d2e]{% else %}border border-line bg-surface2 opacity-45{% endif %}"></div>
+            <div class="aspect-square rounded-chip {% if c.unlocked %}border border-gold/40 bg-gradient-to-br from-gold to-gold-deep{% else %}border border-line bg-surface2 opacity-45{% endif %}"></div>
           {% endfor %}
           {% if g.grid.more %}
             <div class="flex aspect-square items-center justify-center rounded-chip border border-line2 bg-surface2 font-mono text-[9px] text-brand">+{{ g.grid.more }}</div>

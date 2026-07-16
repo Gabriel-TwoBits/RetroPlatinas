@@ -3,10 +3,11 @@
 // use Tailwind's default 4px scale; only the brand-specific axes are extended here.
 module.exports = {
   content: ["./templates/**/*.html", "./apps/**/templates/**/*.html"],
-  // State colours are composed from data (state='beaten' -> text-state-beaten),
-  // so their utilities can't be found by scanning the markup. Keep them all.
+  // State and award colours are composed from data (state='beaten' ->
+  // text-state-beaten), so their utilities can't be found by scanning the markup.
   safelist: [
     { pattern: /(bg|text|border)-state-(locked|beaten|platinum|hardcore|softcore|progress)/ },
+    { pattern: /text-(brand|gold)/ },
   ],
   theme: {
     extend: {
