@@ -12,7 +12,8 @@ def _numbers():
         "achievements": "38",
         "players": "14",
         "unlocks": "27",
-        "online": "—",
+        # An int, so the template can branch on "anyone online?" instead of on a dash.
+        "online": 2,
     }
 
 

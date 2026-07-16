@@ -12,7 +12,7 @@
 {% with codeberg_url="https://codeberg.org/Gabriel-TwoBits/retroplatinas" %}
 <div class="mx-auto max-w-6xl px-4 py-6 sm:py-8">
 
-  <section class="rounded-card border border-line bg-gradient-to-r from-brand/5 to-transparent p-4 sm:p-6">
+  <section class="rounded-card border border-line p-4 sm:p-6">
     <div class="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
       <div class="max-w-xl">
         <h1 class="font-display text-xl font-bold leading-tight tracking-tight text-txt sm:text-2xl">{% trans "Achievements for retro games, truly open." %}</h1>
@@ -62,7 +62,6 @@
       <section class="overflow-hidden rounded-card border border-line bg-surface">
         <div class="flex items-center justify-between border-b border-line bg-surface2 px-3.5 py-2">
           <span class="flex items-center gap-2 font-display text-xs font-bold tracking-wide text-txt"><span class="h-3 w-[3px] rounded-sm bg-brand"></span>{% trans "What's new" %}</span>
-          <span class="font-mono text-[10px] text-txt-faint">{% trans "project highlights" %}</span>
         </div>
         <div class="px-3.5 pb-3 pt-1">
           <div class="border-t border-line py-2.5 first:border-t-0">
@@ -86,7 +85,6 @@
       <section class="overflow-hidden rounded-card border border-line bg-surface">
         <div class="flex items-center justify-between border-b border-line bg-surface2 px-3.5 py-2">
           <span class="flex items-center gap-2 font-display text-xs font-bold tracking-wide text-txt"><span class="h-3 w-[3px] rounded-sm bg-brand"></span>{% trans "Available sets" %}</span>
-          <span class="font-mono text-[10px] text-txt-faint">{% blocktrans count n=sets|length %}{{ n }} game{% plural %}{{ n }} games{% endblocktrans %}</span>
         </div>
         <div class="flex flex-col gap-2.5 px-3.5 py-3">
           {% for s in sets %}
@@ -144,6 +142,31 @@
 
     <div class="flex flex-col gap-5">
 
+      <section class="overflow-hidden rounded-card border border-line bg-surface">
+        <div class="flex items-center gap-2 border-b border-line bg-surface2 px-3.5 py-2 font-display text-xs font-bold tracking-wide text-txt"><span class="h-3 w-[3px] rounded-sm bg-gold"></span>{% trans "How to start playing" %}</div>
+        <div class="px-3.5 py-3">
+          <div class="flex flex-col gap-2.5">
+            <div class="flex items-center gap-2.5">
+              <span class="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border border-line2 bg-elevated font-mono text-[10px] text-brand">1</span>
+              <span class="text-xs leading-tight text-txt-muted">{% trans "Get a compatible emulator (DuckStation)" %}</span>
+            </div>
+            <div class="flex items-center gap-2.5">
+              <span class="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border border-line2 bg-elevated font-mono text-[10px] text-brand">2</span>
+              <span class="text-xs leading-tight text-txt-muted">{% trans "Create your account and sign in from the emulator" %}</span>
+            </div>
+            <div class="flex items-center gap-2.5">
+              <span class="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border border-line2 bg-elevated font-mono text-[10px] text-brand">3</span>
+              <span class="text-xs leading-tight text-txt-muted">{% trans "Load the game and start unlocking" %}</span>
+            </div>
+          </div>
+          <div class="mb-2 mt-3 font-mono text-[9px] uppercase tracking-wide text-txt-faint">{% trans "Compatible emulators" %}</div>
+          <div class="flex flex-wrap gap-1.5">
+            <span class="rounded-chip border border-line2 bg-surface2 px-2 py-1 font-mono text-[10px] text-txt-muted">DuckStation</span>
+          </div>
+          <div class="mt-2.5 font-mono text-[10px] leading-relaxed text-txt-faint">{% trans "Today: PlayStation (PS1). More consoles as sets arrive." %}</div>
+        </div>
+      </section>
+
       <section class="hidden overflow-hidden rounded-card border border-line bg-surface md:block">
         <div class="flex items-center justify-between border-b border-line bg-surface2 px-3.5 py-2">
           <span class="flex items-center gap-2 font-display text-xs font-bold tracking-wide text-txt"><span class="h-3 w-[3px] rounded-sm bg-brand"></span>{% trans "The project in numbers" %}</span>
@@ -155,8 +178,14 @@
           {% include "components/stat-line.html" with label=l_players value=numbers.players %}
           {% include "components/stat-line.html" with label=l_unlocks value=numbers.unlocks %}
           <div class="flex items-baseline justify-between border-t border-line py-2">
-            <span class="text-sm text-txt">{% trans "Online now" %}</span>
-            <span class="font-mono text-base font-bold text-txt-faint">{{ numbers.online }}</span>
+            <span class="flex items-center gap-[7px] text-[12.5px] text-txt">
+              {% if numbers.online %}<span class="h-[7px] w-[7px] rounded-full bg-brand animate-rp-pulse"></span>{% endif %}{% trans "Online now" %}
+            </span>
+            {% if numbers.online %}
+              <span class="font-mono text-[15px] font-bold text-txt">{{ numbers.online }}</span>
+            {% else %}
+              <span class="font-mono text-[15px] font-bold text-txt-faint">—</span>
+            {% endif %}
           </div>
         </div>
       </section>
@@ -170,7 +199,7 @@
           {% for a in activity %}
             <div class="flex items-center gap-2.5 border-t border-line py-2.5 first:border-t-0">
               {% if a.hardcore %}
-                <div class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-card border border-state-hardcore bg-gold font-display text-[10px] font-bold text-bg">{{ a.initials }}</div>
+                <div class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-card border border-state-hardcore bg-gradient-to-br from-gold to-gold-deep font-display text-[10px] font-bold text-bg shadow-[0_0_9px_-3px_theme(colors.state.hardcore)]">{{ a.initials }}</div>
               {% else %}
                 <div class="rp-hatch flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-card border border-line2 font-display text-[10px] font-bold text-brand">{{ a.initials }}</div>
               {% endif %}
@@ -205,31 +234,6 @@
             <span class="w-4 font-mono text-xs text-txt-faint">§</span>
             <span class="flex-1 text-xs">{% trans "Licensed under AGPL-3.0" %}</span>
           </div>
-        </div>
-      </section>
-
-      <section class="overflow-hidden rounded-card border border-line bg-surface">
-        <div class="flex items-center gap-2 border-b border-line bg-surface2 px-3.5 py-2 font-display text-xs font-bold tracking-wide text-txt"><span class="h-3 w-[3px] rounded-sm bg-gold"></span>{% trans "How to start playing" %}</div>
-        <div class="px-3.5 py-3">
-          <div class="flex flex-col gap-2.5">
-            <div class="flex items-center gap-2.5">
-              <span class="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border border-line2 bg-elevated font-mono text-[10px] text-brand">1</span>
-              <span class="text-xs leading-tight text-txt-muted">{% trans "Get a compatible emulator (DuckStation)" %}</span>
-            </div>
-            <div class="flex items-center gap-2.5">
-              <span class="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border border-line2 bg-elevated font-mono text-[10px] text-brand">2</span>
-              <span class="text-xs leading-tight text-txt-muted">{% trans "Create your account and sign in from the emulator" %}</span>
-            </div>
-            <div class="flex items-center gap-2.5">
-              <span class="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border border-line2 bg-elevated font-mono text-[10px] text-brand">3</span>
-              <span class="text-xs leading-tight text-txt-muted">{% trans "Load the game and start unlocking" %}</span>
-            </div>
-          </div>
-          <div class="mb-2 mt-3 font-mono text-[9px] uppercase tracking-wide text-txt-faint">{% trans "Compatible emulators" %}</div>
-          <div class="flex flex-wrap gap-1.5">
-            <span class="rounded-chip border border-line2 bg-surface2 px-2 py-1 font-mono text-[10px] text-txt-muted">DuckStation</span>
-          </div>
-          <div class="mt-2.5 font-mono text-[10px] leading-relaxed text-txt-faint">{% trans "Today: PlayStation (PS1). More consoles as sets arrive." %}</div>
         </div>
       </section>
     </div>
