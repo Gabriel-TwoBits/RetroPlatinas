@@ -7,18 +7,18 @@
 {% include "accounts/partials/identity-header.html" %}
 
 {# ===== Desktop: two columns, everything visible ===== #}
-<div class="mx-auto hidden max-w-6xl gap-6 px-4 py-6 lg:grid lg:grid-cols-[328px_1fr] lg:items-start">
-  <aside class="flex flex-col gap-5">
-    {% include "accounts/partials/sec-stats.html" %}
-    {% include "accounts/partials/sec-heat.html" %}
-    {% include "accounts/partials/sec-awards.html" %}
-  </aside>
+<div class="mx-auto hidden max-w-6xl gap-6 px-4 py-6 lg:grid lg:grid-cols-[1fr_328px] lg:items-start">
   <div class="flex flex-col gap-6">
     {% include "accounts/partials/sec-recent-games.html" %}
     {% include "accounts/partials/sec-progression.html" %}
     {% include "accounts/partials/sec-completion.html" %}
     {% include "accounts/partials/sec-wall.html" %}
   </div>
+  <aside class="flex flex-col gap-5">
+    {% include "accounts/partials/sec-awards.html" %}
+    {% include "accounts/partials/sec-stats.html" %}
+    {% include "accounts/partials/sec-heat.html" %}
+  </aside>
 </div>
 
 {# ===== Mobile: sticky tab bar swaps one panel at a time via HTMX ===== #}
