@@ -1,5 +1,5 @@
 /** @type {import('tailwindcss').Config} */
-// Design tokens from the "Platina Quente" system (see DESIGN.md). Spacing and type
+// Design tokens from the "Teal Platina" system (see DESIGN.md). Spacing and type
 // use Tailwind's default 4px scale; only the brand-specific axes are extended here.
 module.exports = {
   content: ["./templates/**/*.html", "./apps/**/templates/**/*.html"],
@@ -11,30 +11,32 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        bg: "#100d09",
-        surface: "#181510",
-        surface2: "#1e1a13",
-        elevated: "#252017",
-        line: "#302a20",
-        line2: "#463d2e",
+        bg: "#0b0e13",
+        surface: "#171c25",
+        surface2: "#1e2531",
+        elevated: "#27303d",
+        line: "#29313d",
+        line2: "#3b4657",
         txt: {
-          DEFAULT: "#ece5d6",
-          muted: "#a89d87",
-          faint: "#6d6353",
+          DEFAULT: "#e6ecf3",
+          muted: "#97a4b5",
+          faint: "#5f6b7c",
         },
         brand: {
-          DEFAULT: "#6a67e0",
-          dim: "#35356f",
-          ink: "#f2f3ff",
+          DEFAULT: "#34dcc4",
+          dim: "#1c5e56",
+          ink: "#06201b",
+          hi: "#7fe9db",
         },
-        brand2: "#ef7f2b",
+        brand2: "#b09cff",
         gold: {
-          DEFAULT: "#f0c04a",
+          DEFAULT: "#f2b84b",
           dim: "#8a6a2c",
+          deep: "#c98d2e",
         },
         state: {
-          locked: "#3a342a",
-          beaten: "#93aa4e",
+          locked: "#313b49",
+          beaten: "#5cc48c",
           platinum: "#c2c9d8",
           hardcore: "#e0552f",
           softcore: "#7e93b1",
