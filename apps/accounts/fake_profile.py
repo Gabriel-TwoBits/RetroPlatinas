@@ -20,6 +20,10 @@ _HEAT_OPACITY_SPAN = 0.65
 _FULL_OPACITY = "1"
 
 
+def _unlocalized_opacity(intensity):
+    return f"{_MIN_HEAT_OPACITY + intensity * _HEAT_OPACITY_SPAN:.2f}"
+
+
 def _heat_bars():
     bars = []
     for value in _HEAT_VALUES:
@@ -38,9 +42,7 @@ def _heat_bars():
                 {
                     "height": _BASE_BAR_PX + round(intensity * _DESKTOP_BAR_SPAN_PX),
                     "height_mobile": _BASE_BAR_PX + round(intensity * _MOBILE_BAR_SPAN_PX),
-                    # Formatted here, not in the template: Django localises floats,
-                    # so a pt-BR "0,74" would silently break the inline style.
-                    "opacity": f"{_MIN_HEAT_OPACITY + intensity * _HEAT_OPACITY_SPAN:.2f}",
+                    "opacity": _unlocalized_opacity(intensity),
                     "on": True,
                 }
             )
@@ -75,7 +77,6 @@ def _consoles():
 
 _DESKTOP_ICON_CAP = 40
 _MOBILE_ICON_CELLS = 14
-# The mobile strip always keeps one locked cell visible, so it never reads as complete.
 _MOBILE_ICON_UNLOCKED_CAP = 13
 
 
@@ -232,7 +233,6 @@ def fake_profile_context(user):
             {"ini": "DC", "name": "Devlog Challenge", "when": "nov/2024", "tone": "state-platinum"},
         ],
         "game_awards": _game_awards(),
-        "game_awards_total": 58,
         "game_awards_more": 34,
         "wall": [
             {

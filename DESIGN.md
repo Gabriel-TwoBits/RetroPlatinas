@@ -19,8 +19,8 @@ Blue-graphite base with saturated teal on identifiers, CTAs and tabs, and violet
 highlights. Gold is reserved for medals and points; cold platinum marks the mastered state.
 
 The source doc explores two other directions — *Platina Quente* (warm amber-graphite with
-indigo/orange) and *Violeta Troféu* — and archives both. Platina Quente shipped briefly and
-was reverted; don't reintroduce it without changing the design doc first.
+indigo/orange) and *Violeta Troféu* — and archives both. Neither ships; changing direction
+means changing the design doc first.
 
 | Token | Hex | Use |
 | --- | --- | --- |

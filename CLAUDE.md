@@ -34,7 +34,7 @@ Dark-first, mobile-first SSR: Django templates + **HTMX** (vendored, `static/js/
   **at container startup**, same pattern as `compilemessages`. `output.css` is a build artifact
   (gitignored), `input.css` and `tailwind.config.js` are tracked.
 - **Design tokens live in `tailwind.config.js`** (`theme.extend`) — colours, `font-*`, radii,
-  the `rp-shimmer`/`rp-glow` animations. Do not hardcode brand hexes in markup; add or reuse a
+  the `rp-shimmer`/`rp-pulse` animations. Do not hardcode brand hexes in markup; add or reuse a
   token. Spacing/type use Tailwind's default 4px scale.
 - **`state-*` colour utilities are safelisted** — they're composed from data (`state='beaten'` →
   `text-state-beaten`), so scanning the markup can't find them.

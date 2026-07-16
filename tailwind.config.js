@@ -50,14 +50,12 @@ module.exports = {
         mono: ["'Courier New'", "Courier", "monospace"],
       },
       borderRadius: {
-        // Three tiers, from the rendered design mockup: containers, inner tiles,
-        // then chips and bars. The mockup's 5px and 6px tiers both land on "chip".
         card: "0.1875rem",
         tile: "0.25rem",
         chip: "0.375rem",
       },
       gridTemplateColumns: {
-        // Desktop achievement grid: one row of 20 icon cells.
+        // Desktop achievement grid: 20 icon cells per row.
         20: "repeat(20, minmax(0, 1fr))",
       },
       keyframes: {
