@@ -19,6 +19,16 @@ from apps.leaderboards.models import Leaderboard, LeaderboardEntry
 
 logger = logging.getLogger("apps.api")
 
+
+def _not_found(resource):
+    return {
+        "Success": False,
+        "Error": f"Unknown {resource}.",
+        "Status": HTTPStatus.NOT_FOUND,
+        "Code": "not_found",
+    }
+
+
 _NOT_IMPLEMENTED = {"Success": False, "Error": "not implemented"}
 # rcheevos turns these `Code` values into RC_INVALID_CREDENTIALS / RC_EXPIRED_TOKEN;
 # a missing or unknown code is only a generic RC_API_FAILURE.
@@ -34,18 +44,8 @@ _EXPIRED_TOKEN = {
     "Status": HTTPStatus.UNAUTHORIZED,
     "Code": "expired_token",
 }
-_GAME_NOT_FOUND = {
-    "Success": False,
-    "Error": "Unknown game.",
-    "Status": HTTPStatus.NOT_FOUND,
-    "Code": "not_found",
-}
-_ACHIEVEMENT_NOT_FOUND = {
-    "Success": False,
-    "Error": "Unknown achievement.",
-    "Status": HTTPStatus.NOT_FOUND,
-    "Code": "not_found",
-}
+_GAME_NOT_FOUND = _not_found("game")
+_ACHIEVEMENT_NOT_FOUND = _not_found("achievement")
 _MISSING_PARAMETER = {
     "Success": False,
     "Error": "One or more required parameters is missing.",
@@ -84,15 +84,6 @@ def _invalid_parameter(message):
         "Error": message,
         "Status": HTTPStatus.UNPROCESSABLE_ENTITY,
         "Code": "invalid_parameter",
-    }
-
-
-def _not_found(resource):
-    return {
-        "Success": False,
-        "Error": f"Unknown {resource}.",
-        "Status": HTTPStatus.NOT_FOUND,
-        "Code": "not_found",
     }
 
 
