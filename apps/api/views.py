@@ -38,7 +38,7 @@ def dorequest(request):
     handler = HANDLERS.get(action)
     if handler is None:
         return JsonResponse({"Success": False, "Error": f"Unknown action: {action}"})
-    elif _has_nul(request.POST):
+    if _has_nul(request.POST):
         return JsonResponse(_invalid_parameter("Parameters cannot contain NUL characters."))
     try:
         return JsonResponse(handler(request))
@@ -52,7 +52,7 @@ def debug_presence(request, username):
     # DEBUG is checked before the method so the route answers 404 to anything without it.
     if not settings.DEBUG:
         raise Http404("Test endpoints exist only when DEBUG is on.")
-    elif request.method != "GET":
+    if request.method != "GET":
         return HttpResponseNotAllowed(["GET"])
     user = get_user_model().objects.filter(username=username).first()
     if user is None:
