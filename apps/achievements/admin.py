@@ -27,15 +27,19 @@ class AchievementAdmin(admin.ModelAdmin):
         label = obj.get_status_display()
         return format_html('<span style="color: {}; font-weight: bold;">{}</span>', color, label)
 
-    @admin.action(description=_("Publish selected achievements as community"))
+    @admin.action(
+        description=_("Publish selected achievements as community"), permissions=("change",)
+    )
     def publish_as_community(self, request, queryset):
         self._change_status(request, queryset, Achievement.STATUS_COMMUNITY)
 
-    @admin.action(description=_("Mark selected achievements as verified"))
+    @admin.action(description=_("Mark selected achievements as verified"), permissions=("change",))
     def mark_verified(self, request, queryset):
         self._change_status(request, queryset, Achievement.STATUS_VERIFIED)
 
-    @admin.action(description=_("Move selected achievements back to draft"))
+    @admin.action(
+        description=_("Move selected achievements back to draft"), permissions=("change",)
+    )
     def move_to_draft(self, request, queryset):
         self._change_status(request, queryset, Achievement.STATUS_DRAFT)
 

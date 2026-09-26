@@ -4,6 +4,7 @@ from datetime import timedelta
 from pathlib import Path
 
 import pytest
+from django.contrib.auth.models import Permission
 from django.core.management import call_command
 from django.db import IntegrityError
 from django.utils import timezone
@@ -287,6 +288,7 @@ def test_awardachievement_seeded_hardcore_creates_both_unlocks(client, seeded_ga
 
 ACHIEVEMENT_CHANGELIST_URL = "/admin/achievements/achievement/"
 ALL_STATUSES = [status for status, _ in Achievement.STATUS_CHOICES]
+STATUS_ACTIONS = ("publish_as_community", "mark_verified", "move_to_draft")
 
 
 def _create_with_status(game, user, status):
@@ -359,7 +361,33 @@ def test_admin_changelist_offers_status_actions_and_coloured_status(admin_client
     body = response.content.decode()
 
     assert response.status_code == 200
-    for action in ("publish_as_community", "mark_verified", "move_to_draft"):
+    for action in STATUS_ACTIONS:
         assert f'value="{action}"' in body
     assert 'font-weight: bold;">Draft</span>' in body
     assert "column-flags" not in body
+
+
+@pytest.fixture
+def view_only_staff_client(client):
+    staff = User.objects.create_user(username="viewer", password="pw-test-123", is_staff=True)
+    staff.user_permissions.add(Permission.objects.get(codename="view_achievement"))
+    client.force_login(staff)
+    return client
+
+
+@pytest.mark.django_db
+def test_admin_status_actions_require_change_permission(view_only_staff_client, achievement):
+    changelist = view_only_staff_client.get(ACHIEVEMENT_CHANGELIST_URL, HTTP_ACCEPT_LANGUAGE="en")
+    body = changelist.content.decode()
+
+    assert changelist.status_code == 200
+    for action in STATUS_ACTIONS:
+        assert f'value="{action}"' not in body
+
+    view_only_staff_client.post(
+        ACHIEVEMENT_CHANGELIST_URL,
+        {"action": "publish_as_community", "_selected_action": [achievement.pk]},
+    )
+
+    achievement.refresh_from_db()
+    assert achievement.status == Achievement.STATUS_DRAFT
