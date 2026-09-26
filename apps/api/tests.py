@@ -565,6 +565,31 @@ def test_patch_missing_game_param(client, authed_user):
 
 
 @pytest.mark.django_db
+def test_patch_resolves_the_game_by_hash_when_no_game_id_is_sent(
+    client, authed_user, game_with_hash
+):
+    _, token = authed_user
+    game, game_hash = game_with_hash
+    response = client.post(
+        "/dorequest.php",
+        {"r": "patch", "u": PLAYER_USERNAME, "t": token, "m": game_hash.md5.upper()},
+    )
+    data = response.json()
+    assert data["Success"] is True
+    assert data["PatchData"]["ID"] == game.pk
+
+
+@pytest.mark.django_db
+def test_patch_unknown_hash(client, authed_user):
+    _, token = authed_user
+    response = client.post(
+        "/dorequest.php",
+        {"r": "patch", "u": PLAYER_USERNAME, "t": token, "m": "d" * MD5_HEX_DIGITS},
+    )
+    assert response.json() == GAME_NOT_FOUND
+
+
+@pytest.mark.django_db
 def test_patch_missing_token(client, game_with_achievements):
     game = game_with_achievements
     response = client.post("/dorequest.php", {"r": "patch", "g": game.pk})

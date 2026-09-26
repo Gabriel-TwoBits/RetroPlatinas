@@ -131,6 +131,18 @@ def _game_by_id(raw_game_id):
     return Game.objects.select_related("console").filter(pk=game_id).first()
 
 
+def _game_from_request(request):
+    """The game named by the `m` hash, else by the `g` id; `None` when neither matches."""
+    md5 = request.POST.get("m", "").lower()
+    game_id_param = request.POST.get("g", "")
+    if md5:
+        return Game.objects.select_related("console").filter(hashes__md5=md5).first()
+    elif game_id_param:
+        return _game_by_id(game_id_param)
+    else:
+        return None
+
+
 def _achievements_visible_to(user):
     return Achievement.objects.filter(
         Q(status__in=Achievement.PUBLISHED_STATUSES)
@@ -211,7 +223,7 @@ def handle_patch(request):
     if error is not None:
         return error
 
-    game = _game_by_id(request.POST.get("g", ""))
+    game = _game_from_request(request)
     if game is None:
         return _GAME_NOT_FOUND
 
@@ -237,17 +249,13 @@ def handle_achievementsets(request):
     if error is not None:
         return error
 
-    md5 = request.POST.get("m", "").lower()
-    game_id_param = request.POST.get("g", "")
-    if md5:
-        game = Game.objects.select_related("console").filter(hashes__md5=md5).first()
-    elif game_id_param:
-        game = _game_by_id(game_id_param)
-    else:
-        game = None
-
+    game = _game_from_request(request)
     if game is None:
-        logger.info("achievementsets unknown game hash=%s g=%s", md5, game_id_param)
+        logger.info(
+            "achievementsets unknown game hash=%s g=%s",
+            request.POST.get("m", ""),
+            request.POST.get("g", ""),
+        )
         return _GAME_NOT_FOUND
 
     achievements = _served_achievements(user, game)
