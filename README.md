@@ -109,10 +109,14 @@ time). Flagging never blocks or bans a user. Thresholds are constants in
 
 | Kind | Flagged when | Request outcome |
 | --- | --- | --- |
-| `invalid_signature` | `awardachievement` or `submitlbentry` arrives without `v`, or with a `v` that does not match | rejected (`missing_parameter` / `invalid_parameter`) |
+| `invalid_signature` | `awardachievement` or `submitlbentry` arrives without `v`, or with a `v` that does not match (once per user, request type and minute) | rejected (`missing_parameter` / `invalid_parameter`) |
 | `rate_limited` | a user sends more than 30 `awardachievement` in a minute (once per window) | HTTP 429, which rc_client retries with backoff, so the unlock is delayed, not lost |
-| `unlock_burst` | 10 achievements of one game unlocked within a minute (once per burst) | accepted |
-| `early_unlock` | an unlock lands less than 30 s after the session's `startsession` | accepted |
+| `unlock_burst` | 10 new unlocks of one game, in either mode, arrive within a minute (once per burst) | accepted |
+| `early_unlock` | a new unlock arrives less than 30 s after the session's `startsession` | accepted |
+
+Both timing checks go by when the request arrives, not by the unlock time `o` claims: `v` is an
+unkeyed MD5 of public values, so anyone can sign any `o`. Unlocks out of an unlikely order are not
+detected.
 
 `v` is the lowercase hex MD5 rcheevos signs every unlock and leaderboard entry with (`u` is the
 username as sent):
