@@ -73,7 +73,7 @@ Each state has its own colour (`state-*` tokens) reused across the whole product
 | softcore | `state-softcore` `#7e93b1` | blue border; valid unlock, lower weight |
 | progress | `state-progress` `#d8922f` | amber; set started, not beaten |
 | beaten | `state-beaten` `#5cc48c` | green; core set conditions met |
-| platinum | `state-platinum` `#c2c9d8` | steel-platinum + glow; 100% hardcore |
+| platinum | `state-platinum` `#c2c9d8` (`hi` `#dfe4ee`) | steel-platinum + glow; 100% hardcore; `hi` is the gradient stop |
 
 `state-*` utilities are **safelisted** in `tailwind.config.js` because they're composed from
 data (`state='beaten'` → `text-state-beaten`) and can't be found by scanning the markup. The

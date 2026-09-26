@@ -38,7 +38,10 @@ module.exports = {
         state: {
           locked: "#313b49",
           beaten: "#5cc48c",
-          platinum: "#c2c9d8",
+          platinum: {
+            DEFAULT: "#c2c9d8",
+            hi: "#dfe4ee",
+          },
           hardcore: "#e0552f",
           softcore: "#7e93b1",
           progress: "#d8922f",
