@@ -268,6 +268,12 @@ class Emu:
     def s32(self, address):
         return int.from_bytes(self.read(address, WORD_BYTES), "little", signed=True)
 
+    def write_u32(self, address, value):
+        """Writes a little-endian word of main RAM (to reach a stage, never to fake an event)."""
+        if address < 0 or address + WORD_BYTES > PS1_RAM_BYTES:
+            raise IndexError(f"{address:#x}+{WORD_BYTES} is outside the 2 MiB main RAM")
+        ctypes.memmove(self.lib.h_ram() + address, value.to_bytes(WORD_BYTES, "little"), WORD_BYTES)
+
     def deref(self, pointer_address, *offsets, size=1):
         """Follows an RA-style chain (24-bit pointer, +offset per hop) and reads the last hop.
 

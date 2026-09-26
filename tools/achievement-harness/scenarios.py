@@ -2,7 +2,7 @@
 
 Each scenario states which level achievements must trigger and the level (lid) the game must show
 when they do (usually none: a death, a quit or the attract demo must never unlock anything), and
-exits non-zero when a trigger is missing, unexpected or fires on another level.
+exits non-zero when a trigger is missing, repeated, unexpected or fires on another level.
 
     python tools/achievement-harness/scenarios.py [--core CORE] NAME [NAME ...] | all
 
@@ -10,6 +10,7 @@ A core and the rcheevos runtime are process-global, so several scenarios run one
 """
 
 import argparse
+import random
 import subprocess
 import sys
 from collections.abc import Callable
@@ -22,13 +23,14 @@ from harness import CORE_DEFAULTS, DEFAULT_CORE, Btn
 from probes import (
     FIXED_POINT_SHIFT,
     GAME_STATE,
+    GAME_STATE_GAME_OVER,
     GAME_STATE_PLAYING,
-    LID_NSANITY_BEACH,
     LID_STAGE_CLEAR,
+    LID_TITLE,
     RESPAWN_COUNT,
 )
 from session import Session
-from states import NSANITY_BEACH_CLEAR_PLAN
+from states import STAGES
 
 FRAMES_PER_SECOND = 60
 SECONDS_PER_MINUTE = 60
@@ -37,17 +39,21 @@ COLD_BOOT_SHOT_FRAMES = 10 * FRAMES_PER_SECOND
 ATTRACT_FRAMES = 15 * SECONDS_PER_MINUTE * FRAMES_PER_SECOND
 ATTRACT_SHOT_FRAMES = 30 * FRAMES_PER_SECOND
 LEAVE_SPAWN_ZONE_FRAMES = 150
-STAND_BEFORE_DEATH_FRAMES = 900
 STAND_BEFORE_QUIT_FRAMES = 400
-DEATH_TIMEOUT_FRAMES = 1800
-AFTER_RESPAWN_FRAMES = 60
-AFTER_REARM_FRAMES = 120
+DEATH_TIMEOUT_FRAMES = 4 * SECONDS_PER_MINUTE * FRAMES_PER_SECOND
 AFTER_DEATH_FRAMES = 300
 IDLE_IN_SPAWN_ZONE_FRAMES = 600
 QUIT_AFTER_CONTROL_FRAMES = 60
 AFTER_LAST_QUIT_FRAMES = 600
+AFTER_GAME_OVER_FRAMES = 1200
+# Four lives at a new game; extra lives picked up on the way are bounded by this.
+MAX_DEATHS_TO_GAME_OVER = 12
 STAGE_CLEAR_SHOTS = 5
 STAGE_CLEAR_SHOT_FRAMES = 60
+DEATH_SEED = 1
+PLAN_PREFIX_DIVISOR = 2  # deaths start halfway through a stage's clearing plan
+
+HEADING_BUTTONS = {"up": Btn.UP, "down": Btn.DOWN, "right": Btn.RIGHT}
 
 
 @dataclass(frozen=True)
@@ -66,14 +72,30 @@ def player_in_control(emu):
     return emu.u32(GAME_STATE) == GAME_STATE_PLAYING
 
 
-def die_walking_up(s, label):
-    """Holds UP until the next respawn (the first crab on N. Sanity Beach)."""
+def game_over(emu):
+    return emu.u32(GAME_STATE) == GAME_STATE_GAME_OVER
+
+
+def die(s, stage, rng, label):
+    """Plays random macros of the stage's heading until a respawn or the game over.
+
+    Returns True on a respawn (the player is back in control), False on the game over.
+    """
     before = respawns(s.emu)
-    waited = s.wait_until(
-        lambda e: respawns(e) != before, DEATH_TIMEOUT_FRAMES, label, buttons=[Btn.UP]
-    )
-    s.note(f"{label}: respawn count {before} -> {respawns(s.emu)} after {waited} frames of UP")
+    names = plans.HEADINGS[stage.heading]
+    played = 0
+    while respawns(s.emu) == before and not game_over(s.emu):
+        if played >= DEATH_TIMEOUT_FRAMES:
+            raise TimeoutError(f"{label}: no death after {played} frames of random play")
+        for frames, buttons in plans.MACROS[rng.choice(names)]:
+            s.step(frames, buttons)
+        played += plans.SEGMENT_FRAMES
+    if game_over(s.emu):
+        s.note(f"{label}: game over after {played} frames")
+        return False
+    s.note(f"{label}: respawn count {before} -> {respawns(s.emu)} after {played} frames")
     s.wait_until(player_in_control, navigation.LOAD_TIMEOUT_FRAMES, f"control after {label}")
+    return True
 
 
 def play_cold_boot(s):
@@ -88,80 +110,118 @@ def play_attract(s):
         s.shot("periodic")
 
 
-def play_beach_deaths(s):
-    s.note("walk out of the spawn zone, stand still, then walk into the crab")
-    s.step(LEAVE_SPAWN_ZONE_FRAMES, [Btn.UP])
-    s.step(STAND_BEFORE_DEATH_FRAMES)
-    die_walking_up(s, "death 1")
-    s.step(AFTER_RESPAWN_FRAMES)
+def deaths(stage):
+    def play(s):
+        rng = random.Random(DEATH_SEED)
+        # Searched plans never die, so replaying one reaches the middle of the stage, where random
+        # play meets hazards the start area may lack (The Great Gate).
+        if stage.plan_path.is_file():
+            inputs = plans.load(stage.plan_path).inputs
+            inputs = inputs[: len(inputs) // PLAN_PREFIX_DIVISOR]
+            s.note(f"replaying the first half of {stage.plan_path.name}")
+        elif stage.deepest_plan_path.is_file():
+            inputs = plans.load(stage.deepest_plan_path).inputs
+            s.note(f"replaying {stage.deepest_plan_path.name}")
+        else:
+            inputs = []
+            s.note("no plan: the deaths happen around the start")
+        for frames, mask in inputs:
+            s.emu.run(frames, mask)
+        s.note("death 1: random play")
+        die(s, stage, rng, "death 1")
+        s.rearm("death 2: right after a respawn")
+        die(s, stage, rng, "death 2")
+        s.step(AFTER_DEATH_FRAMES)
+        s.rearm("death 3: after idling where the player respawned")
+        s.step(IDLE_IN_SPAWN_ZONE_FRAMES)
+        die(s, stage, rng, "death 3")
+        for death in range(4, MAX_DEATHS_TO_GAME_OVER + 1):
+            s.rearm(f"death {death}: dying on towards the game over")
+            if not die(s, stage, rng, f"death {death}"):
+                break
+        else:
+            raise RuntimeError(f"no game over after {MAX_DEATHS_TO_GAME_OVER} deaths")
+        s.wait_until(
+            lambda e: navigation.level_id(e) == LID_TITLE,
+            navigation.LOAD_TIMEOUT_FRAMES,
+            "title level after the game over",
+        )
+        s.step(AFTER_GAME_OVER_FRAMES)
+        s.shot("after-game-over")
 
-    s.rearm("second death, right after a respawn")
-    s.step(AFTER_REARM_FRAMES)
-    die_walking_up(s, "death 2")
-    s.step(AFTER_DEATH_FRAMES)
-
-    s.rearm("third death, after idling in the spawn zone")
-    s.step(IDLE_IN_SPAWN_ZONE_FRAMES)
-    s.shot("idle-in-spawn-zone")
-    die_walking_up(s, "death 3")
-    s.step(AFTER_DEATH_FRAMES)
+    return play
 
 
-def play_beach_quit(s):
-    s.note("A: walk out, stand long enough to arm the level achievement, pause, SELECT")
-    s.step(LEAVE_SPAWN_ZONE_FRAMES, [Btn.UP])
-    s.step(STAND_BEFORE_QUIT_FRAMES)
-    navigation.pause_and_quit(s.emu)
+def quits(stage):
+    def play(s):
+        s.note("A: quit right after gaining control")
+        s.step(QUIT_AFTER_CONTROL_FRAMES)
+        navigation.pause_and_quit(s.emu)
 
-    s.rearm("B: same quit after re-entering the stage")
-    navigation.enter_stage(s.emu)
-    s.step(LEAVE_SPAWN_ZONE_FRAMES, [Btn.UP])
-    s.step(STAND_BEFORE_QUIT_FRAMES)
-    navigation.pause_and_quit(s.emu)
+        # SELECT does not quit while Crash is still moving or falling (a pit ends the run in
+        # Rolling Stones): standing lets any death respawn before the pause.
+        s.rearm("B: re-enter, run out of the spawn zone, stand, quit")
+        navigation.move_cursor_to(s.emu, stage.map_index)
+        navigation.enter_stage(s.emu)
+        s.step(LEAVE_SPAWN_ZONE_FRAMES, [HEADING_BUTTONS[stage.heading]])
+        s.step(STAND_BEFORE_QUIT_FRAMES)
+        s.wait_until(player_in_control, navigation.LOAD_TIMEOUT_FRAMES, "control before B's quit")
+        navigation.pause_and_quit(s.emu)
 
-    s.rearm("C: quit right after gaining control, never leaving the spawn zone")
-    navigation.enter_stage(s.emu)
-    s.step(QUIT_AFTER_CONTROL_FRAMES)
-    navigation.pause_and_quit(s.emu)
-    s.step(AFTER_LAST_QUIT_FRAMES)
+        s.rearm("C: re-enter, stand still for a while, quit")
+        navigation.move_cursor_to(s.emu, stage.map_index)
+        navigation.enter_stage(s.emu)
+        s.step(STAND_BEFORE_QUIT_FRAMES)
+        navigation.pause_and_quit(s.emu)
+        s.step(AFTER_LAST_QUIT_FRAMES)
+
+    return play
 
 
-def play_beach_clear(s):
-    plan = plans.load(NSANITY_BEACH_CLEAR_PLAN)
-    s.note(f"replaying {NSANITY_BEACH_CLEAR_PLAN.name}: {plan.frames} frames")
-    plans.replay(s.emu, plan)
-    s.note("plan finished")
-    navigation.wait_for_stage_clear(s.emu, NSANITY_BEACH_CLEAR_PLAN.name)
-    for _ in range(STAGE_CLEAR_SHOTS):
-        s.step(STAGE_CLEAR_SHOT_FRAMES)
-        s.shot("stage-clear")
-    presses = navigation.leave_stage_clear(s.emu)
-    s.note(f"left Stage Clear after {presses} CROSS press(es); entering the next stage")
-    entered = navigation.enter_stage(s.emu)
-    s.note(f"entered lid {entered:#x}; walk out, stand, pause, SELECT")
-    s.step(LEAVE_SPAWN_ZONE_FRAMES, [Btn.UP])
-    s.step(STAND_BEFORE_QUIT_FRAMES)
-    navigation.pause_and_quit(s.emu)
-    s.step(AFTER_LAST_QUIT_FRAMES)
+def clear(stage):
+    def play(s):
+        plan = plans.load(stage.plan_path)
+        s.note(f"replaying {stage.plan_path.name}: {plan.frames} frames")
+        plans.replay(s.emu, plan)
+        s.note("plan finished")
+        navigation.wait_for_stage_clear(s.emu, stage.plan_path.name)
+        for _ in range(STAGE_CLEAR_SHOTS):
+            s.step(STAGE_CLEAR_SHOT_FRAMES)
+            s.shot("stage-clear")
+        s.rearm("after the clear: Stage Clear -> map, the next stage, a quit fire nothing")
+        presses = navigation.leave_stage_clear(s.emu)
+        s.note(f"left Stage Clear after {presses} CROSS press(es); entering the next stage")
+        entered = navigation.enter_stage(s.emu)
+        s.note(f"entered lid {entered:#x}; run, pause, SELECT")
+        s.step(LEAVE_SPAWN_ZONE_FRAMES, [Btn.UP])
+        s.step(STAND_BEFORE_QUIT_FRAMES)
+        navigation.pause_and_quit(s.emu)
+        s.step(AFTER_LAST_QUIT_FRAMES)
+
+    return play
 
 
 NOTHING_FIRES = {}
 SCENARIOS = {
     "cold-boot": Scenario(None, NOTHING_FIRES, "3 minutes from power-on, no input", play_cold_boot),
     "attract": Scenario(None, NOTHING_FIRES, "15 minutes of attract-mode demos", play_attract),
-    "beach-deaths": Scenario(
-        "nsanity-beach-start", NOTHING_FIRES, "three deaths on N. Sanity Beach", play_beach_deaths
-    ),
-    "beach-quit": Scenario(
-        "nsanity-beach-start", NOTHING_FIRES, "three pause -> SELECT quits", play_beach_quit
-    ),
-    "beach-clear": Scenario(
-        "nsanity-beach-start",
-        {LID_NSANITY_BEACH: LID_STAGE_CLEAR},
-        "N. Sanity Beach cleared by the plan, then Jungle Rollers quit (pcsx_rearmed only)",
-        play_beach_clear,
-    ),
 }
+for _stage in STAGES:
+    SCENARIOS[f"{_stage.name}-deaths"] = Scenario(
+        _stage.start, NOTHING_FIRES, f"deaths on {_stage.name} down to a game over", deaths(_stage)
+    )
+    SCENARIOS[f"{_stage.name}-quit"] = Scenario(
+        _stage.start, NOTHING_FIRES, f"three pause -> SELECT quits of {_stage.name}", quits(_stage)
+    )
+    if _stage.plan_path.is_file():
+        SCENARIOS[f"{_stage.name}-clear"] = Scenario(
+            _stage.start,
+            {_stage.level_id: LID_STAGE_CLEAR},
+            f"{_stage.name} cleared by its plan, then the next stage quit (pcsx_rearmed only)",
+            clear(_stage),
+        )
+    else:
+        pass  # No clearing plan committed: the clear stays for the in-game check.
 
 
 def on_expected_level(trigger, expected):
@@ -172,8 +232,8 @@ def on_expected_level(trigger, expected):
 def run(name, core):
     """Plays one scenario in this process; returns True when the triggers match expectations.
 
-    Every expected achievement must fire while the game shows its expected lid, and nothing else
-    may fire: a trigger on another level fails even when its title was expected.
+    Every expected achievement must fire exactly once, while the game shows its expected lid, and
+    nothing else may fire: a trigger on another level fails even when its title was expected.
     """
     scenario = SCENARIOS[name]
     session = Session(name, state=scenario.start, core=core)
@@ -182,8 +242,8 @@ def run(name, core):
     triggers = session.close()
     expected = {achievements.level_title(stage): lid for stage, lid in scenario.expected.items()}
     off_level = [trigger for trigger in triggers if not on_expected_level(trigger, expected)]
-    on_level = {trigger.title for trigger in triggers if on_expected_level(trigger, expected)}
-    passed = not off_level and on_level == set(expected)
+    on_level = sorted(trigger.title for trigger in triggers if on_expected_level(trigger, expected))
+    passed = not off_level and on_level == sorted(expected)
     verdict = "OK" if passed else "FAIL"
     wanted = [f"{title} on lid {lid:#x}" for title, lid in sorted(expected.items())]
     fired = [

@@ -14,13 +14,13 @@ FIXED_POINT_BYTES = 4
 DECIMAL_DIGIT_MAX = 9  # values up to 9 read the same in hex and decimal
 
 # GOOL globals (c1 `gool_globals`).
-LEVEL_ID = 0x6188D  # byte 1 of global 0, `lid << 8`
+LEVEL_ID = 0x6188D  # byte 1 of global 0, `lid << 8`: the loaded level file
 NEXT_DISPLAY_FLAGS = 0x6189C  # leaves DISPLAY_FLAGS_NORMAL when the death camera starts
-RESPAWN_COUNT = 0x618A0  # 24.8, +1 per in-level respawn, reset when the title LID loads
+RESPAWN_COUNT = 0x618A0  # 24.8, +1 per in-level respawn, reset by a game over
 FRUIT_HUD_POINTER = 0x618A4
 LIFE_HUD_POINTER = 0x618A8
 PAUSE_OBJECT = 0x618BC
-AKU_POINTER = 0x618CC  # null until a stage's objects are loaded
+AKU_POINTER = 0x618CC  # null until the first level loads after power-on, never cleared after
 GAME_STATE = 0x618D0
 TITLE_STATE = 0x618D4
 MAP_PROGRESS = 0x618DC
@@ -29,14 +29,14 @@ AKU_HEALTH = 0x618F0  # 24.8
 FRUIT_COUNT = 0x618F4  # 24.8
 TAWNA_TOKENS = 0x61900  # 24.8
 LEVEL_COUNT = 0x61944
-LEVELS_UNLOCKED = 0x61948
+LEVELS_UNLOCKED = 0x61948  # map stages the island map spawns when it loads
 PERCENT_COMPLETE = 0x61974
 BONUS_ROUND_ID = 0x6197C
 BOX_COUNT = 0x61984  # 24.8, boxes broken in the current stage
 ITEM_POOL1 = 0x61988  # gem bits
 GEM_STAMP = 0x61990
 ISLAND_CAM_STATE = 0x61994  # RA "overworld status"
-IS_FIRST_ZONE = 0x61998  # RA "on results screen"; 1 after every load and every respawn
+IS_FIRST_ZONE = 0x61998  # RA "on results screen"; really 1 after every load and every respawn
 CHECKPOINT_ID = 0x619A0
 ITEM_POOL2 = 0x619AC  # gem and key bits
 TITLE_PAUSE_STATE = 0x619B4
@@ -57,12 +57,22 @@ PLAYER_POSITION_OFFSETS = (0x80, 0x84, 0x88)
 # The code notes give +0x06 as the first hop of the lives chain; only +0x6C reads the lives.
 HUD_COUNT_CHAIN = (0x6C, 0xE4, 0x0C)
 
+# Level ids (c1 `LID_*`, src/common.h).
 LID_TITLE = 0x19  # title screen, menus and the island map
 LID_NSANITY_BEACH = 0x09
-LID_STAGE_CLEAR = 0x2D
+LID_JUNGLE_ROLLERS = 0x0C
+LID_BOULDERS = 0x0E
+LID_UPSTREAM = 0x0F
+LID_THE_GREAT_GATE = 0x12
+LID_ROLLING_STONES = 0x15
+LID_STAGE_CLEAR = 0x2D  # c1 `LID_LEVELEND`
 NON_STAGE_LIDS = (LID_TITLE, LID_STAGE_CLEAR)
+# Game states (c1 `GAME_STATE_*`, src/globals.h; 0x400 is unnamed there, measured on a quit).
 GAME_STATE_CUTSCENE = 0x000
 GAME_STATE_PLAYING = 0x100
+GAME_STATE_GAME_OVER = 0x200
+GAME_STATE_QUITTING = 0x400
+GAME_STATE_STAGE_CLEARED = 0x500  # c1 `GAME_STATE_NEW_GEM`, set on every stage clear
 TITLE_STATE_MAIN_MENU = 5
 TITLE_STATE_WORLD_MAP = 0xF
 ON_THE_MAP = 1
@@ -115,6 +125,11 @@ def hud_count(pointer):
 
 
 CONDITION_READS = [
+    ("r6188d", u8(LEVEL_ID)),
+]
+
+# RA code-note addresses, traced next to the level id they are easily mistaken for.
+CODE_NOTE_READS = [
     ("r61994", u8(ISLAND_CAM_STATE)),
     ("r61998", u8(IS_FIRST_ZONE)),
     ("r619c5", u8(STAGE_ID)),
@@ -122,7 +137,6 @@ CONDITION_READS = [
 ]
 
 GLOBALS = [
-    ("g_lid", u8(LEVEL_ID)),
     ("g_game_state", u32(GAME_STATE)),
     ("g_title_state", s32(TITLE_STATE)),
     ("g_map_progress", s32(MAP_PROGRESS)),
@@ -158,17 +172,17 @@ OBJECTS = [
     ("player_lives", player_lives),
 ]
 
-ALL = CONDITION_READS + GLOBALS + OBJECTS
+ALL = CONDITION_READS + CODE_NOTE_READS + GLOBALS + OBJECTS
 
 # Probes that change nearly every frame: kept in the CSV, left out of the change log.
 NOISY = {"g_fade_counter", "player_ptr"}
 
 SUMMARY_KEYS = [
+    "r6188d",
     "r61994",
     "r61998",
     "r619c5",
     "w618cc",
-    "g_lid",
     "g_game_state",
     "g_title_state",
     "g_respawn_count",

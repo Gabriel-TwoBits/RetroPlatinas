@@ -16,6 +16,7 @@ from probes import (
     ON_THE_MAP,
     PAUSED,
     PAUSED_ON,
+    STAGE_ID,
     TITLE_STATE,
     TITLE_STATE_MAIN_MENU,
     TITLE_STATE_WORLD_MAP,
@@ -33,6 +34,7 @@ MAP_SETTLE_FRAMES = 120
 CONTROL_SETTLE_FRAMES = 30
 PAUSE_SETTLE_FRAMES = 60
 STAGE_CLEAR_TIMEOUT_FRAMES = 600
+CURSOR_MOVE_FRAMES = 90
 
 
 def wait_until(emu, predicate, max_frames, what, buttons=()):
@@ -90,6 +92,21 @@ def enter_stage(emu):
     wait_until(emu, playing_a_stage, LOAD_TIMEOUT_FRAMES, "player control in a stage")
     emu.step(CONTROL_SETTLE_FRAMES)
     return level_id(emu)
+
+
+def move_cursor_to(emu, map_index):
+    """On the island map, walks the cursor along the path to stage `map_index` (`0x619C5`)."""
+    for _ in range(MENU_ATTEMPTS):
+        cursor = emu.u8(STAGE_ID)
+        if cursor == map_index:
+            return
+        if cursor < map_index:
+            press(emu, Btn.RIGHT, release=CURSOR_MOVE_FRAMES)
+        else:
+            press(emu, Btn.LEFT, release=CURSOR_MOVE_FRAMES)
+    raise TimeoutError(
+        f"map cursor on stage {emu.u8(STAGE_ID)}, not {map_index}, after {MENU_ATTEMPTS} moves"
+    )
 
 
 def pause_and_quit(emu):

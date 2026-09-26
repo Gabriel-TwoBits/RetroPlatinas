@@ -20,10 +20,10 @@ MAX_SHOT_LABEL_CHARS = 80
 FRAME_DIGITS = 6
 MASK_HEX_DIGITS = 4
 SCREENSHOT_ON_CHANGE = {
+    "r6188d",
     "r61994",
     "r61998",
     "w618cc",
-    "g_lid",
     "g_game_state",
     "g_respawn_count",
     "g_death_count",

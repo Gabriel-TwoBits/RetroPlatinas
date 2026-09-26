@@ -66,13 +66,14 @@ Add `-v /path/to/bios:/bios:ro -e CRASH1_BIOS_DIR=/bios` for swanstation. Every 
 | `states.py [--core C] [--fresh] [NAME ...]` | Derives the named states from a cold boot (all by default) and prints their digests |
 | `scenarios.py [--core C] NAME ... \| all` | Plays scenarios; prints `OK`/`FAIL` per scenario and exits non-zero on any `FAIL` |
 | `nav.py [--from STATE] "cmd; cmd"` | Drives the emulator by hand (see *Navigation DSL*) |
-| `explore.py START OUT.json [--iterations N] [--seed N]` | Searches an input plan that clears a stage |
+| `explore.py STAGE [--out PLAN] [--minutes M] [--seed N]` | Searches an input plan that clears a stage |
 | `analyze.py TRACE.csv [PROBE ...] [--timeline]` | Summarises a trace, or prints the frames where the probes changed |
 | `sheet.py OUT.png SHOT.png ...` | Tiles screenshots into one contact sheet |
 
 `python -m pytest` includes `test_achievement_harness.py`: it boots the disc to the island map with
-every achievement active and asserts none fired. It is skipped when `CRASH1_CUE` is unset or names
-no file, so the suite stays green without the disc.
+every achievement active and asserts none fired, then plays every scenario (one process each) and
+asserts it passed. It is skipped when `CRASH1_CUE` is unset or names no file, so the suite stays
+green without the disc.
 
 ## States
 
@@ -86,34 +87,46 @@ came from the cache or was derived moments earlier.
 | State | Parent | Where |
 | --- | --- | --- |
 | `map` | cold boot | Island map after NEW GAME, cursor on N. Sanity Beach |
-| `nsanity-beach-start` | `map` | N. Sanity Beach, 30 frames after the player gains control |
-| `nsanity-beach-clear` | `nsanity-beach-start` | Stage Clear screen, after `plans/nsanity-beach-clear.json` |
+| `map-unlocked` | `map` | Island map with the stages up to Rolling Stones unlocked (see below) |
+| `<stage>-start` | `map` (N. Sanity Beach), `map-unlocked` (the others) | The stage, 30 frames after the player gains control |
+| `<stage>-clear` | `<stage>-start` | Stage Clear screen after `plans/<stage>-clear.json`; only for a stage with a committed plan |
+
+`<stage>` is each level achievement's stage, in `states.STAGES` with its level id, map cursor and
+the direction it runs on screen: `nsanity-beach`, `jungle-rollers`, `the-great-gate`, `boulders`,
+`upstream`, `rolling-stones`.
+
+`map-unlocked` is the harness's only RAM write: it sets c1 `levels_unlocked` (`0x61948`) to 7,
+then enters and quits N. Sanity Beach so the map reloads with the paths to the later stages, which
+the recipes walk the cursor along. The poke only *reaches* a stage; nothing writes a clear, a
+level id or a game state, so every clear in a scenario is played.
 
 `states.py --fresh` re-derives every state and prints a digest per state; two runs on the same core
-build print the same digests. Deriving `nsanity-beach-clear` is the end-to-end reproducibility
-check: cold boot, map, N. Sanity Beach, the clearing plan, Stage Clear. States are cached under
+build print the same digests. Deriving a `<stage>-clear` state is the end-to-end reproducibility
+check: cold boot, map, the stage, its clearing plan, Stage Clear. States are cached under
 `states/<core>/<build>/recipes-<digest>/`, the digest covering every file that derives them
 (`states.RECIPE_SOURCES`: the recipes, the navigation moves, the probes, plan replay, the emulator
-wrapper and shim, the clearing plan). A new core build or an edited source therefore derives
+wrapper and shim, every committed plan). A new core build or an edited source therefore derives
 afresh instead of reusing a stale state; `--fresh` re-derives anyway.
 
 ## Scenarios
 
 Each scenario starts from a derivable state, activates every repo achievement, records a trace and
-judges every trigger against its expectation: an expected achievement must fire while the game
-shows its expected level (lid), and nothing else may fire. A trigger on another level fails even
-when its title was expected, so a completion that fires on a zone load or a death is caught. The
-`OK`/`FAIL` line lists each trigger with its frame and lid. Between attempts,
-`Session.rearm()` resets only the achievements that fired, so one run judges several deaths or
-quits on their own while the others keep their hits, as in a live session.
+judges every trigger against its expectation: an expected achievement must fire exactly once, while
+the game shows its expected level (lid), and nothing else may fire. A trigger on another level fails
+even when its title was expected, so a completion that fires on a zone load or a death is caught. The
+`OK`/`FAIL` line lists each trigger with its frame and lid. Between attempts, `Session.rearm()`
+resets only the achievements that fired, so one run judges several deaths or quits on their own
+while the others keep their hits, as in a live session.
 
 | Scenario | Start | Must fire | Guards against |
 | --- | --- | --- | --- |
 | `cold-boot` | cold boot | nothing | Boot-time RAM noise (zeroed RAM reads as "stage 0") |
-| `attract` | cold boot | nothing | The attract-mode demos, which play real stages with no player |
-| `beach-deaths` | `nsanity-beach-start` | nothing | Deaths: after leaving the spawn zone, right after a respawn, after idling |
-| `beach-quit` | `nsanity-beach-start` | nothing | Pause -> SELECT quits, armed or not |
-| `beach-clear` | `nsanity-beach-start` | N. Sanity Beach, on Stage Clear (lid `0x2D`) | Replays the clearing plan (a real completion), then enters Jungle Rollers and quits |
+| `attract` | cold boot | nothing | 15 minutes of attract-mode demos, which play real stages with no player |
+| `<stage>-deaths` | `<stage>-start` | nothing | Deaths from random play (seeded) after replaying half the clearing plan, or the deepest plan, when committed: the first, one right after a respawn, one after idling, then on to the game over |
+| `<stage>-quit` | `<stage>-start` | nothing | Pause -> SELECT quits: right after control, after running and standing, after standing |
+| `<stage>-clear` | `<stage>-start` | the stage's achievement, once, on Stage Clear (lid `0x2D`) | Replays the clearing plan (a real completion); after a re-arm, Stage Clear -> map, the next stage and a quit fire nothing |
+
+A `<stage>-clear` scenario exists only for a stage with a committed plan.
 
 A new achievement needs a scenario that reaches its event and the look-alike events that must not
 fire it; add it to `SCENARIOS` with the lid its event shows.
@@ -135,14 +148,21 @@ A plan (`plans/*.json`) is a list of `[frames, button_mask]` inputs (the source 
 replay) with the 16-frame macro names that produced them, the named start state, and the core and
 core build it was searched on. `plan.replay()` refuses another core and warns on another build.
 
-`explore.py` keeps an archive of player-position cells, each with a compressed save state, and
-plays random macros from rarely chosen cells until the stage is left alive, logging the archive size
-and the deepest plan (with a screenshot of its cell) as it goes. To re-search a plan that stopped
-replaying (a new core build, a changed recipe):
+`explore.py STAGE` keeps an archive of player-position cells, each with a compressed save state,
+and plays random macros from the stage's start state: half of the rollouts start from one of the
+deepest cells (the frontier, where a timed obstacle is passed), the others from rarely chosen cells.
+The macros are the stage's `plan.HEADINGS` set (`up`, `down` for Boulders, which runs towards the
+camera, `right` for The Great Gate). A rollout wins when the game reports the stage cleared
+(`0x618D0` = stage cleared, or the Stage Clear level); a death, or another level loading (a bonus
+round), ends it. It stops at the first win or when `--minutes` (default 45) run out, logging the
+archive size and the deepest plan (with a screenshot of its cell) as it goes. A win writes
+`plans/<stage>-clear.json`; a failed search writes its deepest alive route as
+`plans/<stage>-deepest.json` (`done: false`), which the deaths scenario replays to die mid-stage. To search, or re-search a plan that stopped replaying
+(a new core build, a changed recipe):
 
 ```bash
-python tools/achievement-harness/explore.py nsanity-beach-start tools/achievement-harness/plans/nsanity-beach-clear.json
-python tools/achievement-harness/states.py --fresh nsanity-beach-clear   # proves it replays
+python tools/achievement-harness/explore.py jungle-rollers
+python tools/achievement-harness/states.py --fresh jungle-rollers-clear   # proves it replays
 ```
 
 ## Navigation DSL
@@ -167,6 +187,7 @@ emu.step(frames=1, buttons=())  # run N frames holding Btn values; frame hooks r
 emu.run(frames, mask)  # same with a raw libretro button mask
 emu.step(6, [Btn.START])  # hold START for 6 frames
 emu.u8(a) / u24(a) / u32(a) / s32(a) / read(a, n)  # a = RA address (0x000000-0x1FFFFF)
+emu.write_u32(a, value)  # only to reach a stage (map-unlocked), never to fake an event
 emu.deref(0x618A4, 0x6C, 0xE4, 0x0C)  # RA-style 24-bit pointer chain; None on a null hop
 emu.screenshot(path)  # PNG of the last rendered frame
 emu.snapshot() / restore(blob) / save_state(path) / load_state(path)  # loads reset triggers
@@ -183,8 +204,8 @@ emu.frame_hooks.append(callable)  # called with emu after every frame
 `session.py` wraps an `Emu` with every repo achievement active and the tracer attached; helpers:
 `step`, `press`, `wait_until`, `shot`, `note`, `rearm`, `close` (returns every `Trigger`: frame,
 title and the lid on that frame).
-`navigation.py` holds the menu moves (`boot_to_map`, `enter_stage`, `pause_and_quit`,
-`leave_stage_clear`).
+`navigation.py` holds the menu moves (`boot_to_map`, `move_cursor_to`, `enter_stage`,
+`pause_and_quit`, `leave_stage_clear`).
 
 ## Probes
 
@@ -201,9 +222,9 @@ most are 24.8 fixed point, which is why the RA code notes point at odd bytes (`0
 - **Determinism is a property of the core build.** Plans replay only on the pcsx_rearmed
   interpreter (`pcsx_rearmed_drc=disabled`, the default): its lightrec dynarec is not bit-exact
   after a state load. A new nightly core may change the emulation: when deriving
-  `nsanity-beach-clear` then times out waiting for Stage Clear, re-search the plan.
+  a `<stage>-clear` state then times out waiting for Stage Clear, re-search the plan.
 - **swanstation** derives the navigation states but cannot replay pcsx_rearmed plans, so
-  `beach-clear` is pcsx_rearmed only.
+  the `<stage>-clear` scenarios are pcsx_rearmed only.
 - **Re-arming is a harness device.** In DuckStation an achievement fires once per session.
   `rearm()` resets a fired one to WAITING with zeroed hits: the hits it would have carried had it
   not fired are unknowable. Unfired ones are left alone.

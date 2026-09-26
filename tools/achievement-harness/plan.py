@@ -34,6 +34,65 @@ MACROS = {
     "up-right-jump": [(JUMP_HOLD_FRAMES, [U, R, X]), (JUMP_TAIL_FRAMES, [U, R])],
     "wait": [(SEGMENT_FRAMES, [])],
     "back": [(SEGMENT_FRAMES, [D])],
+    "down-jump": [(JUMP_HOLD_FRAMES, [D, X]), (JUMP_TAIL_FRAMES, [D])],
+    "down-spin": [(SPIN_HOLD_FRAMES, [D, S]), (SPIN_TAIL_FRAMES, [D])],
+    "down-left": [(SEGMENT_FRAMES, [D, L])],
+    "down-right": [(SEGMENT_FRAMES, [D, R])],
+    "down-left-jump": [(JUMP_HOLD_FRAMES, [D, L, X]), (JUMP_TAIL_FRAMES, [D, L])],
+    "down-right-jump": [(JUMP_HOLD_FRAMES, [D, R, X]), (JUMP_TAIL_FRAMES, [D, R])],
+    "right-jump": [(JUMP_HOLD_FRAMES, [R, X]), (JUMP_TAIL_FRAMES, [R])],
+    "right-spin": [(SPIN_HOLD_FRAMES, [R, S]), (SPIN_TAIL_FRAMES, [R])],
+    "left-jump": [(JUMP_HOLD_FRAMES, [L, X]), (JUMP_TAIL_FRAMES, [L])],
+}
+
+# The macros a search plays, by the direction the stage runs on screen; each set keeps one move
+# the other way for backtracking. "down" stages run towards the camera (Boulders), "right" ones
+# scroll sideways (The Great Gate).
+HEADINGS = {
+    "up": [
+        "up",
+        "up-jump",
+        "up-spin",
+        "jump",
+        "spin",
+        "up-left",
+        "up-right",
+        "left",
+        "right",
+        "up-left-jump",
+        "up-right-jump",
+        "wait",
+        "back",
+    ],
+    "down": [
+        "back",
+        "down-jump",
+        "down-spin",
+        "jump",
+        "spin",
+        "down-left",
+        "down-right",
+        "left",
+        "right",
+        "down-left-jump",
+        "down-right-jump",
+        "wait",
+        "up",
+    ],
+    "right": [
+        "right",
+        "right-jump",
+        "right-spin",
+        "jump",
+        "spin",
+        "up",
+        "up-right",
+        "up-right-jump",
+        "back",
+        "left",
+        "left-jump",
+        "wait",
+    ],
 }
 
 REQUIRED_FIELDS = ("start", "core", "core_version", "done", "macros", "inputs")
