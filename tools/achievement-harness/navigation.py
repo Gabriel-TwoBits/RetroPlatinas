@@ -1,7 +1,8 @@
 """Scripted menu and map navigation, driven by RAM state rather than fixed delays.
 
-Frame counts are part of the recipes in states.py: changing one changes every derived state, and
-input plans searched from those states stop replaying. Re-derive and re-check after any change.
+Frame counts are part of the recipes in states.py: changing one re-derives every state, and input
+plans searched from the old states may stop replaying. `states.py nsanity-beach-clear` checks the
+clearing plan still replays after any change.
 """
 
 from harness import Btn

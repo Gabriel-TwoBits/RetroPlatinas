@@ -88,9 +88,11 @@ so a run behaves the same whether its state came from the cache or was derived m
 
 `states.py --fresh` re-derives every state and prints a digest per state; two runs on the same core
 build print the same digests. Deriving `nsanity-beach-clear` is the end-to-end reproducibility
-check: cold boot, map, N. Sanity Beach, the clearing plan, Stage Clear. States are cached per core
-build, so a new core starts from an empty cache; after changing a recipe or `navigation.py`, pass
-`--fresh` (or delete `.cache/achievement-harness/states/`).
+check: cold boot, map, N. Sanity Beach, the clearing plan, Stage Clear. States are cached under
+`states/<core>/<build>/recipes-<digest>/`, the digest covering every file that derives them
+(`states.RECIPE_SOURCES`: the recipes, the navigation moves, the probes, plan replay, the emulator
+wrapper and shim, the clearing plan). A new core build or an edited source therefore derives
+afresh instead of reusing a stale state; `--fresh` re-derives anyway.
 
 ## Scenarios
 

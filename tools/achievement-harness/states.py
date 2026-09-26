@@ -1,9 +1,10 @@
-"""Named save states, each derived from a cold boot by scripted navigation and cached per core.
+"""Named save states, each derived from a cold boot by scripted navigation and cached.
 
-No state is hand-made: `load(emu, name)` restores it from `.cache/achievement-harness/states/`
-(one directory per core build) or derives it from its parent recipe, down to a cold boot, so every
-scenario and every input plan replays on a fresh checkout. Pass `fresh=True` (or delete the cache)
-after changing a recipe or navigation.py.
+No state is hand-made: `load(emu, name)` restores it from `.cache/achievement-harness/states/` or
+derives it from its parent recipe, down to a cold boot. The cache directory is named after the core
+build and a digest of RECIPE_SOURCES, so a new core build or an edited recipe, navigation move or
+plan derives afresh instead of reusing a state a fresh checkout could no longer derive.
+`fresh=True` re-derives anyway.
 
     python tools/achievement-harness/states.py [--core CORE] [--fresh] [NAME ...]
 """
@@ -17,9 +18,19 @@ import navigation
 import plan as plans
 from harness import CORE_DEFAULTS, DEFAULT_CORE, SHORT_HASH_CHARS, Emu
 from probes import LID_NSANITY_BEACH
-from provision import PLANS_DIR, STATES_DIR
+from provision import HARNESS_DIR, PLANS_DIR, SHIM_SOURCE, STATES_DIR
 
 NSANITY_BEACH_CLEAR_PLAN = PLANS_DIR / "nsanity-beach-clear.json"
+# Every file that decides what a derived state holds.
+RECIPE_SOURCES = (
+    HARNESS_DIR / "states.py",
+    HARNESS_DIR / "navigation.py",
+    HARNESS_DIR / "probes.py",
+    HARNESS_DIR / "plan.py",
+    HARNESS_DIR / "harness.py",
+    SHIM_SOURCE,
+    NSANITY_BEACH_CLEAR_PLAN,
+)
 STAGE_CLEAR_SETTLE_FRAMES = 60
 NAME_COLUMN_WIDTH = 24
 
@@ -69,6 +80,14 @@ def build_dir(emu):
     return STATES_DIR / emu.core_name / build
 
 
+def recipes_dir(emu):
+    """Derived states of one core build and one version of RECIPE_SOURCES."""
+    sources = hashlib.sha256()
+    for path in RECIPE_SOURCES:
+        sources.update(path.read_bytes())
+    return build_dir(emu) / f"recipes-{sources.hexdigest()[:SHORT_HASH_CHARS]}"
+
+
 def load(emu, name, fresh=False):
     """Restores state `name` on `emu`, deriving it (and its parents) first when not cached.
 
@@ -78,7 +97,7 @@ def load(emu, name, fresh=False):
     """
     if name not in RECIPES:
         raise ValueError(f"unknown state {name!r}; derivable states: {sorted(RECIPES)}")
-    target = build_dir(emu) / f"{name}.state"
+    target = recipes_dir(emu) / f"{name}.state"
     if target.is_file() and (not fresh or name in _derived_this_process):
         emu.load_state(target)
         return target
