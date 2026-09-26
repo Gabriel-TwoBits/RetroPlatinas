@@ -81,7 +81,7 @@ No task is finished until all of these pass, in the container, with the real out
 
 ```bash
 podman-compose exec web python -m pytest              # whole suite, not just your file
-podman-compose exec web ruff check apps/ && podman-compose exec web ruff format --check apps/
+podman-compose exec web ruff check apps/ tools/ && podman-compose exec web ruff format --check apps/ tools/
 podman-compose exec web python manage.py check
 podman-compose exec web python manage.py makemigrations --check --dry-run
 podman-compose build                                  # the deploy image must build
