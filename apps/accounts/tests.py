@@ -1,11 +1,15 @@
 import pytest
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
-from django.db import IntegrityError, transaction
+from django.db import IntegrityError, connection, transaction
+from django.db.migrations.executor import MigrationExecutor
 
 from apps.accounts.forms import RegistrationForm
 
 User = get_user_model()
+
+BEFORE_EMAIL_CONSTRAINT = [("accounts", "0001_initial")]
+WITH_EMAIL_CONSTRAINT = [("accounts", "0002_user_email_case_insensitive_unique")]
 
 
 @pytest.mark.django_db
@@ -68,6 +72,26 @@ def test_model_validation_rejects_email_differing_only_in_case():
     User.objects.create_user(username="alice", email="dup@example.com", password="irrelevant")
     with pytest.raises(ValidationError):
         User(username="bob", email="Dup@Example.com", password="irrelevant").full_clean()
+
+
+@pytest.mark.django_db(transaction=True)
+def test_email_constraint_migration_names_accounts_differing_only_in_case():
+    executor = MigrationExecutor(connection)
+    executor.migrate(BEFORE_EMAIL_CONSTRAINT)
+    old_user = executor.loader.project_state(BEFORE_EMAIL_CONSTRAINT).apps.get_model(
+        "accounts", "User"
+    )
+    old_user.objects.create(username="bob", email="DUP@example.com")
+    old_user.objects.create(username="alice", email="dup@example.com")
+    old_user.objects.create(username="carol", email="carol@example.com")
+    try:
+        executor.loader.build_graph()
+        with pytest.raises(RuntimeError, match=r"migrating: alice, bob$"):
+            executor.migrate(WITH_EMAIL_CONSTRAINT)
+    finally:
+        old_user.objects.all().delete()
+        executor.loader.build_graph()
+        executor.migrate(WITH_EMAIL_CONSTRAINT)
 
 
 @pytest.mark.django_db
