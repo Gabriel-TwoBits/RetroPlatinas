@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.db import models
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from apps.games.models import Game
@@ -84,7 +85,9 @@ class UserUnlock(models.Model):
         verbose_name=_("achievement"),
     )
     hardcore = models.BooleanField(default=False, verbose_name=_("hardcore"))
-    unlocked_at = models.DateTimeField(auto_now_add=True, verbose_name=_("unlocked at"))
+    unlocked_at = models.DateTimeField(
+        default=timezone.now, editable=False, verbose_name=_("unlocked at")
+    )
 
     class Meta:
         verbose_name = _("user unlock")
