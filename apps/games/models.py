@@ -12,8 +12,11 @@ LOWERCASE_HEX = re.compile(r"[0-9a-f]+")
 
 # rc_client renders rich presence into a 256-byte buffer, NUL terminator included.
 RICH_PRESENCE_MAX_LENGTH = 255
-# Twice rc_client's 120 s ping interval, so one lost ping still counts as continuous play.
-PLAYTIME_MAX_PING_GAP = timedelta(minutes=4)
+# rc_client pings every 120 s while a game is loaded (`rc_client_ping` in rc_client.c).
+RC_CLIENT_PING_INTERVAL = timedelta(seconds=120)
+# Pings that may go missing while play still counts as continuous.
+LOST_PINGS_TOLERATED = 1
+PLAYTIME_MAX_PING_GAP = RC_CLIENT_PING_INTERVAL * (LOST_PINGS_TOLERATED + 1)
 # A session with no ping for this long is over: rc_client stops pinging an idle emulator.
 PLAYING_NOW_TTL = timedelta(minutes=5)
 

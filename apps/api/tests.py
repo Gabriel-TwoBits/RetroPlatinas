@@ -29,6 +29,7 @@ from apps.games.models import (
     MD5_HEX_DIGITS,
     PLAYING_NOW_TTL,
     PLAYTIME_MAX_PING_GAP,
+    RC_CLIENT_PING_INTERVAL,
     RICH_PRESENCE_MAX_LENGTH,
     Console,
     Game,
@@ -1668,7 +1669,6 @@ def test_ping_rejects_an_invalid_hardcore_flag(client, authed_user, game_with_ac
     assert not PlayerGame.objects.exists()
 
 
-PING_INTERVAL = timedelta(seconds=120)
 EARLIER_PLAYTIME_SECONDS = 600
 
 
@@ -1679,13 +1679,13 @@ def test_ping_credits_playtime_since_the_previous_ping(client, authed_user, game
         user=user,
         game=game_with_achievements,
         playtime_seconds=EARLIER_PLAYTIME_SECONDS,
-        last_ping_at=timezone.now() - PING_INTERVAL,
+        last_ping_at=timezone.now() - RC_CLIENT_PING_INTERVAL,
     )
 
     _ping(client, token, game_with_achievements)
 
     assert PlayerGame.objects.get(user=user).playtime_seconds == (
-        EARLIER_PLAYTIME_SECONDS + PING_INTERVAL.total_seconds()
+        EARLIER_PLAYTIME_SECONDS + RC_CLIENT_PING_INTERVAL.total_seconds()
     )
 
 
@@ -1696,20 +1696,20 @@ def test_ping_after_a_long_gap_credits_no_playtime(client, authed_user, game_wit
         user=user,
         game=game_with_achievements,
         playtime_seconds=EARLIER_PLAYTIME_SECONDS,
-        last_ping_at=timezone.now() - PLAYTIME_MAX_PING_GAP - PING_INTERVAL,
+        last_ping_at=timezone.now() - PLAYTIME_MAX_PING_GAP - RC_CLIENT_PING_INTERVAL,
     )
 
     _ping(client, token, game_with_achievements)
 
     player_game = PlayerGame.objects.get(user=user)
     assert player_game.playtime_seconds == EARLIER_PLAYTIME_SECONDS
-    assert timezone.now() - player_game.last_ping_at < PING_INTERVAL
+    assert timezone.now() - player_game.last_ping_at < RC_CLIENT_PING_INTERVAL
 
 
 @pytest.mark.django_db
 def test_ping_does_not_touch_last_played(client, authed_user, game_with_achievements):
     user, token = authed_user
-    session_start = timezone.now() - PING_INTERVAL
+    session_start = timezone.now() - RC_CLIENT_PING_INTERVAL
     PlayerGame.objects.create(user=user, game=game_with_achievements, last_played_at=session_start)
 
     _ping(client, token, game_with_achievements)
@@ -1739,7 +1739,7 @@ def test_presence_lists_the_users_live_sessions(
         user=user,
         game=stale_game,
         last_rich_presence="Stale",
-        last_ping_at=timezone.now() - PLAYING_NOW_TTL - PING_INTERVAL,
+        last_ping_at=timezone.now() - PLAYING_NOW_TTL - RC_CLIENT_PING_INTERVAL,
     )
 
     response = _presence(client, PLAYER_USERNAME)

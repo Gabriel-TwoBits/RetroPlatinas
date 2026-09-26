@@ -12,6 +12,7 @@ from apps.games.models import (
     MD5_HEX_DIGITS,
     PLAYING_NOW_TTL,
     PLAYTIME_MAX_PING_GAP,
+    RC_CLIENT_PING_INTERVAL,
     Console,
     Game,
     GameHash,
@@ -137,7 +138,6 @@ def test_admin_inline_rejects_hashes_differing_only_in_case(client, console):
 
 # --- PlayerGame ---
 
-RC_CLIENT_PING_INTERVAL = timedelta(seconds=120)
 ONE_SECOND = timedelta(seconds=1)
 
 
