@@ -13,8 +13,8 @@ from apps.achievements.management.commands import seed_crash1_code_notes as seed
 from apps.achievements.management.commands.seed_crash1_code_notes import load_code_notes
 from apps.achievements.management.commands.seed_crash1_level_achievements import (
     ACHIEVEMENT_POINTS,
-    FRAMES_OF_PLAY_BEFORE_ARMED,
     LEVEL_ACHIEVEMENTS,
+    build_description,
     build_mem_addr,
 )
 from apps.achievements.management.crash1 import (
@@ -27,12 +27,8 @@ from apps.achievements.management.crash1 import (
 from apps.achievements.models import Achievement, CodeNote, UserUnlock
 from apps.games.models import Console, Game, GameHash
 
-MEM_ADDR_PATTERN = re.compile(
-    r"^N:0xW618cc!=0_N:0xH61994=0_N:0xH619c5=(?P<armed_stage_id>\d+)_"
-    rf"0xH61998=0\.{FRAMES_OF_PLAY_BEFORE_ARMED}\._"
-    r"R:0xH61994=1_R:0xW618cc=0_"
-    r"0xH61998=1_d0xH61998=0_0xH619c5=(?P<stage_id>\d+)_0xH61994=0$"
-)
+MEM_ADDR_PATTERN = re.compile(r"^0xH6188d=h2d_d0xH6188d=h(?P<level_id>[0-9a-f]{2})$")
+HEX = 16
 LEVEL_COUNT = len(LEVEL_ACHIEVEMENTS)
 SEED_COMMANDS = ("seed_crash1_code_notes", "seed_crash1_level_achievements")
 MEM_ADDR_CHECKER = Path(__file__).resolve().parents[2] / "scripts" / "check-mem-addr.sh"
@@ -264,20 +260,17 @@ def test_seed_level_achievements_creates_community_set(seeded_game):
 
 @pytest.mark.django_db
 def test_seed_level_achievements_mem_addr_is_well_formed(seeded_game):
-    expected_titles = {title for title, _ in LEVEL_ACHIEVEMENTS}
-    expected_stage_ids = {stage_id for _, stage_id in LEVEL_ACHIEVEMENTS}
-    found_stage_ids = set()
+    expected = dict(LEVEL_ACHIEVEMENTS)
     for achievement in seeded_game.achievements.all():
-        assert achievement.title in expected_titles
         match = MEM_ADDR_PATTERN.match(achievement.mem_addr)
         assert match, achievement.mem_addr
-        assert match.group("armed_stage_id") == match.group("stage_id"), achievement.mem_addr
-        found_stage_ids.add(int(match.group("stage_id")))
-    assert found_stage_ids == expected_stage_ids
+        assert int(match.group("level_id"), HEX) == expected[achievement.title]
+        assert achievement.description == build_description(achievement.title)
+    assert len(set(expected.values())) == LEVEL_COUNT
 
 
 def test_seed_level_achievements_mem_addr_parses_in_rcheevos():
-    result = run_mem_addr_checker(*(build_mem_addr(stage_id) for _, stage_id in LEVEL_ACHIEVEMENTS))
+    result = run_mem_addr_checker(*(build_mem_addr(level_id) for _, level_id in LEVEL_ACHIEVEMENTS))
     assert result.returncode == 0, result.stdout + result.stderr
 
 
@@ -288,8 +281,55 @@ def test_mem_addr_checker_rejects_a_malformed_condition():
 
 @pytest.mark.django_db
 def test_seed_level_achievements_is_idempotent(seeded_game):
+    fields = ("pk", "mem_addr", "description", "updated_at")
+    seeded = list(seeded_game.achievements.values_list(*fields))
+
     call_command("seed_crash1_level_achievements", verbosity=0)
-    assert seeded_game.achievements.count() == LEVEL_COUNT
+
+    assert list(seeded_game.achievements.values_list(*fields)) == seeded
+
+
+@pytest.mark.django_db
+def test_seed_level_achievements_updates_an_existing_condition_by_title(player_token):
+    user, _ = player_token
+    call_command("seed_crash1_level_achievements", verbosity=0)
+    stale = Achievement.objects.get(title="Jungle Rollers")
+    stale.mem_addr = "0xH61998=1_d0xH61998=0"
+    stale.description = "Complete Jungle Rollers."
+    stale.points = 10
+    stale.status = Achievement.STATUS_VERIFIED
+    stale.save()
+    UserUnlock.objects.create(user=user, achievement=stale, hardcore=False)
+
+    call_command("seed_crash1_level_achievements", verbosity=0)
+
+    updated = Achievement.objects.get(pk=stale.pk)
+    assert updated.mem_addr == build_mem_addr(dict(LEVEL_ACHIEVEMENTS)["Jungle Rollers"])
+    assert updated.description == build_description("Jungle Rollers")
+    assert (updated.points, updated.status) == (10, Achievement.STATUS_VERIFIED)
+    assert UserUnlock.objects.filter(achievement=updated).count() == 1
+    assert Achievement.objects.filter(game__title=GAME_TITLE).count() == LEVEL_COUNT
+
+
+@pytest.mark.django_db
+def test_seed_level_achievements_refuses_two_rows_with_one_title():
+    call_command("seed_crash1_level_achievements", verbosity=0)
+    original = Achievement.objects.get(title="Boulders")
+    duplicate = Achievement.objects.create(
+        game=original.game,
+        author=original.author,
+        title="Boulders",
+        description="old",
+        points=ACHIEVEMENT_POINTS,
+        mem_addr="0xH61998=1",
+        status=Achievement.STATUS_COMMUNITY,
+    )
+
+    with pytest.raises(CommandError, match="2 achievements .* are titled 'Boulders'"):
+        call_command("seed_crash1_level_achievements", verbosity=0)
+
+    duplicate.refresh_from_db()
+    assert duplicate.mem_addr == "0xH61998=1"
 
 
 @pytest.mark.django_db

@@ -1,66 +1,84 @@
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
+from django.db import transaction
 
 from apps.achievements.management.crash1 import seed_crash1_game
 from apps.achievements.models import Achievement
 
 ACHIEVEMENT_POINTS = 5
-STAGE_LOADED = "0xW618cc!=0"
-NO_STAGE_LOADED = "0xW618cc=0"
-INSIDE_STAGE = "0xH61994=0"
-ON_THE_MAP = "0xH61994=1"
-CURRENT_STAGE_ADDRESS = "0xH619c5"
-RESULTS_SCREEN_OFF = "0xH61998=0"
-RESULTS_SCREEN_RISING_EDGE = "0xH61998=1_d0xH61998=0"
-FRAMES_OF_PLAY_BEFORE_ARMED = 300
+# c1 `cur_lid`: byte 1 of GOOL global 0 (`lid << 8`), the level file the engine has loaded.
+LEVEL_ID_ADDRESS = "0xH6188d"
+# c1 `LID_LEVELEND`: the Stage Clear screen, loaded only when a stage is finished.
+STAGE_CLEAR_LEVEL_ID = 0x2D
 
+# (title, c1 level id), in map order.
 LEVEL_ACHIEVEMENTS = [
-    ("N. Sanity Beach", 0),
-    ("Jungle Rollers", 1),
-    ("The Great Gate", 2),
-    ("Boulders", 3),
-    ("Upstream", 4),
-    ("Rolling Stones", 6),
+    ("N. Sanity Beach", 0x09),
+    ("Jungle Rollers", 0x0C),
+    ("The Great Gate", 0x12),
+    ("Boulders", 0x0E),
+    ("Upstream", 0x0F),
+    ("Rolling Stones", 0x15),
 ]
 
 
-def build_mem_addr(stage_id):
-    this_stage = f"{CURRENT_STAGE_ADDRESS}={stage_id}"
-    armed_after_playing = (
-        f"N:{STAGE_LOADED}_N:{INSIDE_STAGE}_N:{this_stage}_"
-        f"{RESULTS_SCREEN_OFF}.{FRAMES_OF_PLAY_BEFORE_ARMED}."
-    )
-    disarmed_when_out_of_the_stage = f"R:{ON_THE_MAP}_R:{NO_STAGE_LOADED}"
+def rcheevos_hex(value):
+    """A constant in rcheevos syntax: a bare `0x2d` would be a memory read."""
+    return f"h{value:02x}"
+
+
+def build_mem_addr(level_id):
+    """Fires on the frame the loaded level changes from this stage to the Stage Clear screen."""
     return (
-        f"{armed_after_playing}_{disarmed_when_out_of_the_stage}_"
-        f"{RESULTS_SCREEN_RISING_EDGE}_{this_stage}_{INSIDE_STAGE}"
+        f"{LEVEL_ID_ADDRESS}={rcheevos_hex(STAGE_CLEAR_LEVEL_ID)}_"
+        f"d{LEVEL_ID_ADDRESS}={rcheevos_hex(level_id)}"
     )
+
+
+def build_description(title):
+    return f"Finish {title} and reach the Stage Clear screen."
 
 
 class Command(BaseCommand):
-    help = "Seed the first six Crash Bandicoot 1 level-completion achievements (idempotent)."
+    help = (
+        "Seed the first six Crash Bandicoot 1 level-completion achievements (idempotent); "
+        "existing rows, matched by title, get the current condition and description."
+    )
 
+    @transaction.atomic
     def handle(self, *args, **options):
         game, author = seed_crash1_game()
 
-        existing = set(Achievement.objects.filter(game=game).values_list("title", flat=True))
-        created = Achievement.objects.bulk_create(
-            [
-                Achievement(
+        created = updated = 0
+        for title, level_id in LEVEL_ACHIEVEMENTS:
+            fields = {"mem_addr": build_mem_addr(level_id), "description": build_description(title)}
+            rows = list(Achievement.objects.filter(game=game, title=title))
+            if not rows:
+                Achievement.objects.create(
                     game=game,
                     author=author,
                     title=title,
-                    description=f"Complete {title}.",
                     points=ACHIEVEMENT_POINTS,
-                    mem_addr=build_mem_addr(stage_id),
                     status=Achievement.STATUS_COMMUNITY,
+                    **fields,
                 )
-                for title, stage_id in LEVEL_ACHIEVEMENTS
-                if title not in existing
-            ]
-        )
+                created += 1
+            elif len(rows) == 1:
+                row = rows[0]
+                if any(getattr(row, name) != value for name, value in fields.items()):
+                    for name, value in fields.items():
+                        setattr(row, name, value)
+                    row.save(update_fields=[*fields, "updated_at"])
+                    updated += 1
+                else:
+                    pass  # Already current.
+            else:
+                raise CommandError(
+                    f"{len(rows)} achievements of {game} are titled {title!r}; "
+                    "cannot tell which one to update"
+                )
         self.stdout.write(
             self.style.SUCCESS(
-                f"Seeded {len(created)} level achievements "
-                f"({len(LEVEL_ACHIEVEMENTS)} total, {len(existing)} already present)."
+                f"Seeded {len(LEVEL_ACHIEVEMENTS)} level achievements: "
+                f"{created} created, {updated} updated."
             )
         )

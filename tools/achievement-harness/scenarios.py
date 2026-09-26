@@ -23,6 +23,7 @@ from probes import (
     FIXED_POINT_SHIFT,
     GAME_STATE,
     GAME_STATE_PLAYING,
+    LID_NSANITY_BEACH,
     LID_STAGE_CLEAR,
     RESPAWN_COUNT,
 )
@@ -48,13 +49,11 @@ AFTER_LAST_QUIT_FRAMES = 600
 STAGE_CLEAR_SHOTS = 5
 STAGE_CLEAR_SHOT_FRAMES = 60
 
-NSANITY_BEACH_STAGE = 0
-
 
 @dataclass(frozen=True)
 class Scenario:
     start: str | None  # a states.RECIPES name; None boots the disc
-    expected: dict  # stage id -> the lid the game shows when its level achievement must trigger
+    expected: dict  # stage level id -> the lid the game shows when its achievement must trigger
     about: str
     play: Callable
 
@@ -158,7 +157,7 @@ SCENARIOS = {
     ),
     "beach-clear": Scenario(
         "nsanity-beach-start",
-        {NSANITY_BEACH_STAGE: LID_STAGE_CLEAR},
+        {LID_NSANITY_BEACH: LID_STAGE_CLEAR},
         "N. Sanity Beach cleared by the plan, then Jungle Rollers quit (pcsx_rearmed only)",
         play_beach_clear,
     ),

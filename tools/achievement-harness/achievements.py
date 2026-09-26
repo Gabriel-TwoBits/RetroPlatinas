@@ -41,20 +41,20 @@ def _level_seed():
     return seed_crash1_level_achievements
 
 
-def level_title(stage_id):
-    """Title of the level-completion achievement for a stage (RA stage id, `0xH619c5`)."""
-    for title, seeded_stage_id in _level_seed().LEVEL_ACHIEVEMENTS:
-        if seeded_stage_id == stage_id:
+def level_title(level_id):
+    """Title of the level-completion achievement for a stage (c1 level id, `0xH6188d`)."""
+    for title, seeded_level_id in _level_seed().LEVEL_ACHIEVEMENTS:
+        if seeded_level_id == level_id:
             return title
-    raise KeyError(f"no level achievement is seeded for stage {stage_id}")
+    raise KeyError(f"no level achievement is seeded for level {level_id:#x}")
 
 
 def definitions():
     """Every seeded achievement, numbered from FIRST_RUNTIME_ID in seed order."""
     seed = _level_seed()
     return [
-        Definition(FIRST_RUNTIME_ID + index, title, seed.build_mem_addr(stage_id))
-        for index, (title, stage_id) in enumerate(seed.LEVEL_ACHIEVEMENTS)
+        Definition(FIRST_RUNTIME_ID + index, title, seed.build_mem_addr(level_id))
+        for index, (title, level_id) in enumerate(seed.LEVEL_ACHIEVEMENTS)
     ]
 
 
