@@ -70,7 +70,7 @@ by Django views (not by the `/media/` static serving, which exists in developmen
 | --- | --- |
 | `/Badge/<badge name>.png` | the badge, 64×64 |
 | `/Badge/<badge name>_lock.png` | the grayscale locked badge, derived from the upload |
-| `/Images/<game image name>.png` | the game icon, 96×96 (`000001` also answers without a game) |
+| `/Images/<game image name>.png` | the game icon, 96×96 (`000001` is reserved for the unknown-game placeholder) |
 | `/UserPic/<username>.png` | an identicon drawn from the username, 128×128 |
 
 API payloads carry these as absolute URLs with a `?v=` version that changes with the image:

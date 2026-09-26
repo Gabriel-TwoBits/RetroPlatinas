@@ -18,8 +18,10 @@ BADGE_NAME_MAX_CHARS = 7
 GAME_IMAGE_NAME_DIGITS = 6
 # rc_client_subset_t.badge_name (which rc_client_game_t.badge_name points to) is a char[16].
 GAME_IMAGE_NAME_MAX_CHARS = 15
-# rc_client's icon for an unknown game, RA's generic game icon; answers even without a game.
+# rc_client's icon for an unknown game: always the placeholder, so no game is ever named it.
 FALLBACK_GAME_IMAGE_NAME = "000001"
+# Game image numbers start past the reserved fallback: game N is named N + this offset.
+GAME_IMAGE_NUMBER_OFFSET = int(FALLBACK_GAME_IMAGE_NAME)
 BADGE_NAME_PATTERN = re.compile(rf"[0-9]{{1,{BADGE_NAME_MAX_CHARS}}}")
 GAME_IMAGE_NAME_PATTERN = re.compile(rf"[0-9]{{1,{GAME_IMAGE_NAME_MAX_CHARS}}}")
 
@@ -107,14 +109,14 @@ def badge_png(name, locked):
 
 
 def game_image_name(game):
-    return f"{game.pk:0{GAME_IMAGE_NAME_DIGITS}d}"
+    return f"{game.pk + GAME_IMAGE_NUMBER_OFFSET:0{GAME_IMAGE_NAME_DIGITS}d}"
 
 
 def game_for_image_name(name):
     """The game whose icon `name` is, else `None`; only the canonical name matches."""
     if GAME_IMAGE_NAME_PATTERN.fullmatch(name) is None:
         return None
-    game = Game.objects.filter(pk=int(name)).first()
+    game = Game.objects.filter(pk=int(name) - GAME_IMAGE_NUMBER_OFFSET).first()
     if game is not None and game_image_name(game) == name:
         return game
     else:
@@ -132,13 +134,13 @@ def versioned_game_icon_path(game):
 
 def game_icon_png(name):
     """`(png, version)` of the game icon named `name`, else `None`."""
-    game = game_for_image_name(name)
-    if game is not None:
-        return _rendered_png(game.icon, rendering.GAME_ICON_SIZE_PX, locked=False)
-    elif name == FALLBACK_GAME_IMAGE_NAME:
+    if name == FALLBACK_GAME_IMAGE_NAME:
         return _rendered_png(None, rendering.GAME_ICON_SIZE_PX, locked=False)
-    else:
+    game = game_for_image_name(name)
+    if game is None:
         return None
+    else:
+        return _rendered_png(game.icon, rendering.GAME_ICON_SIZE_PX, locked=False)
 
 
 # --- Avatars ---

@@ -223,6 +223,19 @@ def test_fallback_game_icon_resolves_without_a_game(client):
 
 
 @pytest.mark.django_db
+def test_fallback_game_icon_stays_the_placeholder_when_game_1_has_an_icon(client, game):
+    first_game = Game.objects.create(
+        pk=1, title="First", console=game.console, icon=_png_upload("first.png", BLUE)
+    )
+
+    image = _image(client.get(f"/Images/{FALLBACK_GAME_IMAGE_NAME}.png"))
+
+    assert game_image_name(first_game) != FALLBACK_GAME_IMAGE_NAME
+    assert image.tobytes() == placeholder_image(GAME_ICON_SIZE_PX).tobytes()
+    assert _image(client.get(versioned_game_icon_path(first_game))).getpixel((0, 0)) == BLUE
+
+
+@pytest.mark.django_db
 @pytest.mark.parametrize("name", ["999999", "1", "000000"])
 def test_game_icon_unknown_or_non_canonical_name_is_not_found(client, game, name):
     assert client.get(f"/Images/{name}.png").status_code == HTTPStatus.NOT_FOUND
