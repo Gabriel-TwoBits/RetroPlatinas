@@ -74,7 +74,7 @@ _ACHIEVEMENT_UNPUBLISHED = {
 }
 # Sent as the HTTP status too: rc_client retries a 429 with backoff, so the unlock is delayed,
 # not lost. rcheevos has no `Code` for it, and reads a missing one as a generic failure.
-TOO_MANY_UNLOCKS = {
+_TOO_MANY_UNLOCKS = {
     "Success": False,
     "Error": "Too many unlocks at once. The unlock will be retried.",
     "Status": HTTPStatus.TOO_MANY_REQUESTS,
@@ -490,7 +490,7 @@ def handle_awardachievement(request):
         return error
 
     if award_rate_exceeded(user):
-        return TOO_MANY_UNLOCKS
+        return _TOO_MANY_UNLOCKS
 
     try:
         achievement_id = int(request.POST.get("a", ""))
