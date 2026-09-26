@@ -18,6 +18,18 @@ class Achievement(models.Model):
     # only to its author, as unofficial, and is never awarded.
     PUBLISHED_STATUSES = (STATUS_COMMUNITY, STATUS_VERIFIED)
 
+    # The rcheevos achievement types, sent verbatim as `Type`; "" is a standard achievement.
+    TYPE_NONE = ""
+    TYPE_PROGRESSION = "progression"
+    TYPE_WIN_CONDITION = "win_condition"
+    TYPE_MISSABLE = "missable"
+    TYPE_CHOICES = [
+        (TYPE_NONE, _("None")),
+        (TYPE_PROGRESSION, _("Progression")),
+        (TYPE_WIN_CONDITION, _("Win condition")),
+        (TYPE_MISSABLE, _("Missable")),
+    ]
+
     game = models.ForeignKey(
         Game,
         on_delete=models.CASCADE,
@@ -39,6 +51,13 @@ class Achievement(models.Model):
         choices=STATUS_CHOICES,
         default=STATUS_DRAFT,
         verbose_name=_("status"),
+    )
+    type = models.CharField(
+        max_length=16,
+        choices=TYPE_CHOICES,
+        default=TYPE_NONE,
+        blank=True,
+        verbose_name=_("type"),
     )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("created at"))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=_("updated at"))

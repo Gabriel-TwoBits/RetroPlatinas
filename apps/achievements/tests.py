@@ -74,6 +74,12 @@ def test_achievement_creation(achievement):
 
 
 @pytest.mark.django_db
+def test_achievement_type_defaults_to_none(achievement):
+    achievement.refresh_from_db()
+    assert achievement.type == Achievement.TYPE_NONE
+
+
+@pytest.mark.django_db
 def test_achievement_status_choices():
     values = [c[0] for c in Achievement.STATUS_CHOICES]
     assert Achievement.STATUS_DRAFT in values
@@ -365,6 +371,38 @@ def test_admin_changelist_offers_status_actions_and_coloured_status(admin_client
         assert f'value="{action}"' in body
     assert 'font-weight: bold;">Draft</span>' in body
     assert "column-flags" not in body
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    ("filtered_type", "expected_title"),
+    [(Achievement.TYPE_MISSABLE, "Missable one"), (Achievement.TYPE_NONE, "Standard one")],
+)
+def test_admin_changelist_shows_and_filters_by_type(
+    admin_client, game, user, filtered_type, expected_title
+):
+    for title, achievement_type in (
+        ("Missable one", Achievement.TYPE_MISSABLE),
+        ("Standard one", Achievement.TYPE_NONE),
+    ):
+        Achievement.objects.create(
+            game=game,
+            author=user,
+            title=title,
+            description="d",
+            mem_addr="0xH0001=1",
+            type=achievement_type,
+        )
+
+    response = admin_client.get(
+        ACHIEVEMENT_CHANGELIST_URL, {"type__exact": filtered_type}, HTTP_ACCEPT_LANGUAGE="en"
+    )
+    body = response.content.decode()
+
+    assert response.status_code == 200
+    assert "column-type" in body
+    assert "?type__exact=missable" in body
+    assert [a.title for a in response.context["cl"].result_list] == [expected_title]
 
 
 @pytest.fixture

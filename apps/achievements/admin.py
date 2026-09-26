@@ -49,8 +49,8 @@ def _recalculate_unlocker_points(achievement_ids):
 
 @admin.register(Achievement)
 class AchievementAdmin(admin.ModelAdmin):
-    list_display = ("title", "game", "colored_status", "points", "author", "created_at")
-    list_filter = ("status", "game__console")
+    list_display = ("title", "game", "colored_status", "type", "points", "author", "created_at")
+    list_filter = ("status", "type", "game__console")
     search_fields = ("title", "description", "mem_addr")
     autocomplete_fields = ("author", "game")
     actions = ("publish_as_community", "mark_verified", "move_to_draft")
