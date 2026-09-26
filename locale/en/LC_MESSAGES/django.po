@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RetroPlatinas\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-26 16:17-0300\n"
+"POT-Creation-Date: 2026-09-26 18:51-0300\n"
 "PO-Revision-Date: 2026-05-23 18:15-0300\n"
 "Last-Translator: RetroPlatinas\n"
 "Language-Team: English\n"
@@ -73,7 +73,7 @@ msgstr ""
 
 #: apps/achievements/models.py:37 apps/achievements/models.py:104
 #: apps/games/models.py:49 apps/games/models.py:62
-#: apps/leaderboards/models.py:13
+#: apps/leaderboards/models.py:37
 msgid "game"
 msgstr ""
 
@@ -82,12 +82,12 @@ msgid "author"
 msgstr ""
 
 #: apps/achievements/models.py:44 apps/games/models.py:36
-#: apps/leaderboards/models.py:15
+#: apps/leaderboards/models.py:39
 msgid "title"
 msgstr ""
 
 #: apps/achievements/models.py:45 apps/games/models.py:44
-#: apps/leaderboards/models.py:16
+#: apps/leaderboards/models.py:40
 msgid "description"
 msgstr ""
 
@@ -95,7 +95,7 @@ msgstr ""
 msgid "points"
 msgstr ""
 
-#: apps/achievements/models.py:47 apps/leaderboards/models.py:17
+#: apps/achievements/models.py:47 apps/leaderboards/models.py:41
 msgid "memory address expression"
 msgstr ""
 
@@ -123,7 +123,7 @@ msgstr ""
 msgid "achievements"
 msgstr ""
 
-#: apps/achievements/models.py:79 apps/leaderboards/models.py:40
+#: apps/achievements/models.py:79 apps/leaderboards/models.py:66
 msgid "user"
 msgstr ""
 
@@ -216,35 +216,115 @@ msgstr ""
 msgid "Enter an MD5 hash: %(digits)s hexadecimal digits."
 msgstr ""
 
+#: apps/leaderboards/models.py:12
+msgid "Score (000000)"
+msgstr ""
+
+#: apps/leaderboards/models.py:13
+msgid "Time (frames)"
+msgstr ""
+
+#: apps/leaderboards/models.py:14
+msgid "Time (centiseconds)"
+msgstr ""
+
+#: apps/leaderboards/models.py:15
+msgid "Time (seconds)"
+msgstr ""
+
+#: apps/leaderboards/models.py:16
+msgid "Time (minutes)"
+msgstr ""
+
+#: apps/leaderboards/models.py:17
+msgid "Time (seconds as minutes)"
+msgstr ""
+
 #: apps/leaderboards/models.py:18
-msgid "format"
+msgid "Value"
 msgstr ""
 
 #: apps/leaderboards/models.py:19
-msgid "lower is better"
+msgid "Value (unsigned)"
 msgstr ""
 
-#: apps/leaderboards/models.py:22 apps/leaderboards/models.py:35
-msgid "leaderboard"
+#: apps/leaderboards/models.py:20
+msgid "Value (tens)"
+msgstr ""
+
+#: apps/leaderboards/models.py:21
+msgid "Value (hundreds)"
+msgstr ""
+
+#: apps/leaderboards/models.py:22
+msgid "Value (thousands)"
 msgstr ""
 
 #: apps/leaderboards/models.py:23
-msgid "leaderboards"
+msgid "Value (1 fixed decimal)"
 msgstr ""
 
-#: apps/leaderboards/models.py:42
-msgid "score"
+#: apps/leaderboards/models.py:24
+msgid "Value (2 fixed decimals)"
+msgstr ""
+
+#: apps/leaderboards/models.py:25
+msgid "Value (3 fixed decimals)"
+msgstr ""
+
+#: apps/leaderboards/models.py:26
+msgid "Decimal (1 digit)"
+msgstr ""
+
+#: apps/leaderboards/models.py:27
+msgid "Decimal (2 digits)"
+msgstr ""
+
+#: apps/leaderboards/models.py:28
+msgid "Decimal (3 digits)"
+msgstr ""
+
+#: apps/leaderboards/models.py:29
+msgid "Decimal (4 digits)"
+msgstr ""
+
+#: apps/leaderboards/models.py:30
+msgid "Decimal (5 digits)"
+msgstr ""
+
+#: apps/leaderboards/models.py:31
+msgid "Decimal (6 digits)"
 msgstr ""
 
 #: apps/leaderboards/models.py:43
+msgid "format"
+msgstr ""
+
+#: apps/leaderboards/models.py:45
+msgid "lower is better"
+msgstr ""
+
+#: apps/leaderboards/models.py:48 apps/leaderboards/models.py:61
+msgid "leaderboard"
+msgstr ""
+
+#: apps/leaderboards/models.py:49
+msgid "leaderboards"
+msgstr ""
+
+#: apps/leaderboards/models.py:68
+msgid "score"
+msgstr ""
+
+#: apps/leaderboards/models.py:69
 msgid "submitted at"
 msgstr ""
 
-#: apps/leaderboards/models.py:46
+#: apps/leaderboards/models.py:72
 msgid "leaderboard entry"
 msgstr ""
 
-#: apps/leaderboards/models.py:47
+#: apps/leaderboards/models.py:73
 msgid "leaderboard entries"
 msgstr ""
 

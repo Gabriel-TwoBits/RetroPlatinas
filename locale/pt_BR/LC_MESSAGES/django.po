@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RetroPlatinas\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-26 16:17-0300\n"
+"POT-Creation-Date: 2026-09-26 18:51-0300\n"
 "PO-Revision-Date: 2026-05-23 18:15-0300\n"
 "Last-Translator: RetroPlatinas\n"
 "Language-Team: Brazilian Portuguese\n"
@@ -73,7 +73,7 @@ msgstr "Perdível"
 
 #: apps/achievements/models.py:37 apps/achievements/models.py:104
 #: apps/games/models.py:49 apps/games/models.py:62
-#: apps/leaderboards/models.py:13
+#: apps/leaderboards/models.py:37
 msgid "game"
 msgstr "jogo"
 
@@ -82,12 +82,12 @@ msgid "author"
 msgstr "autor"
 
 #: apps/achievements/models.py:44 apps/games/models.py:36
-#: apps/leaderboards/models.py:15
+#: apps/leaderboards/models.py:39
 msgid "title"
 msgstr "título"
 
 #: apps/achievements/models.py:45 apps/games/models.py:44
-#: apps/leaderboards/models.py:16
+#: apps/leaderboards/models.py:40
 msgid "description"
 msgstr "descrição"
 
@@ -95,7 +95,7 @@ msgstr "descrição"
 msgid "points"
 msgstr "pontos"
 
-#: apps/achievements/models.py:47 apps/leaderboards/models.py:17
+#: apps/achievements/models.py:47 apps/leaderboards/models.py:41
 msgid "memory address expression"
 msgstr "expressão de endereço de memória"
 
@@ -123,7 +123,7 @@ msgstr "conquista"
 msgid "achievements"
 msgstr "conquistas"
 
-#: apps/achievements/models.py:79 apps/leaderboards/models.py:40
+#: apps/achievements/models.py:79 apps/leaderboards/models.py:66
 msgid "user"
 msgstr "usuário"
 
@@ -216,35 +216,115 @@ msgstr "hashes do jogo"
 msgid "Enter an MD5 hash: %(digits)s hexadecimal digits."
 msgstr "Informe um hash MD5: %(digits)s dígitos hexadecimais."
 
+#: apps/leaderboards/models.py:12
+msgid "Score (000000)"
+msgstr "Pontuação (000000)"
+
+#: apps/leaderboards/models.py:13
+msgid "Time (frames)"
+msgstr "Tempo (quadros)"
+
+#: apps/leaderboards/models.py:14
+msgid "Time (centiseconds)"
+msgstr "Tempo (centésimos de segundo)"
+
+#: apps/leaderboards/models.py:15
+msgid "Time (seconds)"
+msgstr "Tempo (segundos)"
+
+#: apps/leaderboards/models.py:16
+msgid "Time (minutes)"
+msgstr "Tempo (minutos)"
+
+#: apps/leaderboards/models.py:17
+msgid "Time (seconds as minutes)"
+msgstr "Tempo (segundos em minutos)"
+
 #: apps/leaderboards/models.py:18
+msgid "Value"
+msgstr "Valor"
+
+#: apps/leaderboards/models.py:19
+msgid "Value (unsigned)"
+msgstr "Valor (sem sinal)"
+
+#: apps/leaderboards/models.py:20
+msgid "Value (tens)"
+msgstr "Valor (dezenas)"
+
+#: apps/leaderboards/models.py:21
+msgid "Value (hundreds)"
+msgstr "Valor (centenas)"
+
+#: apps/leaderboards/models.py:22
+msgid "Value (thousands)"
+msgstr "Valor (milhares)"
+
+#: apps/leaderboards/models.py:23
+msgid "Value (1 fixed decimal)"
+msgstr "Valor (1 casa decimal fixa)"
+
+#: apps/leaderboards/models.py:24
+msgid "Value (2 fixed decimals)"
+msgstr "Valor (2 casas decimais fixas)"
+
+#: apps/leaderboards/models.py:25
+msgid "Value (3 fixed decimals)"
+msgstr "Valor (3 casas decimais fixas)"
+
+#: apps/leaderboards/models.py:26
+msgid "Decimal (1 digit)"
+msgstr "Decimal (1 dígito)"
+
+#: apps/leaderboards/models.py:27
+msgid "Decimal (2 digits)"
+msgstr "Decimal (2 dígitos)"
+
+#: apps/leaderboards/models.py:28
+msgid "Decimal (3 digits)"
+msgstr "Decimal (3 dígitos)"
+
+#: apps/leaderboards/models.py:29
+msgid "Decimal (4 digits)"
+msgstr "Decimal (4 dígitos)"
+
+#: apps/leaderboards/models.py:30
+msgid "Decimal (5 digits)"
+msgstr "Decimal (5 dígitos)"
+
+#: apps/leaderboards/models.py:31
+msgid "Decimal (6 digits)"
+msgstr "Decimal (6 dígitos)"
+
+#: apps/leaderboards/models.py:43
 msgid "format"
 msgstr "formato"
 
-#: apps/leaderboards/models.py:19
+#: apps/leaderboards/models.py:45
 msgid "lower is better"
 msgstr "menor é melhor"
 
-#: apps/leaderboards/models.py:22 apps/leaderboards/models.py:35
+#: apps/leaderboards/models.py:48 apps/leaderboards/models.py:61
 msgid "leaderboard"
 msgstr "placar"
 
-#: apps/leaderboards/models.py:23
+#: apps/leaderboards/models.py:49
 msgid "leaderboards"
 msgstr "placares"
 
-#: apps/leaderboards/models.py:42
+#: apps/leaderboards/models.py:68
 msgid "score"
 msgstr "pontuação"
 
-#: apps/leaderboards/models.py:43
+#: apps/leaderboards/models.py:69
 msgid "submitted at"
 msgstr "enviado em"
 
-#: apps/leaderboards/models.py:46
+#: apps/leaderboards/models.py:72
 msgid "leaderboard entry"
 msgstr "entrada de placar"
 
-#: apps/leaderboards/models.py:47
+#: apps/leaderboards/models.py:73
 msgid "leaderboard entries"
 msgstr "entradas de placar"
 
