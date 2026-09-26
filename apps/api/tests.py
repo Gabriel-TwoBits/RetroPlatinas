@@ -17,6 +17,7 @@ from apps.api.handlers import (
     ACHIEVEMENT_FLAGS_UNOFFICIAL,
     API_TOKEN_LIFETIME,
     DEFAULT_GAME_ICON_PATH,
+    GAMEINFOLIST_MAX_IDS,
     HANDLERS,
     LBINFO_DEFAULT_COUNT,
     LEADERBOARD_UNKNOWN_DATETIME,
@@ -39,6 +40,9 @@ IMPLEMENTED_ACTIONS = (
     "ping",
     "submitlbentry",
     "lbinfo",
+    "systemgames",
+    "gameinfolist",
+    "hashlibrary",
 )
 STUB_ACTIONS = [k for k in HANDLERS if k not in IMPLEMENTED_ACTIONS]
 
@@ -1836,6 +1840,7 @@ def test_lbinfo_missing_leaderboard_id(client):
         ({"i": "-1"}, "i"),
         ({"i": "1.5"}, "i"),
         ({"i": str(2**32)}, "i"),
+        ({"i": "9" * 5000}, "i"),
         ({"i": "1", "c": "x"}, "c"),
         ({"i": "1", "o": "-3"}, "o"),
     ],
@@ -1847,3 +1852,172 @@ def test_lbinfo_invalid_parameter(client, game_with_leaderboards, params, invali
 @pytest.mark.django_db
 def test_lbinfo_unknown_leaderboard(client):
     assert _lbinfo(client, i=999) == _not_found("leaderboard")
+
+
+# --- systemgames / gameinfolist / hashlibrary ---
+
+DEFAULT_GAME_ICON_URL = f"http://testserver{DEFAULT_GAME_ICON_PATH}"
+
+
+@pytest.fixture
+def catalogue(game_with_achievements):
+    """Crash (3 achievements, 1 draft) plus an empty PS1 game and a game on another console."""
+    crash = game_with_achievements
+    ps1 = crash.console
+    GameHash.objects.create(game=crash, md5="b" * MD5_HEX_DIGITS, label="NTSC-U")
+    GameHash.objects.create(game=crash, md5="a" * MD5_HEX_DIGITS, label="PAL")
+    Leaderboard.objects.create(game=crash, title="Speed", mem_addr=LEADERBOARD_MEM)
+    Leaderboard.objects.create(game=crash, title="Boxes", mem_addr=LEADERBOARD_MEM)
+    apeescape = Game.objects.create(title="Ape Escape", console=ps1)
+    n64 = Console.objects.create(ra_id=2, name="Nintendo 64", short_name="N64")
+    mario = Game.objects.create(title="Super Mario 64", console=n64)
+    GameHash.objects.create(game=mario, md5="c" * MD5_HEX_DIGITS, label="US")
+    return crash, apeescape, mario
+
+
+def _info(client, action, **params):
+    return client.post("/dorequest.php", {"r": action, **params}).json()
+
+
+@pytest.mark.django_db
+def test_systemgames_lists_the_consoles_games_without_authentication(client, catalogue):
+    crash, apeescape, _ = catalogue
+
+    data = _info(client, "systemgames", s=crash.console.ra_id)
+
+    assert data == {
+        "Success": True,
+        "Response": [
+            {
+                "ID": apeescape.pk,
+                "Title": "Ape Escape",
+                "ImageIcon": DEFAULT_GAME_ICON_PATH,
+                "ImageUrl": DEFAULT_GAME_ICON_URL,
+                "NumAchievements": 0,
+                "NumLeaderboards": 0,
+                "Points": 0,
+                "SupportedHashes": [],
+            },
+            {
+                "ID": crash.pk,
+                "Title": "Crash Bandicoot",
+                "ImageIcon": DEFAULT_GAME_ICON_PATH,
+                "ImageUrl": DEFAULT_GAME_ICON_URL,
+                "NumAchievements": 2,
+                "NumLeaderboards": 2,
+                "Points": 35,
+                "SupportedHashes": ["a" * MD5_HEX_DIGITS, "b" * MD5_HEX_DIGITS],
+            },
+        ],
+    }
+
+
+@pytest.mark.django_db
+def test_systemgames_missing_console(client):
+    assert _info(client, "systemgames") == MISSING_PARAMETER
+
+
+@pytest.mark.django_db
+def test_systemgames_invalid_console(client):
+    assert _info(client, "systemgames", s="ps1") == _invalid_parameter("s")
+
+
+@pytest.mark.django_db
+def test_systemgames_unknown_console(client, catalogue):
+    assert _info(client, "systemgames", s=99) == _not_found("system")
+
+
+@pytest.mark.django_db
+def test_gameinfolist_serves_the_requested_games(client, catalogue):
+    crash, _, mario = catalogue
+
+    data = _info(client, "gameinfolist", g=f"{mario.pk},{crash.pk},{crash.pk},999")
+
+    assert data == {
+        "Success": True,
+        "Response": [
+            {
+                "ID": game.pk,
+                "Title": game.title,
+                "ImageIcon": DEFAULT_GAME_ICON_PATH,
+                "ImageUrl": DEFAULT_GAME_ICON_URL,
+            }
+            for game in sorted([crash, mario], key=lambda game: game.pk)
+        ],
+    }
+
+
+@pytest.mark.django_db
+def test_gameinfolist_missing_ids(client):
+    assert _info(client, "gameinfolist") == MISSING_PARAMETER
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    ("ids", "error"),
+    [
+        (",,", "Invalid g: at least one game ID is required."),
+        ("1,x", "Invalid g: expected comma-separated unsigned integers."),
+        ("1,-2", "Invalid g: expected comma-separated unsigned integers."),
+        (str(2**32), "Invalid g: expected comma-separated unsigned integers."),
+        (
+            ",".join(["1"] * (GAMEINFOLIST_MAX_IDS + 1)),
+            f"Invalid g: at most {GAMEINFOLIST_MAX_IDS} game IDs.",
+        ),
+    ],
+)
+def test_gameinfolist_invalid_ids(client, ids, error):
+    assert _info(client, "gameinfolist", g=ids) == {
+        "Success": False,
+        "Error": error,
+        "Status": HTTPStatus.UNPROCESSABLE_ENTITY,
+        "Code": "invalid_parameter",
+    }
+
+
+@pytest.mark.django_db
+def test_gameinfolist_accepts_the_maximum_number_of_ids(client, catalogue):
+    crash, _, _ = catalogue
+    data = _info(client, "gameinfolist", g=",".join([str(crash.pk)] * GAMEINFOLIST_MAX_IDS))
+    assert [game["ID"] for game in data["Response"]] == [crash.pk]
+
+
+@pytest.mark.django_db
+def test_gameinfolist_unknown_games(client):
+    assert _info(client, "gameinfolist", g="998,999") == _not_found("games")
+
+
+@pytest.mark.django_db
+def test_hashlibrary_maps_every_hash_without_a_console(client, catalogue):
+    crash, _, mario = catalogue
+    assert _info(client, "hashlibrary") == {
+        "Success": True,
+        "MD5List": {
+            "a" * MD5_HEX_DIGITS: crash.pk,
+            "b" * MD5_HEX_DIGITS: crash.pk,
+            "c" * MD5_HEX_DIGITS: mario.pk,
+        },
+    }
+
+
+@pytest.mark.django_db
+def test_hashlibrary_filters_by_console(client, catalogue):
+    _, _, mario = catalogue
+    data = _info(client, "hashlibrary", c=mario.console.ra_id)
+    assert data == {"Success": True, "MD5List": {"c" * MD5_HEX_DIGITS: mario.pk}}
+
+
+@pytest.mark.django_db
+def test_hashlibrary_known_console_without_hashes_is_an_empty_map(client, catalogue):
+    Console.objects.create(ra_id=3, name="SNES", short_name="SNES")
+    assert _info(client, "hashlibrary", c=3) == {"Success": True, "MD5List": {}}
+
+
+@pytest.mark.django_db
+def test_hashlibrary_unknown_console(client, catalogue):
+    assert _info(client, "hashlibrary", c=99) == _not_found("console")
+
+
+@pytest.mark.django_db
+def test_hashlibrary_invalid_console(client):
+    assert _info(client, "hashlibrary", c="snes") == _invalid_parameter("c")

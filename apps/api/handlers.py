@@ -8,13 +8,13 @@ from urllib.parse import quote
 from django.contrib.auth import authenticate
 from django.core.cache import cache
 from django.db import transaction
-from django.db.models import Count, Q
+from django.db.models import Count, Q, Sum
 from django.utils import timezone
 
 from apps.accounts.models import API_TOKEN_BYTES
 from apps.achievements.models import Achievement, UserUnlock
 from apps.api.auth import is_expired_token, user_from_token
-from apps.games.models import Game, GameHash
+from apps.games.models import Console, Game, GameHash
 from apps.leaderboards.models import Leaderboard, LeaderboardEntry
 
 logger = logging.getLogger("apps.api")
@@ -74,7 +74,8 @@ RARITY_DECIMAL_PLACES = 2
 
 # rcheevos sends every id, offset and count as a uint32.
 MAX_UINT32 = 0xFFFFFFFF
-UNSIGNED_INTEGER = re.compile(r"[0-9]+")
+# Bounds the digits before `int()`, which rejects strings past Python's digit limit.
+UINT32_PATTERN = re.compile(rf"[0-9]{{1,{len(str(MAX_UINT32))}}}")
 
 
 def _invalid_parameter(message):
@@ -95,6 +96,10 @@ def _not_found(resource):
     }
 
 
+def _is_uint32(raw):
+    return UINT32_PATTERN.fullmatch(raw) is not None and int(raw) <= MAX_UINT32
+
+
 def _uint_param(request, name, default=None):
     """`(value, None)` for a uint32 parameter, else `(None, error)`.
 
@@ -105,7 +110,7 @@ def _uint_param(request, name, default=None):
         return None, _MISSING_PARAMETER
     elif raw == "":
         return default, None
-    elif UNSIGNED_INTEGER.fullmatch(raw) and int(raw) <= MAX_UINT32:
+    elif _is_uint32(raw):
         return int(raw), None
     else:
         return None, _invalid_parameter(f"Invalid {name}: expected an unsigned integer.")
@@ -648,6 +653,103 @@ def handle_lbinfo(request):
     }
 
 
+def handle_systemgames(request):
+    console_id, error = _uint_param(request, "s")
+    if error is not None:
+        return error
+    console = Console.objects.filter(ra_id=console_id).first()
+    if console is None:
+        return _not_found("system")
+
+    games = console.games.order_by("title", "id").prefetch_related("hashes")
+    achievement_totals = {
+        row["game"]: row
+        for row in Achievement.objects.filter(
+            game__console=console, status__in=Achievement.PUBLISHED_STATUSES
+        )
+        .order_by()
+        .values("game")
+        .annotate(count=Count("id"), points=Sum("points"))
+    }
+    leaderboard_counts = dict(
+        Leaderboard.objects.filter(game__console=console)
+        .order_by()
+        .values("game")
+        .annotate(count=Count("id"))
+        .values_list("game", "count")
+    )
+    no_achievements = {"count": 0, "points": 0}
+
+    response = []
+    for game in games:
+        totals = achievement_totals.get(game.pk, no_achievements)
+        response.append(
+            {
+                "ID": game.pk,
+                "Title": game.title,
+                "ImageIcon": _game_icon_path(game),
+                "ImageUrl": _game_icon_url(request, game),
+                "NumAchievements": totals["count"],
+                "NumLeaderboards": leaderboard_counts.get(game.pk, 0),
+                "Points": totals["points"],
+                "SupportedHashes": sorted(gh.md5.lower() for gh in game.hashes.all()),
+            }
+        )
+    return {"Success": True, "Response": response}
+
+
+GAMEINFOLIST_MAX_IDS = 100
+
+
+def handle_gameinfolist(request):
+    raw_param = request.POST.get("g", "")
+    raw_ids = [raw for raw in raw_param.split(",") if raw]
+    if raw_param == "":
+        return _MISSING_PARAMETER
+    elif not raw_ids:
+        return _invalid_parameter("Invalid g: at least one game ID is required.")
+    elif len(raw_ids) > GAMEINFOLIST_MAX_IDS:
+        return _invalid_parameter(f"Invalid g: at most {GAMEINFOLIST_MAX_IDS} game IDs.")
+    elif not all(_is_uint32(raw) for raw in raw_ids):
+        return _invalid_parameter("Invalid g: expected comma-separated unsigned integers.")
+    else:
+        game_ids = {int(raw) for raw in raw_ids}
+
+    games = Game.objects.filter(pk__in=game_ids).order_by("id")
+    if not games:
+        return _not_found("games")
+    return {
+        "Success": True,
+        "Response": [
+            {
+                "ID": game.pk,
+                "Title": game.title,
+                "ImageIcon": _game_icon_path(game),
+                "ImageUrl": _game_icon_url(request, game),
+            }
+            for game in games
+        ],
+    }
+
+
+def handle_hashlibrary(request):
+    console_id, error = _uint_param(request, "c", default=0)
+    if error is not None:
+        return error
+
+    # rcheevos omits `c`, asking for every console, when it is 0.
+    if console_id == 0:
+        hashes = GameHash.objects.all()
+    elif Console.objects.filter(ra_id=console_id).exists():
+        hashes = GameHash.objects.filter(game__console__ra_id=console_id)
+    else:
+        return _not_found("console")
+    return {
+        "Success": True,
+        "MD5List": {md5.lower(): game_id for md5, game_id in hashes.values_list("md5", "game_id")},
+    }
+
+
 HANDLERS = {
     "login2": handle_login2,
     "gameid": handle_gameid,
@@ -660,4 +762,7 @@ HANDLERS = {
     "ping": handle_ping,
     "submitlbentry": handle_submitlbentry,
     "lbinfo": handle_lbinfo,
+    "systemgames": handle_systemgames,
+    "gameinfolist": handle_gameinfolist,
+    "hashlibrary": handle_hashlibrary,
 }
