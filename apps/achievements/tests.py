@@ -30,6 +30,7 @@ from apps.games.models import Console, Game, GameHash
 MEM_ADDR_PATTERN = re.compile(r"^0xH6188d=h2d_d0xH6188d=h(?P<level_id>[0-9a-f]{2})$")
 HEX = 16
 LEVEL_COUNT = len(LEVEL_ACHIEVEMENTS)
+CODE_NOTE_COUNT = 113
 SEED_COMMANDS = ("seed_crash1_code_notes", "seed_crash1_level_achievements")
 MEM_ADDR_CHECKER = Path(__file__).resolve().parents[2] / "scripts" / "check-mem-addr.sh"
 
@@ -105,7 +106,7 @@ def test_codenote_creation(game, user):
 def test_seed_crash1_code_notes_command():
     call_command("seed_crash1_code_notes", verbosity=0)
     notes = CodeNote.objects.filter(game__title="Crash Bandicoot")
-    assert notes.count() == 108
+    assert notes.count() == CODE_NOTE_COUNT
     assert "N. Sanity Beach" in notes.get(address="0x619c5").note
     assert "Overworld" in notes.get(address="0x61994").note
 
@@ -113,10 +114,12 @@ def test_seed_crash1_code_notes_command():
 def test_load_code_notes_unescapes_the_markdown_table():
     notes = dict(load_code_notes())
 
-    assert len(notes) == 108
+    assert len(notes) == CODE_NOTE_COUNT
     assert notes["0x54b84"] == "Frames"
     assert notes["0x61994"].startswith("Overworld Status:\n00 - In a Stage")
     assert "+0x105 | Papu Papu" in notes["0x60ddc"]
+    assert "is_first_zone" in notes["0x61998"]
+    assert "2D - Stage Clear screen" in notes["0x6188d"]
 
 
 @pytest.mark.parametrize(
@@ -126,7 +129,7 @@ def test_load_code_notes_unescapes_the_markdown_table():
         (
             "| `0x54b84` | 8-bit | Frames |",
             "| `0x54b84` | Frames |",
-            "parsed 107 of 108 code-note rows",
+            "parsed 112 of 113 code-note rows",
         ),
     ],
 )
@@ -159,7 +162,7 @@ def test_load_code_notes_refuses_an_empty_table(monkeypatch, tmp_path):
 def test_seed_crash1_code_notes_command_is_idempotent():
     call_command("seed_crash1_code_notes", verbosity=0)
     call_command("seed_crash1_code_notes", verbosity=0)
-    assert CodeNote.objects.filter(game__title="Crash Bandicoot").count() == 108
+    assert CodeNote.objects.filter(game__title="Crash Bandicoot").count() == CODE_NOTE_COUNT
 
 
 def crash1_game_rows():
