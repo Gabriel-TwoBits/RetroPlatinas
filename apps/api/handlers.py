@@ -5,7 +5,6 @@ from datetime import timedelta
 from http import HTTPStatus
 
 from django.contrib.auth import authenticate
-from django.core.cache import cache
 from django.db import transaction
 from django.db.models import Count, Q, Sum
 from django.utils import timezone
@@ -13,7 +12,7 @@ from django.utils import timezone
 from apps.accounts.models import API_TOKEN_BYTES
 from apps.achievements.models import Achievement, UserUnlock
 from apps.api.auth import is_expired_token, user_from_token
-from apps.games.models import Console, Game, GameHash
+from apps.games.models import RICH_PRESENCE_MAX_LENGTH, Console, Game, GameHash, PlayerGame
 from apps.images.catalog import (
     avatar_path,
     badge_name,
@@ -69,7 +68,6 @@ _ACHIEVEMENT_UNPUBLISHED = {
 ACHIEVEMENT_FLAGS_CORE = 3
 ACHIEVEMENT_FLAGS_UNOFFICIAL = 5
 
-PRESENCE_TTL_SECONDS = 300
 API_TOKEN_LIFETIME = timedelta(days=14)
 PERCENT = 100
 # rcheevos' JSON parser reads plain decimals only: `1e-05` would not parse.
@@ -89,6 +87,19 @@ def _invalid_parameter(message):
         "Status": HTTPStatus.UNPROCESSABLE_ENTITY,
         "Code": "invalid_parameter",
     }
+
+
+def _flag_param(request, name):
+    """`(flag, None)` for a 0/1 parameter, `(None, None)` when absent, else `(None, error)`."""
+    raw = request.POST.get(name)
+    if raw is None:
+        return None, None
+    elif raw == "1":
+        return True, None
+    elif raw == "0":
+        return False, None
+    else:
+        return None, _invalid_parameter(f"Invalid {name}: expected 0 or 1.")
 
 
 def _is_uint32(raw):
@@ -223,16 +234,7 @@ def _served_achievements(user, game):
 
 
 def _player_count(game):
-    # TRADEOFF: a player is a user with any published unlock in the game, so players who
-    # never unlocked anything are not counted; count PlayerGame rows once sessions are recorded.
-    return (
-        UserUnlock.objects.filter(
-            achievement__game=game, achievement__status__in=Achievement.PUBLISHED_STATUSES
-        )
-        .values("user")
-        .distinct()
-        .count()
-    )
+    return PlayerGame.objects.filter(game=game).count()
 
 
 def _rarity(unlockers, players):
@@ -371,14 +373,38 @@ def handle_postactivity(request):
     return _NOT_IMPLEMENTED
 
 
+def _record_session_contact(user, game, hardcore, *, starting=False, rich_presence=None):
+    """Marks `user`'s session of `game` live now; `hardcore` and `rich_presence` when sent."""
+    now = timezone.now()
+    with transaction.atomic():
+        player_game, _ = PlayerGame.objects.select_for_update().get_or_create(
+            user=user, game=game, defaults={"first_played_at": now, "last_played_at": now}
+        )
+        if starting:
+            player_game.last_played_at = now
+        if rich_presence is not None:
+            player_game.last_rich_presence = rich_presence
+        if hardcore is not None:
+            player_game.hardcore = hardcore
+        player_game.record_ping(now)
+        player_game.save()
+
+
 def handle_startsession(request):
     user, error = _authenticate(request)
+    if error is not None:
+        return error
+
+    # rc_client sends `h` only alongside the game hash `m`.
+    hardcore, error = _flag_param(request, "h")
     if error is not None:
         return error
 
     game = _game_by_id(request.POST.get("g", ""))
     if game is None:
         return _GAME_NOT_FOUND
+
+    _record_session_contact(user, game, hardcore, starting=True)
 
     unlocks = UserUnlock.objects.filter(user=user, achievement__game=game).values(
         "achievement_id", "hardcore", "unlocked_at"
@@ -453,6 +479,13 @@ def handle_awardachievement(request):
                 locked_user.hardcore_points += achievement.points
 
         locked_user.save(update_fields=["softcore_points", "hardcore_points"])
+        now = timezone.now()
+        PlayerGame.objects.update_or_create(
+            user=locked_user,
+            game=achievement.game,
+            defaults={"last_played_at": now},
+            create_defaults={"first_played_at": now, "last_played_at": now},
+        )
         remaining = _remaining_in_set(locked_user, achievement.game, hardcore)
 
     return {
@@ -469,13 +502,17 @@ def handle_ping(request):
     if error is not None:
         return error
 
-    try:
-        game_id = int(request.POST.get("g", ""))
-    except (ValueError, TypeError):
-        return {"Success": False, "Error": "Unknown game"}
+    # rc_client sends `h` only alongside the game hash `x`, and omits `m` when it is empty.
+    hardcore, error = _flag_param(request, "h")
+    if error is not None:
+        return error
 
-    rich_presence = request.POST.get("m", "")
-    cache.set(f"presence:{user.id}:{game_id}", rich_presence, PRESENCE_TTL_SECONDS)
+    game = _game_by_id(request.POST.get("g", ""))
+    if game is None:
+        return _GAME_NOT_FOUND
+
+    rich_presence = request.POST.get("m", "")[:RICH_PRESENCE_MAX_LENGTH]
+    _record_session_contact(user, game, hardcore, rich_presence=rich_presence)
     return {"Success": True}
 
 

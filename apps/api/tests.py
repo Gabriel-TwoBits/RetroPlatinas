@@ -23,10 +23,18 @@ from apps.api.handlers import (
     HANDLERS,
     LBINFO_DEFAULT_COUNT,
     LEADERBOARD_UNKNOWN_DATETIME,
-    PRESENCE_TTL_SECONDS,
     _rarity,
 )
-from apps.games.models import MD5_HEX_DIGITS, Console, Game, GameHash
+from apps.games.models import (
+    MD5_HEX_DIGITS,
+    PLAYING_NOW_TTL,
+    PLAYTIME_MAX_PING_GAP,
+    RICH_PRESENCE_MAX_LENGTH,
+    Console,
+    Game,
+    GameHash,
+    PlayerGame,
+)
 from apps.images.catalog import (
     VERSION_PARAM,
     avatar_path,
@@ -946,6 +954,8 @@ def test_set_serves_rarity_over_the_games_players(
     never = _create_achievement(game, achievement_author, "Never", Achievement.STATUS_VERIFIED)
     rival = _make_user("rival", "r" * API_TOKEN_HEX_LENGTH)
     third = _make_user("third", "h" * API_TOKEN_HEX_LENGTH)
+    for user in (player, rival, third):
+        PlayerGame.objects.create(user=user, game=game)
     for user, achievement, hardcore in (
         (player, common, False),
         (player, common, True),
@@ -987,6 +997,8 @@ def test_set_serves_zero_rarity_on_drafts_and_counts_only_published_unlockers(
     demoted = _create_achievement(game, achievement_author, "Demoted", Achievement.STATUS_DRAFT)
     for user, achievement in ((player, common), (player, demoted), (achievement_author, demoted)):
         UserUnlock.objects.create(user=user, achievement=achievement, hardcore=True)
+    for user in (player, achievement_author):
+        PlayerGame.objects.create(user=user, game=game)
 
     served = {
         a["ID"]: (a["Rarity"], a["RarityHardcore"])
@@ -994,7 +1006,24 @@ def test_set_serves_zero_rarity_on_drafts_and_counts_only_published_unlockers(
     }
 
     assert served[demoted.pk] == (0.0, 0.0)
-    assert served[common.pk] == (100.0, 100.0)
+    assert served[common.pk] == (50.0, 50.0)
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("action", SET_ACTIONS)
+def test_set_rarity_counts_players_who_unlocked_nothing(
+    client, authed_user, achievement_author, game_with_hash, action
+):
+    player, _ = authed_user
+    game, _ = game_with_hash
+    common = _create_achievement(game, achievement_author, "Common", Achievement.STATUS_COMMUNITY)
+    UserUnlock.objects.create(user=player, achievement=common, hardcore=False)
+    for user in (player, achievement_author):
+        PlayerGame.objects.create(user=user, game=game)
+
+    served = {a["ID"]: a["Rarity"] for a in _served_achievements(client, action, player, game)}
+
+    assert served[common.pk] == 50.0
 
 
 @pytest.mark.parametrize(
@@ -1251,6 +1280,46 @@ def test_awardachievement_invalid_token(client, game_with_achievements):
     assert data["Error"] == "Credentials invalid."
 
 
+@pytest.mark.django_db
+def test_awardachievement_records_the_game_as_played(client, authed_user, game_with_achievements):
+    user, token = authed_user
+    achievement = game_with_achievements.achievements.get(title="Community One")
+
+    client.post(
+        "/dorequest.php",
+        {"r": "awardachievement", "u": PLAYER_USERNAME, "t": token, "a": achievement.pk, "h": "1"},
+    )
+
+    player_game = PlayerGame.objects.get(user=user, game=game_with_achievements)
+    assert player_game.first_played_at == player_game.last_played_at
+    assert player_game.last_ping_at is None
+    assert player_game.hardcore is False
+
+
+@pytest.mark.django_db
+def test_awardachievement_moves_last_played_only(client, authed_user, game_with_achievements):
+    user, token = authed_user
+    achievement = game_with_achievements.achievements.get(title="Community One")
+    long_ago = timezone.now() - timedelta(days=30)
+    PlayerGame.objects.create(
+        user=user,
+        game=game_with_achievements,
+        first_played_at=long_ago,
+        last_played_at=long_ago,
+        last_rich_presence="Level 1",
+    )
+
+    client.post(
+        "/dorequest.php",
+        {"r": "awardachievement", "u": PLAYER_USERNAME, "t": token, "a": achievement.pk, "h": "0"},
+    )
+
+    player_game = PlayerGame.objects.get(user=user)
+    assert player_game.first_played_at == long_ago
+    assert player_game.last_played_at > long_ago
+    assert player_game.last_rich_presence == "Level 1"
+
+
 # --- startsession ---
 
 
@@ -1375,6 +1444,107 @@ def test_startsession_unlock_entry_shape(client, authed_user, game_with_achievem
     assert isinstance(entry["When"], int)
 
 
+HARDCORE_FLAG_INVALID = {
+    "Success": False,
+    "Error": "Invalid h: expected 0 or 1.",
+    "Status": HTTPStatus.UNPROCESSABLE_ENTITY,
+    "Code": "invalid_parameter",
+}
+
+
+def _start_session(client, token, game, **params):
+    return client.post(
+        "/dorequest.php",
+        {"r": "startsession", "u": PLAYER_USERNAME, "t": token, "g": game.pk, **params},
+    ).json()
+
+
+@pytest.mark.django_db
+def test_startsession_records_the_first_session(client, authed_user, game_with_achievements):
+    user, token = authed_user
+
+    _start_session(client, token, game_with_achievements)
+
+    player_game = PlayerGame.objects.get(user=user, game=game_with_achievements)
+    assert player_game.first_played_at == player_game.last_played_at
+    assert player_game.last_ping_at == player_game.last_played_at
+    assert player_game.playtime_seconds == 0
+    assert player_game.hardcore is False
+
+
+@pytest.mark.django_db
+def test_startsession_moves_last_played_but_keeps_first_played(
+    client, authed_user, game_with_achievements
+):
+    user, token = authed_user
+    long_ago = timezone.now() - timedelta(days=30)
+    PlayerGame.objects.create(
+        user=user, game=game_with_achievements, first_played_at=long_ago, last_played_at=long_ago
+    )
+
+    _start_session(client, token, game_with_achievements)
+
+    player_game = PlayerGame.objects.get(user=user)
+    assert player_game.first_played_at == long_ago
+    assert player_game.last_played_at > long_ago
+
+
+@pytest.mark.django_db
+def test_startsession_credits_play_since_a_recent_ping(client, authed_user, game_with_achievements):
+    user, token = authed_user
+    PlayerGame.objects.create(
+        user=user, game=game_with_achievements, last_ping_at=timezone.now() - timedelta(minutes=1)
+    )
+
+    _start_session(client, token, game_with_achievements)
+
+    assert (
+        PlayerGame.objects.get(user=user).playtime_seconds == timedelta(minutes=1).total_seconds()
+    )
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(("sent", "expected"), [("1", True), ("0", False)])
+def test_startsession_records_the_hardcore_mode_when_sent(
+    client, authed_user, game_with_achievements, sent, expected
+):
+    user, token = authed_user
+    PlayerGame.objects.create(user=user, game=game_with_achievements, hardcore=not expected)
+
+    _start_session(client, token, game_with_achievements, h=sent, m="a" * MD5_HEX_DIGITS)
+
+    assert PlayerGame.objects.get(user=user).hardcore is expected
+
+
+@pytest.mark.django_db
+def test_startsession_without_hardcore_keeps_the_mode(client, authed_user, game_with_achievements):
+    user, token = authed_user
+    PlayerGame.objects.create(user=user, game=game_with_achievements, hardcore=True)
+
+    _start_session(client, token, game_with_achievements)
+
+    assert PlayerGame.objects.get(user=user).hardcore is True
+
+
+@pytest.mark.django_db
+def test_startsession_rejects_an_invalid_hardcore_flag(client, authed_user, game_with_achievements):
+    _, token = authed_user
+
+    data = _start_session(client, token, game_with_achievements, h="2")
+
+    assert data == HARDCORE_FLAG_INVALID
+    assert not PlayerGame.objects.exists()
+
+
+@pytest.mark.django_db
+def test_startsession_unknown_game_records_nothing(client, authed_user):
+    _, token = authed_user
+    client.post(
+        "/dorequest.php", {"r": "startsession", "u": PLAYER_USERNAME, "t": token, "g": 99999}
+    )
+    assert not PlayerGame.objects.exists()
+
+
 # --- ping ---
 
 
@@ -1410,42 +1580,141 @@ def test_ping_invalid_game_param(client, authed_user):
     response = client.post(
         "/dorequest.php", {"r": "ping", "u": PLAYER_USERNAME, "t": token, "g": "abc"}
     )
-    data = response.json()
-    assert data["Success"] is False
-    assert data["Error"] == "Unknown game"
+    assert response.json() == GAME_NOT_FOUND
 
 
 @pytest.mark.django_db
-def test_ping_stores_rich_presence(client, authed_user, game_with_achievements):
+def test_ping_unknown_game_records_nothing(client, authed_user):
+    _, token = authed_user
+    response = client.post(
+        "/dorequest.php", {"r": "ping", "u": PLAYER_USERNAME, "t": token, "g": 99999}
+    )
+    assert response.json() == GAME_NOT_FOUND
+    assert not PlayerGame.objects.exists()
+
+
+def _ping(client, token, game, **params):
+    return client.post(
+        "/dorequest.php", {"r": "ping", "u": PLAYER_USERNAME, "t": token, "g": game.pk, **params}
+    ).json()
+
+
+@pytest.mark.django_db
+def test_ping_records_rich_presence_and_marks_the_session_live(
+    client, authed_user, game_with_achievements
+):
     user, token = authed_user
     game = game_with_achievements
-    response = client.post(
-        "/dorequest.php",
-        {"r": "ping", "u": PLAYER_USERNAME, "t": token, "g": game.pk, "m": "No N. Sanity Beach"},
-    )
-    assert response.json()["Success"] is True
-    assert cache.get(f"presence:{user.id}:{game.pk}") == "No N. Sanity Beach"
+
+    data = _ping(client, token, game, m="No N. Sanity Beach")
+
+    assert data == {"Success": True}
+    player_game = PlayerGame.objects.get(user=user, game=game)
+    assert player_game.last_rich_presence == "No N. Sanity Beach"
+    assert timezone.now() - player_game.last_ping_at < PLAYING_NOW_TTL
+    assert list(PlayerGame.objects.playing_now()) == [player_game]
 
 
 @pytest.mark.django_db
-def test_ping_uses_five_minute_ttl(client, authed_user, game_with_achievements):
+def test_ping_bounds_the_rich_presence_length(client, authed_user, game_with_achievements):
+    user, token = authed_user
+
+    _ping(client, token, game_with_achievements, m="x" * (RICH_PRESENCE_MAX_LENGTH + 1))
+
+    player_game = PlayerGame.objects.get(user=user)
+    assert player_game.last_rich_presence == "x" * RICH_PRESENCE_MAX_LENGTH
+
+
+@pytest.mark.django_db
+def test_ping_without_rich_presence_clears_it(client, authed_user, game_with_achievements):
+    user, token = authed_user
+    PlayerGame.objects.create(user=user, game=game_with_achievements, last_rich_presence="Old")
+
+    _ping(client, token, game_with_achievements)
+
+    assert PlayerGame.objects.get(user=user).last_rich_presence == ""
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(("sent", "expected"), [("1", True), ("0", False)])
+def test_ping_records_the_hardcore_mode_when_sent(
+    client, authed_user, game_with_achievements, sent, expected
+):
+    user, token = authed_user
+    PlayerGame.objects.create(user=user, game=game_with_achievements, hardcore=not expected)
+
+    _ping(client, token, game_with_achievements, h=sent, x="a" * MD5_HEX_DIGITS)
+
+    assert PlayerGame.objects.get(user=user).hardcore is expected
+
+
+@pytest.mark.django_db
+def test_ping_without_hardcore_keeps_the_sessions_mode(client, authed_user, game_with_achievements):
+    user, token = authed_user
+    PlayerGame.objects.create(user=user, game=game_with_achievements, hardcore=True)
+
+    _ping(client, token, game_with_achievements)
+
+    assert PlayerGame.objects.get(user=user).hardcore is True
+
+
+@pytest.mark.django_db
+def test_ping_rejects_an_invalid_hardcore_flag(client, authed_user, game_with_achievements):
     _, token = authed_user
-    game = game_with_achievements
-    with patch("apps.api.handlers.cache.set") as mock_set:
-        client.post(
-            "/dorequest.php",
-            {
-                "r": "ping",
-                "u": PLAYER_USERNAME,
-                "t": token,
-                "g": game.pk,
-                "m": "No N. Sanity Beach",
-            },
-        )
-    assert mock_set.call_count == 1
-    args, kwargs = mock_set.call_args
-    assert PRESENCE_TTL_SECONDS == 300
-    assert 300 in args or kwargs.get("timeout") == 300
+
+    data = _ping(client, token, game_with_achievements, h="yes")
+
+    assert data == HARDCORE_FLAG_INVALID
+    assert not PlayerGame.objects.exists()
+
+
+PING_INTERVAL = timedelta(seconds=120)
+EARLIER_PLAYTIME_SECONDS = 600
+
+
+@pytest.mark.django_db
+def test_ping_credits_playtime_since_the_previous_ping(client, authed_user, game_with_achievements):
+    user, token = authed_user
+    PlayerGame.objects.create(
+        user=user,
+        game=game_with_achievements,
+        playtime_seconds=EARLIER_PLAYTIME_SECONDS,
+        last_ping_at=timezone.now() - PING_INTERVAL,
+    )
+
+    _ping(client, token, game_with_achievements)
+
+    assert PlayerGame.objects.get(user=user).playtime_seconds == (
+        EARLIER_PLAYTIME_SECONDS + PING_INTERVAL.total_seconds()
+    )
+
+
+@pytest.mark.django_db
+def test_ping_after_a_long_gap_credits_no_playtime(client, authed_user, game_with_achievements):
+    user, token = authed_user
+    PlayerGame.objects.create(
+        user=user,
+        game=game_with_achievements,
+        playtime_seconds=EARLIER_PLAYTIME_SECONDS,
+        last_ping_at=timezone.now() - PLAYTIME_MAX_PING_GAP - PING_INTERVAL,
+    )
+
+    _ping(client, token, game_with_achievements)
+
+    player_game = PlayerGame.objects.get(user=user)
+    assert player_game.playtime_seconds == EARLIER_PLAYTIME_SECONDS
+    assert timezone.now() - player_game.last_ping_at < PING_INTERVAL
+
+
+@pytest.mark.django_db
+def test_ping_does_not_touch_last_played(client, authed_user, game_with_achievements):
+    user, token = authed_user
+    session_start = timezone.now() - PING_INTERVAL
+    PlayerGame.objects.create(user=user, game=game_with_achievements, last_played_at=session_start)
+
+    _ping(client, token, game_with_achievements)
+
+    assert PlayerGame.objects.get(user=user).last_played_at == session_start
 
 
 # --- leaderboards (patch + submitlbentry) ---
