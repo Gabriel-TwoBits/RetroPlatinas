@@ -553,7 +553,7 @@ def handle_awardachievement(request):
             user=locked_user,
             game=achievement.game,
             defaults={"last_played_at": now},
-            create_defaults={"first_played_at": now, "last_played_at": now},
+            create_defaults={"first_played_at": unlocked_at, "last_played_at": now},
         )
         remaining = _remaining_in_set(locked_user, achievement.game, hardcore)
 

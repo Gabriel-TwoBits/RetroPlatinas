@@ -193,6 +193,17 @@ def test_award_retry_is_dated_back_by_its_seconds_since_unlock(client, player, a
 
 
 @pytest.mark.django_db
+def test_backdated_award_dates_the_first_play_it_creates_no_later_than_the_unlock(
+    client, player, achievement
+):
+    _award(client, a=ACHIEVEMENT_ID, h="1", o=SECONDS_SINCE_UNLOCK, v=V_AWARD_HARDCORE_RETRY)
+
+    player_game = PlayerGame.objects.get(user=player, game=achievement.game)
+    first_unlock = UserUnlock.objects.filter(user=player).earliest("unlocked_at")
+    assert player_game.first_played_at == first_unlock.unlocked_at
+
+
+@pytest.mark.django_db
 def test_award_takes_a_zero_seconds_since_unlock_as_unsent(client, player, achievement):
     response = _award(client, a=ACHIEVEMENT_ID, h="1", o="0", v=V_AWARD_HARDCORE)
 
