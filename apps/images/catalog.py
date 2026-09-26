@@ -83,6 +83,9 @@ def achievement_for_badge_name(name):
     """The achievement whose badge `name` is, else `None`; only the canonical name matches."""
     if BADGE_NAME_PATTERN.fullmatch(name) is None:
         return None
+    # TRADEOFF: any status matches, drafts included: the emulator fetches images without
+    # credentials, and a draft's author must see its badge while testing it. Serve drafts under
+    # unguessable names if their art must stay private.
     achievement = Achievement.objects.filter(pk=int(name)).first()
     if achievement is not None and badge_name(achievement) == name:
         return achievement

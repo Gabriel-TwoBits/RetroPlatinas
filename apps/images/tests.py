@@ -94,6 +94,17 @@ def test_badge_serves_the_placeholder_without_an_upload(client, achievement):
 
 
 @pytest.mark.django_db
+def test_draft_badge_is_served_without_credentials_for_its_author_to_test(client, achievement):
+    achievement.status = Achievement.STATUS_DRAFT
+    achievement.badge = _png_upload("boulders.png", RED)
+    achievement.save()
+
+    image = _image(client.get(badge_path(achievement)))
+
+    assert image.getpixel((0, 0)) == RED
+
+
+@pytest.mark.django_db
 def test_locked_badge_is_a_grayscale_variant(client, achievement):
     achievement.badge = _png_upload("boulders.png", RED)
     achievement.save()
