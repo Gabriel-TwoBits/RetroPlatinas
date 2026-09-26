@@ -425,21 +425,21 @@ msgstr ""
 msgid "owner"
 msgstr ""
 
-#: templates/accounts/password_change_done.html:4
+#: templates/accounts/password-change-done.html:4
 msgid "Password changed"
 msgstr ""
 
-#: templates/accounts/password_change_done.html:7
+#: templates/accounts/password-change-done.html:7
 msgid "Password changed successfully"
 msgstr ""
 
-#: templates/accounts/password_change_done.html:8
+#: templates/accounts/password-change-done.html:8
 msgid "Back to home"
 msgstr ""
 
-#: templates/accounts/password_change_form.html:4
-#: templates/accounts/password_change_form.html:7
-#: templates/accounts/password_change_form.html:11 templates/base.html:42
+#: templates/accounts/password-change-form.html:4
+#: templates/accounts/password-change-form.html:7
+#: templates/accounts/password-change-form.html:11 templates/base.html:42
 msgid "Change password"
 msgstr ""
 

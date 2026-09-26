@@ -13,13 +13,13 @@ urlpatterns = [
     path("logout/", auth_views.LogoutView.as_view(), name="logout"),
     path(
         "password_change/",
-        auth_views.PasswordChangeView.as_view(template_name="accounts/password_change_form.html"),
+        auth_views.PasswordChangeView.as_view(template_name="accounts/password-change-form.html"),
         name="password_change",
     ),
     path(
         "password_change/done/",
         auth_views.PasswordChangeDoneView.as_view(
-            template_name="accounts/password_change_done.html"
+            template_name="accounts/password-change-done.html"
         ),
         name="password_change_done",
     ),

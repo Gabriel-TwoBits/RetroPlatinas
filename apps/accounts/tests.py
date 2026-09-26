@@ -177,3 +177,18 @@ def test_edit_button_only_for_owner(client):
     client.login(username="teste", password="pw-secret-123")
     resp = client.get("/users/teste/", HTTP_ACCEPT_LANGUAGE="en")
     assert "Edit profile" in resp.content.decode()
+
+
+@pytest.mark.django_db
+def test_password_change_pages_render_for_a_logged_in_user(client):
+    User.objects.create_user(username="alice", password="pw-secret-123")
+    client.login(username="alice", password="pw-secret-123")
+    assert client.get("/password_change/").status_code == 200
+    assert client.get("/password_change/done/").status_code == 200
+
+
+@pytest.mark.django_db
+def test_password_change_redirects_an_anonymous_user_to_login(client):
+    resp = client.get("/password_change/")
+    assert resp.status_code == 302
+    assert resp.url.startswith("/login/")
