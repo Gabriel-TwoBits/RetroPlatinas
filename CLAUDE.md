@@ -172,7 +172,9 @@ Unofficial Achievements" (`Cheevos/UnofficialTestMode`) and reload the game, the
 **Publish it to see the full cycle** (admin bulk actions: publish as community, mark verified,
 move back to draft). Every player then receives it as core, without UnofficialTestMode: the unlock
 is sent, recorded and scored, and `AchievementsRemaining` (published achievements not yet unlocked
-in that mode) reaching `0` fires the mastery event.
+in that mode) reaching `0` fires the mastery event. Moving a published achievement back to draft
+(bulk action or change form) keeps its unlocks but recalculates every unlocker's points without
+it; republishing counts them again.
 
 ## i18n workflow
 
