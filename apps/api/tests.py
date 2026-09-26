@@ -652,7 +652,7 @@ def test_patch_response_shape(client, authed_user, game_with_achievements):
     assert patch_data["ID"] == game.pk
     assert patch_data["Title"] == game.title
     assert patch_data["ConsoleID"] == game.console.ra_id
-    assert patch_data["ImageIcon"] == f"/Images/{game.pk:06d}.png"
+    assert patch_data["ImageIcon"] == game_icon_path(game)
     assert "RichPresencePatch" in patch_data
     assert "Achievements" in patch_data
     assert patch_data["Leaderboards"] == []
