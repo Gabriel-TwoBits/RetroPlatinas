@@ -76,6 +76,28 @@ by Django views (not by the `/media/` static serving, which exists in developmen
 API payloads carry these as absolute URLs with a `?v=` version that changes with the image:
 DuckStation caches images by URL, and a missing URL makes rcheevos fetch RetroAchievements' own art.
 
+## Sessions, presence and hardcore
+
+`PlayerGame` (one row per user and game) records who plays what. `startsession` creates it and
+moves its last-played time, `ping` (rc_client sends one every 120 s while the emulator runs)
+stores the current rich presence, and an unlock also moves last played. Each `startsession` or
+`ping` credits the time since the previous one as playtime when the gap is at most 4 minutes; a
+longer gap (emulator paused, closed or offline) credits nothing. A session pinged within the last
+5 minutes is "playing now" (`PlayerGame.objects.playing_now()`). Rarity counts a game's
+`PlayerGame` rows as its players.
+
+Hardcore follows what rcheevos actually sends:
+
+- `h` on each `awardachievement` is trusted as the mode of that unlock. A hardcore unlock also
+  records the softcore one and adds its points to both totals (no 2× hardcore points).
+- `h` on `startsession`/`ping` only records the session's mode (`PlayerGame.hardcore`).
+- There is no `resethardcore` request: disabling hardcore or loading a state happens inside the
+  emulator, which then sends softcore unlocks.
+
+With `DEBUG` on, `GET /api/test/presence/<username>/` returns that user's live sessions (game,
+rich presence, mode, last ping) as JSON, or 404 for an unknown user. It is a test endpoint and
+answers 404 whenever `DEBUG` is off.
+
 ## Running in background
 
 ```bash

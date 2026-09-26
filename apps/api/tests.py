@@ -1717,6 +1717,79 @@ def test_ping_does_not_touch_last_played(client, authed_user, game_with_achievem
     assert PlayerGame.objects.get(user=user).last_played_at == session_start
 
 
+# --- presence test endpoint ---
+
+
+def _presence(client, username):
+    return client.get(f"/api/test/presence/{username}/")
+
+
+@pytest.mark.django_db
+def test_presence_lists_the_users_live_sessions(
+    client, settings, authed_user, game_with_achievements
+):
+    settings.DEBUG = True
+    user, token = authed_user
+    _ping(
+        client, token, game_with_achievements, m="No N. Sanity Beach", h="1", x="a" * MD5_HEX_DIGITS
+    )
+    console = game_with_achievements.console
+    stale_game = Game.objects.create(title="Crash 2", console=console)
+    PlayerGame.objects.create(
+        user=user,
+        game=stale_game,
+        last_rich_presence="Stale",
+        last_ping_at=timezone.now() - PLAYING_NOW_TTL - PING_INTERVAL,
+    )
+
+    response = _presence(client, PLAYER_USERNAME)
+
+    assert response.status_code == HTTPStatus.OK
+    data = response.json()
+    assert data["User"] == PLAYER_USERNAME
+    assert [
+        (p["GameID"], p["Title"], p["RichPresence"], p["Hardcore"]) for p in data["Presence"]
+    ] == [(game_with_achievements.pk, "Crash Bandicoot", "No N. Sanity Beach", True)]
+
+
+@pytest.mark.django_db
+def test_presence_is_empty_for_a_user_not_playing(client, settings, authed_user):
+    settings.DEBUG = True
+
+    response = _presence(client, PLAYER_USERNAME)
+
+    assert response.status_code == HTTPStatus.OK
+    assert response.json() == {"User": PLAYER_USERNAME, "Presence": []}
+
+
+@pytest.mark.django_db
+def test_presence_unknown_user_is_not_found(client, settings):
+    settings.DEBUG = True
+
+    response = _presence(client, "nobody")
+
+    assert response.status_code == HTTPStatus.NOT_FOUND
+    assert response.json() == {"Error": "Unknown user nobody."}
+
+
+@pytest.mark.django_db
+def test_presence_does_not_exist_without_debug(client, settings, authed_user):
+    settings.DEBUG = False
+
+    response = _presence(client, PLAYER_USERNAME)
+
+    assert response.status_code == HTTPStatus.NOT_FOUND
+
+
+@pytest.mark.django_db
+def test_presence_rejects_post(client, settings, authed_user):
+    settings.DEBUG = True
+
+    response = client.post(f"/api/test/presence/{PLAYER_USERNAME}/")
+
+    assert response.status_code == HTTPStatus.METHOD_NOT_ALLOWED
+
+
 # --- leaderboards (patch + submitlbentry) ---
 
 LEADERBOARD_MEM = "STA:0xH0001=1::CAN:0xH0002=1::SUB:0xH0003=1::VAL:M:1=1"
