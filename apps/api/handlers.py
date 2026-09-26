@@ -138,7 +138,6 @@ def handle_achievementsets(request):
 
     md5 = request.POST.get("m", "").lower()
     game_id_param = request.POST.get("g", "")
-    game = None
     if md5:
         game = Game.objects.select_related("console").filter(hashes__md5=md5).first()
     elif game_id_param:
@@ -146,6 +145,8 @@ def handle_achievementsets(request):
             game = Game.objects.select_related("console").filter(pk=int(game_id_param)).first()
         except (ValueError, TypeError):
             game = None
+    else:
+        game = None
 
     if game is None:
         logger.info("achievementsets unknown game hash=%s g=%s", md5, game_id_param)

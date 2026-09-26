@@ -562,6 +562,15 @@ def test_achievementsets_unknown_hash_returns_not_found(client, authed_user):
 
 
 @pytest.mark.django_db
+def test_achievementsets_without_hash_or_game_id_returns_not_found(client, authed_user):
+    _, token = authed_user
+    response = client.post("/dorequest.php", {"r": "achievementsets", "t": token})
+    data = response.json()
+    assert data["Success"] is False
+    assert data["Code"] == "not_found"
+
+
+@pytest.mark.django_db
 def test_achievementsets_missing_token(client, game_with_achievements):
     response = client.post("/dorequest.php", {"r": "achievementsets", "m": "c" * 32})
     data = response.json()
