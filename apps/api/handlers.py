@@ -585,7 +585,8 @@ def _position_of(leaderboard, entry):
 
 def _offset_around(position, count, total):
     """Entries to skip so the page of `count` centres on `position`, clamped to the board."""
-    offset = position - count // 2 - 1
+    entries_above_position = count // 2
+    offset = position - entries_above_position - 1
     if offset <= 0:
         return 0
     elif total - position + 1 < count:
