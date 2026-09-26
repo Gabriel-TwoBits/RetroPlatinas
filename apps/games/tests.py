@@ -276,8 +276,16 @@ AFTER_PLAYER_GAME = [("games", "0002_player_game")]
 BACKFILL_SOURCE = [("achievements", "0003_achievement_type")]
 
 
+@pytest.fixture
+def restores_latest_schema():
+    """Migrates forward again afterwards, so later tests see the current schema."""
+    yield
+    executor = MigrationExecutor(connection)
+    executor.migrate(executor.loader.graph.leaf_nodes())
+
+
 @pytest.mark.django_db(transaction=True)
-def test_player_game_migration_backfills_players_from_their_unlocks():
+def test_player_game_migration_backfills_players_from_their_unlocks(restores_latest_schema):
     executor = MigrationExecutor(connection)
     executor.migrate(BEFORE_PLAYER_GAME)
     old_apps = executor.loader.project_state(BEFORE_PLAYER_GAME + BACKFILL_SOURCE).apps
@@ -300,8 +308,12 @@ def test_player_game_migration_backfills_players_from_their_unlocks():
 
     executor = MigrationExecutor(connection)
     executor.migrate(AFTER_PLAYER_GAME)
+    # Later migrations add PlayerGame columns this schema does not have yet.
+    HistoricalPlayerGame = executor.loader.project_state(AFTER_PLAYER_GAME).apps.get_model(
+        "games", "PlayerGame"
+    )
 
-    player_game = PlayerGame.objects.get()
+    player_game = HistoricalPlayerGame.objects.get()
     assert (player_game.user_id, player_game.game_id) == (user.pk, game.pk)
     assert player_game.first_played_at == unlocks[0].unlocked_at
     assert player_game.last_played_at == unlocks[1].unlocked_at
