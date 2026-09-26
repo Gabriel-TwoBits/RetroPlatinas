@@ -536,8 +536,8 @@ msgstr "Ver os jogos"
 #: templates/home.html:31
 msgid "We're new: 1 game, few players. We'd rather show that than fake scale."
 msgstr ""
-"Somos novos: 1 jogo, poucos jogadores. Preferimos mostrar isso a fingir "
-"que somos grandes."
+"Somos novos: 1 jogo, poucos jogadores. Preferimos mostrar isso a fingir que "
+"somos grandes."
 
 #: templates/home.html:37 templates/home.html:172
 msgid "The project in numbers"
@@ -610,8 +610,7 @@ msgstr "Criar sets de conquistas"
 #: templates/home.html:127
 msgid "Pick a game, design the achievements and publish a set. No gatekeeping."
 msgstr ""
-"Escolha um jogo, planeje as conquistas e publique um set. Sem "
-"burocracia."
+"Escolha um jogo, planeje as conquistas e publique um set. Sem burocracia."
 
 #: templates/home.html:128
 msgid "Create account →"
