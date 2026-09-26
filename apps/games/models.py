@@ -77,7 +77,14 @@ class GameHash(models.Model):
         super().clean()
         self.md5 = self.md5.lower()
         if len(self.md5) != MD5_HEX_DIGITS or not LOWERCASE_HEX.fullmatch(self.md5):
-            raise ValidationError({"md5": _("Enter an MD5 hash: 32 hexadecimal digits.")})
+            raise ValidationError(
+                {
+                    "md5": ValidationError(
+                        _("Enter an MD5 hash: %(digits)s hexadecimal digits."),
+                        params={"digits": MD5_HEX_DIGITS},
+                    )
+                }
+            )
 
     def save(self, *args, **kwargs):
         self.md5 = self.md5.lower()

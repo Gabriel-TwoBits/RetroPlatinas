@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RetroPlatinas\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-26 15:15-0300\n"
+"POT-Creation-Date: 2026-09-26 15:18-0300\n"
 "PO-Revision-Date: 2026-05-23 18:15-0300\n"
 "Last-Translator: RetroPlatinas\n"
 "Language-Team: English\n"
@@ -176,8 +176,9 @@ msgstr ""
 msgid "game hashes"
 msgstr ""
 
-#: apps/games/models.py:80
-msgid "Enter an MD5 hash: 32 hexadecimal digits."
+#: apps/games/models.py:83
+#, python-format
+msgid "Enter an MD5 hash: %(digits)s hexadecimal digits."
 msgstr ""
 
 #: apps/leaderboards/models.py:18
