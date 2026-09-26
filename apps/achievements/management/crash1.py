@@ -9,7 +9,7 @@ from apps.games.models import Console, Game, GameHash
 GAME_TITLE = "Crash Bandicoot"
 PS1_RA_ID = 12
 IMPORT_AUTHOR = "ra-import"
-# rcheevos PlayStation hash of SCUS-94900, the only disc the RetroAchievements set supports.
+# rcheevos PlayStation hash of SCUS-94900, recomputed with rhash; matches the RetroAchievements set.
 USA_DISC_MD5 = "35386fd0891e594c9b6d8a4a5baa0027"
 USA_DISC_LABEL = "Crash Bandicoot (USA) — SCUS-94900"
 
