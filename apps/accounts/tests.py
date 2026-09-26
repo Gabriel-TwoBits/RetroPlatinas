@@ -187,6 +187,34 @@ def test_auth_pages_use_django_brazilian_portuguese_catalog(client, path):
 
 
 @pytest.mark.django_db
+def test_register_duplicate_username_error_uses_django_brazilian_portuguese_catalog(client):
+    User.objects.create_user(username="alice", password="irrelevant")
+    resp = client.post(
+        "/register/",
+        {
+            "username": "alice",
+            "email": "alice@example.com",
+            "password1": "very-strong-pw-1",
+            "password2": "very-strong-pw-1",
+        },
+    )
+    body = resp.content.decode()
+    assert resp.status_code == 200
+    assert "Um usuário com este nome de usuário já existe." in body
+    assert "utilizador" not in body.lower()
+
+
+@pytest.mark.django_db
+def test_login_error_uses_django_brazilian_portuguese_catalog(client):
+    User.objects.create_user(username="alice", password="correct-pw-123")
+    resp = client.post("/login/", {"username": "alice", "password": "wrong"})
+    body = resp.content.decode()
+    assert resp.status_code == 200
+    assert "e senha corretos" in body
+    assert "utilizador" not in body.lower()
+
+
+@pytest.mark.django_db
 def test_generic_portuguese_cookie_resolves_to_brazilian_portuguese(client, settings):
     settings.LANGUAGE_CODE = "en"
     client.cookies[settings.LANGUAGE_COOKIE_NAME] = "pt"
