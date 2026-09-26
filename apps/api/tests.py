@@ -14,6 +14,7 @@ from PIL import Image
 
 from apps.accounts.models import API_TOKEN_HEX_LENGTH
 from apps.achievements.models import Achievement, UserUnlock
+from apps.anticheat.detection import award_validation_hash, leaderboard_validation_hash
 from apps.api.auth import is_expired_token, user_from_token
 from apps.api.handlers import (
     ACHIEVEMENT_FLAGS_CORE,
@@ -511,6 +512,30 @@ def test_gameid_is_case_insensitive(client, game_with_hash):
 
 
 PLAYER_USERNAME = "player"
+
+
+def _award_params(token, achievement_id, hardcore):
+    """An awardachievement by the player, signed with `v` as rcheevos signs it."""
+    return {
+        "r": "awardachievement",
+        "u": PLAYER_USERNAME,
+        "t": token,
+        "a": achievement_id,
+        "h": hardcore,
+        "v": award_validation_hash(achievement_id, PLAYER_USERNAME, hardcore == "1", 0),
+    }
+
+
+def _lbentry_params(token, leaderboard_id, score):
+    """A submitlbentry by the player, signed with `v` as rcheevos signs it."""
+    return {
+        "r": "submitlbentry",
+        "u": PLAYER_USERNAME,
+        "t": token,
+        "i": leaderboard_id,
+        "s": score,
+        "v": leaderboard_validation_hash(leaderboard_id, PLAYER_USERNAME, score, 0),
+    }
 
 
 @pytest.fixture
@@ -1096,7 +1121,7 @@ def test_awardachievement_softcore_creates_unlock_and_points(
     achievement = game_with_achievements.achievements.get(title="Community One")
     response = client.post(
         "/dorequest.php",
-        {"r": "awardachievement", "u": PLAYER_USERNAME, "t": token, "a": achievement.pk, "h": "0"},
+        _award_params(token, achievement.pk, "0"),
     )
     data = response.json()
     assert data["Success"] is True
@@ -1113,13 +1138,7 @@ def test_awardachievement_softcore_creates_unlock_and_points(
 def test_awardachievement_is_idempotent(client, authed_user, game_with_achievements):
     user, token = authed_user
     achievement = game_with_achievements.achievements.get(title="Community One")
-    payload = {
-        "r": "awardachievement",
-        "u": PLAYER_USERNAME,
-        "t": token,
-        "a": achievement.pk,
-        "h": "0",
-    }
+    payload = _award_params(token, achievement.pk, "0")
     client.post("/dorequest.php", payload)
     response = client.post("/dorequest.php", payload)
     assert response.json()["Success"] is True
@@ -1138,7 +1157,7 @@ def test_awardachievement_hardcore_creates_both_unlocks(
     achievement = game_with_achievements.achievements.get(title="Verified One")
     response = client.post(
         "/dorequest.php",
-        {"r": "awardachievement", "u": PLAYER_USERNAME, "t": token, "a": achievement.pk, "h": "1"},
+        _award_params(token, achievement.pk, "1"),
     )
     data = response.json()
     assert data["Success"] is True
@@ -1157,7 +1176,7 @@ def test_awardachievement_remaining_decrements(client, authed_user, game_with_ac
     achievement = game_with_achievements.achievements.get(title="Community One")
     response = client.post(
         "/dorequest.php",
-        {"r": "awardachievement", "u": PLAYER_USERNAME, "t": token, "a": achievement.pk, "h": "0"},
+        _award_params(token, achievement.pk, "0"),
     )
     assert response.json()["AchievementsRemaining"] == 1
 
@@ -1177,16 +1196,7 @@ ACHIEVEMENT_UNPUBLISHED = {
 
 
 def _award(client, token, achievement_id, hardcore):
-    return client.post(
-        "/dorequest.php",
-        {
-            "r": "awardachievement",
-            "u": PLAYER_USERNAME,
-            "t": token,
-            "a": achievement_id,
-            "h": hardcore,
-        },
-    ).json()
+    return client.post("/dorequest.php", _award_params(token, achievement_id, hardcore)).json()
 
 
 @pytest.mark.django_db
@@ -1194,7 +1204,7 @@ def test_awardachievement_unknown_achievement(client, authed_user):
     _, token = authed_user
     response = client.post(
         "/dorequest.php",
-        {"r": "awardachievement", "u": PLAYER_USERNAME, "t": token, "a": 99999, "h": "0"},
+        _award_params(token, 99999, "0"),
     )
     assert response.json() == ACHIEVEMENT_NOT_FOUND
 
@@ -1204,7 +1214,7 @@ def test_awardachievement_invalid_achievement_param(client, authed_user):
     _, token = authed_user
     response = client.post(
         "/dorequest.php",
-        {"r": "awardachievement", "u": PLAYER_USERNAME, "t": token, "a": "abc", "h": "0"},
+        _award_params(token, "abc", "0"),
     )
     assert response.json() == ACHIEVEMENT_NOT_FOUND
 
@@ -1309,7 +1319,7 @@ def test_awardachievement_records_the_game_as_played(client, authed_user, game_w
 
     client.post(
         "/dorequest.php",
-        {"r": "awardachievement", "u": PLAYER_USERNAME, "t": token, "a": achievement.pk, "h": "1"},
+        _award_params(token, achievement.pk, "1"),
     )
 
     player_game = PlayerGame.objects.get(user=user, game=game_with_achievements)
@@ -1336,7 +1346,7 @@ def test_awardachievement_moves_last_played_only(client, authed_user, game_with_
 
     client.post(
         "/dorequest.php",
-        {"r": "awardachievement", "u": PLAYER_USERNAME, "t": token, "a": achievement.pk, "h": "0"},
+        _award_params(token, achievement.pk, "0"),
     )
 
     player_game = PlayerGame.objects.get(user=user)
@@ -1422,7 +1432,7 @@ def test_startsession_softcore_unlock_only_in_softcore_array(
     achievement = game_with_achievements.achievements.get(title="Community One")
     client.post(
         "/dorequest.php",
-        {"r": "awardachievement", "u": PLAYER_USERNAME, "t": token, "a": achievement.pk, "h": "0"},
+        _award_params(token, achievement.pk, "0"),
     )
     response = client.post(
         "/dorequest.php",
@@ -1441,7 +1451,7 @@ def test_startsession_hardcore_unlock_in_both_arrays(client, authed_user, game_w
     achievement = game_with_achievements.achievements.get(title="Verified One")
     client.post(
         "/dorequest.php",
-        {"r": "awardachievement", "u": PLAYER_USERNAME, "t": token, "a": achievement.pk, "h": "1"},
+        _award_params(token, achievement.pk, "1"),
     )
     response = client.post(
         "/dorequest.php",
@@ -1460,7 +1470,7 @@ def test_startsession_unlock_entry_shape(client, authed_user, game_with_achievem
     achievement = game_with_achievements.achievements.get(title="Community One")
     client.post(
         "/dorequest.php",
-        {"r": "awardachievement", "u": PLAYER_USERNAME, "t": token, "a": achievement.pk, "h": "0"},
+        _award_params(token, achievement.pk, "0"),
     )
     response = client.post(
         "/dorequest.php",
@@ -1898,7 +1908,7 @@ def test_submitlbentry_creates_entry(client, authed_user, game_with_leaderboards
     _, lb = game_with_leaderboards
     response = client.post(
         "/dorequest.php",
-        {"r": "submitlbentry", "u": PLAYER_USERNAME, "t": token, "i": lb.id, "s": 1234},
+        _lbentry_params(token, lb.id, 1234),
     )
     data = response.json()
     assert data["Success"] is True
@@ -1915,11 +1925,11 @@ def test_submitlbentry_keeps_best_when_worse(client, authed_user, game_with_lead
     # lower_is_better: 500 is better than 900.
     client.post(
         "/dorequest.php",
-        {"r": "submitlbentry", "u": PLAYER_USERNAME, "t": token, "i": lb.id, "s": 500},
+        _lbentry_params(token, lb.id, 500),
     )
     response = client.post(
         "/dorequest.php",
-        {"r": "submitlbentry", "u": PLAYER_USERNAME, "t": token, "i": lb.id, "s": 900},
+        _lbentry_params(token, lb.id, 900),
     )
     data = response.json()
     assert data["Response"]["Score"] == 900
@@ -1934,11 +1944,11 @@ def test_submitlbentry_updates_when_better(client, authed_user, game_with_leader
     _, lb = game_with_leaderboards
     client.post(
         "/dorequest.php",
-        {"r": "submitlbentry", "u": PLAYER_USERNAME, "t": token, "i": lb.id, "s": 900},
+        _lbentry_params(token, lb.id, 900),
     )
     response = client.post(
         "/dorequest.php",
-        {"r": "submitlbentry", "u": PLAYER_USERNAME, "t": token, "i": lb.id, "s": 500},
+        _lbentry_params(token, lb.id, 500),
     )
     assert response.json()["Response"]["BestScore"] == 500
     assert LeaderboardEntry.objects.get(leaderboard=lb, user=user).score == 500
@@ -1952,7 +1962,7 @@ def test_submitlbentry_top_entries_and_rank(client, authed_user, game_with_leade
     LeaderboardEntry.objects.create(leaderboard=lb, user=rival, score=300)
     response = client.post(
         "/dorequest.php",
-        {"r": "submitlbentry", "u": PLAYER_USERNAME, "t": token, "i": lb.id, "s": 800},
+        _lbentry_params(token, lb.id, 800),
     )
     resp = response.json()["Response"]
     # lower_is_better: rival (300) ranks above player (800).
@@ -1994,7 +2004,7 @@ def test_submitlbentry_top_entries_rank_ties_like_rank_info(
 
     resp = client.post(
         "/dorequest.php",
-        {"r": "submitlbentry", "u": PLAYER_USERNAME, "t": token, "i": lb.id, "s": submitted},
+        _lbentry_params(token, lb.id, submitted),
     ).json()["Response"]
 
     top = resp["TopEntries"]
@@ -2007,9 +2017,7 @@ def test_submitlbentry_top_entries_rank_ties_like_rank_info(
 @pytest.mark.django_db
 def test_submitlbentry_unknown_leaderboard(client, authed_user):
     _, token = authed_user
-    response = client.post(
-        "/dorequest.php", {"r": "submitlbentry", "u": PLAYER_USERNAME, "t": token, "i": 999, "s": 1}
-    )
+    response = client.post("/dorequest.php", _lbentry_params(token, 999, 1))
     data = response.json()
     assert data["Success"] is False
     assert data["Error"] == "Unknown leaderboard"

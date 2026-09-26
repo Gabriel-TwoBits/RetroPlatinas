@@ -22,6 +22,7 @@ from apps.achievements.management.commands.seed_crash1_level_achievements import
     build_mem_addr,
 )
 from apps.achievements.models import Achievement, CodeNote, UserUnlock
+from apps.anticheat.detection import award_validation_hash
 from apps.api.handlers import ACHIEVEMENT_FLAGS_CORE
 from apps.games.models import Console, Game, PlayerGame
 
@@ -243,6 +244,18 @@ def test_patch_exposes_seeded_level_achievements(client, seeded_game, player_tok
         assert MEM_ADDR_PATTERN.match(achievement["MemAddr"]), achievement["MemAddr"]
 
 
+def _award_params(user, token, achievement, hardcore):
+    """An awardachievement by `user`, signed with `v` as rcheevos signs it."""
+    return {
+        "r": "awardachievement",
+        "u": user.username,
+        "t": token,
+        "a": achievement.pk,
+        "h": hardcore,
+        "v": award_validation_hash(achievement.pk, user.username, hardcore == "1", 0),
+    }
+
+
 @pytest.mark.django_db
 def test_awardachievement_unlocks_seeded_achievement(client, seeded_game, player_token):
     user, token = player_token
@@ -250,7 +263,7 @@ def test_awardachievement_unlocks_seeded_achievement(client, seeded_game, player
 
     response = client.post(
         "/dorequest.php",
-        {"r": "awardachievement", "u": user.username, "t": token, "a": achievement.pk, "h": "0"},
+        _award_params(user, token, achievement, "0"),
     )
     data = response.json()
 
@@ -268,13 +281,7 @@ def test_awardachievement_unlocks_seeded_achievement(client, seeded_game, player
 def test_awardachievement_seeded_is_one_shot(client, seeded_game, player_token):
     user, token = player_token
     achievement = seeded_game.achievements.get(title="Jungle Rollers")
-    payload = {
-        "r": "awardachievement",
-        "u": user.username,
-        "t": token,
-        "a": achievement.pk,
-        "h": "0",
-    }
+    payload = _award_params(user, token, achievement, "0")
 
     client.post("/dorequest.php", payload)
     client.post("/dorequest.php", payload)
@@ -291,7 +298,7 @@ def test_awardachievement_seeded_hardcore_creates_both_unlocks(client, seeded_ga
 
     client.post(
         "/dorequest.php",
-        {"r": "awardachievement", "u": user.username, "t": token, "a": achievement.pk, "h": "1"},
+        _award_params(user, token, achievement, "1"),
     )
 
     assert UserUnlock.objects.filter(user=user, achievement=achievement, hardcore=False).exists()
@@ -477,16 +484,7 @@ def unlocked_community_and_verified(client, game, user, player_token):
         status=Achievement.STATUS_VERIFIED,
     )
     for achievement, hardcore in ((community, "1"), (verified, "0")):
-        client.post(
-            "/dorequest.php",
-            {
-                "r": "awardachievement",
-                "u": player.username,
-                "t": token,
-                "a": achievement.pk,
-                "h": hardcore,
-            },
-        )
+        client.post("/dorequest.php", _award_params(player, token, achievement, hardcore))
     assert _points_of(player) == (COMMUNITY_POINTS + VERIFIED_POINTS, COMMUNITY_POINTS)
     return player, community
 

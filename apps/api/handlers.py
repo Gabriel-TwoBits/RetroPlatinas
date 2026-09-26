@@ -11,6 +11,13 @@ from django.utils import timezone
 
 from apps.accounts.models import API_TOKEN_BYTES
 from apps.achievements.models import Achievement, UserUnlock
+from apps.anticheat.detection import (
+    award_validation_hash,
+    flag,
+    leaderboard_validation_hash,
+    signature_matches,
+)
+from apps.anticheat.models import SuspiciousActivity
 from apps.api.auth import is_expired_token, user_from_token
 from apps.games.models import RICH_PRESENCE_MAX_LENGTH, Console, Game, GameHash, PlayerGame
 from apps.images.catalog import (
@@ -120,6 +127,27 @@ def _uint_param(request, name, default=None):
         return int(raw), None
     else:
         return None, _invalid_parameter(f"Invalid {name}: expected an unsigned integer.")
+
+
+def _signature_error(request, user, expected, **detail):
+    """`None` when `v` is `expected`; else the protocol error, with the attempt flagged."""
+    received = request.POST.get("v", "")
+    if received == "":
+        reason = "missing"
+        error = _MISSING_PARAMETER
+    elif signature_matches(expected, received):
+        return None
+    else:
+        reason = "mismatch"
+        error = _invalid_parameter("Invalid v: the validation hash does not match.")
+    flag(
+        user,
+        SuspiciousActivity.Kind.INVALID_SIGNATURE,
+        action=request.POST.get("r", ""),
+        reason=reason,
+        **detail,
+    )
+    return error
 
 
 # Image URLs are absolute: a missing one makes rcheevos fall back to RetroAchievements' host.
@@ -442,6 +470,11 @@ def _remaining_in_set(user, game, hardcore):
     return max(total - unlocked, 0)
 
 
+# rc_client retries an unlock until the server takes it, sending `o`, the seconds since the
+# unlock; an unlock claimed to be older than this is dated this far back.
+UNLOCK_MAX_AGE = timedelta(days=1)
+
+
 def handle_awardachievement(request):
     user, error = _authenticate(request)
     if error is not None:
@@ -452,6 +485,29 @@ def handle_awardachievement(request):
     except (ValueError, TypeError):
         return _ACHIEVEMENT_NOT_FOUND
 
+    hardcore, error = _flag_param(request, "h")
+    if error is not None:
+        return error
+    # An absent `h` is a softcore unlock, signed as `0`.
+    hardcore = hardcore is True
+    seconds_since_unlock, error = _uint_param(request, "o", default=0)
+    if error is not None:
+        return error
+
+    expected = award_validation_hash(
+        achievement_id, request.POST.get("u", ""), hardcore, seconds_since_unlock
+    )
+    error = _signature_error(
+        request,
+        user,
+        expected,
+        achievement_id=achievement_id,
+        hardcore=hardcore,
+        seconds_since_unlock=seconds_since_unlock,
+    )
+    if error is not None:
+        return error
+
     # Another user's draft answers as unknown, so drafts stay invisible to everyone but the author.
     achievement = (
         _achievements_visible_to(user).select_related("game").filter(pk=achievement_id).first()
@@ -461,26 +517,32 @@ def handle_awardachievement(request):
     if achievement.status not in Achievement.PUBLISHED_STATUSES:
         return _ACHIEVEMENT_UNPUBLISHED
 
-    hardcore = request.POST.get("h", "0") == "1"
+    now = timezone.now()
+    unlocked_at = now - min(timedelta(seconds=seconds_since_unlock), UNLOCK_MAX_AGE)
 
     with transaction.atomic():
         locked_user = user.__class__.objects.select_for_update().get(pk=user.pk)
 
         _, softcore_created = UserUnlock.objects.get_or_create(
-            user=locked_user, achievement=achievement, hardcore=False
+            user=locked_user,
+            achievement=achievement,
+            hardcore=False,
+            defaults={"unlocked_at": unlocked_at},
         )
         if softcore_created:
             locked_user.softcore_points += achievement.points
 
         if hardcore:
             _, hardcore_created = UserUnlock.objects.get_or_create(
-                user=locked_user, achievement=achievement, hardcore=True
+                user=locked_user,
+                achievement=achievement,
+                hardcore=True,
+                defaults={"unlocked_at": unlocked_at},
             )
             if hardcore_created:
                 locked_user.hardcore_points += achievement.points
 
         locked_user.save(update_fields=["softcore_points", "hardcore_points"])
-        now = timezone.now()
         PlayerGame.objects.update_or_create(
             user=locked_user,
             game=achievement.game,
@@ -567,14 +629,34 @@ def handle_submitlbentry(request):
     except (ValueError, TypeError):
         return {"Success": False, "Error": "Unknown leaderboard"}
 
-    leaderboard = Leaderboard.objects.filter(pk=leaderboard_id).first()
-    if leaderboard is None:
-        return {"Success": False, "Error": "Unknown leaderboard"}
-
     try:
         score = int(request.POST.get("s", ""))
     except (ValueError, TypeError):
         return {"Success": False, "Error": "Invalid score"}
+
+    # `o` (seconds since the leaderboard completed) only enters the signature: an entry keeps
+    # the time it reached the server.
+    seconds_since_completion, error = _uint_param(request, "o", default=0)
+    if error is not None:
+        return error
+
+    expected = leaderboard_validation_hash(
+        leaderboard_id, request.POST.get("u", ""), score, seconds_since_completion
+    )
+    error = _signature_error(
+        request,
+        user,
+        expected,
+        leaderboard_id=leaderboard_id,
+        score=score,
+        seconds_since_completion=seconds_since_completion,
+    )
+    if error is not None:
+        return error
+
+    leaderboard = Leaderboard.objects.filter(pk=leaderboard_id).first()
+    if leaderboard is None:
+        return {"Success": False, "Error": "Unknown leaderboard"}
 
     with transaction.atomic():
         entry, created = LeaderboardEntry.objects.get_or_create(
