@@ -1,3 +1,4 @@
+import io
 import json
 import logging
 from datetime import timedelta
@@ -7,7 +8,9 @@ from unittest.mock import patch
 import pytest
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.utils import timezone
+from PIL import Image
 
 from apps.accounts.models import API_TOKEN_HEX_LENGTH
 from apps.achievements.models import Achievement, UserUnlock
@@ -16,7 +19,6 @@ from apps.api.handlers import (
     ACHIEVEMENT_FLAGS_CORE,
     ACHIEVEMENT_FLAGS_UNOFFICIAL,
     API_TOKEN_LIFETIME,
-    DEFAULT_GAME_ICON_PATH,
     GAMEINFOLIST_MAX_IDS,
     HANDLERS,
     LBINFO_DEFAULT_COUNT,
@@ -25,6 +27,14 @@ from apps.api.handlers import (
     _rarity,
 )
 from apps.games.models import MD5_HEX_DIGITS, Console, Game, GameHash
+from apps.images.catalog import (
+    VERSION_PARAM,
+    avatar_path,
+    badge_path,
+    game_icon_path,
+    versioned_game_icon_path,
+)
+from apps.images.rendering import BADGE_SIZE_PX
 from apps.leaderboards.models import Leaderboard, LeaderboardEntry
 
 User = get_user_model()
@@ -642,7 +652,7 @@ def test_patch_response_shape(client, authed_user, game_with_achievements):
     assert patch_data["ID"] == game.pk
     assert patch_data["Title"] == game.title
     assert patch_data["ConsoleID"] == game.console.ra_id
-    assert patch_data["ImageIcon"] == DEFAULT_GAME_ICON_PATH
+    assert patch_data["ImageIcon"] == f"/Images/{game.pk:06d}.png"
     assert "RichPresencePatch" in patch_data
     assert "Achievements" in patch_data
     assert patch_data["Leaderboards"] == []
@@ -1690,7 +1700,7 @@ def test_lbinfo_serves_leaderboard_data_without_authentication(client, game_with
     submitted = LeaderboardEntry.objects.get(leaderboard=lb, user__username="p1").submitted_at
     assert first == {
         "User": "p1",
-        "AvatarUrl": "http://testserver/UserPic/p1.png",
+        "AvatarUrl": f"http://testserver{avatar_path('p1')}",
         "DateSubmitted": int(submitted.timestamp()),
         "Score": 100,
         "Rank": 1,
@@ -1856,7 +1866,9 @@ def test_lbinfo_unknown_leaderboard(client):
 
 # --- systemgames / gameinfolist / hashlibrary ---
 
-DEFAULT_GAME_ICON_URL = f"http://testserver{DEFAULT_GAME_ICON_PATH}"
+
+def _icon_url(game):
+    return f"http://testserver{versioned_game_icon_path(game)}"
 
 
 @pytest.fixture
@@ -1887,8 +1899,8 @@ def test_systemgames_lists_the_consoles_games_without_authentication(client, cat
             {
                 "ID": apeescape.pk,
                 "Title": "Ape Escape",
-                "ImageIcon": DEFAULT_GAME_ICON_PATH,
-                "ImageUrl": DEFAULT_GAME_ICON_URL,
+                "ImageIcon": game_icon_path(apeescape),
+                "ImageUrl": _icon_url(apeescape),
                 "NumAchievements": 0,
                 "NumLeaderboards": 0,
                 "Points": 0,
@@ -1897,8 +1909,8 @@ def test_systemgames_lists_the_consoles_games_without_authentication(client, cat
             {
                 "ID": crash.pk,
                 "Title": "Crash Bandicoot",
-                "ImageIcon": DEFAULT_GAME_ICON_PATH,
-                "ImageUrl": DEFAULT_GAME_ICON_URL,
+                "ImageIcon": game_icon_path(crash),
+                "ImageUrl": _icon_url(crash),
                 "NumAchievements": 2,
                 "NumLeaderboards": 2,
                 "Points": 35,
@@ -1935,8 +1947,8 @@ def test_gameinfolist_serves_the_requested_games(client, catalogue):
             {
                 "ID": game.pk,
                 "Title": game.title,
-                "ImageIcon": DEFAULT_GAME_ICON_PATH,
-                "ImageUrl": DEFAULT_GAME_ICON_URL,
+                "ImageIcon": game_icon_path(game),
+                "ImageUrl": _icon_url(game),
             }
             for game in sorted([crash, mario], key=lambda game: game.pk)
         ],
@@ -2014,3 +2026,93 @@ def test_hashlibrary_unknown_console(client, catalogue):
 @pytest.mark.django_db
 def test_hashlibrary_invalid_console(client):
     assert _info(client, "hashlibrary", c="snes") == _invalid_parameter("c")
+
+
+# --- image URLs ---
+
+
+def _set_request(client, action, token, game):
+    return client.post(
+        "/dorequest.php", {"r": action, "u": PLAYER_USERNAME, "t": token, "g": game.pk}
+    ).json()
+
+
+def _png_upload(name):
+    buffer = io.BytesIO()
+    Image.new("RGBA", (BADGE_SIZE_PX, BADGE_SIZE_PX), "red").save(buffer, format="PNG")
+    return SimpleUploadedFile(name, buffer.getvalue(), content_type="image/png")
+
+
+def _assert_badge_urls(achievement_payloads):
+    assert achievement_payloads
+    for payload in achievement_payloads:
+        achievement = Achievement.objects.get(pk=payload["ID"])
+        assert payload["BadgeURL"] == f"http://testserver{badge_path(achievement)}"
+        assert payload["BadgeLockedURL"] == (
+            f"http://testserver{badge_path(achievement, locked=True)}"
+        )
+        assert f"?{VERSION_PARAM}=" in payload["BadgeURL"]
+        assert f"?{VERSION_PARAM}=" in payload["BadgeLockedURL"]
+
+
+@pytest.mark.django_db
+def test_patch_serves_absolute_versioned_image_urls(client, authed_user, game_with_achievements):
+    _, token = authed_user
+    game = game_with_achievements
+
+    patch_data = _set_request(client, "patch", token, game)["PatchData"]
+
+    _assert_badge_urls(patch_data["Achievements"])
+    assert patch_data["ImageIconURL"] == f"http://testserver{versioned_game_icon_path(game)}"
+
+
+@pytest.mark.django_db
+def test_achievementsets_serves_absolute_versioned_image_urls(
+    client, authed_user, game_with_achievements
+):
+    _, token = authed_user
+    game = game_with_achievements
+
+    data = _set_request(client, "achievementsets", token, game)
+
+    icon_url = f"http://testserver{versioned_game_icon_path(game)}"
+    assert data["ImageIconUrl"] == icon_url
+    assert data["Sets"][0]["ImageIconUrl"] == icon_url
+    _assert_badge_urls(data["Sets"][0]["Achievements"])
+
+
+def _badge_urls(data):
+    return {a["ID"]: (a["BadgeURL"], a["BadgeLockedURL"]) for a in data["Sets"][0]["Achievements"]}
+
+
+@pytest.mark.django_db
+def test_set_image_urls_change_when_art_is_uploaded(
+    client, settings, tmp_path, authed_user, game_with_achievements
+):
+    settings.MEDIA_ROOT = tmp_path
+    _, token = authed_user
+    game = game_with_achievements
+    before = _set_request(client, "achievementsets", token, game)
+    uploaded = game.achievements.get(title="Verified One")
+    uploaded.badge = _png_upload("verified.png")
+    uploaded.save()
+    game.icon = _png_upload("crash.png")
+    game.save()
+
+    after = _set_request(client, "achievementsets", token, game)
+
+    assert after["ImageIconUrl"] != before["ImageIconUrl"]
+    old_urls = _badge_urls(before)
+    for achievement_id, (url, locked_url) in _badge_urls(after).items():
+        badge_changed = achievement_id == uploaded.pk
+        assert (url != old_urls[achievement_id][0]) is badge_changed
+        assert (locked_url != old_urls[achievement_id][1]) is badge_changed
+
+
+@pytest.mark.django_db
+def test_login2_serves_an_absolute_avatar_url(client):
+    User.objects.create_user(username="alice", password="valid-pw-123")
+
+    data = _info(client, "login2", u="alice", p="valid-pw-123")
+
+    assert data["AvatarUrl"] == f"http://testserver{avatar_path('alice')}"

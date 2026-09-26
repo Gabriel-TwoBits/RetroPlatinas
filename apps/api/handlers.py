@@ -3,7 +3,6 @@ import re
 import secrets
 from datetime import timedelta
 from http import HTTPStatus
-from urllib.parse import quote
 
 from django.contrib.auth import authenticate
 from django.core.cache import cache
@@ -15,6 +14,13 @@ from apps.accounts.models import API_TOKEN_BYTES
 from apps.achievements.models import Achievement, UserUnlock
 from apps.api.auth import is_expired_token, user_from_token
 from apps.games.models import Console, Game, GameHash
+from apps.images.catalog import (
+    avatar_path,
+    badge_name,
+    badge_path,
+    game_icon_path,
+    versioned_game_icon_path,
+)
 from apps.leaderboards.models import Leaderboard, LeaderboardEntry
 
 logger = logging.getLogger("apps.api")
@@ -64,9 +70,7 @@ ACHIEVEMENT_FLAGS_CORE = 3
 ACHIEVEMENT_FLAGS_UNOFFICIAL = 5
 
 PRESENCE_TTL_SECONDS = 300
-DEFAULT_GAME_ICON_PATH = "/Images/000001.png"
 API_TOKEN_LIFETIME = timedelta(days=14)
-BADGE_NAME_DIGITS = 5
 PERCENT = 100
 # rcheevos' JSON parser reads plain decimals only: `1e-05` would not parse.
 RARITY_DECIMAL_PLACES = 2
@@ -107,9 +111,13 @@ def _uint_param(request, name, default=None):
         return None, _invalid_parameter(f"Invalid {name}: expected an unsigned integer.")
 
 
+# Image URLs are absolute: a missing one makes rcheevos fall back to RetroAchievements' host.
 def _user_avatar_url(request, username):
-    """Absolute URL of the RA-compatible avatar path, so clients never fall back to RA's host."""
-    return request.build_absolute_uri(f"/UserPic/{quote(username)}.png")
+    return request.build_absolute_uri(avatar_path(username))
+
+
+def _game_icon_url(request, game):
+    return request.build_absolute_uri(versioned_game_icon_path(game))
 
 
 def _authenticate(request):
@@ -160,6 +168,7 @@ def handle_login2(request):
         "SoftcoreScore": user.softcore_points,
         "Messages": 0,
         "AccountType": "Registered",
+        "AvatarUrl": _user_avatar_url(request, user.username),
     }
 
 
@@ -243,7 +252,7 @@ def _achievement_flags(achievement):
         raise ValueError(f"Achievement {achievement.pk} has unknown status {achievement.status!r}")
 
 
-def _serialize_achievement(a, players):
+def _serialize_achievement(request, a, players):
     flags = _achievement_flags(a)
     if flags == ACHIEVEMENT_FLAGS_CORE:
         rarity = _rarity(a.unlockers, players)
@@ -260,24 +269,14 @@ def _serialize_achievement(a, players):
         "Author": a.author.username,
         "Modified": int(a.updated_at.timestamp()),
         "Created": int(a.created_at.timestamp()),
-        "BadgeName": f"{a.id:0{BADGE_NAME_DIGITS}d}",
+        "BadgeName": badge_name(a),
+        "BadgeURL": request.build_absolute_uri(badge_path(a)),
+        "BadgeLockedURL": request.build_absolute_uri(badge_path(a, locked=True)),
         "Flags": flags,
         "Type": a.type,
         "Rarity": rarity,
         "RarityHardcore": rarity_hardcore,
     }
-
-
-def _game_icon_path(game):
-    """The icon's path; clients read the badge name from its filename."""
-    if game.icon:
-        return game.icon.url
-    else:
-        return DEFAULT_GAME_ICON_PATH
-
-
-def _game_icon_url(request, game):
-    return request.build_absolute_uri(_game_icon_path(game))
 
 
 def _serialize_leaderboard(lb):
@@ -309,9 +308,10 @@ def handle_patch(request):
             "ID": game.pk,
             "Title": game.title,
             "ConsoleID": game.console.ra_id,
-            "ImageIcon": _game_icon_path(game),
+            "ImageIcon": game_icon_path(game),
+            "ImageIconURL": _game_icon_url(request, game),
             "RichPresencePatch": game.rich_presence_patch,
-            "Achievements": [_serialize_achievement(a, players) for a in achievements],
+            "Achievements": [_serialize_achievement(request, a, players) for a in achievements],
             "Leaderboards": [_serialize_leaderboard(lb) for lb in game.leaderboards.all()],
         },
     }
@@ -351,7 +351,7 @@ def handle_achievementsets(request):
                 "Title": game.title,
                 "Type": "core",
                 "ImageIconUrl": icon_url,
-                "Achievements": [_serialize_achievement(a, players) for a in achievements],
+                "Achievements": [_serialize_achievement(request, a, players) for a in achievements],
                 "Leaderboards": [_serialize_leaderboard(lb) for lb in game.leaderboards.all()],
             }
         ],
@@ -683,7 +683,7 @@ def handle_systemgames(request):
             {
                 "ID": game.pk,
                 "Title": game.title,
-                "ImageIcon": _game_icon_path(game),
+                "ImageIcon": game_icon_path(game),
                 "ImageUrl": _game_icon_url(request, game),
                 "NumAchievements": totals["count"],
                 "NumLeaderboards": leaderboard_counts.get(game.pk, 0),
@@ -719,7 +719,7 @@ def handle_gameinfolist(request):
             {
                 "ID": game.pk,
                 "Title": game.title,
-                "ImageIcon": _game_icon_path(game),
+                "ImageIcon": game_icon_path(game),
                 "ImageUrl": _game_icon_url(request, game),
             }
             for game in games
