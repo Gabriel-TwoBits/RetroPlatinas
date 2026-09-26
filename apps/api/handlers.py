@@ -440,18 +440,31 @@ def _rank_of(leaderboard, score):
     return leaderboard.entries.filter(**{better: score}).count() + 1
 
 
-def _top_entries(leaderboard):
+def _ranked_entries(leaderboard, offset, count):
+    """`(index, rank, entry)` for `count` entries after the first `offset`, best first.
+
+    `index` is the 1-based position on the board; tied scores share the competition rank
+    `_rank_of` gives them.
+    """
     order = "score" if leaderboard.lower_is_better else "-score"
-    ranked = leaderboard.entries.select_related("user").order_by(order, "submitted_at")
-    top_entries = []
-    for position, entry in enumerate(ranked[:TOP_ENTRIES_LIMIT], start=1):
-        # Tied scores share the rank of the first of them, as `_rank_of` counts it.
-        if top_entries and top_entries[-1]["Score"] == entry.score:
-            rank = top_entries[-1]["Rank"]
+    board = leaderboard.entries.select_related("user").order_by(order, "submitted_at", "id")
+    ranked = []
+    for index, entry in enumerate(board[offset : offset + count], start=offset + 1):
+        if ranked and ranked[-1][2].score == entry.score:
+            rank = ranked[-1][1]
+        elif ranked:
+            rank = index
         else:
-            rank = position
-        top_entries.append({"User": entry.user.username, "Score": entry.score, "Rank": rank})
-    return top_entries
+            rank = _rank_of(leaderboard, entry.score)
+        ranked.append((index, rank, entry))
+    return ranked
+
+
+def _top_entries(leaderboard):
+    return [
+        {"User": entry.user.username, "Score": entry.score, "Rank": rank}
+        for _, rank, entry in _ranked_entries(leaderboard, 0, TOP_ENTRIES_LIMIT)
+    ]
 
 
 def handle_submitlbentry(request):
