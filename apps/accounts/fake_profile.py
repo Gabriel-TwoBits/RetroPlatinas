@@ -14,6 +14,7 @@ _MOBILE_BAR_SPAN_PX = 52
 _MIN_HEAT_OPACITY = 0.35
 _HEAT_OPACITY_SPAN = 0.65
 _FULL_OPACITY = "1"
+_PERCENT = 100
 
 
 def _unlocalized_opacity(intensity):
@@ -63,9 +64,9 @@ def _consoles():
             {
                 **console,
                 "total": total,
-                "not_pct": f"{console['not_done'] / total * 100:.1f}%",
-                "beaten_pct": f"{console['beaten'] / total * 100:.1f}%",
-                "plat_pct": f"{console['plat'] / total * 100:.1f}%",
+                "not_pct": f"{console['not_done'] / total * _PERCENT:.1f}%",
+                "beaten_pct": f"{console['beaten'] / total * _PERCENT:.1f}%",
+                "plat_pct": f"{console['plat'] / total * _PERCENT:.1f}%",
             }
         )
     return out
@@ -164,17 +165,22 @@ def _completion():
         {"initials": "FZ", "title": "Fungus Zone", "tag": "GBA", "a": 9, "t": 27},
     ]
     for game in raw:
-        game["pct"] = round(game["a"] / game["t"] * 100)
+        game["pct"] = round(game["a"] / game["t"] * _PERCENT)
         game["done"] = game["a"] == game["t"]
         game["bar_tone"] = "state-platinum" if game["done"] else "brand"
     return raw
 
 
+_GAME_AWARDS_SHOWN = 24
+_GAME_AWARDS_TOTAL = 58
+_PLATINUM_EVERY_NTH_AWARD = 3
+
+
 def _game_awards():
     inis = ["SQ", "KR", "MK", "AR", "TC", "ZL", "BM", "FZ"]
     awards = []
-    for i in range(24):
-        plat = i % 3 == 0
+    for i in range(_GAME_AWARDS_SHOWN):
+        plat = i % _PLATINUM_EVERY_NTH_AWARD == 0
         awards.append(
             {
                 "ini": inis[i % len(inis)],
@@ -186,6 +192,7 @@ def _game_awards():
 
 def fake_profile_context(user):
     completion = _completion()
+    game_awards = _game_awards()
     return {
         "profile_user": user,
         "bio": "Platinum hunter since the cartridge days. RPGs and 16-bit platformers.",
@@ -228,8 +235,8 @@ def fake_profile_context(user):
             {"ini": "M16", "name": "16-bit Marathon", "when": "mar/2025", "tone": "brand"},
             {"ini": "DC", "name": "Devlog Challenge", "when": "nov/2024", "tone": "state-platinum"},
         ],
-        "game_awards": _game_awards(),
-        "game_awards_more": 34,
+        "game_awards": game_awards,
+        "game_awards_more": _GAME_AWARDS_TOTAL - len(game_awards),
         "wall": [
             {
                 "ini": "MK",
