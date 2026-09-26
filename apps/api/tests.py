@@ -92,6 +92,27 @@ def test_dorequest_unknown_action(client):
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize(
+    ("action", "param"), [("login2", "u"), ("gameid", "m"), ("ping", "m"), ("ping", "t")]
+)
+def test_dorequest_rejects_a_nul_in_any_parameter(client, authed_user, action, param):
+    _, token = authed_user
+    params = {"r": action, "u": PLAYER_USERNAME, "t": token, "p": "pw", "g": "1", "m": "Beach"}
+    params[param] = "a\x00b"
+
+    response = client.post("/dorequest.php", params)
+
+    assert response.status_code == HTTPStatus.OK
+    assert response.json() == {
+        "Success": False,
+        "Error": "Parameters cannot contain NUL characters.",
+        "Status": HTTPStatus.UNPROCESSABLE_ENTITY,
+        "Code": "invalid_parameter",
+    }
+    assert not PlayerGame.objects.exists()
+
+
+@pytest.mark.django_db
 @pytest.mark.parametrize("action", STUB_ACTIONS)
 def test_all_handlers_stubbed(client, action):
     response = client.post("/dorequest.php", {"r": action})

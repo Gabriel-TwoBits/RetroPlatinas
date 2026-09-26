@@ -7,7 +7,7 @@ from django.http import Http404, HttpResponseNotAllowed, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
-from apps.api.handlers import HANDLERS
+from apps.api.handlers import HANDLERS, _invalid_parameter
 from apps.games.models import PlayerGame
 
 logger = logging.getLogger("apps.api")
@@ -20,6 +20,14 @@ _SERVER_ERROR = {
     "Status": HTTPStatus.SERVICE_UNAVAILABLE,
 }
 
+# rc_client builds every parameter from a C string, so a NUL never comes from it, and Postgres
+# rejects NUL in text: a query or save carrying one would fail as a server error.
+NUL = "\x00"
+
+
+def _has_nul(params):
+    return any(NUL in value for _, values in params.lists() for value in values)
+
 
 @csrf_exempt
 @require_POST
@@ -30,6 +38,8 @@ def dorequest(request):
     handler = HANDLERS.get(action)
     if handler is None:
         return JsonResponse({"Success": False, "Error": f"Unknown action: {action}"})
+    elif _has_nul(request.POST):
+        return JsonResponse(_invalid_parameter("Parameters cannot contain NUL characters."))
     try:
         return JsonResponse(handler(request))
     except Exception:
