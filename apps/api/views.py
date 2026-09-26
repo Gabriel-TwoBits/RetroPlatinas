@@ -9,7 +9,7 @@ from apps.api.handlers import HANDLERS
 
 logger = logging.getLogger("apps.api")
 
-# rc_client retries an unlock or leaderboard submission on 503 (and a few other 5xx),
+# rc_client retries an unlock or leaderboard submission on 503 (and a few other statuses),
 # never on Django's HTML 500, which would lose it.
 _SERVER_ERROR = {
     "Success": False,
