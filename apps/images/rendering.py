@@ -8,6 +8,8 @@ from PIL import Image, ImageDraw, ImageEnhance, ImageOps
 # RA's conventional sizes: 64×64 badges, 96×96 game icons.
 BADGE_SIZE_PX = 64
 GAME_ICON_SIZE_PX = 96
+# Size the admin change lists shrink badges and game icons to.
+ADMIN_LIST_THUMBNAIL_PX = 32
 
 # Design tokens from tailwind.config.js, named in the trailing comments.
 PLACEHOLDER_FILL_COLOR = "#1e2531"  # `surface2`

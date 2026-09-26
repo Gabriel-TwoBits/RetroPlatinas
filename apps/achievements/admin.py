@@ -10,14 +10,13 @@ from django.utils.translation import ngettext
 
 from apps.achievements.models import Achievement, CodeNote, UserUnlock
 from apps.images.catalog import badge_path
-from apps.images.rendering import BADGE_SIZE_PX
+from apps.images.rendering import ADMIN_LIST_THUMBNAIL_PX, BADGE_SIZE_PX
 
 _STATUS_COLORS = {
     Achievement.STATUS_DRAFT: "#888888",
     Achievement.STATUS_COMMUNITY: "#d97706",
     Achievement.STATUS_VERIFIED: "#16a34a",
 }
-ADMIN_LIST_THUMBNAIL_PX = 32
 
 
 def _badge_img(achievement, locked, size):

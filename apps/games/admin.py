@@ -5,9 +5,7 @@ from django.utils.translation import gettext_lazy as _
 
 from apps.games.models import Console, Game, GameHash
 from apps.images.catalog import versioned_game_icon_path
-from apps.images.rendering import GAME_ICON_SIZE_PX
-
-ADMIN_LIST_THUMBNAIL_PX = 32
+from apps.images.rendering import ADMIN_LIST_THUMBNAIL_PX, GAME_ICON_SIZE_PX
 
 
 def _icon_img(game, size):
