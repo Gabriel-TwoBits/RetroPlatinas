@@ -436,13 +436,32 @@ def test_unlocks_below_the_burst_threshold_are_not_flagged(client, player, game)
 
 
 @pytest.mark.django_db
-def test_unlocks_dated_before_the_burst_window_do_not_count(client, player, game):
+def test_unlocks_dated_back_by_o_still_count_toward_a_burst(client, player, game):
     long_ago = int(UNLOCK_BURST_WINDOW.total_seconds()) + 1
     for achievement in _achievements(game, player, UNLOCK_BURST_THRESHOLD):
         _signed_award(client, achievement, seconds_since_unlock=long_ago)
 
-    assert UserUnlock.objects.filter(user=player).count() == UNLOCK_BURST_THRESHOLD
-    assert not SuspiciousActivity.objects.exists()
+    assert _kinds(player) == [SuspiciousActivity.Kind.UNLOCK_BURST]
+
+
+@pytest.mark.django_db
+def test_hardcore_unlocks_of_a_set_owned_in_softcore_count_toward_a_burst(client, player, game):
+    achievements = _achievements(game, player, UNLOCK_BURST_THRESHOLD)
+    UserUnlock.objects.bulk_create(
+        UserUnlock(
+            user=player,
+            achievement=achievement,
+            hardcore=False,
+            unlocked_at=timezone.now() - UNLOCK_BURST_WINDOW,
+        )
+        for achievement in achievements
+    )
+
+    for achievement in achievements:
+        v = award_validation_hash(achievement.pk, PLAYER, True, 0)
+        assert _award(client, a=achievement.pk, h="1", v=v).json()["Success"] is True
+
+    assert _kinds(player) == [SuspiciousActivity.Kind.UNLOCK_BURST]
 
 
 @pytest.mark.django_db

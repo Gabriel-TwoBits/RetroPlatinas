@@ -7,7 +7,6 @@ from datetime import timedelta
 
 from django.core.cache import cache
 
-from apps.achievements.models import UserUnlock
 from apps.anticheat.models import SuspiciousActivity
 from apps.games.models import PlayerGame
 
@@ -19,6 +18,7 @@ AWARD_RATE_KEY = "anticheat:award-attempts:{user_id}"
 # This many achievements of one game unlocked within the window is flagged.
 UNLOCK_BURST_THRESHOLD = 10
 UNLOCK_BURST_WINDOW = timedelta(minutes=1)
+UNLOCK_BURST_KEY = "anticheat:new-unlocks:{user_id}:{game_id}"
 
 # rcheevos skips achievements already true when the game loads, so an unlock this soon after
 # startsession needs a save state loaded near the trigger, or a forged request.
@@ -100,24 +100,20 @@ def award_rate_exceeded(user):
 
 def inspect_unlock(user, achievement, unlocked_at, now):
     """Flags a new unlock that completes a burst or comes right after its session started."""
-    _flag_unlock_burst(user, achievement.game_id, now)
+    _flag_unlock_burst(user, achievement.game_id)
     _flag_early_unlock(user, achievement, unlocked_at)
 
 
-def _flag_unlock_burst(user, game_id, now):
-    since = now - UNLOCK_BURST_WINDOW
-    # Every award creates the softcore unlock, so softcore rows count each achievement once.
-    unlocks = UserUnlock.objects.filter(
-        user=user, hardcore=False, achievement__game_id=game_id, unlocked_at__gte=since
-    ).count()
-    # One flag per burst: the unlocks that keep it going are not flagged again.
-    already_flagged = SuspiciousActivity.objects.filter(
-        user=user,
-        kind=SuspiciousActivity.Kind.UNLOCK_BURST,
-        detail__game_id=game_id,
-        created_at__gte=since,
+def _flag_unlock_burst(user, game_id):
+    # Counted as the unlocks arrive: their `unlocked_at` goes back by `o`, which whoever signs
+    # `v` chooses.
+    # TRADEOFF: the window opens on the first new unlock, so a burst straddling two windows is
+    # split between them; a sliding window (Redis sorted set) closes it.
+    unlocks = _count_in_window(
+        UNLOCK_BURST_KEY.format(user_id=user.pk, game_id=game_id), UNLOCK_BURST_WINDOW
     )
-    if unlocks >= UNLOCK_BURST_THRESHOLD and not already_flagged.exists():
+    # One flag per burst: the unlocks that keep it going are not flagged again.
+    if unlocks == UNLOCK_BURST_THRESHOLD:
         flag(
             user,
             SuspiciousActivity.Kind.UNLOCK_BURST,
