@@ -16,6 +16,7 @@ from apps.anticheat.detection import (
     EARLY_UNLOCK_WINDOW,
     UNLOCK_BURST_THRESHOLD,
     UNLOCK_BURST_WINDOW,
+    award_rate_exceeded,
     award_validation_hash,
     leaderboard_validation_hash,
 )
@@ -411,6 +412,19 @@ def test_rate_limit_lifts_when_the_window_ends(client, player, game):
     cache.delete(AWARD_RATE_KEY.format(user_id=player.pk))
 
     assert _signed_award(client, second).json()["Success"] is True
+
+
+@pytest.mark.django_db
+def test_rate_limit_window_recovers_a_counter_left_without_expiry(player):
+    # The state Redis INCR leaves when the key expires between `incr`'s existence check and
+    # the INCR itself: a counter with no expiry.
+    key = AWARD_RATE_KEY.format(user_id=player.pk)
+    cache.set(key, 0, timeout=None)
+
+    award_rate_exceeded(player)
+
+    redis = cache._cache.get_client(key)
+    assert 0 < redis.ttl(cache.make_and_validate_key(key)) <= AWARD_RATE_WINDOW.total_seconds()
 
 
 @pytest.mark.django_db

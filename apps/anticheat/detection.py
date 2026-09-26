@@ -62,28 +62,38 @@ def flag(user, kind, **detail):
     return SuspiciousActivity.objects.create(user=user, kind=kind, detail=detail)
 
 
+def _count_in_window(key, window):
+    """Counts one event under `key`: the events since the window opened, on the first of them."""
+    timeout = int(window.total_seconds())
+    if cache.add(key, 1, timeout=timeout):
+        return 1
+    try:
+        count = cache.incr(key)
+    except ValueError:
+        # The window expired between `add` and `incr`.
+        cache.set(key, 1, timeout=timeout)
+        return 1
+    if count == 1:
+        # The key expired between `incr`'s existence check and Redis INCR, which recreated it
+        # without an expiry; left so, the window would never close.
+        cache.touch(key, timeout)
+    return count
+
+
 def award_rate_exceeded(user):
     """Counts one award attempt by `user`: whether the window's attempts are past the limit.
 
     The first attempt past the limit is flagged, once per window.
     """
-    key = AWARD_RATE_KEY.format(user_id=user.pk)
-    window_seconds = int(AWARD_RATE_WINDOW.total_seconds())
     # TRADEOFF: fixed window, so a burst straddling two windows reaches twice the limit; a
     # sliding window (Redis sorted set) closes it.
-    cache.add(key, 0, timeout=window_seconds)
-    try:
-        attempts = cache.incr(key)
-    except ValueError:
-        # The window expired between `add` and `incr`.
-        cache.set(key, 1, timeout=window_seconds)
-        attempts = 1
+    attempts = _count_in_window(AWARD_RATE_KEY.format(user_id=user.pk), AWARD_RATE_WINDOW)
     if attempts == AWARD_RATE_LIMIT + 1:
         flag(
             user,
             SuspiciousActivity.Kind.RATE_LIMITED,
             limit=AWARD_RATE_LIMIT,
-            window_seconds=window_seconds,
+            window_seconds=int(AWARD_RATE_WINDOW.total_seconds()),
         )
     return attempts > AWARD_RATE_LIMIT
 
