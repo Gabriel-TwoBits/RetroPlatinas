@@ -242,6 +242,7 @@ def test_session_start_credits_nothing_and_clears_the_presence(player_game):
     assert player_game.last_rich_presence == ""
     assert player_game.last_ping_at == started
     assert player_game.last_played_at == started
+    assert player_game.session_started_at == started
 
     player_game.record_ping(started + RC_CLIENT_PING_INTERVAL)
     assert player_game.playtime_seconds == RC_CLIENT_PING_INTERVAL.total_seconds()

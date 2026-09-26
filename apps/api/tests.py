@@ -1495,6 +1495,7 @@ def test_startsession_records_the_first_session(client, authed_user, game_with_a
     player_game = PlayerGame.objects.get(user=user, game=game_with_achievements)
     assert player_game.first_played_at == player_game.last_played_at
     assert player_game.last_ping_at == player_game.last_played_at
+    assert player_game.session_started_at == player_game.last_played_at
     assert player_game.playtime_seconds == 0
     assert player_game.hardcore is False
 

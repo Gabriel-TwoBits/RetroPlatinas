@@ -134,6 +134,9 @@ class PlayerGame(models.Model):
         max_length=RICH_PRESENCE_MAX_LENGTH, blank=True, verbose_name=_("last rich presence")
     )
     last_ping_at = models.DateTimeField(null=True, blank=True, verbose_name=_("last ping at"))
+    session_started_at = models.DateTimeField(
+        null=True, blank=True, verbose_name=_("session started at")
+    )
     hardcore = models.BooleanField(default=False, verbose_name=_("hardcore session"))
 
     objects = PlayerGameQuerySet.as_manager()
@@ -160,6 +163,7 @@ class PlayerGame(models.Model):
         self.last_played_at = now
         self.last_rich_presence = ""
         self.last_ping_at = now
+        self.session_started_at = now
 
     def record_ping(self, now):
         """Marks the session live at `now`, crediting the time since the previous contact.
