@@ -31,6 +31,8 @@ RCHEEVOS_COMMIT_FILE = RCHEEVOS_DIR / "UPSTREAM-COMMIT"
 
 DISC_ENV = "CRASH1_CUE"
 BIOS_DIR_ENV = "CRASH1_BIOS_DIR"
+# TRADEOFF: the buildbot serves only each core's latest nightly, so a fresh cache may get a build
+# the committed plans were not searched on (plan.replay warns); a pinned core mirror would fix it.
 CORE_URL = "https://buildbot.libretro.com/nightly/linux/x86_64/latest/{core}_libretro.so.zip"
 DOWNLOAD_TIMEOUT_SECONDS = 120
 

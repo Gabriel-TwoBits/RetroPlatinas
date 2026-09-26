@@ -2,8 +2,8 @@
 
 An archive maps position cells to compressed save states; each iteration restores a rarely chosen
 cell and plays random 16-frame macros (plan.MACROS) from it. The winning plan starts from a named,
-derivable state, so it replays on any checkout. On the pcsx_rearmed interpreter it cleared
-N. Sanity Beach in about 16 minutes (1608 rollouts).
+derivable state, so it replays on any checkout running the core build it records. On the
+pcsx_rearmed interpreter it cleared N. Sanity Beach in about 16 minutes (1608 rollouts).
 
     python tools/achievement-harness/explore.py START_STATE OUT_PLAN [--iterations N] [--seed N]
 """

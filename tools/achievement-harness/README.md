@@ -31,7 +31,9 @@ produces is committed: cores, the compiled shim, states, traces and screenshots 
 On first use the harness needs network access:
 
 - **Cores** come from `https://buildbot.libretro.com/nightly/linux/x86_64/latest/<core>_libretro.so.zip`
-  into `.cache/achievement-harness/cores/`, once. Delete the file to fetch a newer build.
+  into `.cache/achievement-harness/cores/`, once. Delete the file to fetch a newer build. The
+  buildbot keeps only the latest nightly of each core, so the build is whatever is current on
+  first use; a plan replays frame-exactly only on the build it records (see *Caveats*).
 - **`libretro.h`** is fetched by `build.sh` from a pinned libretro-common commit and checked
   against its SHA-256. `build.sh` then compiles `src/harness.c` + `vendor/rcheevos` into
   `.cache/achievement-harness/build/libharness.so`; `harness.py` rebuilds it whenever a source is
@@ -77,8 +79,9 @@ no file, so the suite stays green without the disc.
 No save state is hand-made or committed. Each is a recipe in `states.py`: a parent state (or a cold
 boot) plus scripted navigation from `navigation.py`, which waits on RAM values, never on fixed
 delays. `states.load(emu, name)` restores the cached file or derives the whole chain, so every
-scenario and plan replays on a fresh checkout. A derived state is saved and loaded back before use,
-so a run behaves the same whether its state came from the cache or was derived moments earlier.
+scenario and plan replays on a fresh checkout that downloads the core build the plan records. A
+derived state is saved and loaded back before use, so a run behaves the same whether its state
+came from the cache or was derived moments earlier.
 
 | State | Parent | Where |
 | --- | --- | --- |
