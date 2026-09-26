@@ -248,7 +248,7 @@ msgstr "Pontos totais"
 #: templates/accounts/partials/identity-header.html:31
 #, python-format
 msgid "%(points_weighted)s weighted"
-msgstr "%(points_weighted)s ponderado"
+msgstr "%(points_weighted)s ponderados"
 
 #: templates/accounts/partials/identity-header.html:34
 msgid "Global rank"
@@ -283,7 +283,7 @@ msgstr "Platinas & prêmios de jogo"
 #: templates/accounts/partials/panel-games.html:3
 #: templates/accounts/partials/sec-recent-games.html:4
 msgid "Recently played"
-msgstr "Últimos jogos jogados"
+msgstr "Jogados recentemente"
 
 #: templates/accounts/partials/panel-overview.html:3
 msgid "Statistics"
@@ -300,7 +300,7 @@ msgstr "Progresso recente"
 
 #: templates/accounts/partials/panel-overview.html:34
 msgid "14d ago"
-msgstr "14d atrás"
+msgstr "há 14 dias"
 
 #: templates/accounts/partials/panel-overview.html:36
 #: templates/accounts/partials/sec-heat.html:12
@@ -310,7 +310,7 @@ msgstr "hoje"
 #: templates/accounts/partials/panel-progress.html:3
 #: templates/accounts/partials/sec-progression.html:4
 msgid "Progress by console"
-msgstr "Progressão por console"
+msgstr "Progresso por console"
 
 #: templates/accounts/partials/panel-progress.html:16
 #, python-format
@@ -323,8 +323,8 @@ msgstr[1] "%(n)s jogos"
 #, python-format
 msgid "%(n)s open"
 msgid_plural "%(n)s open"
-msgstr[0] "%(n)s aberto"
-msgstr[1] "%(n)s abertos"
+msgstr[0] "%(n)s em aberto"
+msgstr[1] "%(n)s em aberto"
 
 #: templates/accounts/partials/panel-progress.html:21
 #, python-format
@@ -347,7 +347,7 @@ msgstr "Progresso de conclusão"
 
 #: templates/accounts/partials/panel-progress.html:30
 msgid "hide completed"
-msgstr "esconder completos"
+msgstr "ocultar concluídos"
 
 #: templates/accounts/partials/panel-progress.html:34
 #, python-format
@@ -455,7 +455,7 @@ msgstr "Jogos"
 
 #: templates/accounts/profile.html:29
 msgid "Progress"
-msgstr "Progressão"
+msgstr "Progresso"
 
 #: templates/accounts/profile.html:30
 msgid "Awards"
@@ -537,7 +537,7 @@ msgstr "Ver os jogos"
 msgid "We're new: 1 game, few players. We'd rather show that than fake scale."
 msgstr ""
 "Somos novos: 1 jogo, poucos jogadores. Preferimos mostrar isso a fingir "
-"escala."
+"que somos grandes."
 
 #: templates/home.html:37 templates/home.html:172
 msgid "The project in numbers"
@@ -593,7 +593,7 @@ msgstr "Sugerir o próximo jogo"
 
 #: templates/home.html:111
 msgid "the set queue is open — propose a classic"
-msgstr "a fila de sets é aberta — proponha um clássico"
+msgstr "a fila de sets está aberta — sugira um clássico"
 
 #: templates/home.html:119
 msgid "How to contribute"
@@ -605,13 +605,13 @@ msgstr "aberto a todos"
 
 #: templates/home.html:126
 msgid "Create achievement sets"
-msgstr "Criar conjuntos de conquistas"
+msgstr "Criar sets de conquistas"
 
 #: templates/home.html:127
 msgid "Pick a game, design the achievements and publish a set. No gatekeeping."
 msgstr ""
-"Escolha um jogo, desenhe as conquistas e publique um set. Sem "
-"gatekeeping."
+"Escolha um jogo, planeje as conquistas e publique um set. Sem "
+"burocracia."
 
 #: templates/home.html:128
 msgid "Create account →"
@@ -651,7 +651,8 @@ msgstr "Emuladores compatíveis"
 
 #: templates/home.html:166
 msgid "Today: PlayStation (PS1). More consoles as sets arrive."
-msgstr "Hoje: PlayStation (PS1). Mais consoles conforme os sets chegam."
+msgstr ""
+"Por enquanto: PlayStation (PS1). Mais consoles conforme os sets chegarem."
 
 #: templates/home.html:173
 msgid "first weeks"
@@ -667,7 +668,7 @@ msgstr "Atividade recente"
 
 #: templates/home.html:196
 msgid "real time"
-msgstr "tempo real"
+msgstr "em tempo real"
 
 #: templates/home.html:217
 msgid "No unlocks yet"
@@ -691,7 +692,7 @@ msgstr "Codeberg — repositório"
 
 #: templates/home.html:235
 msgid "Licensed under AGPL-3.0"
-msgstr "Licenciado sob AGPL-3.0"
+msgstr "Licenciado sob a AGPL-3.0"
 
 #, python-format
 #~ msgid "Top %(top_pct)s"
