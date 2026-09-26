@@ -16,7 +16,7 @@ from apps.api.handlers import (
     HANDLERS,
     PRESENCE_TTL_SECONDS,
 )
-from apps.games.models import Console, Game, GameHash
+from apps.games.models import MD5_HEX_DIGITS, Console, Game, GameHash
 from apps.leaderboards.models import Leaderboard, LeaderboardEntry
 
 User = get_user_model()
@@ -100,7 +100,7 @@ def test_login2_returns_token_for_valid_credentials(client):
     assert response.status_code == 200
     assert data["Success"] is True
     assert data["User"] == "alice"
-    assert len(data["Token"]) == 64
+    assert len(data["Token"]) == API_TOKEN_HEX_LENGTH
     assert data["Score"] == 10
     assert data["SoftcoreScore"] == 5
     assert data["Messages"] == 0
@@ -113,9 +113,9 @@ def test_login2_persists_token_and_expiration(client):
     client.post("/dorequest.php", {"r": "login2", "u": "alice", "p": "valid-pw-123"})
     user.refresh_from_db()
     assert user.api_token is not None
-    assert len(user.api_token) == 64
+    assert len(user.api_token) == API_TOKEN_HEX_LENGTH
     delta = user.api_token_expires_at - timezone.now()
-    assert timedelta(days=13) < delta < timedelta(days=15)
+    assert API_TOKEN_LIFETIME - timedelta(minutes=1) < delta <= API_TOKEN_LIFETIME
 
 
 @pytest.mark.django_db
@@ -158,14 +158,16 @@ def test_login2_with_token_reauthenticates(client):
     user = User.objects.create_user(
         username="alice", password="pw", hardcore_points=7, softcore_points=3
     )
-    user.api_token = "a" * 64
-    user.api_token_expires_at = timezone.now() + timedelta(days=14)
+    user.api_token = "a" * API_TOKEN_HEX_LENGTH
+    user.api_token_expires_at = timezone.now() + API_TOKEN_LIFETIME
     user.save(update_fields=["api_token", "api_token_expires_at"])
-    response = client.post("/dorequest.php", {"r": "login2", "u": "alice", "t": "a" * 64})
+    response = client.post(
+        "/dorequest.php", {"r": "login2", "u": "alice", "t": "a" * API_TOKEN_HEX_LENGTH}
+    )
     data = response.json()
     assert data["Success"] is True
     assert data["User"] == "alice"
-    assert len(data["Token"]) == 64
+    assert len(data["Token"]) == API_TOKEN_HEX_LENGTH
     assert data["Score"] == 7
     assert data["SoftcoreScore"] == 3
 
@@ -175,24 +177,28 @@ def test_login2_echoes_existing_valid_token(client):
     # rc_client fires login2 twice on connect; rotating the token would invalidate
     # the second call. A valid token must be echoed, not replaced.
     user = User.objects.create_user(username="alice", password="pw")
-    user.api_token = "a" * 64
-    user.api_token_expires_at = timezone.now() + timedelta(days=14)
+    user.api_token = "a" * API_TOKEN_HEX_LENGTH
+    user.api_token_expires_at = timezone.now() + API_TOKEN_LIFETIME
     user.save(update_fields=["api_token", "api_token_expires_at"])
-    token_response = client.post("/dorequest.php", {"r": "login2", "u": "alice", "t": "a" * 64})
-    assert token_response.json()["Token"] == "a" * 64
+    token_response = client.post(
+        "/dorequest.php", {"r": "login2", "u": "alice", "t": "a" * API_TOKEN_HEX_LENGTH}
+    )
+    assert token_response.json()["Token"] == "a" * API_TOKEN_HEX_LENGTH
     password_response = client.post("/dorequest.php", {"r": "login2", "u": "alice", "p": "pw"})
-    assert password_response.json()["Token"] == "a" * 64
+    assert password_response.json()["Token"] == "a" * API_TOKEN_HEX_LENGTH
     user.refresh_from_db()
-    assert user.api_token == "a" * 64
+    assert user.api_token == "a" * API_TOKEN_HEX_LENGTH
 
 
 @pytest.mark.django_db
 def test_login2_with_token_wrong_username(client):
     owner = User.objects.create_user(username="alice", password="pw")
-    owner.api_token = "a" * 64
-    owner.api_token_expires_at = timezone.now() + timedelta(days=14)
+    owner.api_token = "a" * API_TOKEN_HEX_LENGTH
+    owner.api_token_expires_at = timezone.now() + API_TOKEN_LIFETIME
     owner.save(update_fields=["api_token", "api_token_expires_at"])
-    response = client.post("/dorequest.php", {"r": "login2", "u": "mallory", "t": "a" * 64})
+    response = client.post(
+        "/dorequest.php", {"r": "login2", "u": "mallory", "t": "a" * API_TOKEN_HEX_LENGTH}
+    )
     data = response.json()
     assert data["Success"] is False
     assert data["Error"] == "Credentials invalid."
@@ -201,10 +207,12 @@ def test_login2_with_token_wrong_username(client):
 @pytest.mark.django_db
 def test_login2_with_expired_token(client):
     user = User.objects.create_user(username="alice", password="pw")
-    user.api_token = "a" * 64
+    user.api_token = "a" * API_TOKEN_HEX_LENGTH
     user.api_token_expires_at = timezone.now() - timedelta(seconds=1)
     user.save(update_fields=["api_token", "api_token_expires_at"])
-    response = client.post("/dorequest.php", {"r": "login2", "u": "alice", "t": "a" * 64})
+    response = client.post(
+        "/dorequest.php", {"r": "login2", "u": "alice", "t": "a" * API_TOKEN_HEX_LENGTH}
+    )
     data = response.json()
     assert data["Success"] is False
     assert data["Error"] == "Credentials invalid."
@@ -216,24 +224,24 @@ def test_login2_with_expired_token(client):
 @pytest.mark.django_db
 def test_user_from_token_returns_user():
     user = User.objects.create_user(username="alice", password="pw")
-    user.api_token = "a" * 64
-    user.api_token_expires_at = timezone.now() + timedelta(days=14)
+    user.api_token = "a" * API_TOKEN_HEX_LENGTH
+    user.api_token_expires_at = timezone.now() + API_TOKEN_LIFETIME
     user.save(update_fields=["api_token", "api_token_expires_at"])
-    assert user_from_token("a" * 64) == user
+    assert user_from_token("a" * API_TOKEN_HEX_LENGTH) == user
 
 
 @pytest.mark.django_db
 def test_user_from_token_returns_none_for_unknown_token():
-    assert user_from_token("z" * 64) is None
+    assert user_from_token("z" * API_TOKEN_HEX_LENGTH) is None
 
 
 @pytest.mark.django_db
 def test_user_from_token_returns_none_for_expired_token():
     user = User.objects.create_user(username="alice", password="pw")
-    user.api_token = "b" * 64
+    user.api_token = "b" * API_TOKEN_HEX_LENGTH
     user.api_token_expires_at = timezone.now() - timedelta(seconds=1)
     user.save(update_fields=["api_token", "api_token_expires_at"])
-    assert user_from_token("b" * 64) is None
+    assert user_from_token("b" * API_TOKEN_HEX_LENGTH) is None
 
 
 @pytest.mark.django_db
@@ -269,7 +277,7 @@ def test_patch_rejects_token_of_deactivated_user(client, authed_user, game_with_
 def game_with_hash(db):
     console = Console.objects.create(ra_id=12, name="PlayStation", short_name="PS1")
     game = Game.objects.create(title="Crash Bandicoot", console=console)
-    gh = GameHash.objects.create(game=game, md5="a" * 32, label="NTSC-US")
+    gh = GameHash.objects.create(game=game, md5="a" * MD5_HEX_DIGITS, label="NTSC-US")
     return game, gh
 
 
@@ -285,7 +293,7 @@ def test_gameid_returns_game_id_for_known_hash(client, game_with_hash):
 
 @pytest.mark.django_db
 def test_gameid_returns_zero_for_unknown_hash(client):
-    response = client.post("/dorequest.php", {"r": "gameid", "m": "b" * 32})
+    response = client.post("/dorequest.php", {"r": "gameid", "m": "b" * MD5_HEX_DIGITS})
     data = response.json()
     assert response.status_code == 200
     assert data["Success"] is True
@@ -317,9 +325,9 @@ def test_gameid_is_case_insensitive(client, game_with_hash):
 @pytest.fixture
 def authed_user(db):
     user = User.objects.create_user(username="player", password="pw")
-    token = "t" * 64
+    token = "t" * API_TOKEN_HEX_LENGTH
     user.api_token = token
-    user.api_token_expires_at = timezone.now() + timedelta(days=14)
+    user.api_token_expires_at = timezone.now() + API_TOKEN_LIFETIME
     user.save(update_fields=["api_token", "api_token_expires_at"])
     return user, token
 
@@ -419,7 +427,9 @@ def test_patch_missing_token(client, game_with_achievements):
 @pytest.mark.django_db
 def test_patch_invalid_token(client, game_with_achievements):
     game = game_with_achievements
-    response = client.post("/dorequest.php", {"r": "patch", "t": "z" * 64, "g": game.pk})
+    response = client.post(
+        "/dorequest.php", {"r": "patch", "t": "z" * API_TOKEN_HEX_LENGTH, "g": game.pk}
+    )
     data = response.json()
     assert data["Success"] is False
     assert data["Error"] == "Credentials invalid."
@@ -429,10 +439,12 @@ def test_patch_invalid_token(client, game_with_achievements):
 def test_patch_expired_token(client, game_with_achievements):
     game = game_with_achievements
     user = User.objects.create_user(username="expired", password="pw", email="expired@test.com")
-    user.api_token = "e" * 64
+    user.api_token = "e" * API_TOKEN_HEX_LENGTH
     user.api_token_expires_at = timezone.now() - timedelta(seconds=1)
     user.save(update_fields=["api_token", "api_token_expires_at"])
-    response = client.post("/dorequest.php", {"r": "patch", "t": "e" * 64, "g": game.pk})
+    response = client.post(
+        "/dorequest.php", {"r": "patch", "t": "e" * API_TOKEN_HEX_LENGTH, "g": game.pk}
+    )
     data = response.json()
     assert data["Success"] is False
     assert data["Error"] == "Credentials invalid."
@@ -501,7 +513,7 @@ def test_patch_rich_presence_passthrough(client, authed_user, game_with_achievem
 def test_achievementsets_by_hash_returns_core_set(client, authed_user, game_with_achievements):
     _, token = authed_user
     game = game_with_achievements
-    gh = GameHash.objects.create(game=game, md5="c" * 32, label="NTSC-US")
+    gh = GameHash.objects.create(game=game, md5="c" * MD5_HEX_DIGITS, label="NTSC-US")
     response = client.post("/dorequest.php", {"r": "achievementsets", "t": token, "m": gh.md5})
     data = response.json()
     assert data["Success"] is True
@@ -521,8 +533,10 @@ def test_achievementsets_by_hash_returns_core_set(client, authed_user, game_with
 @pytest.mark.django_db
 def test_achievementsets_achievement_shape(client, authed_user, game_with_achievements):
     _, token = authed_user
-    GameHash.objects.create(game=game_with_achievements, md5="c" * 32, label="NTSC-US")
-    response = client.post("/dorequest.php", {"r": "achievementsets", "t": token, "m": "c" * 32})
+    GameHash.objects.create(game=game_with_achievements, md5="c" * MD5_HEX_DIGITS, label="NTSC-US")
+    response = client.post(
+        "/dorequest.php", {"r": "achievementsets", "t": token, "m": "c" * MD5_HEX_DIGITS}
+    )
     ach = response.json()["Sets"][0]["Achievements"][0]
     required_fields = (
         "ID",
@@ -544,8 +558,10 @@ def test_achievementsets_achievement_shape(client, authed_user, game_with_achiev
 def test_achievementsets_case_insensitive_hash(client, authed_user, game_with_achievements):
     _, token = authed_user
     game = game_with_achievements
-    GameHash.objects.create(game=game, md5="c" * 32, label="NTSC-US")
-    response = client.post("/dorequest.php", {"r": "achievementsets", "t": token, "m": "C" * 32})
+    GameHash.objects.create(game=game, md5="c" * MD5_HEX_DIGITS, label="NTSC-US")
+    response = client.post(
+        "/dorequest.php", {"r": "achievementsets", "t": token, "m": "C" * MD5_HEX_DIGITS}
+    )
     assert response.json()["GameId"] == game.pk
 
 
@@ -560,7 +576,9 @@ def test_achievementsets_by_game_id(client, authed_user, game_with_achievements)
 @pytest.mark.django_db
 def test_achievementsets_unknown_hash_returns_not_found(client, authed_user):
     _, token = authed_user
-    response = client.post("/dorequest.php", {"r": "achievementsets", "t": token, "m": "d" * 32})
+    response = client.post(
+        "/dorequest.php", {"r": "achievementsets", "t": token, "m": "d" * MD5_HEX_DIGITS}
+    )
     data = response.json()
     assert data["Success"] is False
     assert data["Code"] == "not_found"
@@ -578,7 +596,7 @@ def test_achievementsets_without_hash_or_game_id_returns_not_found(client, authe
 
 @pytest.mark.django_db
 def test_achievementsets_missing_token(client, game_with_achievements):
-    response = client.post("/dorequest.php", {"r": "achievementsets", "m": "c" * 32})
+    response = client.post("/dorequest.php", {"r": "achievementsets", "m": "c" * MD5_HEX_DIGITS})
     data = response.json()
     assert data["Success"] is False
     assert data["Error"] == "Credentials invalid."
@@ -713,7 +731,7 @@ def test_awardachievement_invalid_token(client, game_with_achievements):
     achievement = game_with_achievements.achievements.get(title="Community One")
     response = client.post(
         "/dorequest.php",
-        {"r": "awardachievement", "t": "z" * 64, "a": achievement.pk, "h": "0"},
+        {"r": "awardachievement", "t": "z" * API_TOKEN_HEX_LENGTH, "a": achievement.pk, "h": "0"},
     )
     data = response.json()
     assert data["Success"] is False
@@ -734,7 +752,8 @@ def test_startsession_missing_token(client, game_with_achievements):
 @pytest.mark.django_db
 def test_startsession_invalid_token(client, game_with_achievements):
     response = client.post(
-        "/dorequest.php", {"r": "startsession", "t": "z" * 64, "g": game_with_achievements.pk}
+        "/dorequest.php",
+        {"r": "startsession", "t": "z" * API_TOKEN_HEX_LENGTH, "g": game_with_achievements.pk},
     )
     data = response.json()
     assert data["Success"] is False
@@ -848,7 +867,8 @@ def test_ping_missing_token(client, game_with_achievements):
 @pytest.mark.django_db
 def test_ping_invalid_token(client, game_with_achievements):
     response = client.post(
-        "/dorequest.php", {"r": "ping", "t": "z" * 64, "g": game_with_achievements.pk}
+        "/dorequest.php",
+        {"r": "ping", "t": "z" * API_TOKEN_HEX_LENGTH, "g": game_with_achievements.pk},
     )
     data = response.json()
     assert data["Success"] is False
@@ -914,7 +934,7 @@ def game_with_leaderboards(authed_user):
 def _make_user(username, token):
     user = User.objects.create_user(username=username, password="pw", email=f"{username}@test.com")
     user.api_token = token
-    user.api_token_expires_at = timezone.now() + timedelta(days=14)
+    user.api_token_expires_at = timezone.now() + API_TOKEN_LIFETIME
     user.save(update_fields=["api_token", "api_token_expires_at"])
     return user
 
@@ -940,8 +960,10 @@ def test_patch_serializes_leaderboard(client, authed_user, game_with_leaderboard
 def test_achievementsets_serializes_leaderboard(client, authed_user, game_with_leaderboards):
     _, token = authed_user
     game, lb = game_with_leaderboards
-    GameHash.objects.create(game=game, md5="d" * 32, label="NTSC-US")
-    response = client.post("/dorequest.php", {"r": "achievementsets", "t": token, "m": "d" * 32})
+    GameHash.objects.create(game=game, md5="d" * MD5_HEX_DIGITS, label="NTSC-US")
+    response = client.post(
+        "/dorequest.php", {"r": "achievementsets", "t": token, "m": "d" * MD5_HEX_DIGITS}
+    )
     leaderboards = response.json()["Sets"][0]["Leaderboards"]
     assert len(leaderboards) == 1
     assert leaderboards[0]["ID"] == lb.id
@@ -995,7 +1017,7 @@ def test_submitlbentry_updates_when_better(client, authed_user, game_with_leader
 def test_submitlbentry_top_entries_and_rank(client, authed_user, game_with_leaderboards):
     _, token = authed_user
     game, lb = game_with_leaderboards
-    rival = _make_user("rival", "r" * 64)
+    rival = _make_user("rival", "r" * API_TOKEN_HEX_LENGTH)
     LeaderboardEntry.objects.create(leaderboard=lb, user=rival, score=300)
     response = client.post(
         "/dorequest.php", {"r": "submitlbentry", "t": token, "i": lb.id, "s": 800}

@@ -23,10 +23,10 @@ def test_console_str(console):
 @pytest.mark.django_db
 def test_game_and_hash_creation(console):
     game = Game.objects.create(title="Crash Bandicoot", console=console)
-    gh = GameHash.objects.create(game=game, md5="a" * 32, label="NTSC-US")
+    gh = GameHash.objects.create(game=game, md5="a" * MD5_HEX_DIGITS, label="NTSC-US")
 
     assert str(game) == "Crash Bandicoot"
-    assert str(gh) == f"NTSC-US ({'a' * 32})"
+    assert str(gh) == f"NTSC-US ({'a' * MD5_HEX_DIGITS})"
     assert game.hashes.count() == 1
 
 
