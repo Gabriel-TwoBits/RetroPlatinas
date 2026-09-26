@@ -79,6 +79,38 @@ def test_get_method_rejected(client):
     assert response.status_code == 405
 
 
+SERVER_ERROR = {
+    "Success": False,
+    "Error": "Temporary server error. Please try again.",
+    "Status": HTTPStatus.SERVICE_UNAVAILABLE,
+}
+
+
+def _crashing_handler(request):
+    raise RuntimeError("handler exploded")
+
+
+@pytest.mark.django_db
+def test_handler_exception_answers_retryable_json_and_logs_traceback(client, caplog):
+    with (
+        patch.dict(HANDLERS, {"awardachievement": _crashing_handler}),
+        caplog.at_level(logging.ERROR, logger="apps.api"),
+    ):
+        response = client.post("/dorequest.php", {"r": "awardachievement"})
+
+    assert response.status_code == HTTPStatus.SERVICE_UNAVAILABLE
+    assert response["Content-Type"] == "application/json"
+    assert response.json() == SERVER_ERROR
+    failures = [
+        record
+        for record in caplog.records
+        if record.name == "apps.api" and record.levelno == logging.ERROR
+    ]
+    assert len(failures) == 1
+    assert "r=awardachievement" in failures[0].getMessage()
+    assert failures[0].exc_info[0] is RuntimeError
+
+
 @pytest.mark.django_db
 def test_middleware_logs_request_without_credentials(client, caplog):
     with caplog.at_level(logging.INFO, logger="apps.api"):
