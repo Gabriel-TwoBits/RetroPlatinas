@@ -139,7 +139,7 @@ def _stage_recipes(stage):
             f"Stage Clear screen after plans/{stage.plan_path.name}",
         )
     else:
-        pass  # No clearing plan found yet: no clear state, no clear scenario.
+        pass  # No clearing plan: no clear state, no clear scenario.
     return recipes
 
 
