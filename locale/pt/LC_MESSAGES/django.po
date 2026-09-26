@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RetroPlatinas\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-26 15:10-0300\n"
+"POT-Creation-Date: 2026-09-26 15:15-0300\n"
 "PO-Revision-Date: 2026-05-23 18:15-0300\n"
 "Last-Translator: RetroPlatinas\n"
 "Language-Team: Portuguese\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: apps/accounts/forms.py:18 apps/accounts/models.py:21
+#: apps/accounts/forms.py:18 apps/accounts/models.py:26
 msgid "A user with that email already exists."
 msgstr "Já existe um usuário com esse email."
 
@@ -37,7 +37,7 @@ msgid "Verified"
 msgstr "Verificado"
 
 #: apps/achievements/models.py:22 apps/achievements/models.py:83
-#: apps/games/models.py:39 apps/games/models.py:52
+#: apps/games/models.py:49 apps/games/models.py:62
 #: apps/leaderboards/models.py:13
 msgid "game"
 msgstr "jogo"
@@ -46,12 +46,12 @@ msgstr "jogo"
 msgid "author"
 msgstr "autor"
 
-#: apps/achievements/models.py:29 apps/games/models.py:26
+#: apps/achievements/models.py:29 apps/games/models.py:36
 #: apps/leaderboards/models.py:15
 msgid "title"
 msgstr "título"
 
-#: apps/achievements/models.py:30 apps/games/models.py:34
+#: apps/achievements/models.py:30 apps/games/models.py:44
 #: apps/leaderboards/models.py:16
 msgid "description"
 msgstr "descrição"
@@ -72,7 +72,7 @@ msgstr "emblema"
 msgid "flags"
 msgstr "flags"
 
-#: apps/achievements/models.py:41 apps/games/models.py:36
+#: apps/achievements/models.py:41 apps/games/models.py:46
 msgid "created at"
 msgstr "criado em"
 
@@ -128,55 +128,55 @@ msgstr "anotação de código"
 msgid "code notes"
 msgstr "anotações de código"
 
-#: apps/games/models.py:12
+#: apps/games/models.py:17
 msgid "RA ID"
 msgstr "ID no RA"
 
-#: apps/games/models.py:13
+#: apps/games/models.py:18
 msgid "name"
 msgstr "nome"
 
-#: apps/games/models.py:14
+#: apps/games/models.py:19
 msgid "short name"
 msgstr "nome curto"
 
-#: apps/games/models.py:17 apps/games/models.py:31
+#: apps/games/models.py:24 apps/games/models.py:41
 msgid "console"
 msgstr "console"
 
-#: apps/games/models.py:18
+#: apps/games/models.py:25
 msgid "consoles"
 msgstr "consoles"
 
-#: apps/games/models.py:33
+#: apps/games/models.py:43
 msgid "icon"
 msgstr "ícone"
 
-#: apps/games/models.py:35
+#: apps/games/models.py:45
 msgid "rich presence patch"
 msgstr "script de rich presence"
 
-#: apps/games/models.py:40
+#: apps/games/models.py:50
 msgid "games"
 msgstr "jogos"
 
-#: apps/games/models.py:55
+#: apps/games/models.py:65
 msgid "MD5"
 msgstr "MD5"
 
-#: apps/games/models.py:57
+#: apps/games/models.py:67
 msgid "label"
 msgstr "rótulo"
 
-#: apps/games/models.py:60
+#: apps/games/models.py:70
 msgid "game hash"
 msgstr "hash do jogo"
 
-#: apps/games/models.py:61
+#: apps/games/models.py:71
 msgid "game hashes"
 msgstr "hashes do jogo"
 
-#: apps/games/models.py:70
+#: apps/games/models.py:80
 msgid "Enter an MD5 hash: 32 hexadecimal digits."
 msgstr "Informe um hash MD5: 32 dígitos hexadecimais."
 
