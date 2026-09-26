@@ -624,7 +624,7 @@ def _served_achievements(client, action, token, game):
         raise ValueError(f"{action} does not serve an achievement set")
 
 
-def _create_achievement(game, author, title, status):
+def _create_achievement(game, author, title, status, achievement_type=Achievement.TYPE_NONE):
     return Achievement.objects.create(
         game=game,
         author=author,
@@ -633,6 +633,7 @@ def _create_achievement(game, author, title, status):
         points=EXTRA_ACHIEVEMENT_POINTS,
         mem_addr="0xH0004=1",
         status=status,
+        type=achievement_type,
     )
 
 
@@ -687,6 +688,40 @@ def test_set_serves_own_drafts_but_never_other_users_drafts(
         "Community One": ACHIEVEMENT_FLAGS_CORE,
         "Verified One": ACHIEVEMENT_FLAGS_CORE,
     }
+
+
+# --- achievement type (patch + achievementsets) ---
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("action", SET_ACTIONS)
+@pytest.mark.parametrize(
+    ("achievement_type", "expected_wire_type"),
+    [
+        (Achievement.TYPE_NONE, ""),
+        (Achievement.TYPE_PROGRESSION, "progression"),
+        (Achievement.TYPE_WIN_CONDITION, "win_condition"),
+        (Achievement.TYPE_MISSABLE, "missable"),
+    ],
+)
+def test_set_serializes_achievement_type(
+    client,
+    authed_user,
+    achievement_author,
+    game_with_hash,
+    action,
+    achievement_type,
+    expected_wire_type,
+):
+    _, token = authed_user
+    game, _ = game_with_hash
+    achievement = _create_achievement(
+        game, achievement_author, "Typed", Achievement.STATUS_COMMUNITY, achievement_type
+    )
+
+    served = {a["ID"]: a["Type"] for a in _served_achievements(client, action, token, game)}
+
+    assert served[achievement.pk] == expected_wire_type
 
 
 # --- allprogress ---

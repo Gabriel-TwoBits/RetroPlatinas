@@ -129,6 +129,7 @@ def _serialize_achievement(a):
         "Created": int(a.created_at.timestamp()),
         "BadgeName": f"{a.id:0{BADGE_NAME_DIGITS}d}",
         "Flags": _achievement_flags(a),
+        "Type": a.type,
     }
 
 
