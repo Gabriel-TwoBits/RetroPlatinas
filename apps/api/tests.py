@@ -1,3 +1,4 @@
+import json
 import logging
 from datetime import timedelta
 from http import HTTPStatus
@@ -18,6 +19,7 @@ from apps.api.handlers import (
     DEFAULT_GAME_ICON_PATH,
     HANDLERS,
     PRESENCE_TTL_SECONDS,
+    _rarity,
 )
 from apps.games.models import MD5_HEX_DIGITS, Console, Game, GameHash
 from apps.leaderboards.models import Leaderboard, LeaderboardEntry
@@ -881,6 +883,66 @@ def test_set_serializes_achievement_type(
     served = {a["ID"]: a["Type"] for a in _served_achievements(client, action, player, game)}
 
     assert served[achievement.pk] == expected_wire_type
+
+
+# --- rarity (patch + achievementsets) ---
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("action", SET_ACTIONS)
+def test_set_serves_rarity_over_the_games_players(
+    client, authed_user, achievement_author, game_with_hash, action
+):
+    player, _ = authed_user
+    game, _ = game_with_hash
+    common = _create_achievement(game, achievement_author, "Common", Achievement.STATUS_COMMUNITY)
+    rare = _create_achievement(game, achievement_author, "Rare", Achievement.STATUS_VERIFIED)
+    never = _create_achievement(game, achievement_author, "Never", Achievement.STATUS_VERIFIED)
+    rival = _make_user("rival", "r" * API_TOKEN_HEX_LENGTH)
+    third = _make_user("third", "h" * API_TOKEN_HEX_LENGTH)
+    for user, achievement, hardcore in (
+        (player, common, False),
+        (player, common, True),
+        (rival, common, False),
+        (third, rare, False),
+    ):
+        UserUnlock.objects.create(user=user, achievement=achievement, hardcore=hardcore)
+
+    served = {
+        a["ID"]: (a["Rarity"], a["RarityHardcore"])
+        for a in _served_achievements(client, action, player, game)
+    }
+
+    assert served[common.pk] == (66.67, 33.33)
+    assert served[rare.pk] == (33.33, 0.0)
+    assert served[never.pk] == (0.0, 0.0)
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("action", SET_ACTIONS)
+def test_set_serves_zero_rarity_when_the_game_has_no_players(
+    client, authed_user, game_with_achievements, action
+):
+    player, _ = authed_user
+
+    served = _served_achievements(client, action, player, game_with_achievements)
+
+    assert [(a["Rarity"], a["RarityHardcore"]) for a in served] == [(0.0, 0.0), (0.0, 0.0)]
+
+
+@pytest.mark.parametrize(
+    ("unlockers", "players", "expected_json"),
+    [
+        (1, 3, "33.33"),
+        (2, 3, "66.67"),
+        (3, 3, "100.0"),
+        (0, 0, "0.0"),
+        (1, 1_000_000, "0.0"),
+        (1, 10_000, "0.01"),
+    ],
+)
+def test_rarity_is_a_plain_decimal_percentage(unlockers, players, expected_json):
+    assert json.dumps(_rarity(unlockers, players)) == expected_json
 
 
 # --- allprogress ---

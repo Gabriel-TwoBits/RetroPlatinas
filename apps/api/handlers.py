@@ -6,7 +6,7 @@ from http import HTTPStatus
 from django.contrib.auth import authenticate
 from django.core.cache import cache
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Count, Q
 from django.utils import timezone
 
 from apps.accounts.models import API_TOKEN_BYTES
@@ -59,6 +59,9 @@ PRESENCE_TTL_SECONDS = 300
 DEFAULT_GAME_ICON_PATH = "/Images/000001.png"
 API_TOKEN_LIFETIME = timedelta(days=14)
 BADGE_NAME_DIGITS = 5
+PERCENT = 100
+# rcheevos' JSON parser reads plain decimals only: `1e-05` would not parse.
+RARITY_DECIMAL_PLACES = 2
 
 
 def _authenticate(request):
@@ -128,7 +131,32 @@ def _achievements_visible_to(user):
 
 
 def _served_achievements(user, game):
-    return _achievements_visible_to(user).filter(game=game).select_related("author").order_by("id")
+    return (
+        _achievements_visible_to(user)
+        .filter(game=game)
+        .select_related("author")
+        .annotate(
+            unlockers=Count("userunlock__user", distinct=True),
+            hardcore_unlockers=Count(
+                "userunlock__user", filter=Q(userunlock__hardcore=True), distinct=True
+            ),
+        )
+        .order_by("id")
+    )
+
+
+def _player_count(game):
+    # TRADEOFF: a player is a user with any unlock in the game, so players who never
+    # unlocked anything are not counted; count PlayerGame rows once sessions are recorded.
+    return UserUnlock.objects.filter(achievement__game=game).values("user").distinct().count()
+
+
+def _rarity(unlockers, players):
+    """Percentage of the game's players who unlocked it, as rcheevos' `Rarity` expects."""
+    if players == 0:
+        return 0.0
+    else:
+        return round(unlockers * PERCENT / players, RARITY_DECIMAL_PLACES)
 
 
 def _achievement_flags(achievement):
@@ -140,7 +168,7 @@ def _achievement_flags(achievement):
         raise ValueError(f"Achievement {achievement.pk} has unknown status {achievement.status!r}")
 
 
-def _serialize_achievement(a):
+def _serialize_achievement(a, players):
     return {
         "ID": a.id,
         "MemAddr": a.mem_addr,
@@ -153,6 +181,8 @@ def _serialize_achievement(a):
         "BadgeName": f"{a.id:0{BADGE_NAME_DIGITS}d}",
         "Flags": _achievement_flags(a),
         "Type": a.type,
+        "Rarity": _rarity(a.unlockers, players),
+        "RarityHardcore": _rarity(a.hardcore_unlockers, players),
     }
 
 
@@ -183,6 +213,7 @@ def handle_patch(request):
         return {"Success": False, "Error": "Unknown game"}
 
     achievements = _served_achievements(user, game)
+    players = _player_count(game)
     image_icon = game.icon.url if game.icon else DEFAULT_GAME_ICON_PATH
     return {
         "Success": True,
@@ -192,7 +223,7 @@ def handle_patch(request):
             "ConsoleID": game.console.ra_id,
             "ImageIcon": image_icon,
             "RichPresencePatch": game.rich_presence_patch,
-            "Achievements": [_serialize_achievement(a) for a in achievements],
+            "Achievements": [_serialize_achievement(a, players) for a in achievements],
             "Leaderboards": [_serialize_leaderboard(lb) for lb in game.leaderboards.all()],
         },
     }
@@ -220,6 +251,7 @@ def handle_achievementsets(request):
         return _GAME_NOT_FOUND
 
     achievements = _served_achievements(user, game)
+    players = _player_count(game)
     icon_path = game.icon.url if game.icon else DEFAULT_GAME_ICON_PATH
     icon_url = request.build_absolute_uri(icon_path)
     return {
@@ -239,7 +271,7 @@ def handle_achievementsets(request):
                 "Title": game.title,
                 "Type": "core",
                 "ImageIconUrl": icon_url,
-                "Achievements": [_serialize_achievement(a) for a in achievements],
+                "Achievements": [_serialize_achievement(a, players) for a in achievements],
                 "Leaderboards": [_serialize_leaderboard(lb) for lb in game.leaderboards.all()],
             }
         ],
