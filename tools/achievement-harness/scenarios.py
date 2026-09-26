@@ -76,12 +76,16 @@ def game_over(emu):
     return emu.u32(GAME_STATE) == GAME_STATE_GAME_OVER
 
 
-def die(s, stage, rng, label):
-    """Plays random macros of the stage's heading until a respawn or the game over.
+def die(s, stage, rng, label, route):
+    """Replays `route`, then random macros of the stage's heading, until a respawn or game over.
 
     Returns True on a respawn (the player is back in control), False on the game over.
     """
     before = respawns(s.emu)
+    for frames, mask in route:
+        if respawns(s.emu) != before or game_over(s.emu):
+            break  # Off the route after a respawn: the rest would play into the menus.
+        s.emu.run(frames, mask)
     names = plans.HEADINGS[stage.heading]
     played = 0
     while respawns(s.emu) == before and not game_over(s.emu):
@@ -110,35 +114,47 @@ def play_attract(s):
         s.shot("periodic")
 
 
+def death_route(s, stage):
+    """The inputs replayed before each death, towards the middle of the stage.
+
+    Searched plans never die, so they lead where random play meets hazards the start area may
+    lack (The Great Gate).
+    """
+    if stage.plan_path.is_file():
+        route = plans.load(stage.plan_path).inputs
+        s.note(f"each death replays the first half of {stage.plan_path.name} first")
+        return route[: len(route) // PLAN_PREFIX_DIVISOR]
+    if stage.deepest_plan_path.is_file():
+        s.note(f"each death replays {stage.deepest_plan_path.name} first")
+        return plans.load(stage.deepest_plan_path).inputs
+    s.note("no plan: the deaths happen around the start")
+    return []
+
+
 def deaths(stage):
     def play(s):
         rng = random.Random(DEATH_SEED)
-        # Searched plans never die, so replaying one reaches the middle of the stage, where random
-        # play meets hazards the start area may lack (The Great Gate).
-        if stage.plan_path.is_file():
-            inputs = plans.load(stage.plan_path).inputs
-            inputs = inputs[: len(inputs) // PLAN_PREFIX_DIVISOR]
-            s.note(f"replaying the first half of {stage.plan_path.name}")
-        elif stage.deepest_plan_path.is_file():
-            inputs = plans.load(stage.deepest_plan_path).inputs
-            s.note(f"replaying {stage.deepest_plan_path.name}")
-        else:
-            inputs = []
-            s.note("no plan: the deaths happen around the start")
-        for frames, mask in inputs:
-            s.emu.run(frames, mask)
-        s.note("death 1: random play")
-        die(s, stage, rng, "death 1")
+        route = death_route(s, stage)
+        die(s, stage, rng, "death 1", route)
         s.rearm("death 2: right after a respawn")
-        die(s, stage, rng, "death 2")
+        die(s, stage, rng, "death 2", route)
         s.step(AFTER_DEATH_FRAMES)
         s.rearm("death 3: after idling where the player respawned")
         s.step(IDLE_IN_SPAWN_ZONE_FRAMES)
-        die(s, stage, rng, "death 3")
-        for death in range(4, MAX_DEATHS_TO_GAME_OVER + 1):
-            s.rearm(f"death {death}: dying on towards the game over")
-            if not die(s, stage, rng, f"death {death}"):
+        die(s, stage, rng, "death 3", route)
+        s.step(AFTER_DEATH_FRAMES)
+
+    return play
+
+
+def down_to_game_over(stage):
+    def play(s):
+        rng = random.Random(DEATH_SEED)
+        route = death_route(s, stage)
+        for death in range(1, MAX_DEATHS_TO_GAME_OVER + 1):
+            if not die(s, stage, rng, f"death {death}", route):
                 break
+            s.rearm(f"death {death + 1}: dying on towards the game over")
         else:
             raise RuntimeError(f"no game over after {MAX_DEATHS_TO_GAME_OVER} deaths")
         s.wait_until(
@@ -206,9 +222,15 @@ SCENARIOS = {
     "cold-boot": Scenario(None, NOTHING_FIRES, "3 minutes from power-on, no input", play_cold_boot),
     "attract": Scenario(None, NOTHING_FIRES, "15 minutes of attract-mode demos", play_attract),
 }
+SCENARIOS["game-over"] = Scenario(
+    STAGES[0].start,
+    NOTHING_FIRES,
+    "deaths on N. Sanity Beach down to a game over",
+    down_to_game_over(STAGES[0]),
+)
 for _stage in STAGES:
     SCENARIOS[f"{_stage.name}-deaths"] = Scenario(
-        _stage.start, NOTHING_FIRES, f"deaths on {_stage.name} down to a game over", deaths(_stage)
+        _stage.start, NOTHING_FIRES, f"three deaths on {_stage.name}", deaths(_stage)
     )
     SCENARIOS[f"{_stage.name}-quit"] = Scenario(
         _stage.start, NOTHING_FIRES, f"three pause -> SELECT quits of {_stage.name}", quits(_stage)

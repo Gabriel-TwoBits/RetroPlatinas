@@ -122,11 +122,15 @@ while the others keep their hits, as in a live session.
 | --- | --- | --- | --- |
 | `cold-boot` | cold boot | nothing | Boot-time RAM noise (zeroed RAM reads as "stage 0") |
 | `attract` | cold boot | nothing | 15 minutes of attract-mode demos, which play real stages with no player |
-| `<stage>-deaths` | `<stage>-start` | nothing | Deaths from random play (seeded) after replaying half the clearing plan, or the deepest plan, when committed: the first, one right after a respawn, one after idling, then on to the game over |
+| `game-over` | `nsanity-beach-start` | nothing | Deaths down to the game over and the title screen it returns to |
+| `<stage>-deaths` | `<stage>-start` | nothing | Three deaths: the first, one right after a respawn, one after idling where the player respawned |
 | `<stage>-quit` | `<stage>-start` | nothing | Pause -> SELECT quits: right after control, after running and standing, after standing |
 | `<stage>-clear` | `<stage>-start` | the stage's achievement, once, on Stage Clear (lid `0x2D`) | Replays the clearing plan (a real completion); after a re-arm, Stage Clear -> map, the next stage and a quit fire nothing |
 
-A `<stage>-clear` scenario exists only for a stage with a committed plan.
+A `<stage>-clear` scenario exists only for a stage with a committed plan. Deaths come from seeded
+random play of the stage's macros; before each one, the harness replays half the stage's clearing
+plan, or its deepest plan, when one is committed, so the deaths happen mid-stage (it stops replaying
+at the first death: after a respawn the route no longer fits).
 
 A new achievement needs a scenario that reaches its event and the look-alike events that must not
 fire it; add it to `SCENARIOS` with the lid its event shows.
