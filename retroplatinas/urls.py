@@ -1,3 +1,5 @@
+from django.conf import settings
+from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 
@@ -7,4 +9,7 @@ urlpatterns = [
     path("", include("apps.accounts.urls")),
     path("", include("apps.core.urls")),
     path("", include("apps.api.urls")),
+    path("", include("apps.images.urls")),
+    # Uploads under MEDIA_URL, served in DEBUG only; clients fetch images through apps.images.
+    *static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT),
 ]

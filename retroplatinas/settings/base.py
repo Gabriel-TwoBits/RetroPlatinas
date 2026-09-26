@@ -18,6 +18,7 @@ INSTALLED_APPS = [
     "apps.achievements",
     "apps.leaderboards",
     "apps.api",
+    "apps.images",
 ]
 
 AUTH_USER_MODEL = "accounts.User"
