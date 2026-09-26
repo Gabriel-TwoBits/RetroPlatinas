@@ -123,6 +123,14 @@ def handle_gameid(request):
     return {"Success": True, "GameID": game_id if game_id is not None else 0}
 
 
+def _game_by_id(raw_game_id):
+    try:
+        game_id = int(raw_game_id)
+    except (ValueError, TypeError):
+        return None
+    return Game.objects.select_related("console").filter(pk=game_id).first()
+
+
 def _achievements_visible_to(user):
     return Achievement.objects.filter(
         Q(status__in=Achievement.PUBLISHED_STATUSES)
@@ -203,14 +211,9 @@ def handle_patch(request):
     if error is not None:
         return error
 
-    try:
-        game_id = int(request.POST.get("g", ""))
-    except (ValueError, TypeError):
-        return {"Success": False, "Error": "Unknown game"}
-
-    game = Game.objects.select_related("console").filter(pk=game_id).first()
+    game = _game_by_id(request.POST.get("g", ""))
     if game is None:
-        return {"Success": False, "Error": "Unknown game"}
+        return _GAME_NOT_FOUND
 
     achievements = _served_achievements(user, game)
     players = _player_count(game)
@@ -239,10 +242,7 @@ def handle_achievementsets(request):
     if md5:
         game = Game.objects.select_related("console").filter(hashes__md5=md5).first()
     elif game_id_param:
-        try:
-            game = Game.objects.select_related("console").filter(pk=int(game_id_param)).first()
-        except (ValueError, TypeError):
-            game = None
+        game = _game_by_id(game_id_param)
     else:
         game = None
 
@@ -296,12 +296,11 @@ def handle_startsession(request):
     if error is not None:
         return error
 
-    try:
-        game_id = int(request.POST.get("g", ""))
-    except (ValueError, TypeError):
-        return {"Success": False, "Error": "Unknown game"}
+    game = _game_by_id(request.POST.get("g", ""))
+    if game is None:
+        return _GAME_NOT_FOUND
 
-    unlocks = UserUnlock.objects.filter(user=user, achievement__game_id=game_id).values(
+    unlocks = UserUnlock.objects.filter(user=user, achievement__game=game).values(
         "achievement_id", "hardcore", "unlocked_at"
     )
 

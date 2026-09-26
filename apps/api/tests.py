@@ -161,6 +161,12 @@ INVALID_CREDENTIALS = {
     "Status": HTTPStatus.UNAUTHORIZED,
     "Code": "invalid_credentials",
 }
+GAME_NOT_FOUND = {
+    "Success": False,
+    "Error": "Unknown game.",
+    "Status": HTTPStatus.NOT_FOUND,
+    "Code": "not_found",
+}
 EXPIRED_TOKEN = {
     "Success": False,
     "Error": "The access token has expired. Please log in again.",
@@ -547,8 +553,7 @@ def test_patch_unknown_game(client, authed_user):
         "/dorequest.php", {"r": "patch", "u": PLAYER_USERNAME, "t": token, "g": 99999}
     )
     data = response.json()
-    assert data["Success"] is False
-    assert data["Error"] == "Unknown game"
+    assert data == GAME_NOT_FOUND
 
 
 @pytest.mark.django_db
@@ -556,8 +561,7 @@ def test_patch_missing_game_param(client, authed_user):
     _, token = authed_user
     response = client.post("/dorequest.php", {"r": "patch", "u": PLAYER_USERNAME, "t": token})
     data = response.json()
-    assert data["Success"] is False
-    assert data["Error"] == "Unknown game"
+    assert data == GAME_NOT_FOUND
 
 
 @pytest.mark.django_db
@@ -1213,8 +1217,7 @@ def test_startsession_missing_game_param(client, authed_user):
         "/dorequest.php", {"r": "startsession", "u": PLAYER_USERNAME, "t": token}
     )
     data = response.json()
-    assert data["Success"] is False
-    assert data["Error"] == "Unknown game"
+    assert data == GAME_NOT_FOUND
 
 
 @pytest.mark.django_db
@@ -1224,8 +1227,17 @@ def test_startsession_invalid_game_param(client, authed_user):
         "/dorequest.php", {"r": "startsession", "u": PLAYER_USERNAME, "t": token, "g": "abc"}
     )
     data = response.json()
-    assert data["Success"] is False
-    assert data["Error"] == "Unknown game"
+    assert data == GAME_NOT_FOUND
+
+
+@pytest.mark.django_db
+def test_startsession_unknown_game(client, authed_user):
+    _, token = authed_user
+    response = client.post(
+        "/dorequest.php", {"r": "startsession", "u": PLAYER_USERNAME, "t": token, "g": 99999}
+    )
+    assert response.status_code == HTTPStatus.OK
+    assert response.json() == GAME_NOT_FOUND
 
 
 @pytest.mark.django_db
