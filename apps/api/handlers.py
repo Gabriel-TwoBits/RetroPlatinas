@@ -497,14 +497,18 @@ def _ranked_entries(leaderboard, offset, count):
     order = "score" if leaderboard.lower_is_better else "-score"
     board = leaderboard.entries.select_related("user").order_by(order, "submitted_at", "id")
     ranked = []
+    previous_score = None
+    previous_rank = None
     for index, entry in enumerate(board[offset : offset + count], start=offset + 1):
-        if ranked and ranked[-1][2].score == entry.score:
-            rank = ranked[-1][1]
-        elif ranked:
-            rank = index
-        else:
+        if previous_rank is None:
             rank = _rank_of(leaderboard, entry.score)
+        elif entry.score == previous_score:
+            rank = previous_rank
+        else:
+            rank = index
         ranked.append((index, rank, entry))
+        previous_score = entry.score
+        previous_rank = rank
     return ranked
 
 
