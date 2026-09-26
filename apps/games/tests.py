@@ -6,6 +6,8 @@ from django.core.management import call_command
 from apps.games.models import MD5_HEX_DIGITS, Console, Game, GameHash
 
 CRASH_MD5_UPPERCASE = "35386FD0891E594C9B6D8A4A5BAA0027"
+PLAYSTATION_RA_ID = 12
+CONSOLES_IN_FIXTURE = 10
 
 
 @pytest.fixture
@@ -31,7 +33,23 @@ def test_game_and_hash_creation(console):
 @pytest.mark.django_db
 def test_loaddata_consoles():
     call_command("loaddata", "consoles", verbosity=0)
-    assert Console.objects.count() >= 10
+    assert Console.objects.count() == CONSOLES_IN_FIXTURE
+
+
+@pytest.mark.django_db(transaction=True, reset_sequences=True)
+def test_loaddata_consoles_after_a_seed_keeps_the_seeded_console():
+    playstation = Console.objects.create(
+        ra_id=PLAYSTATION_RA_ID, name="PlayStation", short_name="PS1"
+    )
+    game = Game.objects.create(title="Crash Bandicoot", console=playstation)
+
+    call_command("loaddata", "consoles", verbosity=0)
+    call_command("loaddata", "consoles", verbosity=0)
+
+    game.refresh_from_db()
+    assert game.console.pk == playstation.pk
+    assert game.console.ra_id == PLAYSTATION_RA_ID
+    assert Console.objects.count() == CONSOLES_IN_FIXTURE
 
 
 @pytest.mark.django_db

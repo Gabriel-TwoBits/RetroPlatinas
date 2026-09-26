@@ -8,10 +8,17 @@ MD5_HEX_DIGITS = 32
 LOWERCASE_HEX = re.compile(r"[0-9a-f]+")
 
 
+class ConsoleManager(models.Manager):
+    def get_by_natural_key(self, ra_id):
+        return self.get(ra_id=ra_id)
+
+
 class Console(models.Model):
     ra_id = models.IntegerField(unique=True, verbose_name=_("RA ID"))
     name = models.CharField(max_length=64, verbose_name=_("name"))
     short_name = models.CharField(max_length=16, verbose_name=_("short name"))
+
+    objects = ConsoleManager()
 
     class Meta:
         verbose_name = _("console")
@@ -20,6 +27,9 @@ class Console(models.Model):
 
     def __str__(self):
         return self.name
+
+    def natural_key(self):
+        return (self.ra_id,)
 
 
 class Game(models.Model):
