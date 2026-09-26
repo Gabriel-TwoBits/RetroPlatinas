@@ -210,6 +210,7 @@ def test_seed_refuses_a_usa_disc_hash_that_belongs_to_another_game(command):
         call_command(command, verbosity=0)
 
     assert GameHash.objects.get(md5=USA_DISC_MD5).game == other_game
+    assert not Game.objects.filter(title=GAME_TITLE).exists()
     assert not Achievement.objects.exists()
     assert not CodeNote.objects.exists()
 

@@ -2,6 +2,7 @@
 
 from django.contrib.auth import get_user_model
 from django.core.management.base import CommandError
+from django.db import transaction
 
 from apps.games.models import Console, Game, GameHash
 
@@ -13,11 +14,12 @@ USA_DISC_MD5 = "35386fd0891e594c9b6d8a4a5baa0027"
 USA_DISC_LABEL = "Crash Bandicoot (USA) — SCUS-94900"
 
 
+@transaction.atomic
 def seed_crash1_game():
     """Get or create the Crash Bandicoot game (console, USA disc hash) and the import author.
 
-    Returns `(game, author)`. Raises `CommandError` when the hash belongs to another game: `gameid`
-    would resolve the disc to a game without the seeded rows.
+    Returns `(game, author)`. Raises `CommandError`, creating nothing, when the hash belongs to
+    another game: `gameid` would resolve the disc to a game without the seeded rows.
     """
     console, _ = Console.objects.get_or_create(
         ra_id=PS1_RA_ID, defaults={"name": "PlayStation", "short_name": "PS1"}
