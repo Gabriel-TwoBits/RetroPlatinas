@@ -1,6 +1,7 @@
 import re
 import subprocess
 from datetime import timedelta
+from http import HTTPStatus
 from pathlib import Path
 
 import pytest
@@ -22,7 +23,7 @@ from apps.achievements.management.commands.seed_crash1_level_achievements import
 )
 from apps.achievements.models import Achievement, CodeNote, UserUnlock
 from apps.api.handlers import ACHIEVEMENT_FLAGS_CORE
-from apps.games.models import Console, Game
+from apps.games.models import Console, Game, PlayerGame
 
 MEM_ADDR_PATTERN = re.compile(
     r"^N:0xW618cc!=0_N:0xH61994=0_N:0xH619c5=(?P<armed_stage_id>\d+)_"
@@ -528,3 +529,53 @@ def test_admin_change_form_status_change_recalculates_the_points(
 
     assert response.status_code == 302
     assert _points_of(player) == (VERIFIED_POINTS, 0)
+
+
+USER_UNLOCK_ADD_URL = "/admin/achievements/userunlock/add/"
+
+
+@pytest.mark.django_db
+def test_admin_added_unlock_records_its_user_as_a_player(admin_client, achievement, user):
+    response = admin_client.post(
+        USER_UNLOCK_ADD_URL, {"user": user.pk, "achievement": achievement.pk, "hardcore": "on"}
+    )
+
+    assert response.status_code == HTTPStatus.FOUND
+    unlock = UserUnlock.objects.get(user=user, achievement=achievement)
+    player_game = PlayerGame.objects.get(user=user, game=achievement.game)
+    assert player_game.first_played_at == unlock.unlocked_at
+    assert player_game.last_played_at == unlock.unlocked_at
+
+
+@pytest.mark.django_db
+def test_admin_added_unlock_keeps_an_existing_player_record(admin_client, achievement, user):
+    existing = PlayerGame.objects.create(user=user, game=achievement.game, playtime_seconds=1)
+
+    admin_client.post(USER_UNLOCK_ADD_URL, {"user": user.pk, "achievement": achievement.pk})
+
+    assert list(PlayerGame.objects.all()) == [existing]
+    assert PlayerGame.objects.get().playtime_seconds == existing.playtime_seconds
+
+
+@pytest.mark.django_db
+def test_admin_moving_an_achievement_records_its_unlockers_as_players_of_the_new_game(
+    admin_client, achievement, user
+):
+    UserUnlock.objects.create(user=user, achievement=achievement)
+    other_game = Game.objects.create(title="Crash Bandicoot 2", console=achievement.game.console)
+
+    response = admin_client.post(
+        f"{ACHIEVEMENT_CHANGELIST_URL}{achievement.pk}/change/",
+        {
+            "game": other_game.pk,
+            "author": achievement.author_id,
+            "title": achievement.title,
+            "description": achievement.description,
+            "points": achievement.points,
+            "mem_addr": achievement.mem_addr,
+            "status": achievement.status,
+        },
+    )
+
+    assert response.status_code == HTTPStatus.FOUND
+    assert PlayerGame.objects.filter(user=user, game=other_game).exists()

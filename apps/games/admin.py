@@ -74,7 +74,8 @@ class GameHashAdmin(admin.ModelAdmin):
 
 @admin.register(PlayerGame)
 class PlayerGameAdmin(admin.ModelAdmin):
-    """View and delete only: the emulator's session requests write these rows."""
+    """View only: the emulator's session requests write these rows, and rarity counts them as
+    players, so deleting one would leave its unlockers uncounted."""
 
     list_display = (
         "user",
@@ -93,4 +94,7 @@ class PlayerGameAdmin(admin.ModelAdmin):
         return False
 
     def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
         return False

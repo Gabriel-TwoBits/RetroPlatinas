@@ -1,4 +1,5 @@
 from datetime import timedelta
+from http import HTTPStatus
 
 import pytest
 from django.contrib.auth import get_user_model
@@ -160,6 +161,19 @@ def test_playing_now_ttl_is_five_minutes():
 def test_player_game_is_unique_per_user_and_game(player_game):
     with pytest.raises(IntegrityError):
         PlayerGame.objects.create(user=player_game.user, game=player_game.game)
+
+
+PLAYER_GAME_ADMIN_URL = "/admin/games/playergame/"
+
+
+@pytest.mark.django_db
+def test_player_game_admin_is_view_only(admin_client, player_game):
+    row_url = f"{PLAYER_GAME_ADMIN_URL}{player_game.pk}/"
+
+    assert admin_client.get(f"{row_url}change/").status_code == HTTPStatus.OK
+    assert admin_client.get(f"{row_url}delete/").status_code == HTTPStatus.FORBIDDEN
+    assert admin_client.get(f"{PLAYER_GAME_ADMIN_URL}add/").status_code == HTTPStatus.FORBIDDEN
+    assert PlayerGame.objects.filter(pk=player_game.pk).exists()
 
 
 @pytest.mark.django_db
