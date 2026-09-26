@@ -136,8 +136,8 @@ replay) with the 16-frame macro names that produced them, the named start state,
 core build it was searched on. `plan.replay()` refuses another core and warns on another build.
 
 `explore.py` keeps an archive of player-position cells, each with a compressed save state, and
-plays random macros from rarely chosen cells until the stage is left alive. With the default seed it
-cleared N. Sanity Beach in about 16 minutes (1608 rollouts). To re-search a plan that stopped
+plays random macros from rarely chosen cells until the stage is left alive, logging the archive size
+and the deepest plan (with a screenshot of its cell) as it goes. To re-search a plan that stopped
 replaying (a new core build, a changed recipe):
 
 ```bash
