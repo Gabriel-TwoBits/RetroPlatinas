@@ -14,11 +14,10 @@ from apps.achievements.management.commands.seed_crash1_code_notes import load_co
 from apps.achievements.management.commands.seed_crash1_level_achievements import (
     ACHIEVEMENT_POINTS,
     FRAMES_OF_PLAY_BEFORE_ARMED,
-    GAME_TITLE,
-    IMPORT_AUTHOR,
     LEVEL_ACHIEVEMENTS,
     build_mem_addr,
 )
+from apps.achievements.management.crash1 import GAME_TITLE, IMPORT_AUTHOR
 from apps.achievements.models import Achievement, CodeNote, UserUnlock
 from apps.games.models import Console, Game
 
