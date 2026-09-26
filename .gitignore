@@ -40,5 +40,5 @@ htmlcov/
 *.swp
 *.swo
 
-# Binário do validador de mem_addr (scripts/check-mem-addr.sh)
+# Cache local: binário do validador de mem_addr e o harness de conquistas (tools/achievement-harness)
 .cache/
