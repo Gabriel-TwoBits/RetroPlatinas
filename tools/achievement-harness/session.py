@@ -153,9 +153,19 @@ class Session:
         return navigation.wait_until(self.emu, predicate, max_frames, what, buttons)
 
     def rearm(self, reason):
-        """Every trigger back to WAITING, so the next attempt is judged on its own."""
-        self.emu.reset_achievements()
-        self.note(f"achievements re-armed: {reason}")
+        """Resets the achievements that fired, so the next attempt can fire them again.
+
+        The others keep their hits, as in a live session, where only their own ResetIf or a
+        state load clears them.
+        """
+        fired = [
+            runtime_id
+            for runtime_id in self.titles
+            if self.emu.achievement_state(runtime_id) == TRIGGERED
+        ]
+        for runtime_id in fired:
+            self.emu.reset_achievement(runtime_id)
+        self.note(f"re-armed {[self.titles[runtime_id] for runtime_id in fired]}: {reason}")
 
     def close(self):
         """Ends the trace; returns [(frame, title), ...] for every trigger."""

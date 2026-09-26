@@ -95,8 +95,9 @@ build, so a new core starts from an empty cache; after changing a recipe or `nav
 ## Scenarios
 
 Each scenario starts from a derivable state, activates every repo achievement, records a trace and
-compares the set of achievements that fired with its expectation. `Session.rearm()` puts every
-trigger back to WAITING between attempts, so one run judges several deaths or quits on their own.
+compares the set of achievements that fired with its expectation. Between attempts,
+`Session.rearm()` resets only the achievements that fired, so one run judges several deaths or
+quits on their own while the others keep their hits, as in a live session.
 
 | Scenario | Start | Must fire | Guards against |
 | --- | --- | --- | --- |
@@ -161,7 +162,7 @@ emu.u8(a) / u24(a) / u32(a) / s32(a) / read(a, n)  # a = RA address (0x000000-0x
 emu.deref(0x618A4, 0x6C, 0xE4, 0x0C)  # RA-style 24-bit pointer chain; None on a null hop
 emu.screenshot(path)  # PNG of the last rendered frame
 emu.snapshot() / restore(blob) / save_state(path) / load_state(path)  # loads reset triggers
-emu.activate(id, mem_addr) / reset_achievements()
+emu.activate(id, mem_addr) / reset_achievement(id)  # reset: WAITING, zeroed hits
 emu.achievement_state(id)  # 'waiting' | 'active' | 'primed' | 'triggered' | ...
 emu.achievement_hits(id)  # [[(type, required, current, is_true), ...] per condset]
 emu.events()  # [(frame, 'ACHIEVEMENT_TRIGGERED', id, value), ...]
@@ -194,8 +195,9 @@ most are 24.8 fixed point, which is why the RA code notes point at odd bytes (`0
   `nsanity-beach-clear` then times out waiting for Stage Clear, re-search the plan.
 - **swanstation** derives the navigation states but cannot replay pcsx_rearmed plans, so
   `beach-clear` is pcsx_rearmed only.
-- **Re-arming is a harness device.** In DuckStation an achievement fires once per session; a state
-  load puts unfired ones back to WAITING, which `load_state` reproduces.
+- **Re-arming is a harness device.** In DuckStation an achievement fires once per session.
+  `rearm()` resets a fired one to WAITING with zeroed hits: the hits it would have carried had it
+  not fired are unknowable. Unfired ones are left alone.
 - The HLE BIOS draws some cyan artefacts in cutscenes; game logic is unaffected. A screenshot on a
   transition frame is often black (fade). pcsx_rearmed prints a few lightrec lines at start-up
   even in interpreter mode.

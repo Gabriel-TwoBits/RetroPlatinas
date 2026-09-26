@@ -460,6 +460,17 @@ void h_ach_reset(void) {
     rc_runtime_reset(&runtime);
 }
 
+/* Puts one trigger back in WAITING with zeroed hits; -1 when no such achievement is active. */
+int h_ach_reset_one(uint32_t id) {
+    ensure_runtime();
+    rc_trigger_t *trigger = rc_runtime_get_achievement(&runtime, id);
+    if (!trigger) {
+        return -1;
+    }
+    rc_reset_trigger(trigger);
+    return 0;
+}
+
 int h_ach_state(uint32_t id) {
     ensure_runtime();
     rc_trigger_t *trigger = rc_runtime_get_achievement(&runtime, id);

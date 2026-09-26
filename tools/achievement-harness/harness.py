@@ -171,6 +171,7 @@ class Emu:
         lib.h_set_input.argtypes = [ctypes.c_uint32]
         lib.h_run.argtypes = [ctypes.c_int]
         lib.h_ach_activate.argtypes = [ctypes.c_uint32, ctypes.c_char_p]
+        lib.h_ach_reset_one.argtypes = [ctypes.c_uint32]
         lib.h_ach_state.argtypes = [ctypes.c_uint32]
         lib.h_ach_hits.argtypes = [ctypes.c_uint32, ctypes.c_char_p, ctypes.c_int]
         lib.h_events.argtypes = [
@@ -323,9 +324,10 @@ class Emu:
         if result != 0:
             raise ValueError(f"rc_runtime_activate_achievement({achievement_id}) -> {result}")
 
-    def reset_achievements(self):
-        """Every trigger back to WAITING with zeroed hits, as an emulator does on a state load."""
-        self.lib.h_ach_reset()
+    def reset_achievement(self, achievement_id):
+        """One trigger back to WAITING with zeroed hits; the others keep their state."""
+        if self.lib.h_ach_reset_one(achievement_id) != 0:
+            raise ValueError(f"achievement {achievement_id} is not active")
 
     def achievement_state(self, achievement_id):
         return TRIGGER_STATES.get(self.lib.h_ach_state(achievement_id), "unknown")
