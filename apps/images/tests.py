@@ -234,9 +234,10 @@ def test_fallback_game_icon_resolves_without_a_game(client):
 
 
 @pytest.mark.django_db
-def test_fallback_game_icon_stays_the_placeholder_when_game_1_has_an_icon(client, game):
+def test_fallback_game_icon_stays_the_placeholder_when_game_1_has_an_icon(client):
+    console = Console.objects.create(ra_id=12, name="PlayStation", short_name="PS1")
     first_game = Game.objects.create(
-        pk=1, title="First", console=game.console, icon=_png_upload("first.png", BLUE)
+        pk=1, title="First", console=console, icon=_png_upload("first.png", BLUE)
     )
 
     image = _image(client.get(f"/Images/{FALLBACK_GAME_IMAGE_NAME}.png"))
