@@ -9,10 +9,19 @@ from django.utils import timezone
 
 from apps.accounts.models import API_TOKEN_HEX_LENGTH
 from apps.achievements.models import Achievement, UserUnlock
-from apps.anticheat.detection import award_validation_hash, leaderboard_validation_hash
+from apps.anticheat.detection import (
+    AWARD_RATE_KEY,
+    AWARD_RATE_LIMIT,
+    AWARD_RATE_WINDOW,
+    EARLY_UNLOCK_WINDOW,
+    UNLOCK_BURST_THRESHOLD,
+    UNLOCK_BURST_WINDOW,
+    award_validation_hash,
+    leaderboard_validation_hash,
+)
 from apps.anticheat.models import SuspiciousActivity
 from apps.api.handlers import API_TOKEN_LIFETIME, MAX_UINT32, UNLOCK_MAX_AGE
-from apps.games.models import Console, Game
+from apps.games.models import Console, Game, PlayerGame
 from apps.leaderboards.models import Leaderboard, LeaderboardEntry
 
 User = get_user_model()
@@ -75,22 +84,18 @@ def game(db):
     return Game.objects.create(title="Crash Bandicoot", console=console)
 
 
-def _achievement(game, author, **fields):
+@pytest.fixture
+def achievement(game, player):
     return Achievement.objects.create(
+        pk=ACHIEVEMENT_ID,
         game=game,
-        author=author,
-        title=f"Achievement {fields.get('pk', '')}",
+        author=player,
+        title="Signed",
         description="d",
         points=10,
         mem_addr="0xH0001=1",
         status=Achievement.STATUS_COMMUNITY,
-        **fields,
     )
-
-
-@pytest.fixture
-def achievement(game, player):
-    return _achievement(game, player, pk=ACHIEVEMENT_ID)
 
 
 @pytest.fixture
@@ -318,6 +323,154 @@ def test_submit_with_a_wrong_v_is_rejected_and_flagged(client, player, leaderboa
         score=SCORE - 1,
         seconds_since_completion=0,
     )
+
+
+# --- rate limit and unlock heuristics ---
+
+
+def _achievements(game, author, count):
+    return Achievement.objects.bulk_create(
+        Achievement(
+            game=game,
+            author=author,
+            title=f"Achievement {number}",
+            description="d",
+            points=1,
+            mem_addr="0xH0001=1",
+            status=Achievement.STATUS_COMMUNITY,
+        )
+        for number in range(count)
+    )
+
+
+def _signed_award(client, achievement, seconds_since_unlock=0):
+    v = award_validation_hash(achievement.pk, PLAYER, False, seconds_since_unlock)
+    params = {"a": achievement.pk, "h": "0", "v": v}
+    if seconds_since_unlock:
+        params["o"] = seconds_since_unlock
+    return _award(client, **params)
+
+
+def _kinds(user):
+    return sorted(SuspiciousActivity.objects.filter(user=user).values_list("kind", flat=True))
+
+
+TOO_MANY_UNLOCKS = {
+    "Success": False,
+    "Error": "Too many unlocks at once. The unlock will be retried.",
+    "Status": HTTPStatus.TOO_MANY_REQUESTS,
+}
+# The acceptance scenario: a script firing a hundred unlocks within five seconds.
+SCRIPTED_UNLOCKS = 100
+
+
+@pytest.mark.django_db
+def test_hundred_unlocks_at_once_are_throttled_and_flagged(client, player, game):
+    achievements = _achievements(game, player, SCRIPTED_UNLOCKS)
+
+    responses = [_signed_award(client, achievement) for achievement in achievements]
+
+    accepted = responses[:AWARD_RATE_LIMIT]
+    throttled = responses[AWARD_RATE_LIMIT:]
+    assert all(response.json()["Success"] for response in accepted)
+    assert {response.status_code for response in throttled} == {HTTPStatus.TOO_MANY_REQUESTS}
+    assert all(response.json() == TOO_MANY_UNLOCKS for response in throttled)
+    assert UserUnlock.objects.filter(user=player).count() == AWARD_RATE_LIMIT
+    assert _kinds(player) == [
+        SuspiciousActivity.Kind.RATE_LIMITED,
+        SuspiciousActivity.Kind.UNLOCK_BURST,
+    ]
+    rate_limited = SuspiciousActivity.objects.get(kind=SuspiciousActivity.Kind.RATE_LIMITED)
+    assert rate_limited.detail == {
+        "limit": AWARD_RATE_LIMIT,
+        "window_seconds": AWARD_RATE_WINDOW.total_seconds(),
+    }
+    burst = SuspiciousActivity.objects.get(kind=SuspiciousActivity.Kind.UNLOCK_BURST)
+    assert burst.detail == {
+        "game_id": game.pk,
+        "unlocks": UNLOCK_BURST_THRESHOLD,
+        "window_seconds": UNLOCK_BURST_WINDOW.total_seconds(),
+    }
+
+
+@pytest.mark.django_db
+def test_rate_limit_counts_each_user_apart(client, player, game):
+    other = User.objects.create_user(username="other", password="pw")
+    cache.set(AWARD_RATE_KEY.format(user_id=other.pk), AWARD_RATE_LIMIT)
+    (achievement,) = _achievements(game, player, 1)
+
+    assert _signed_award(client, achievement).json()["Success"] is True
+
+
+@pytest.mark.django_db
+def test_rate_limit_lifts_when_the_window_ends(client, player, game):
+    first, second = _achievements(game, player, 2)
+    cache.set(AWARD_RATE_KEY.format(user_id=player.pk), AWARD_RATE_LIMIT)
+    assert _signed_award(client, first).status_code == HTTPStatus.TOO_MANY_REQUESTS
+
+    cache.delete(AWARD_RATE_KEY.format(user_id=player.pk))
+
+    assert _signed_award(client, second).json()["Success"] is True
+
+
+@pytest.mark.django_db
+def test_unlocks_below_the_burst_threshold_are_not_flagged(client, player, game):
+    for achievement in _achievements(game, player, UNLOCK_BURST_THRESHOLD - 1):
+        _signed_award(client, achievement)
+
+    assert not SuspiciousActivity.objects.exists()
+
+
+@pytest.mark.django_db
+def test_unlocks_dated_before_the_burst_window_do_not_count(client, player, game):
+    long_ago = int(UNLOCK_BURST_WINDOW.total_seconds()) + 1
+    for achievement in _achievements(game, player, UNLOCK_BURST_THRESHOLD):
+        _signed_award(client, achievement, seconds_since_unlock=long_ago)
+
+    assert UserUnlock.objects.filter(user=player).count() == UNLOCK_BURST_THRESHOLD
+    assert not SuspiciousActivity.objects.exists()
+
+
+@pytest.mark.django_db
+def test_unlock_right_after_startsession_is_flagged(client, player, achievement):
+    client.post(
+        "/dorequest.php", {"r": "startsession", "u": PLAYER, "t": TOKEN, "g": achievement.game_id}
+    )
+
+    _award(client, a=ACHIEVEMENT_ID, h="1", v=V_AWARD_HARDCORE)
+    # A retry of the recorded unlock is not flagged again.
+    _award(client, a=ACHIEVEMENT_ID, h="1", v=V_AWARD_HARDCORE)
+
+    activity = SuspiciousActivity.objects.get(user=player)
+    assert activity.kind == SuspiciousActivity.Kind.EARLY_UNLOCK
+    assert activity.detail["game_id"] == achievement.game_id
+    assert activity.detail["achievement_id"] == ACHIEVEMENT_ID
+    assert (
+        0 <= activity.detail["seconds_after_session_start"] < (EARLY_UNLOCK_WINDOW.total_seconds())
+    )
+
+
+@pytest.mark.django_db
+def test_unlock_well_into_the_session_is_not_flagged(client, player, achievement):
+    PlayerGame.objects.create(
+        user=player,
+        game=achievement.game,
+        session_started_at=timezone.now() - EARLY_UNLOCK_WINDOW,
+    )
+
+    _award(client, a=ACHIEVEMENT_ID, h="1", v=V_AWARD_HARDCORE)
+
+    assert not SuspiciousActivity.objects.exists()
+
+
+@pytest.mark.django_db
+def test_unlock_from_before_the_current_session_is_not_flagged(client, player, achievement):
+    PlayerGame.objects.create(user=player, game=achievement.game, session_started_at=timezone.now())
+
+    _award(client, a=ACHIEVEMENT_ID, h="1", o=SECONDS_SINCE_UNLOCK, v=V_AWARD_HARDCORE_RETRY)
+
+    assert UserUnlock.objects.filter(user=player).exists()
+    assert not SuspiciousActivity.objects.exists()
 
 
 # --- admin ---

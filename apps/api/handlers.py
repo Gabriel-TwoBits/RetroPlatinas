@@ -12,8 +12,10 @@ from django.utils import timezone
 from apps.accounts.models import API_TOKEN_BYTES
 from apps.achievements.models import Achievement, UserUnlock
 from apps.anticheat.detection import (
+    award_rate_exceeded,
     award_validation_hash,
     flag,
+    inspect_unlock,
     leaderboard_validation_hash,
     signature_matches,
 )
@@ -69,6 +71,13 @@ _ACHIEVEMENT_UNPUBLISHED = {
     "Error": "Unpublished achievements cannot be unlocked.",
     "Status": HTTPStatus.CONFLICT,
     "Code": "invalid_state",
+}
+# Sent as the HTTP status too: rc_client retries a 429 with backoff, so the unlock is delayed,
+# not lost. rcheevos has no `Code` for it, and reads a missing one as a generic failure.
+TOO_MANY_UNLOCKS = {
+    "Success": False,
+    "Error": "Too many unlocks at once. The unlock will be retried.",
+    "Status": HTTPStatus.TOO_MANY_REQUESTS,
 }
 
 # rcheevos RC_ACHIEVEMENT_CATEGORY_CORE / RC_ACHIEVEMENT_CATEGORY_UNOFFICIAL.
@@ -480,6 +489,9 @@ def handle_awardachievement(request):
     if error is not None:
         return error
 
+    if award_rate_exceeded(user):
+        return TOO_MANY_UNLOCKS
+
     try:
         achievement_id = int(request.POST.get("a", ""))
     except (ValueError, TypeError):
@@ -532,6 +544,7 @@ def handle_awardachievement(request):
         if softcore_created:
             locked_user.softcore_points += achievement.points
 
+        hardcore_created = False
         if hardcore:
             _, hardcore_created = UserUnlock.objects.get_or_create(
                 user=locked_user,
@@ -550,6 +563,10 @@ def handle_awardachievement(request):
             create_defaults={"first_played_at": now, "last_played_at": now},
         )
         remaining = _remaining_in_set(locked_user, achievement.game, hardcore)
+
+    # A retry of an unlock already recorded was inspected when it first landed.
+    if softcore_created or hardcore_created:
+        inspect_unlock(locked_user, achievement, unlocked_at, now)
 
     return {
         "Success": True,

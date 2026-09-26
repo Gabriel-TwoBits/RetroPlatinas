@@ -19,6 +19,8 @@ _SERVER_ERROR = {
     "Error": "Temporary server error. Please try again.",
     "Status": HTTPStatus.SERVICE_UNAVAILABLE,
 }
+# Handler errors sent with their `Status` as the HTTP status, for rc_client to retry them.
+RETRYABLE_STATUSES = frozenset({HTTPStatus.TOO_MANY_REQUESTS})
 
 # rc_client builds every parameter from a C string, so a NUL never comes from it, and Postgres
 # rejects NUL in text: a query or save carrying one would fail as a server error.
@@ -41,10 +43,15 @@ def dorequest(request):
     if _has_nul(request.POST):
         return JsonResponse(_invalid_parameter("Parameters cannot contain NUL characters."))
     try:
-        return JsonResponse(handler(request))
+        payload = handler(request)
     except Exception:
         logger.exception("api handler failed r=%s", action)
         return JsonResponse(_SERVER_ERROR, status=HTTPStatus.SERVICE_UNAVAILABLE)
+    # rcheevos reads every error from the body; the HTTP status only decides whether to retry.
+    if payload.get("Status") in RETRYABLE_STATUSES:
+        return JsonResponse(payload, status=payload["Status"])
+    else:
+        return JsonResponse(payload)
 
 
 def debug_presence(request, username):
