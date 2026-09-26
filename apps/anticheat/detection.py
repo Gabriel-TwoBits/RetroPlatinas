@@ -98,10 +98,11 @@ def award_rate_exceeded(user):
     return attempts > AWARD_RATE_LIMIT
 
 
-def inspect_unlock(user, achievement, unlocked_at, now):
-    """Flags a new unlock that completes a burst or comes right after its session started."""
+def inspect_unlock(user, achievement, seconds_since_unlock, now):
+    """Flags a new unlock, arrived at `now`, that completes a burst or comes right after its
+    session started."""
     _flag_unlock_burst(user, achievement.game_id)
-    _flag_early_unlock(user, achievement, unlocked_at)
+    _flag_early_unlock(user, achievement, seconds_since_unlock, now)
 
 
 def _flag_unlock_burst(user, game_id):
@@ -123,20 +124,20 @@ def _flag_unlock_burst(user, game_id):
         )
 
 
-def _flag_early_unlock(user, achievement, unlocked_at):
+def _flag_early_unlock(user, achievement, seconds_since_unlock, now):
     session_started_at = (
         PlayerGame.objects.filter(user=user, game_id=achievement.game_id)
         .values_list("session_started_at", flat=True)
         .first()
     )
-    # No recorded session (no startsession yet) leaves nothing to compare against.
-    if session_started_at is not None and (
-        timedelta(0) <= unlocked_at - session_started_at < EARLY_UNLOCK_WINDOW
-    ):
+    # Judged on arrival, like the burst; `o` goes in the detail, as rc_client sends it only on
+    # retries. No recorded session (no startsession yet) leaves nothing to compare against.
+    if session_started_at is not None and now - session_started_at < EARLY_UNLOCK_WINDOW:
         flag(
             user,
             SuspiciousActivity.Kind.EARLY_UNLOCK,
             game_id=achievement.game_id,
             achievement_id=achievement.pk,
-            seconds_after_session_start=(unlocked_at - session_started_at).total_seconds(),
+            seconds_after_session_start=(now - session_started_at).total_seconds(),
+            seconds_since_unlock=seconds_since_unlock,
         )

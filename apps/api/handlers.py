@@ -566,7 +566,7 @@ def handle_awardachievement(request):
 
     # A retry of an unlock already recorded was inspected when it first landed.
     if softcore_created or hardcore_created:
-        inspect_unlock(locked_user, achievement, unlocked_at, now)
+        inspect_unlock(locked_user, achievement, seconds_since_unlock, now)
 
     return {
         "Success": True,

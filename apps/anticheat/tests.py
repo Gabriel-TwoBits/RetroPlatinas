@@ -478,6 +478,7 @@ def test_unlock_right_after_startsession_is_flagged(client, player, achievement)
     assert activity.kind == SuspiciousActivity.Kind.EARLY_UNLOCK
     assert activity.detail["game_id"] == achievement.game_id
     assert activity.detail["achievement_id"] == ACHIEVEMENT_ID
+    assert activity.detail["seconds_since_unlock"] == 0
     assert (
         0 <= activity.detail["seconds_after_session_start"] < (EARLY_UNLOCK_WINDOW.total_seconds())
     )
@@ -497,13 +498,16 @@ def test_unlock_well_into_the_session_is_not_flagged(client, player, achievement
 
 
 @pytest.mark.django_db
-def test_unlock_from_before_the_current_session_is_not_flagged(client, player, achievement):
+def test_unlock_dated_back_by_o_is_judged_by_its_arrival(client, player, achievement):
     PlayerGame.objects.create(user=player, game=achievement.game, session_started_at=timezone.now())
+    a_day_ago = int(UNLOCK_MAX_AGE.total_seconds())
+    v = award_validation_hash(ACHIEVEMENT_ID, PLAYER, True, a_day_ago)
 
-    _award(client, a=ACHIEVEMENT_ID, h="1", o=SECONDS_SINCE_UNLOCK, v=V_AWARD_HARDCORE_RETRY)
+    _award(client, a=ACHIEVEMENT_ID, h="1", o=a_day_ago, v=v)
 
-    assert UserUnlock.objects.filter(user=player).exists()
-    assert not SuspiciousActivity.objects.exists()
+    activity = SuspiciousActivity.objects.get(user=player)
+    assert activity.kind == SuspiciousActivity.Kind.EARLY_UNLOCK
+    assert activity.detail["seconds_since_unlock"] == a_day_ago
 
 
 # --- admin ---
