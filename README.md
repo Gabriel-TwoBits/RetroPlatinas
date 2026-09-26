@@ -78,10 +78,11 @@ DuckStation caches images by URL, and a missing URL makes rcheevos fetch RetroAc
 
 ## Sessions, presence and hardcore
 
-`PlayerGame` (one row per user and game) records who plays what. `startsession` creates it and
-moves its last-played time, `ping` (rc_client sends one every 120 s while the emulator runs)
-stores the current rich presence, and an unlock also moves last played. Each `ping` credits the
-time since the previous contact as playtime when the gap is at most 4 minutes; a longer gap
+`PlayerGame` (one row per user and game) records who plays what. `startsession` creates it,
+records when the session started and moves its last-played time, `ping` (rc_client sends one
+every 120 s while the emulator runs) stores the current rich presence, and an unlock also moves
+last played. Each `ping` credits the time since the previous contact as playtime when the gap is
+at most 4 minutes; a longer gap
 (emulator paused, closed or offline) credits nothing, and so does a new `startsession`, which also
 clears the previous session's rich presence. A session pinged within the last
 5 minutes is "playing now" (`PlayerGame.objects.playing_now()`). Rarity counts a game's
@@ -98,6 +99,33 @@ Hardcore follows what rcheevos actually sends:
 With `DEBUG` on, `GET /api/test/presence/<username>/` returns that user's live sessions (game,
 rich presence, mode, last ping) as JSON, or 404 for an unknown user. It is a test endpoint and
 answers 404 whenever `DEBUG` is off.
+
+## Anti-cheat
+
+The `anticheat` app flags requests for manual review in the admin (**Anti-cheat → Suspicious
+activities**, bulk actions *mark legitimate* / *mark cheating*, which record the reviewer and the
+time). Flagging never blocks or bans a user. Thresholds are constants in
+`apps/anticheat/detection.py`.
+
+| Kind | Flagged when | Request outcome |
+| --- | --- | --- |
+| `invalid_signature` | `awardachievement` or `submitlbentry` arrives without `v`, or with a `v` that does not match | rejected (`missing_parameter` / `invalid_parameter`) |
+| `rate_limited` | a user sends more than 30 `awardachievement` in a minute (once per window) | HTTP 429, which rc_client retries with backoff, so the unlock is delayed, not lost |
+| `unlock_burst` | 10 achievements of one game unlocked within a minute (once per burst) | accepted |
+| `early_unlock` | an unlock lands less than 30 s after the session's `startsession` | accepted |
+
+`v` is the lowercase hex MD5 rcheevos signs every unlock and leaderboard entry with (`u` is the
+username as sent):
+
+| Request | `v` without `o` | `v` with `o` |
+| --- | --- | --- |
+| `awardachievement` | `md5(a + u + h)` | `md5(a + u + h + a + o)` |
+| `submitlbentry` | `md5(i + u + s)` | `md5(i + u + s + o)` |
+
+rcheevos sends `o` (seconds since the unlock or completion) only on retries and only when it is
+not zero. An unlock carrying `o` is dated that far back, at most one day. A request crafted by hand
+(curl, a test script) must sign itself the same way — `award_validation_hash` and
+`leaderboard_validation_hash` in `apps/anticheat/detection.py` compute it.
 
 ## Running in background
 
