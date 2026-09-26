@@ -124,6 +124,22 @@ podman-compose exec web bash scripts/check-mem-addr.sh '0xH61998=1_d0xH61998=0'
 `apps/achievements/tests.py` runs it over every generated condition, so `pytest` already fails on a
 syntax error. It compiles on first use into `.cache/` (gitignored).
 
+**Then run it in the headless harness — mandatory after the syntax check.**
+`tools/achievement-harness/` boots the real disc in a libretro core and evaluates the conditions
+the seed commands build, frame by frame, with the vendored rcheevos runtime. Every scenario must
+print `OK`; a new achievement needs a scenario that reaches its event and the look-alike events
+that must not fire it (death, quit, attract demo). Mount the disc into a one-off container:
+
+```bash
+podman-compose --in-pod=false run --rm --no-deps \
+  -v "/path/to/Crash Bandicoot (USA)":/roms:ro \
+  -e CRASH1_CUE="/roms/Crash Bandicoot (USA).cue" \
+  web python tools/achievement-harness/scenarios.py all
+```
+
+See `tools/achievement-harness/README.md`. The harness narrows the search, it does not replace
+the game: **the user's check in DuckStation remains the final gate** before a condition ships.
+
 - **Code notes are best-effort, not truth.** They come from the RA community and describe another
   region/revision as often as not. Verify each address before relying on it.
 - **Console RAM is zeroed at reset, so `0` means "not initialised yet", not "state zero".** Any
