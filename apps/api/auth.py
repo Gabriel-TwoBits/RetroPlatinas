@@ -10,4 +10,5 @@ def user_from_token(token: str) -> User | None:
     return User.objects.filter(
         api_token=token,
         api_token_expires_at__gt=timezone.now(),
+        is_active=True,
     ).first()

@@ -235,6 +235,27 @@ def test_user_from_token_returns_none_for_empty_token():
     assert user_from_token("") is None
 
 
+@pytest.mark.django_db
+def test_user_from_token_returns_none_for_inactive_user():
+    user = User.objects.create_user(username="alice", password="pw", is_active=False)
+    user.api_token = "c" * 64
+    user.api_token_expires_at = timezone.now() + timedelta(days=14)
+    user.save(update_fields=["api_token", "api_token_expires_at"])
+    assert user_from_token("c" * 64) is None
+
+
+@pytest.mark.django_db
+def test_patch_rejects_token_of_deactivated_user(client, authed_user, game_with_hash):
+    user, token = authed_user
+    game, _ = game_with_hash
+    user.is_active = False
+    user.save(update_fields=["is_active"])
+    response = client.post("/dorequest.php", {"r": "patch", "t": token, "g": game.pk})
+    data = response.json()
+    assert data["Success"] is False
+    assert data["Error"] == "Credentials invalid."
+
+
 # --- gameid ---
 
 
