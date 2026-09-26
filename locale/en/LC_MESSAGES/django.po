@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RetroPlatinas\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-26 15:18-0300\n"
+"POT-Creation-Date: 2026-09-26 16:07-0300\n"
 "PO-Revision-Date: 2026-05-23 18:15-0300\n"
 "Last-Translator: RetroPlatinas\n"
 "Language-Team: English\n"
@@ -20,7 +20,7 @@ msgstr ""
 msgid "A user with that email already exists."
 msgstr ""
 
-#: apps/achievements/admin.py:21 apps/achievements/models.py:38
+#: apps/achievements/admin.py:21 apps/achievements/models.py:41
 msgid "status"
 msgstr ""
 
@@ -36,95 +36,91 @@ msgstr ""
 msgid "Verified"
 msgstr ""
 
-#: apps/achievements/models.py:22 apps/achievements/models.py:83
+#: apps/achievements/models.py:25 apps/achievements/models.py:85
 #: apps/games/models.py:49 apps/games/models.py:62
 #: apps/leaderboards/models.py:13
 msgid "game"
 msgstr ""
 
-#: apps/achievements/models.py:27 apps/achievements/models.py:88
+#: apps/achievements/models.py:30 apps/achievements/models.py:90
 msgid "author"
 msgstr ""
 
-#: apps/achievements/models.py:29 apps/games/models.py:36
+#: apps/achievements/models.py:32 apps/games/models.py:36
 #: apps/leaderboards/models.py:15
 msgid "title"
 msgstr ""
 
-#: apps/achievements/models.py:30 apps/games/models.py:44
+#: apps/achievements/models.py:33 apps/games/models.py:44
 #: apps/leaderboards/models.py:16
 msgid "description"
 msgstr ""
 
-#: apps/achievements/models.py:31
+#: apps/achievements/models.py:34
 msgid "points"
 msgstr ""
 
-#: apps/achievements/models.py:32 apps/leaderboards/models.py:17
+#: apps/achievements/models.py:35 apps/leaderboards/models.py:17
 msgid "memory address expression"
 msgstr ""
 
-#: apps/achievements/models.py:33
+#: apps/achievements/models.py:36
 msgid "badge"
 msgstr ""
 
-#: apps/achievements/models.py:40
-msgid "flags"
-msgstr ""
-
-#: apps/achievements/models.py:41 apps/games/models.py:46
+#: apps/achievements/models.py:43 apps/games/models.py:46
 msgid "created at"
 msgstr ""
 
-#: apps/achievements/models.py:42 apps/achievements/models.py:92
+#: apps/achievements/models.py:44 apps/achievements/models.py:94
 msgid "updated at"
 msgstr ""
 
-#: apps/achievements/models.py:45 apps/achievements/models.py:63
+#: apps/achievements/models.py:47 apps/achievements/models.py:65
 msgid "achievement"
 msgstr ""
 
-#: apps/achievements/models.py:46
+#: apps/achievements/models.py:48
 msgid "achievements"
 msgstr ""
 
-#: apps/achievements/models.py:58 apps/leaderboards/models.py:40
+#: apps/achievements/models.py:60 apps/leaderboards/models.py:40
 msgid "user"
 msgstr ""
 
-#: apps/achievements/models.py:65 apps/achievements/models.py:74
+#: apps/achievements/models.py:67 apps/achievements/models.py:76
 msgid "hardcore"
 msgstr ""
 
-#: apps/achievements/models.py:66
+#: apps/achievements/models.py:68
 msgid "unlocked at"
 msgstr ""
 
-#: apps/achievements/models.py:69
+#: apps/achievements/models.py:71
 msgid "user unlock"
 msgstr ""
 
-#: apps/achievements/models.py:70
+#: apps/achievements/models.py:72
 msgid "user unlocks"
 msgstr ""
 
-#: apps/achievements/models.py:74
+#: apps/achievements/models.py:76
 msgid "softcore"
 msgstr ""
 
-#: apps/achievements/models.py:90
+#: apps/achievements/models.py:92
 msgid "address"
 msgstr ""
 
-#: apps/achievements/models.py:91
+#: apps/achievements/models.py:93
 msgid "note"
 msgstr ""
 
-#: apps/achievements/models.py:95
+#: apps/achievements/models.py:97
 msgid "code note"
 msgstr ""
 
-#: apps/achievements/models.py:96
+#: apps/achievements/models.py:98
 msgid "code notes"
 msgstr ""
 

@@ -69,7 +69,6 @@ def achievement(game, user):
 @pytest.mark.django_db
 def test_achievement_creation(achievement):
     assert achievement.status == Achievement.STATUS_DRAFT
-    assert achievement.flags == 5
     assert "First Steps" in str(achievement)
 
 

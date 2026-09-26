@@ -13,7 +13,7 @@ _STATUS_COLORS = {
 
 @admin.register(Achievement)
 class AchievementAdmin(admin.ModelAdmin):
-    list_display = ("title", "game", "colored_status", "points", "flags", "author", "created_at")
+    list_display = ("title", "game", "colored_status", "points", "author", "created_at")
     list_filter = ("status", "game__console")
     search_fields = ("title", "description", "mem_addr")
     autocomplete_fields = ("author", "game")

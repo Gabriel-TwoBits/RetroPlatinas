@@ -40,7 +40,6 @@ class Achievement(models.Model):
         default=STATUS_DRAFT,
         verbose_name=_("status"),
     )
-    flags = models.IntegerField(default=5, verbose_name=_("flags"))
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("created at"))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=_("updated at"))
 
