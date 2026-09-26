@@ -47,6 +47,7 @@ podman-compose exec web python manage.py shell
 podman-compose exec web python -m pytest
 
 # Regenerate lockfile after changing dependencies in pyproject.toml
+# (the image installs exactly what uv.lock pins; a stale lock fails the build)
 podman-compose exec web uv lock
 # Then: git add uv.lock && git commit
 
@@ -66,17 +67,6 @@ podman-compose --in-pod=false up -d   # start in background
 podman-compose logs -f web    # follow Django server logs
 podman-compose down           # stop all (data persists in volumes)
 podman-compose down -v        # stop AND delete volumes (full reset)
-```
-
-## First time: generate uv.lock
-
-The `uv.lock` lockfile should be committed to the repository for reproducible builds.
-After the first `podman-compose --in-pod=false up --build`, generate it with:
-
-```bash
-podman-compose exec web uv lock
-git add uv.lock
-git commit -m "chore: add initial uv.lock"
 ```
 
 ## Troubleshooting

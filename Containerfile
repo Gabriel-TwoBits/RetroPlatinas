@@ -3,7 +3,7 @@ FROM python:3.12-slim
 # Copy uv binary from official image
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /usr/local/bin/
 
-# venv fora de /app para não ser ocultado pelo bind mount em dev
+# The venv lives outside /app so the dev bind mount does not hide it.
 ENV UV_PROJECT_ENVIRONMENT=/opt/venv \
     PATH="/opt/venv/bin:$PATH"
 
@@ -20,7 +20,7 @@ RUN curl -fsSL -o /usr/local/bin/tailwindcss \
     "https://github.com/tailwindlabs/tailwindcss/releases/download/${TAILWIND_VERSION}/tailwindcss-linux-x64" \
     && chmod +x /usr/local/bin/tailwindcss
 
-# Usuário não-root com UID/GID 1000 (mesmo UID do desenvolvedor no Fedora)
+# Non-root user with UID/GID 1000, the host developer's UID under `userns_mode: keep-id`.
 RUN groupadd --gid 1000 app && \
     useradd --uid 1000 --gid 1000 --create-home --home-dir /home/app app
 
@@ -28,10 +28,11 @@ RUN mkdir /app && chown app:app /app
 
 WORKDIR /app
 
-# Instalar dependências em camada separada do código-fonte (cache de build)
-COPY pyproject.toml ./
+# Dependencies get their own layer so source edits keep the build cache. `--locked`
+# installs exactly what uv.lock pins and fails the build if the lock is stale.
+COPY pyproject.toml uv.lock ./
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync && \
+    uv sync --locked && \
     chown -R app:app /opt/venv
 
 COPY --chown=app:app . .
