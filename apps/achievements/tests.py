@@ -391,3 +391,88 @@ def test_admin_status_actions_require_change_permission(view_only_staff_client, 
 
     achievement.refresh_from_db()
     assert achievement.status == Achievement.STATUS_DRAFT
+
+
+COMMUNITY_POINTS = 10
+VERIFIED_POINTS = 25
+
+
+def _run_status_action(admin_client, action, achievement):
+    return admin_client.post(
+        ACHIEVEMENT_CHANGELIST_URL, {"action": action, "_selected_action": [achievement.pk]}
+    )
+
+
+def _points_of(player):
+    player.refresh_from_db()
+    return player.softcore_points, player.hardcore_points
+
+
+@pytest.fixture
+def unlocked_community_and_verified(client, game, user, player_token):
+    player, token = player_token
+    community = Achievement.objects.create(
+        game=game,
+        author=user,
+        title="Community",
+        description="c",
+        points=COMMUNITY_POINTS,
+        mem_addr="0xH0001=1",
+        status=Achievement.STATUS_COMMUNITY,
+    )
+    verified = Achievement.objects.create(
+        game=game,
+        author=user,
+        title="Verified",
+        description="v",
+        points=VERIFIED_POINTS,
+        mem_addr="0xH0002=1",
+        status=Achievement.STATUS_VERIFIED,
+    )
+    for achievement, hardcore in ((community, "1"), (verified, "0")):
+        client.post(
+            "/dorequest.php",
+            {"r": "awardachievement", "t": token, "a": achievement.pk, "h": hardcore},
+        )
+    assert _points_of(player) == (COMMUNITY_POINTS + VERIFIED_POINTS, COMMUNITY_POINTS)
+    return player, community
+
+
+@pytest.mark.django_db
+def test_admin_move_to_draft_drops_the_points_and_republishing_restores_them(
+    admin_client, unlocked_community_and_verified
+):
+    player, community = unlocked_community_and_verified
+
+    _run_status_action(admin_client, "move_to_draft", community)
+
+    assert _points_of(player) == (VERIFIED_POINTS, 0)
+    kept_modes = UserUnlock.objects.filter(user=player, achievement=community)
+    assert set(kept_modes.values_list("hardcore", flat=True)) == {False, True}
+
+    _run_status_action(admin_client, "publish_as_community", community)
+
+    assert _points_of(player) == (COMMUNITY_POINTS + VERIFIED_POINTS, COMMUNITY_POINTS)
+
+
+@pytest.mark.django_db
+def test_admin_change_form_status_change_recalculates_the_points(
+    admin_client, unlocked_community_and_verified
+):
+    player, community = unlocked_community_and_verified
+
+    response = admin_client.post(
+        f"{ACHIEVEMENT_CHANGELIST_URL}{community.pk}/change/",
+        {
+            "game": community.game_id,
+            "author": community.author_id,
+            "title": community.title,
+            "description": community.description,
+            "points": community.points,
+            "mem_addr": community.mem_addr,
+            "status": Achievement.STATUS_DRAFT,
+        },
+    )
+
+    assert response.status_code == 302
+    assert _points_of(player) == (VERIFIED_POINTS, 0)

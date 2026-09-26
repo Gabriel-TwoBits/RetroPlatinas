@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RetroPlatinas\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-26 16:09-0300\n"
+"POT-Creation-Date: 2026-09-26 16:11-0300\n"
 "PO-Revision-Date: 2026-05-23 18:15-0300\n"
 "Last-Translator: RetroPlatinas\n"
 "Language-Team: Brazilian Portuguese\n"
@@ -20,23 +20,23 @@ msgstr ""
 msgid "A user with that email already exists."
 msgstr "Já existe um usuário com esse email."
 
-#: apps/achievements/admin.py:24 apps/achievements/models.py:41
+#: apps/achievements/admin.py:58 apps/achievements/models.py:41
 msgid "status"
 msgstr "status"
 
-#: apps/achievements/admin.py:31
+#: apps/achievements/admin.py:65
 msgid "Publish selected achievements as community"
 msgstr "Publicar as conquistas selecionadas como comunidade"
 
-#: apps/achievements/admin.py:36
+#: apps/achievements/admin.py:70
 msgid "Mark selected achievements as verified"
 msgstr "Marcar as conquistas selecionadas como verificadas"
 
-#: apps/achievements/admin.py:41
+#: apps/achievements/admin.py:75
 msgid "Move selected achievements back to draft"
 msgstr "Voltar as conquistas selecionadas para rascunho"
 
-#: apps/achievements/admin.py:49
+#: apps/achievements/admin.py:93
 #, python-format
 msgid "%(count)d achievement moved to %(status)s."
 msgid_plural "%(count)d achievements moved to %(status)s."
