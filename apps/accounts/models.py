@@ -3,9 +3,14 @@ from django.db import models
 from django.db.models.functions import Lower
 from django.utils.translation import gettext_lazy as _
 
+API_TOKEN_BYTES = 32
+HEX_DIGITS_PER_BYTE = 2
+
 
 class User(AbstractUser):
-    api_token = models.CharField(max_length=64, unique=True, null=True, blank=True)
+    api_token = models.CharField(
+        max_length=API_TOKEN_BYTES * HEX_DIGITS_PER_BYTE, unique=True, null=True, blank=True
+    )
     api_token_expires_at = models.DateTimeField(null=True, blank=True)
     softcore_points = models.IntegerField(default=0)
     hardcore_points = models.IntegerField(default=0)

@@ -7,6 +7,7 @@ from django.core.cache import cache
 from django.db import transaction
 from django.utils import timezone
 
+from apps.accounts.models import API_TOKEN_BYTES
 from apps.achievements.models import Achievement, UserUnlock
 from apps.api.auth import user_from_token
 from apps.games.models import Game, GameHash
@@ -20,6 +21,8 @@ _GAME_NOT_FOUND = {"Success": False, "Error": "Unknown game.", "Status": 404, "C
 
 PRESENCE_TTL_SECONDS = 300
 DEFAULT_GAME_ICON_PATH = "/Images/000001.png"
+API_TOKEN_LIFETIME = timedelta(days=14)
+BADGE_NAME_DIGITS = 5
 
 
 def handle_login2(request):
@@ -44,9 +47,9 @@ def handle_login2(request):
     if user.api_token and user.api_token_expires_at and user.api_token_expires_at > now:
         token = user.api_token
     else:
-        token = secrets.token_hex(32)
+        token = secrets.token_hex(API_TOKEN_BYTES)
     user.api_token = token
-    user.api_token_expires_at = now + timedelta(days=14)
+    user.api_token_expires_at = now + API_TOKEN_LIFETIME
     user.save(update_fields=["api_token", "api_token_expires_at"])
     return {
         "Success": True,
@@ -78,7 +81,7 @@ def _serialize_achievement(a):
         "Author": a.author.username,
         "Modified": int(a.updated_at.timestamp()),
         "Created": int(a.created_at.timestamp()),
-        "BadgeName": f"{a.id:05d}",
+        "BadgeName": f"{a.id:0{BADGE_NAME_DIGITS}d}",
         "Flags": flags,
     }
 
