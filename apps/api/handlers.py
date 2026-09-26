@@ -1,6 +1,7 @@
 import logging
 import secrets
 from datetime import timedelta
+from http import HTTPStatus
 
 from django.contrib.auth import authenticate
 from django.core.cache import cache
@@ -16,8 +17,17 @@ from apps.leaderboards.models import Leaderboard, LeaderboardEntry
 logger = logging.getLogger("apps.api")
 
 _NOT_IMPLEMENTED = {"Success": False, "Error": "not implemented"}
-_INVALID_CREDENTIALS = {"Success": False, "Error": "Credentials invalid.", "Status": 401}
-_GAME_NOT_FOUND = {"Success": False, "Error": "Unknown game.", "Status": 404, "Code": "not_found"}
+_INVALID_CREDENTIALS = {
+    "Success": False,
+    "Error": "Credentials invalid.",
+    "Status": HTTPStatus.UNAUTHORIZED,
+}
+_GAME_NOT_FOUND = {
+    "Success": False,
+    "Error": "Unknown game.",
+    "Status": HTTPStatus.NOT_FOUND,
+    "Code": "not_found",
+}
 
 PRESENCE_TTL_SECONDS = 300
 DEFAULT_GAME_ICON_PATH = "/Images/000001.png"
