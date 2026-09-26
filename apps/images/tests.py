@@ -5,6 +5,7 @@ import pytest
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.utils import translation
 from PIL import Image
 
 from apps.achievements.models import Achievement
@@ -255,3 +256,51 @@ def test_user_pics_differ_between_users(client):
 @pytest.mark.django_db
 def test_user_pic_unknown_user_is_not_found(client):
     assert client.get("/UserPic/nobody.png").status_code == HTTPStatus.NOT_FOUND
+
+
+# --- Admin ---
+
+
+@pytest.fixture
+def admin_client(client, db):
+    admin = User.objects.create_superuser(username="admin", password="pw")
+    client.force_login(admin)
+    return client
+
+
+@pytest.mark.django_db
+def test_achievement_admin_shows_badge_thumbnails(admin_client, achievement):
+    response = admin_client.get(f"/admin/achievements/achievement/{achievement.pk}/change/")
+
+    content = response.content.decode()
+    assert response.status_code == HTTPStatus.OK
+    assert badge_path(achievement) in content.replace("&amp;", "&")
+    assert badge_path(achievement, locked=True) in content.replace("&amp;", "&")
+
+
+@pytest.mark.django_db
+def test_game_admin_shows_icon_thumbnail(admin_client, game):
+    response = admin_client.get(f"/admin/games/game/{game.pk}/change/")
+
+    assert response.status_code == HTTPStatus.OK
+    assert versioned_game_icon_path(game) in response.content.decode().replace("&amp;", "&")
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("path", ["/admin/achievements/achievement/", "/admin/games/game/"])
+def test_admin_lists_show_thumbnails(admin_client, achievement, path):
+    response = admin_client.get(path)
+
+    assert response.status_code == HTTPStatus.OK
+    assert "<img src=" in response.content.decode()
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("path", ["/admin/achievements/achievement/add/", "/admin/games/game/add/"])
+def test_admin_add_forms_render_without_a_preview(admin_client, path):
+    response = admin_client.get(path)
+
+    assert response.status_code == HTTPStatus.OK
+    with translation.override(response["Content-Language"]):
+        placeholder_text = translation.gettext("Available after saving.")
+    assert placeholder_text in response.content.decode()

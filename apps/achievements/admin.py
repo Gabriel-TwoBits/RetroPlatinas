@@ -9,12 +9,26 @@ from django.utils.translation import gettext_lazy as _
 from django.utils.translation import ngettext
 
 from apps.achievements.models import Achievement, CodeNote, UserUnlock
+from apps.images.catalog import badge_path
+from apps.images.rendering import BADGE_SIZE_PX
 
 _STATUS_COLORS = {
     Achievement.STATUS_DRAFT: "#888888",
     Achievement.STATUS_COMMUNITY: "#d97706",
     Achievement.STATUS_VERIFIED: "#16a34a",
 }
+ADMIN_LIST_THUMBNAIL_PX = 32
+
+
+def _badge_img(achievement, locked, size):
+    alt = _("Locked badge") if locked else _("Badge")
+    return format_html(
+        '<img src="{}" alt="{}" width="{}" height="{}">',
+        badge_path(achievement, locked=locked),
+        alt,
+        size,
+        size,
+    )
 
 
 def _published_unlock_points(hardcore):
@@ -49,7 +63,18 @@ def _recalculate_unlocker_points(achievement_ids):
 
 @admin.register(Achievement)
 class AchievementAdmin(admin.ModelAdmin):
-    list_display = ("title", "game", "colored_status", "type", "points", "author", "created_at")
+    list_display = (
+        "badge_thumbnail",
+        "title",
+        "game",
+        "colored_status",
+        "type",
+        "points",
+        "author",
+        "created_at",
+    )
+    list_display_links = ("badge_thumbnail", "title")
+    readonly_fields = ("badge_preview",)
     list_filter = ("status", "type", "game__console")
     search_fields = ("title", "description", "mem_addr")
     autocomplete_fields = ("author", "game")
@@ -60,6 +85,22 @@ class AchievementAdmin(admin.ModelAdmin):
         color = _STATUS_COLORS.get(obj.status, "#000000")
         label = obj.get_status_display()
         return format_html('<span style="color: {}; font-weight: bold;">{}</span>', color, label)
+
+    @admin.display(description=_("badge"))
+    def badge_thumbnail(self, obj):
+        return _badge_img(obj, locked=False, size=ADMIN_LIST_THUMBNAIL_PX)
+
+    @admin.display(description=_("badge preview"))
+    def badge_preview(self, obj):
+        """The unlocked and locked badges as clients receive them, placeholder included."""
+        if obj.pk is None:
+            return _("Available after saving.")
+        else:
+            return format_html(
+                "{} {}",
+                _badge_img(obj, locked=False, size=BADGE_SIZE_PX),
+                _badge_img(obj, locked=True, size=BADGE_SIZE_PX),
+            )
 
     @admin.action(
         description=_("Publish selected achievements as community"), permissions=("change",)

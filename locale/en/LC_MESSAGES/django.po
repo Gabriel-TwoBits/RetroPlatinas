@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RetroPlatinas\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-26 18:51-0300\n"
+"POT-Creation-Date: 2026-09-26 19:41-0300\n"
 "PO-Revision-Date: 2026-05-23 18:15-0300\n"
 "Last-Translator: RetroPlatinas\n"
 "Language-Team: English\n"
@@ -20,23 +20,44 @@ msgstr ""
 msgid "A user with that email already exists."
 msgstr ""
 
-#: apps/achievements/admin.py:58 apps/achievements/models.py:53
+#: apps/achievements/admin.py:24
+msgid "Locked badge"
+msgstr ""
+
+#: apps/achievements/admin.py:24
+msgid "Badge"
+msgstr ""
+
+#: apps/achievements/admin.py:83 apps/achievements/models.py:53
 msgid "status"
 msgstr ""
 
-#: apps/achievements/admin.py:65
-msgid "Publish selected achievements as community"
-msgstr ""
-
-#: apps/achievements/admin.py:70
-msgid "Mark selected achievements as verified"
-msgstr ""
-
-#: apps/achievements/admin.py:75
-msgid "Move selected achievements back to draft"
+#: apps/achievements/admin.py:89 apps/achievements/models.py:48
+msgid "badge"
 msgstr ""
 
 #: apps/achievements/admin.py:93
+msgid "badge preview"
+msgstr ""
+
+#: apps/achievements/admin.py:97 apps/games/admin.py:64
+#: apps/images/tests.py:305
+msgid "Available after saving."
+msgstr ""
+
+#: apps/achievements/admin.py:106
+msgid "Publish selected achievements as community"
+msgstr ""
+
+#: apps/achievements/admin.py:111
+msgid "Mark selected achievements as verified"
+msgstr ""
+
+#: apps/achievements/admin.py:116
+msgid "Move selected achievements back to draft"
+msgstr ""
+
+#: apps/achievements/admin.py:134
 #, python-format
 msgid "%(count)d achievement moved to %(status)s."
 msgid_plural "%(count)d achievements moved to %(status)s."
@@ -99,10 +120,6 @@ msgstr ""
 msgid "memory address expression"
 msgstr ""
 
-#: apps/achievements/models.py:48
-msgid "badge"
-msgstr ""
-
 #: apps/achievements/models.py:60
 msgid "type"
 msgstr ""
@@ -163,6 +180,18 @@ msgstr ""
 msgid "code notes"
 msgstr ""
 
+#: apps/games/admin.py:17
+msgid "Game icon"
+msgstr ""
+
+#: apps/games/admin.py:56 apps/games/models.py:43
+msgid "icon"
+msgstr ""
+
+#: apps/games/admin.py:60
+msgid "icon preview"
+msgstr ""
+
 #: apps/games/models.py:17
 msgid "RA ID"
 msgstr ""
@@ -181,10 +210,6 @@ msgstr ""
 
 #: apps/games/models.py:25
 msgid "consoles"
-msgstr ""
-
-#: apps/games/models.py:43
-msgid "icon"
 msgstr ""
 
 #: apps/games/models.py:45
