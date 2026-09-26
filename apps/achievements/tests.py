@@ -283,3 +283,83 @@ def test_awardachievement_seeded_hardcore_creates_both_unlocks(client, seeded_ga
     user.refresh_from_db()
     assert user.softcore_points == ACHIEVEMENT_POINTS
     assert user.hardcore_points == ACHIEVEMENT_POINTS
+
+
+ACHIEVEMENT_CHANGELIST_URL = "/admin/achievements/achievement/"
+ALL_STATUSES = [status for status, _ in Achievement.STATUS_CHOICES]
+
+
+def _create_with_status(game, user, status):
+    return Achievement.objects.create(
+        game=game,
+        author=user,
+        title=f"{status} achievement",
+        description="d",
+        mem_addr="0xH0001=1",
+        status=status,
+    )
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    ("action", "target_status", "expected_message"),
+    [
+        (
+            "publish_as_community",
+            Achievement.STATUS_COMMUNITY,
+            "2 achievements moved to Community.",
+        ),
+        ("mark_verified", Achievement.STATUS_VERIFIED, "2 achievements moved to Verified."),
+        ("move_to_draft", Achievement.STATUS_DRAFT, "2 achievements moved to Draft."),
+    ],
+)
+def test_admin_status_action_changes_only_the_selected_achievements(
+    admin_client, game, user, action, target_status, expected_message
+):
+    selected = [_create_with_status(game, user, status) for status in ALL_STATUSES]
+    unselected_status = next(status for status in ALL_STATUSES if status != target_status)
+    unselected = _create_with_status(game, user, unselected_status)
+    previous = {a.pk: (a.status, a.updated_at) for a in selected}
+
+    response = admin_client.post(
+        ACHIEVEMENT_CHANGELIST_URL,
+        {"action": action, "_selected_action": [a.pk for a in selected]},
+        HTTP_ACCEPT_LANGUAGE="en",
+        follow=True,
+    )
+
+    assert response.status_code == 200
+    assert [str(m) for m in response.context["messages"]] == [expected_message]
+    for achievement in selected:
+        previous_status, previous_updated_at = previous[achievement.pk]
+        achievement.refresh_from_db()
+        assert achievement.status == target_status
+        if previous_status == target_status:
+            assert achievement.updated_at == previous_updated_at
+        else:
+            assert achievement.updated_at > previous_updated_at
+    unselected.refresh_from_db()
+    assert unselected.status == unselected_status
+
+
+@pytest.mark.django_db
+def test_admin_status_action_message_is_in_brazilian_portuguese(admin_client, achievement):
+    response = admin_client.post(
+        ACHIEVEMENT_CHANGELIST_URL,
+        {"action": "mark_verified", "_selected_action": [achievement.pk]},
+        follow=True,
+    )
+
+    assert [str(m) for m in response.context["messages"]] == ["1 conquista movida para Verificado."]
+
+
+@pytest.mark.django_db
+def test_admin_changelist_offers_status_actions_and_coloured_status(admin_client, achievement):
+    response = admin_client.get(ACHIEVEMENT_CHANGELIST_URL, HTTP_ACCEPT_LANGUAGE="en")
+    body = response.content.decode()
+
+    assert response.status_code == 200
+    for action in ("publish_as_community", "mark_verified", "move_to_draft"):
+        assert f'value="{action}"' in body
+    assert 'font-weight: bold;">Draft</span>' in body
+    assert "column-flags" not in body
