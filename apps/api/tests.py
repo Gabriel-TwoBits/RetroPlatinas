@@ -1956,10 +1956,6 @@ def test_gameinfolist_missing_ids(client):
         ("1,x", "Invalid g: expected comma-separated unsigned integers."),
         ("1,-2", "Invalid g: expected comma-separated unsigned integers."),
         (str(2**32), "Invalid g: expected comma-separated unsigned integers."),
-        (
-            ",".join(["1"] * (GAMEINFOLIST_MAX_IDS + 1)),
-            f"Invalid g: at most {GAMEINFOLIST_MAX_IDS} game IDs.",
-        ),
     ],
 )
 def test_gameinfolist_invalid_ids(client, ids, error):
@@ -1972,9 +1968,10 @@ def test_gameinfolist_invalid_ids(client, ids, error):
 
 
 @pytest.mark.django_db
-def test_gameinfolist_accepts_the_maximum_number_of_ids(client, catalogue):
-    crash, _, _ = catalogue
-    data = _info(client, "gameinfolist", g=",".join([str(crash.pk)] * GAMEINFOLIST_MAX_IDS))
+def test_gameinfolist_ignores_ids_past_the_cap(client, catalogue):
+    crash, _, mario = catalogue
+    ids = [crash.pk] * GAMEINFOLIST_MAX_IDS + [mario.pk, "x"]
+    data = _info(client, "gameinfolist", g=",".join(str(game_id) for game_id in ids))
     assert [game["ID"] for game in data["Response"]] == [crash.pk]
 
 

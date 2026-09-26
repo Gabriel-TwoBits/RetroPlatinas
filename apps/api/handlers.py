@@ -698,13 +698,12 @@ GAMEINFOLIST_MAX_IDS = 100
 
 def handle_gameinfolist(request):
     raw_param = request.POST.get("g", "")
-    raw_ids = [raw for raw in raw_param.split(",") if raw]
+    # Ids past the cap are ignored, as on RA.
+    raw_ids = [raw for raw in raw_param.split(",") if raw][:GAMEINFOLIST_MAX_IDS]
     if raw_param == "":
         return _MISSING_PARAMETER
     elif not raw_ids:
         return _invalid_parameter("Invalid g: at least one game ID is required.")
-    elif len(raw_ids) > GAMEINFOLIST_MAX_IDS:
-        return _invalid_parameter(f"Invalid g: at most {GAMEINFOLIST_MAX_IDS} game IDs.")
     elif not all(_is_uint32(raw) for raw in raw_ids):
         return _invalid_parameter("Invalid g: expected comma-separated unsigned integers.")
     else:
