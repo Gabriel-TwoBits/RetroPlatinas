@@ -3,9 +3,9 @@ from http import HTTPStatus
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.http import Http404, JsonResponse
+from django.http import Http404, HttpResponseNotAllowed, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_GET, require_POST
+from django.views.decorators.http import require_POST
 
 from apps.api.handlers import HANDLERS
 from apps.games.models import PlayerGame
@@ -37,11 +37,13 @@ def dorequest(request):
         return JsonResponse(_SERVER_ERROR, status=HTTPStatus.SERVICE_UNAVAILABLE)
 
 
-@require_GET
 def debug_presence(request, username):
     """The user's live sessions (`PlayerGame.objects.playing_now`); a DEBUG-only test endpoint."""
+    # DEBUG is checked before the method so the route answers 404 to anything without it.
     if not settings.DEBUG:
         raise Http404("Test endpoints exist only when DEBUG is on.")
+    elif request.method != "GET":
+        return HttpResponseNotAllowed(["GET"])
     user = get_user_model().objects.filter(username=username).first()
     if user is None:
         return JsonResponse({"Error": f"Unknown user {username}."}, status=HTTPStatus.NOT_FOUND)

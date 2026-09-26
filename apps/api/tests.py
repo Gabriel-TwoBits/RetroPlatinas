@@ -1799,6 +1799,15 @@ def test_presence_rejects_post(client, settings, authed_user):
     assert response.status_code == HTTPStatus.METHOD_NOT_ALLOWED
 
 
+@pytest.mark.django_db
+def test_presence_post_does_not_exist_without_debug(client, settings, authed_user):
+    settings.DEBUG = False
+
+    response = client.post(f"/api/test/presence/{PLAYER_USERNAME}/")
+
+    assert response.status_code == HTTPStatus.NOT_FOUND
+
+
 # --- leaderboards (patch + submitlbentry) ---
 
 LEADERBOARD_MEM = "STA:0xH0001=1::CAN:0xH0002=1::SUB:0xH0003=1::VAL:M:1=1"
