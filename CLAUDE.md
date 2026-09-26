@@ -148,18 +148,31 @@ syntax error. It compiles on first use into `.cache/` (gitignored).
 - **DuckStation only fetches the patch (conditions + Rich Presence) when the game loads.** A reset
   is not enough — close the game and open it again, or you are testing the old conditions.
 
-### Testing a `community` achievement in game
+### Testing an achievement in game
 
-`community` maps to `Flags=5` (*unofficial*). Enable "Test Unofficial Achievements"
-(`Cheevos/UnofficialTestMode`) and reload the game, then read the **achievement list**, not the
-pause-screen counter:
+`community` and `verified` are both **published**; `verified` is only a quality seal on the site.
+`achievementsets`/`patch` serve each status like this:
 
-- The "X of Y" counter only counts `core` achievements, so it stays put no matter how many
-  unofficial ones loaded. Unofficial ones live in their own list bucket, suffixed `(Unofficial)`.
+| Status | Served to | `Flags` | Awarded (`UserUnlock` + points) |
+| --- | --- | --- | --- |
+| `draft` | its author only (the token's user) | `5` (unofficial) | never |
+| `community` | everyone | `3` (core / official) | yes |
+| `verified` | everyone | `3` (core / official) | yes |
+
+**A new condition is tested as a `draft`**, logged in to the emulator as its author. Enable "Test
+Unofficial Achievements" (`Cheevos/UnofficialTestMode`) and reload the game, then read the
+**achievement list**, not the pause-screen counter:
+
+- The "X of Y" counter only counts core achievements, so it stays put no matter how many drafts
+  loaded. Drafts live in their own list bucket, suffixed `(Unofficial)`.
 - The in-game popup **does** fire for them, which is what proves the `mem_addr` is right.
-- rcheevos **never sends `awardachievement` for an unofficial achievement**, so no `UserUnlock`
-  and no points — by design, and the server cannot override it. Promote to `verified` to see the
-  full cycle. `handle_awardachievement` ignores `status`/`flags`, so both go through the same code.
+- rcheevos **never sends `awardachievement` for an unofficial achievement**, and the server rejects
+  a draft anyway (`invalid_state`), so no `UserUnlock` and no points.
+
+**Publish it to see the full cycle** (admin bulk actions: publish as community, mark verified,
+move back to draft). Every player then receives it as core, without UnofficialTestMode: the unlock
+is sent, recorded and scored, and `AchievementsRemaining` (published achievements not yet unlocked
+in that mode) reaching `0` fires the mastery event.
 
 ## i18n workflow
 
