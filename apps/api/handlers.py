@@ -220,6 +220,18 @@ def _serialize_achievement(a, players):
     }
 
 
+def _game_icon_path(game):
+    """The icon's path; clients read the badge name from its filename."""
+    if game.icon:
+        return game.icon.url
+    else:
+        return DEFAULT_GAME_ICON_PATH
+
+
+def _game_icon_url(request, game):
+    return request.build_absolute_uri(_game_icon_path(game))
+
+
 def _serialize_leaderboard(lb):
     return {
         "ID": lb.id,
@@ -243,14 +255,13 @@ def handle_patch(request):
 
     achievements = _served_achievements(user, game)
     players = _player_count(game)
-    image_icon = game.icon.url if game.icon else DEFAULT_GAME_ICON_PATH
     return {
         "Success": True,
         "PatchData": {
             "ID": game.pk,
             "Title": game.title,
             "ConsoleID": game.console.ra_id,
-            "ImageIcon": image_icon,
+            "ImageIcon": _game_icon_path(game),
             "RichPresencePatch": game.rich_presence_patch,
             "Achievements": [_serialize_achievement(a, players) for a in achievements],
             "Leaderboards": [_serialize_leaderboard(lb) for lb in game.leaderboards.all()],
@@ -274,8 +285,7 @@ def handle_achievementsets(request):
 
     achievements = _served_achievements(user, game)
     players = _player_count(game)
-    icon_path = game.icon.url if game.icon else DEFAULT_GAME_ICON_PATH
-    icon_url = request.build_absolute_uri(icon_path)
+    icon_url = _game_icon_url(request, game)
     return {
         "Success": True,
         "GameId": game.pk,
