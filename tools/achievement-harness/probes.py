@@ -60,6 +60,7 @@ HUD_COUNT_CHAIN = (0x6C, 0xE4, 0x0C)
 LID_TITLE = 0x19  # title screen, menus and the island map
 LID_NSANITY_BEACH = 0x09
 LID_STAGE_CLEAR = 0x2D
+NON_STAGE_LIDS = (LID_TITLE, LID_STAGE_CLEAR)
 GAME_STATE_CUTSCENE = 0x000
 GAME_STATE_PLAYING = 0x100
 TITLE_STATE_MAIN_MENU = 5
@@ -94,7 +95,15 @@ def aku_level(emu):
     return emu.deref(AKU_POINTER, AKU_LEVEL_OFFSET)
 
 
+def in_a_stage(emu):
+    """The loaded level is a stage, not the title/map level nor the Stage Clear screen."""
+    return emu.u8(LEVEL_ID) not in NON_STAGE_LIDS
+
+
 def player_lives(emu):
+    """None outside a stage, where the player pointer names another object."""
+    if not in_a_stage(emu):
+        return None
     value = emu.deref(PLAYER_POINTER, PLAYER_LIVES_OFFSET, size=FIXED_POINT_BYTES)
     if value is None:
         return None

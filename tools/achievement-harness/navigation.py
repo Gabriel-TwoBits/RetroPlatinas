@@ -18,6 +18,7 @@ from probes import (
     TITLE_STATE,
     TITLE_STATE_MAIN_MENU,
     TITLE_STATE_WORLD_MAP,
+    in_a_stage,
 )
 
 PRESS_FRAMES = 4
@@ -65,8 +66,7 @@ def on_the_map(emu):
 
 
 def playing_a_stage(emu):
-    in_a_stage = level_id(emu) not in (LID_TITLE, LID_STAGE_CLEAR)
-    return in_a_stage and emu.u32(GAME_STATE) == GAME_STATE_PLAYING
+    return in_a_stage(emu) and emu.u32(GAME_STATE) == GAME_STATE_PLAYING
 
 
 def boot_to_map(emu):
