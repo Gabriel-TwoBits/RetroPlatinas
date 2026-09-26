@@ -1648,8 +1648,8 @@ def test_submitlbentry_missing_token(client, game_with_leaderboards):
 # --- lbinfo ---
 
 
-def _lbinfo(client, **params):
-    return client.post("/dorequest.php", {"r": "lbinfo", **params}).json()
+def _info(client, action, **params):
+    return client.post("/dorequest.php", {"r": action, **params}).json()
 
 
 def _board_with_scores(leaderboard, scores):
@@ -1668,7 +1668,7 @@ def test_lbinfo_serves_leaderboard_data_without_authentication(client, game_with
     game, lb = game_with_leaderboards
     _board_with_scores(lb, [300, 100, 300])
 
-    data = _lbinfo(client, i=lb.id)
+    data = _info(client, "lbinfo", i=lb.id)
 
     assert data["Success"] is True
     board = data["LeaderboardData"]
@@ -1707,7 +1707,7 @@ def test_lbinfo_sends_lower_is_better_as_zero_when_higher_wins(client, game_with
     lb.save(update_fields=["lower_is_better"])
     _board_with_scores(lb, [100, 300])
 
-    board = _lbinfo(client, i=lb.id)["LeaderboardData"]
+    board = _info(client, "lbinfo", i=lb.id)["LeaderboardData"]
 
     assert board["LowerIsBetter"] == 0
     assert [e["User"] for e in board["Entries"]] == ["p1", "p0"]
@@ -1716,7 +1716,7 @@ def test_lbinfo_sends_lower_is_better_as_zero_when_higher_wins(client, game_with
 @pytest.mark.django_db
 def test_lbinfo_empty_board(client, game_with_leaderboards):
     _, lb = game_with_leaderboards
-    board = _lbinfo(client, i=lb.id)["LeaderboardData"]
+    board = _info(client, "lbinfo", i=lb.id)["LeaderboardData"]
     assert board["TotalEntries"] == 0
     assert board["Entries"] == []
 
@@ -1726,7 +1726,7 @@ def test_lbinfo_defaults_to_the_first_page(client, game_with_leaderboards):
     _, lb = game_with_leaderboards
     _board_with_scores(lb, range(LBINFO_DEFAULT_COUNT + 5))
 
-    board = _lbinfo(client, i=lb.id)["LeaderboardData"]
+    board = _info(client, "lbinfo", i=lb.id)["LeaderboardData"]
 
     assert [e["Index"] for e in board["Entries"]] == list(range(1, LBINFO_DEFAULT_COUNT + 1))
 
@@ -1736,7 +1736,7 @@ def test_lbinfo_pages_with_offset_and_count(client, game_with_leaderboards):
     _, lb = game_with_leaderboards
     _board_with_scores(lb, [10, 20, 20, 30, 40])
 
-    entries = _lbinfo(client, i=lb.id, o=2, c=2)["LeaderboardData"]["Entries"]
+    entries = _info(client, "lbinfo", i=lb.id, o=2, c=2)["LeaderboardData"]["Entries"]
 
     # The page opens on the second of two tied entries, which keeps the shared rank.
     assert [(e["User"], e["Rank"], e["Index"]) for e in entries] == [("p2", 2, 3), ("p3", 4, 4)]
@@ -1757,7 +1757,7 @@ def test_lbinfo_centres_the_page_on_the_user(
     _, lb = game_with_leaderboards
     _board_with_scores(lb, range(20))
 
-    entries = _lbinfo(client, i=lb.id, u=username, c=5)["LeaderboardData"]["Entries"]
+    entries = _info(client, "lbinfo", i=lb.id, u=username, c=5)["LeaderboardData"]["Entries"]
 
     assert [e["Index"] for e in entries] == expected_indexes
     assert username in [e["User"] for e in entries]
@@ -1768,7 +1768,7 @@ def test_lbinfo_centres_on_the_user_among_tied_scores(client, game_with_leaderbo
     _, lb = game_with_leaderboards
     _board_with_scores(lb, [5] * 9)
 
-    entries = _lbinfo(client, i=lb.id, u="p6", c=3)["LeaderboardData"]["Entries"]
+    entries = _info(client, "lbinfo", i=lb.id, u="p6", c=3)["LeaderboardData"]["Entries"]
 
     assert [(e["User"], e["Rank"], e["Index"]) for e in entries] == [
         ("p5", 1, 6),
@@ -1785,7 +1785,7 @@ def test_lbinfo_user_without_entry_gets_the_offset_page(
     _, lb = game_with_leaderboards
     _board_with_scores(lb, range(10))
 
-    entries = _lbinfo(client, i=lb.id, u=username, o=4, c=2)["LeaderboardData"]["Entries"]
+    entries = _info(client, "lbinfo", i=lb.id, u=username, o=4, c=2)["LeaderboardData"]["Entries"]
 
     assert [e["Index"] for e in entries] == [5, 6]
 
@@ -1796,7 +1796,7 @@ def test_lbinfo_caps_the_count(client, game_with_leaderboards):
     _board_with_scores(lb, range(4))
 
     with patch("apps.api.handlers.LBINFO_MAX_COUNT", 3):
-        entries = _lbinfo(client, i=lb.id, c=100)["LeaderboardData"]["Entries"]
+        entries = _info(client, "lbinfo", i=lb.id, c=100)["LeaderboardData"]["Entries"]
 
     assert len(entries) == 3
 
@@ -1829,7 +1829,7 @@ def _not_found(resource):
 
 @pytest.mark.django_db
 def test_lbinfo_missing_leaderboard_id(client):
-    assert _lbinfo(client) == MISSING_PARAMETER
+    assert _info(client, "lbinfo") == MISSING_PARAMETER
 
 
 @pytest.mark.django_db
@@ -1846,12 +1846,12 @@ def test_lbinfo_missing_leaderboard_id(client):
     ],
 )
 def test_lbinfo_invalid_parameter(client, game_with_leaderboards, params, invalid_name):
-    assert _lbinfo(client, **params) == _invalid_parameter(invalid_name)
+    assert _info(client, "lbinfo", **params) == _invalid_parameter(invalid_name)
 
 
 @pytest.mark.django_db
 def test_lbinfo_unknown_leaderboard(client):
-    assert _lbinfo(client, i=999) == _not_found("leaderboard")
+    assert _info(client, "lbinfo", i=999) == _not_found("leaderboard")
 
 
 # --- systemgames / gameinfolist / hashlibrary ---
@@ -1873,10 +1873,6 @@ def catalogue(game_with_achievements):
     mario = Game.objects.create(title="Super Mario 64", console=n64)
     GameHash.objects.create(game=mario, md5="c" * MD5_HEX_DIGITS, label="US")
     return crash, apeescape, mario
-
-
-def _info(client, action, **params):
-    return client.post("/dorequest.php", {"r": action, **params}).json()
 
 
 @pytest.mark.django_db
