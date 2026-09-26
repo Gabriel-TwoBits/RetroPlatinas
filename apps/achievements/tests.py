@@ -4,7 +4,7 @@ from datetime import timedelta
 from pathlib import Path
 
 import pytest
-from django.core.management import call_command
+from django.core.management import CommandError, call_command
 from django.db import IntegrityError
 from django.utils import timezone
 
@@ -17,9 +17,15 @@ from apps.achievements.management.commands.seed_crash1_level_achievements import
     LEVEL_ACHIEVEMENTS,
     build_mem_addr,
 )
-from apps.achievements.management.crash1 import GAME_TITLE, IMPORT_AUTHOR
+from apps.achievements.management.crash1 import (
+    GAME_TITLE,
+    IMPORT_AUTHOR,
+    PS1_RA_ID,
+    USA_DISC_LABEL,
+    USA_DISC_MD5,
+)
 from apps.achievements.models import Achievement, CodeNote, UserUnlock
-from apps.games.models import Console, Game
+from apps.games.models import Console, Game, GameHash
 
 MEM_ADDR_PATTERN = re.compile(
     r"^N:0xW618cc!=0_N:0xH61994=0_N:0xH619c5=(?P<armed_stage_id>\d+)_"
@@ -28,6 +34,7 @@ MEM_ADDR_PATTERN = re.compile(
     r"0xH61998=1_d0xH61998=0_0xH619c5=(?P<stage_id>\d+)_0xH61994=0$"
 )
 LEVEL_COUNT = len(LEVEL_ACHIEVEMENTS)
+SEED_COMMANDS = ("seed_crash1_code_notes", "seed_crash1_level_achievements")
 MEM_ADDR_CHECKER = Path(__file__).resolve().parents[2] / "scripts" / "check-mem-addr.sh"
 
 
@@ -157,6 +164,73 @@ def test_seed_crash1_code_notes_command_is_idempotent():
     call_command("seed_crash1_code_notes", verbosity=0)
     call_command("seed_crash1_code_notes", verbosity=0)
     assert CodeNote.objects.filter(game__title="Crash Bandicoot").count() == 108
+
+
+def crash1_game_rows():
+    return (
+        list(Console.objects.values_list("pk", "ra_id", "name", "short_name")),
+        list(Game.objects.values_list("pk", "title", "console_id")),
+        list(GameHash.objects.values_list("pk", "md5", "label", "game_id")),
+        list(User.objects.values_list("pk", "username", "is_active")),
+    )
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("command", SEED_COMMANDS)
+def test_seed_registers_the_crash1_usa_disc_hash(command):
+    call_command(command, verbosity=0)
+
+    disc_hash = GameHash.objects.get(md5=USA_DISC_MD5)
+    assert disc_hash.label == USA_DISC_LABEL
+    assert disc_hash.game == Game.objects.get(title=GAME_TITLE, console__ra_id=PS1_RA_ID)
+
+
+@pytest.mark.django_db
+def test_seeding_the_crash1_game_twice_is_a_no_op():
+    for command in SEED_COMMANDS:
+        call_command(command, verbosity=0)
+    seeded = crash1_game_rows()
+
+    for command in SEED_COMMANDS:
+        call_command(command, verbosity=0)
+
+    assert crash1_game_rows() == seeded
+    consoles, games, hashes, users = seeded
+    assert (len(consoles), len(games), len(hashes), len(users)) == (1, 1, 1, 1)
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("command", SEED_COMMANDS)
+def test_seed_refuses_a_usa_disc_hash_that_belongs_to_another_game(command):
+    console = Console.objects.create(ra_id=PS1_RA_ID, name="PlayStation", short_name="PS1")
+    other_game = Game.objects.create(title="Crash Bandicoot (USA)", console=console)
+    GameHash.objects.create(game=other_game, md5=USA_DISC_MD5, label=USA_DISC_LABEL)
+
+    with pytest.raises(CommandError, match=f"{USA_DISC_MD5} belongs to game {other_game.pk}"):
+        call_command(command, verbosity=0)
+
+    assert GameHash.objects.get(md5=USA_DISC_MD5).game == other_game
+    assert not Achievement.objects.exists()
+    assert not CodeNote.objects.exists()
+
+
+@pytest.mark.django_db
+def test_gameid_does_not_know_the_usa_disc_before_seeding(client):
+    data = client.post("/dorequest.php", {"r": "gameid", "m": USA_DISC_MD5}).json()
+
+    assert data["Success"] is True
+    assert data["GameID"] == 0
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("command", SEED_COMMANDS)
+def test_gameid_resolves_the_usa_disc_after_seeding(client, command):
+    call_command(command, verbosity=0)
+
+    data = client.post("/dorequest.php", {"r": "gameid", "m": USA_DISC_MD5}).json()
+
+    assert data["Success"] is True
+    assert data["GameID"] == Game.objects.get(title=GAME_TITLE).pk
 
 
 @pytest.fixture

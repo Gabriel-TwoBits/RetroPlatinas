@@ -8,6 +8,13 @@ The first six "complete the level" achievements. Seed them as `Achievement` rows
 `python manage.py seed_crash1_level_achievements` (idempotent). Each is worth 5 points and is
 published as `community`.
 
+Every Crash seed command (this one and `seed_crash1_code_notes`) first gets or creates the game
+with the hash of its only supported disc, so `gameid` recognises it on a fresh database:
+
+| MD5 (rcheevos PlayStation hash) | Label |
+| --- | --- |
+| `35386fd0891e594c9b6d8a4a5baa0027` | Crash Bandicoot (USA) — SCUS-94900 |
+
 ## Achievements
 
 Every condition is `build_mem_addr(stage_id)`; only the stage id changes.
