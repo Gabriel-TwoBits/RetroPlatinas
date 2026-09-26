@@ -141,8 +141,9 @@ def test_logout_ends_session(client):
 
 @pytest.mark.django_db
 def test_homepage_renders_portuguese_by_default(client):
-    resp = client.get("/", HTTP_ACCEPT_LANGUAGE="pt")
+    resp = client.get("/")
     assert resp.status_code == 200
+    assert resp.headers["Content-Language"] == "pt-br"
     assert "Ver os jogos" in resp.content.decode()
 
 
@@ -151,6 +152,51 @@ def test_set_language_switches_to_english(client):
     resp = client.post("/i18n/setlang/", {"language": "en", "next": "/"}, follow=True)
     assert resp.status_code == 200
     assert "See the games" in resp.content.decode()
+
+
+@pytest.mark.django_db
+def test_set_language_switches_back_to_brazilian_portuguese(client):
+    client.post("/i18n/setlang/", {"language": "en", "next": "/"})
+    resp = client.post("/i18n/setlang/", {"language": "pt-br", "next": "/"}, follow=True)
+    assert resp.status_code == 200
+    assert "Ver os jogos" in resp.content.decode()
+
+
+@pytest.mark.django_db
+def test_language_selector_offers_brazilian_portuguese_selected(client):
+    body = client.get("/").content.decode()
+    assert '<option value="pt-br" selected>PT-BR</option>' in body
+    assert '<option value="en">EN</option>' in body
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("path", ["/register/", "/login/"])
+def test_auth_pages_use_django_brazilian_portuguese_catalog(client, path):
+    body = client.get(path).content.decode()
+    assert "Usuário" in body
+    assert "Senha" in body
+    assert "Utilizador" not in body
+    assert "Palavra-passe" not in body
+
+
+@pytest.mark.django_db
+def test_generic_portuguese_cookie_resolves_to_brazilian_portuguese(client, settings):
+    settings.LANGUAGE_CODE = "en"
+    client.cookies[settings.LANGUAGE_COOKIE_NAME] = "pt"
+    resp = client.get("/login/")
+    assert resp.headers["Content-Language"] == "pt-br"
+    assert "Usuário" in resp.content.decode()
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("accept_language", ["pt", "pt-PT"])
+def test_generic_portuguese_accept_language_resolves_to_brazilian_portuguese(
+    client, settings, accept_language
+):
+    settings.LANGUAGE_CODE = "en"
+    resp = client.get("/login/", HTTP_ACCEPT_LANGUAGE=accept_language)
+    assert resp.headers["Content-Language"] == "pt-br"
+    assert "Usuário" in resp.content.decode()
 
 
 @pytest.mark.django_db

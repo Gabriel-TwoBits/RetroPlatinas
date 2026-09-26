@@ -1,4 +1,4 @@
-# RetroPlatinas Portuguese translations.
+# RetroPlatinas Brazilian Portuguese translations.
 # Copyright (C) 2026 RetroPlatinas
 # This file is distributed under the same license as the RetroPlatinas package.
 #
@@ -9,12 +9,12 @@ msgstr ""
 "POT-Creation-Date: 2026-09-26 15:18-0300\n"
 "PO-Revision-Date: 2026-05-23 18:15-0300\n"
 "Last-Translator: RetroPlatinas\n"
-"Language-Team: Portuguese\n"
-"Language: pt\n"
+"Language-Team: Brazilian Portuguese\n"
+"Language: pt_BR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
 #: apps/accounts/forms.py:18 apps/accounts/models.py:27
 msgid "A user with that email already exists."

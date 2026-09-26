@@ -83,12 +83,12 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
-LANGUAGE_CODE = "pt"
+LANGUAGE_CODE = "pt-br"
 TIME_ZONE = "America/Sao_Paulo"
 USE_I18N = True
 USE_TZ = True
 
-LANGUAGES = [("pt", "Português"), ("en", "English")]
+LANGUAGES = [("pt-br", "Português (Brasil)"), ("en", "English")]
 LOCALE_PATHS = [BASE_DIR / "locale"]
 
 STATIC_URL = "/static/"
