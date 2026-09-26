@@ -1,5 +1,7 @@
 import pytest
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
+from django.db import IntegrityError, transaction
 
 from apps.accounts.forms import RegistrationForm
 
@@ -37,6 +39,55 @@ def test_register_rejects_duplicate_email():
     assert not form.is_valid()
     assert "email" in form.errors
     assert not User.objects.filter(username="bob").exists()
+
+
+@pytest.mark.django_db
+def test_register_rejects_email_differing_only_in_case():
+    User.objects.create_user(username="alice", email="dup@example.com", password="irrelevant")
+    form = RegistrationForm(
+        data={
+            "username": "bob",
+            "email": "DUP@Example.com",
+            "password1": "very-strong-pw-1",
+            "password2": "very-strong-pw-1",
+        }
+    )
+    assert not form.is_valid()
+    assert "email" in form.errors
+
+
+@pytest.mark.django_db
+def test_database_rejects_email_differing_only_in_case():
+    User.objects.create_user(username="alice", email="dup@example.com", password="irrelevant")
+    with pytest.raises(IntegrityError), transaction.atomic():
+        User.objects.create_user(username="bob", email="DUP@example.com", password="irrelevant")
+
+
+@pytest.mark.django_db
+def test_model_validation_rejects_email_differing_only_in_case():
+    User.objects.create_user(username="alice", email="dup@example.com", password="irrelevant")
+    with pytest.raises(ValidationError):
+        User(username="bob", email="Dup@Example.com", password="irrelevant").full_clean()
+
+
+@pytest.mark.django_db
+def test_admin_adds_user_without_email_next_to_another_blank_email(client):
+    User.objects.create_user(username="ra-import", is_active=False)
+    admin = User.objects.create_superuser(
+        username="admin", email="admin@example.com", password="pw-secret-123"
+    )
+    client.force_login(admin)
+    resp = client.post(
+        "/admin/accounts/user/add/",
+        {
+            "username": "newbie",
+            "usable_password": "true",
+            "password1": "very-strong-pw-1",
+            "password2": "very-strong-pw-1",
+        },
+    )
+    assert resp.status_code == 302
+    assert User.objects.filter(email="").count() == 2
 
 
 @pytest.mark.django_db
