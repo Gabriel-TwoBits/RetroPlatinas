@@ -1,5 +1,11 @@
+import re
+
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+
+MD5_HEX_DIGITS = 32
+LOWERCASE_HEX = re.compile(r"[0-9a-f]+")
 
 
 class Console(models.Model):
@@ -45,7 +51,9 @@ class GameHash(models.Model):
         related_name="hashes",
         verbose_name=_("game"),
     )
-    md5 = models.CharField(max_length=32, unique=True, db_index=True, verbose_name=_("MD5"))
+    md5 = models.CharField(
+        max_length=MD5_HEX_DIGITS, unique=True, db_index=True, verbose_name=_("MD5")
+    )
     label = models.CharField(max_length=128, verbose_name=_("label"))
 
     class Meta:
@@ -54,3 +62,13 @@ class GameHash(models.Model):
 
     def __str__(self):
         return f"{self.label} ({self.md5})"
+
+    def clean(self):
+        super().clean()
+        self.md5 = self.md5.lower()
+        if len(self.md5) != MD5_HEX_DIGITS or not LOWERCASE_HEX.fullmatch(self.md5):
+            raise ValidationError({"md5": _("Enter an MD5 hash: 32 hexadecimal digits.")})
+
+    def save(self, *args, **kwargs):
+        self.md5 = self.md5.lower()
+        super().save(*args, **kwargs)

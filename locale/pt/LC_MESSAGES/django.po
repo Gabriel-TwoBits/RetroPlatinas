@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RetroPlatinas\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-16 16:04-0300\n"
+"POT-Creation-Date: 2026-09-26 15:10-0300\n"
 "PO-Revision-Date: 2026-05-23 18:15-0300\n"
 "Last-Translator: RetroPlatinas\n"
 "Language-Team: Portuguese\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: apps/accounts/forms.py:18
+#: apps/accounts/forms.py:18 apps/accounts/models.py:21
 msgid "A user with that email already exists."
 msgstr "Já existe um usuário com esse email."
 
@@ -37,7 +37,7 @@ msgid "Verified"
 msgstr "Verificado"
 
 #: apps/achievements/models.py:22 apps/achievements/models.py:83
-#: apps/games/models.py:33 apps/games/models.py:46
+#: apps/games/models.py:39 apps/games/models.py:52
 #: apps/leaderboards/models.py:13
 msgid "game"
 msgstr "jogo"
@@ -46,12 +46,12 @@ msgstr "jogo"
 msgid "author"
 msgstr "autor"
 
-#: apps/achievements/models.py:29 apps/games/models.py:20
+#: apps/achievements/models.py:29 apps/games/models.py:26
 #: apps/leaderboards/models.py:15
 msgid "title"
 msgstr "título"
 
-#: apps/achievements/models.py:30 apps/games/models.py:28
+#: apps/achievements/models.py:30 apps/games/models.py:34
 #: apps/leaderboards/models.py:16
 msgid "description"
 msgstr "descrição"
@@ -72,7 +72,7 @@ msgstr "emblema"
 msgid "flags"
 msgstr "flags"
 
-#: apps/achievements/models.py:41 apps/games/models.py:30
+#: apps/achievements/models.py:41 apps/games/models.py:36
 msgid "created at"
 msgstr "criado em"
 
@@ -128,53 +128,57 @@ msgstr "anotação de código"
 msgid "code notes"
 msgstr "anotações de código"
 
-#: apps/games/models.py:6
+#: apps/games/models.py:12
 msgid "RA ID"
 msgstr "ID no RA"
 
-#: apps/games/models.py:7
+#: apps/games/models.py:13
 msgid "name"
 msgstr "nome"
 
-#: apps/games/models.py:8
+#: apps/games/models.py:14
 msgid "short name"
 msgstr "nome curto"
 
-#: apps/games/models.py:11 apps/games/models.py:25
+#: apps/games/models.py:17 apps/games/models.py:31
 msgid "console"
 msgstr "console"
 
-#: apps/games/models.py:12
+#: apps/games/models.py:18
 msgid "consoles"
 msgstr "consoles"
 
-#: apps/games/models.py:27
+#: apps/games/models.py:33
 msgid "icon"
 msgstr "ícone"
 
-#: apps/games/models.py:29
+#: apps/games/models.py:35
 msgid "rich presence patch"
 msgstr "script de rich presence"
 
-#: apps/games/models.py:34
+#: apps/games/models.py:40
 msgid "games"
 msgstr "jogos"
 
-#: apps/games/models.py:48
+#: apps/games/models.py:55
 msgid "MD5"
 msgstr "MD5"
 
-#: apps/games/models.py:49
+#: apps/games/models.py:57
 msgid "label"
 msgstr "rótulo"
 
-#: apps/games/models.py:52
+#: apps/games/models.py:60
 msgid "game hash"
 msgstr "hash do jogo"
 
-#: apps/games/models.py:53
+#: apps/games/models.py:61
 msgid "game hashes"
 msgstr "hashes do jogo"
+
+#: apps/games/models.py:70
+msgid "Enter an MD5 hash: 32 hexadecimal digits."
+msgstr "Informe um hash MD5: 32 dígitos hexadecimais."
 
 #: apps/leaderboards/models.py:18
 msgid "format"
@@ -530,9 +534,10 @@ msgstr "Ver os jogos"
 
 #: templates/home.html:31
 msgid "We're new: 1 game, few players. We'd rather show that than fake scale."
-msgstr "Somos novos: 1 jogo, poucos jogadores. Preferimos mostrar isso a fingir escala."
+msgstr ""
 "Somos novos: 1 jogo, poucos jogadores. Preferimos mostrar isso a fingir "
-"escala."
+"escala.Somos novos: 1 jogo, poucos jogadores. Preferimos mostrar isso a "
+"fingir escala."
 
 #: templates/home.html:37 templates/home.html:172
 msgid "The project in numbers"
@@ -604,8 +609,10 @@ msgstr "Criar conjuntos de conquistas"
 
 #: templates/home.html:127
 msgid "Pick a game, design the achievements and publish a set. No gatekeeping."
-msgstr "Escolha um jogo, desenhe as conquistas e publique um set. Sem gatekeeping."
-"Escolha um jogo, desenhe as conquistas e publique um set. Sem gatekeeping."
+msgstr ""
+"Escolha um jogo, desenhe as conquistas e publique um set. Sem "
+"gatekeeping.Escolha um jogo, desenhe as conquistas e publique um set. Sem "
+"gatekeeping."
 
 #: templates/home.html:128
 msgid "Create account →"
