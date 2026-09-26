@@ -1,10 +1,23 @@
+from django import forms
 from django.contrib import admin
 
 from apps.games.models import Console, Game, GameHash
 
 
+class GameHashForm(forms.ModelForm):
+    """Lowercases md5 in cleaned_data, where the inline formset's duplicate check reads it."""
+
+    class Meta:
+        model = GameHash
+        fields = "__all__"
+
+    def clean_md5(self):
+        return self.cleaned_data["md5"].lower()
+
+
 class GameHashInline(admin.TabularInline):
     model = GameHash
+    form = GameHashForm
     extra = 1
 
 
@@ -25,6 +38,7 @@ class GameAdmin(admin.ModelAdmin):
 
 @admin.register(GameHash)
 class GameHashAdmin(admin.ModelAdmin):
+    form = GameHashForm
     list_display = ("md5", "game", "label")
     search_fields = ("md5", "label")
     list_filter = ("game__console",)

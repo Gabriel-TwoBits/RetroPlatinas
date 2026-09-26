@@ -95,3 +95,28 @@ def test_admin_hash_in_uppercase_resolves_through_gameid(client, console):
 
     resp = client.post("/dorequest.php", {"r": "gameid", "m": CRASH_MD5_UPPERCASE})
     assert resp.json()["GameID"] == game.pk
+
+
+@pytest.mark.django_db
+def test_admin_inline_rejects_hashes_differing_only_in_case(client, console):
+    admin = get_user_model().objects.create_superuser(
+        username="admin", email="admin@example.com", password="pw-secret-123"
+    )
+    client.force_login(admin)
+    resp = client.post(
+        "/admin/games/game/add/",
+        {
+            "title": "Crash Bandicoot",
+            "console": console.pk,
+            "hashes-TOTAL_FORMS": "2",
+            "hashes-INITIAL_FORMS": "0",
+            "hashes-0-md5": CRASH_MD5_UPPERCASE,
+            "hashes-0-label": "NTSC-US",
+            "hashes-1-md5": CRASH_MD5_UPPERCASE.lower(),
+            "hashes-1-label": "NTSC-US copy",
+        },
+    )
+    assert resp.status_code == 200
+    assert resp.context["inline_admin_formsets"][0].formset.non_form_errors()
+    assert not Game.objects.exists()
+    assert not GameHash.objects.exists()
