@@ -41,8 +41,8 @@ On first use the harness needs network access:
 
 Versions are printed by `python tools/achievement-harness/harness.py` and at the top of every
 session log: the core build (e.g. `PCSX-ReARMed r26 ff81ed1`) and the rcheevos version with the
-vendored upstream commit (`vendor/rcheevos/UPSTREAM-COMMIT`). The trigger results of the attract,
-death and quit scenarios were measured identical on the vendored 12.3 and on upstream 12.4.0.
+vendored upstream commit (`vendor/rcheevos/UPSTREAM-COMMIT`). The vendored runtime is 12.3;
+DuckStation ships 12.4.0, so the in-game check still runs the conditions on a newer runtime.
 
 ## Running it in the container
 
@@ -228,7 +228,8 @@ most are 24.8 fixed point, which is why the RA code notes point at odd bytes (`0
   after a state load. A new nightly core may change the emulation: when deriving
   a `<stage>-clear` state then times out waiting for Stage Clear, re-search the plan.
 - **swanstation** derives the navigation states but cannot replay pcsx_rearmed plans, so
-  the `<stage>-clear` scenarios are pcsx_rearmed only.
+  the `<stage>-clear` scenarios, and `the-great-gate-deaths` (whose deaths need its route), are
+  pcsx_rearmed only.
 - **Re-arming is a harness device.** In DuckStation an achievement fires once per session.
   `rearm()` resets a fired one to WAITING with zeroed hits: the hits it would have carried had it
   not fired are unknowable. Unfired ones are left alone.
