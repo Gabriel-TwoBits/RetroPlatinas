@@ -959,6 +959,27 @@ def test_set_serves_zero_rarity_when_the_game_has_no_players(
     assert [(a["Rarity"], a["RarityHardcore"]) for a in served] == [(0.0, 0.0), (0.0, 0.0)]
 
 
+@pytest.mark.django_db
+@pytest.mark.parametrize("action", SET_ACTIONS)
+def test_set_serves_zero_rarity_on_drafts_and_counts_only_published_unlockers(
+    client, authed_user, achievement_author, game_with_hash, action
+):
+    player, _ = authed_user
+    game, _ = game_with_hash
+    common = _create_achievement(game, achievement_author, "Common", Achievement.STATUS_COMMUNITY)
+    demoted = _create_achievement(game, achievement_author, "Demoted", Achievement.STATUS_DRAFT)
+    for user, achievement in ((player, common), (player, demoted), (achievement_author, demoted)):
+        UserUnlock.objects.create(user=user, achievement=achievement, hardcore=True)
+
+    served = {
+        a["ID"]: (a["Rarity"], a["RarityHardcore"])
+        for a in _served_achievements(client, action, achievement_author, game)
+    }
+
+    assert served[demoted.pk] == (0.0, 0.0)
+    assert served[common.pk] == (100.0, 100.0)
+
+
 @pytest.mark.parametrize(
     ("unlockers", "players", "expected_json"),
     [

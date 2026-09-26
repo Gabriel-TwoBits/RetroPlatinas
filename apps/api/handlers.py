@@ -166,9 +166,16 @@ def _served_achievements(user, game):
 
 
 def _player_count(game):
-    # TRADEOFF: a player is a user with any unlock in the game, so players who never
-    # unlocked anything are not counted; count PlayerGame rows once sessions are recorded.
-    return UserUnlock.objects.filter(achievement__game=game).values("user").distinct().count()
+    # TRADEOFF: a player is a user with any published unlock in the game, so players who
+    # never unlocked anything are not counted; count PlayerGame rows once sessions are recorded.
+    return (
+        UserUnlock.objects.filter(
+            achievement__game=game, achievement__status__in=Achievement.PUBLISHED_STATUSES
+        )
+        .values("user")
+        .distinct()
+        .count()
+    )
 
 
 def _rarity(unlockers, players):
@@ -189,6 +196,13 @@ def _achievement_flags(achievement):
 
 
 def _serialize_achievement(a, players):
+    flags = _achievement_flags(a)
+    if flags == ACHIEVEMENT_FLAGS_CORE:
+        rarity = _rarity(a.unlockers, players)
+        rarity_hardcore = _rarity(a.hardcore_unlockers, players)
+    else:
+        # RA serves 0.0 on unofficial achievements as the signal not to display rarity.
+        rarity = rarity_hardcore = 0.0
     return {
         "ID": a.id,
         "MemAddr": a.mem_addr,
@@ -199,10 +213,10 @@ def _serialize_achievement(a, players):
         "Modified": int(a.updated_at.timestamp()),
         "Created": int(a.created_at.timestamp()),
         "BadgeName": f"{a.id:0{BADGE_NAME_DIGITS}d}",
-        "Flags": _achievement_flags(a),
+        "Flags": flags,
         "Type": a.type,
-        "Rarity": _rarity(a.unlockers, players),
-        "RarityHardcore": _rarity(a.hardcore_unlockers, players),
+        "Rarity": rarity,
+        "RarityHardcore": rarity_hardcore,
     }
 
 
