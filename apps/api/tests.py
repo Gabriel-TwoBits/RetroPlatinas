@@ -9,7 +9,7 @@ from django.utils import timezone
 
 from apps.achievements.models import Achievement, UserUnlock
 from apps.api.auth import user_from_token
-from apps.api.handlers import HANDLERS, PRESENCE_TTL_SECONDS
+from apps.api.handlers import DEFAULT_GAME_ICON_PATH, HANDLERS, PRESENCE_TTL_SECONDS
 from apps.games.models import Console, Game, GameHash
 from apps.leaderboards.models import Leaderboard, LeaderboardEntry
 
@@ -441,7 +441,7 @@ def test_patch_response_shape(client, authed_user, game_with_achievements):
     assert patch_data["ID"] == game.pk
     assert patch_data["Title"] == game.title
     assert patch_data["ConsoleID"] == game.console.ra_id
-    assert "ImageIcon" in patch_data
+    assert patch_data["ImageIcon"] == DEFAULT_GAME_ICON_PATH
     assert "RichPresencePatch" in patch_data
     assert "Achievements" in patch_data
     assert patch_data["Leaderboards"] == []

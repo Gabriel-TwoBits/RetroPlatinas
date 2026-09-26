@@ -116,7 +116,7 @@ def handle_patch(request):
         .select_related("author")
         .order_by("id")
     )
-    image_icon = game.icon.url if game.icon else "/Images/000000.png"
+    image_icon = game.icon.url if game.icon else DEFAULT_GAME_ICON_PATH
     return {
         "Success": True,
         "PatchData": {
