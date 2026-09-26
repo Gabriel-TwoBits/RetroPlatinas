@@ -16,7 +16,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: apps/accounts/forms.py:18 apps/accounts/models.py:26
+#: apps/accounts/forms.py:18 apps/accounts/models.py:27
 msgid "A user with that email already exists."
 msgstr ""
 

@@ -7,9 +7,15 @@ from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.utils import timezone
 
+from apps.accounts.models import API_TOKEN_HEX_LENGTH
 from apps.achievements.models import Achievement, UserUnlock
 from apps.api.auth import user_from_token
-from apps.api.handlers import DEFAULT_GAME_ICON_PATH, HANDLERS, PRESENCE_TTL_SECONDS
+from apps.api.handlers import (
+    API_TOKEN_LIFETIME,
+    DEFAULT_GAME_ICON_PATH,
+    HANDLERS,
+    PRESENCE_TTL_SECONDS,
+)
 from apps.games.models import Console, Game, GameHash
 from apps.leaderboards.models import Leaderboard, LeaderboardEntry
 
@@ -238,10 +244,10 @@ def test_user_from_token_returns_none_for_empty_token():
 @pytest.mark.django_db
 def test_user_from_token_returns_none_for_inactive_user():
     user = User.objects.create_user(username="alice", password="pw", is_active=False)
-    user.api_token = "c" * 64
-    user.api_token_expires_at = timezone.now() + timedelta(days=14)
+    user.api_token = "c" * API_TOKEN_HEX_LENGTH
+    user.api_token_expires_at = timezone.now() + API_TOKEN_LIFETIME
     user.save(update_fields=["api_token", "api_token_expires_at"])
-    assert user_from_token("c" * 64) is None
+    assert user_from_token(user.api_token) is None
 
 
 @pytest.mark.django_db
