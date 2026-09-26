@@ -6,6 +6,7 @@ Writes `.cache/achievement-harness/traces/<name>.csv` (one row per frame, every 
 """
 
 import csv
+from dataclasses import dataclass
 
 import achievements
 import navigation
@@ -39,6 +40,13 @@ def hit_counts(emu, runtime_id):
         for _kind, required, current, _is_true in condset
         if required
     )
+
+
+@dataclass(frozen=True)
+class Trigger:
+    frame: int
+    title: str
+    level_id: int  # the lid the game shows on the trigger frame
 
 
 class Tracer:
@@ -125,8 +133,9 @@ class Session:
         for runtime_id, title in self.titles.items():
             key = f"ach{runtime_id}_state"
             if old[key] != new[key] and new[key] == TRIGGERED:
-                self.triggers.append((emu.frame, title))
-                self.note(f"TRIGGERED {runtime_id} {title}")
+                level_id = navigation.level_id(emu)
+                self.triggers.append(Trigger(emu.frame, title, level_id))
+                self.note(f"TRIGGERED {runtime_id} {title} on lid {level_id:#x}")
                 self.shot(f"TRIGGERED-ach{runtime_id}")
         changed = sorted(key for key in SCREENSHOT_ON_CHANGE if old[key] != new[key])
         if changed and self.shots_taken < MAX_AUTO_SHOTS:
@@ -168,7 +177,7 @@ class Session:
         self.note(f"re-armed {[self.titles[runtime_id] for runtime_id in fired]}: {reason}")
 
     def close(self):
-        """Ends the trace; returns [(frame, title), ...] for every trigger."""
+        """Ends the trace; returns every Trigger, in order."""
         self.note(f"end; triggers={self.triggers}")
         self.tracer.close()
         return self.triggers

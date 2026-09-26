@@ -1,7 +1,8 @@
 """Recorded scenarios: scripted play from a derivable state, judged against the repo's achievements.
 
-Each scenario states which level achievements must trigger (usually none: a death, a quit or the
-attract demo must never unlock anything) and exits non-zero when the triggers differ.
+Each scenario states which level achievements must trigger and the level (lid) the game must show
+when they do (usually none: a death, a quit or the attract demo must never unlock anything), and
+exits non-zero when a trigger is missing, unexpected or fires on another level.
 
     python tools/achievement-harness/scenarios.py [--core CORE] NAME [NAME ...] | all
 
@@ -22,6 +23,7 @@ from probes import (
     FIXED_POINT_SHIFT,
     GAME_STATE,
     GAME_STATE_PLAYING,
+    LID_STAGE_CLEAR,
     RESPAWN_COUNT,
 )
 from session import Session
@@ -52,7 +54,7 @@ NSANITY_BEACH_STAGE = 0
 @dataclass(frozen=True)
 class Scenario:
     start: str | None  # a states.RECIPES name; None boots the disc
-    expected_levels: frozenset  # stage ids whose level achievement must trigger
+    expected: dict  # stage id -> the lid the game shows when its level achievement must trigger
     about: str
     play: Callable
 
@@ -144,36 +146,53 @@ def play_beach_clear(s):
     s.step(AFTER_LAST_QUIT_FRAMES)
 
 
-NONE = frozenset()
+NOTHING_FIRES = {}
 SCENARIOS = {
-    "cold-boot": Scenario(None, NONE, "3 minutes from power-on, no input", play_cold_boot),
-    "attract": Scenario(None, NONE, "15 minutes of attract-mode demos", play_attract),
+    "cold-boot": Scenario(None, NOTHING_FIRES, "3 minutes from power-on, no input", play_cold_boot),
+    "attract": Scenario(None, NOTHING_FIRES, "15 minutes of attract-mode demos", play_attract),
     "beach-deaths": Scenario(
-        "nsanity-beach-start", NONE, "three deaths on N. Sanity Beach", play_beach_deaths
+        "nsanity-beach-start", NOTHING_FIRES, "three deaths on N. Sanity Beach", play_beach_deaths
     ),
     "beach-quit": Scenario(
-        "nsanity-beach-start", NONE, "three pause -> SELECT quits", play_beach_quit
+        "nsanity-beach-start", NOTHING_FIRES, "three pause -> SELECT quits", play_beach_quit
     ),
     "beach-clear": Scenario(
         "nsanity-beach-start",
-        frozenset({NSANITY_BEACH_STAGE}),
+        {NSANITY_BEACH_STAGE: LID_STAGE_CLEAR},
         "N. Sanity Beach cleared by the plan, then Jungle Rollers quit (pcsx_rearmed only)",
         play_beach_clear,
     ),
 }
 
 
+def on_expected_level(trigger, expected):
+    """`expected` maps a title to its lid; an unexpected title is never on its level."""
+    return expected.get(trigger.title) == trigger.level_id
+
+
 def run(name, core):
-    """Plays one scenario in this process; returns True when the triggers match expectations."""
+    """Plays one scenario in this process; returns True when the triggers match expectations.
+
+    Every expected achievement must fire while the game shows its expected lid, and nothing else
+    may fire: a trigger on another level fails even when its title was expected.
+    """
     scenario = SCENARIOS[name]
     session = Session(name, state=scenario.start, core=core)
     session.note(scenario.about)
     scenario.play(session)
-    triggered = {title for _frame, title in session.close()}
-    expected = {achievements.level_title(stage) for stage in scenario.expected_levels}
-    verdict = "OK" if triggered == expected else "FAIL"
-    print(f"{verdict} {name}: expected {sorted(expected)}, triggered {sorted(triggered)}")
-    return triggered == expected
+    triggers = session.close()
+    expected = {achievements.level_title(stage): lid for stage, lid in scenario.expected.items()}
+    off_level = [trigger for trigger in triggers if not on_expected_level(trigger, expected)]
+    on_level = {trigger.title for trigger in triggers if on_expected_level(trigger, expected)}
+    passed = not off_level and on_level == set(expected)
+    verdict = "OK" if passed else "FAIL"
+    wanted = [f"{title} on lid {lid:#x}" for title, lid in sorted(expected.items())]
+    fired = [
+        f"{trigger.title} at frame {trigger.frame} on lid {trigger.level_id:#x}"
+        for trigger in triggers
+    ]
+    print(f"{verdict} {name}: expected {wanted}; triggered {fired}")
+    return passed
 
 
 def main():

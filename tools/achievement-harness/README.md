@@ -95,7 +95,10 @@ build, so a new core starts from an empty cache; after changing a recipe or `nav
 ## Scenarios
 
 Each scenario starts from a derivable state, activates every repo achievement, records a trace and
-compares the set of achievements that fired with its expectation. Between attempts,
+judges every trigger against its expectation: an expected achievement must fire while the game
+shows its expected level (lid), and nothing else may fire. A trigger on another level fails even
+when its title was expected, so a completion that fires on a zone load or a death is caught. The
+`OK`/`FAIL` line lists each trigger with its frame and lid. Between attempts,
 `Session.rearm()` resets only the achievements that fired, so one run judges several deaths or
 quits on their own while the others keep their hits, as in a live session.
 
@@ -105,10 +108,10 @@ quits on their own while the others keep their hits, as in a live session.
 | `attract` | cold boot | nothing | The attract-mode demos, which play real stages with no player |
 | `beach-deaths` | `nsanity-beach-start` | nothing | Deaths: after leaving the spawn zone, right after a respawn, after idling |
 | `beach-quit` | `nsanity-beach-start` | nothing | Pause -> SELECT quits, armed or not |
-| `beach-clear` | `nsanity-beach-start` | N. Sanity Beach | Replays the clearing plan (a real completion), then enters Jungle Rollers and quits |
+| `beach-clear` | `nsanity-beach-start` | N. Sanity Beach, on Stage Clear (lid `0x2D`) | Replays the clearing plan (a real completion), then enters Jungle Rollers and quits |
 
 A new achievement needs a scenario that reaches its event and the look-alike events that must not
-fire it; add it to `SCENARIOS` with its expectation.
+fire it; add it to `SCENARIOS` with the lid its event shows.
 
 Outputs, per scenario (`<core>-` prefixed when not on pcsx_rearmed):
 
@@ -173,7 +176,8 @@ emu.frame_hooks.append(callable)  # called with emu after every frame
 
 `states.load(emu, name)` derives or restores a state. `Session(name, state=None, core=...)` in
 `session.py` wraps an `Emu` with every repo achievement active and the tracer attached; helpers:
-`step`, `press`, `wait_until`, `shot`, `note`, `rearm`, `close` (returns `[(frame, title), ...]`).
+`step`, `press`, `wait_until`, `shot`, `note`, `rearm`, `close` (returns every `Trigger`: frame,
+title and the lid on that frame).
 `navigation.py` holds the menu moves (`boot_to_map`, `enter_stage`, `pause_and_quit`,
 `leave_stage_clear`).
 
