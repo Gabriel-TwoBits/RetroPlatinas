@@ -16,6 +16,8 @@ from provision import SHOTS_DIR, TRACES_DIR
 
 MAX_AUTO_SHOTS = 120
 MAX_SHOT_LABEL_CHARS = 80
+FRAME_DIGITS = 6
+MASK_HEX_DIGITS = 4
 SCREENSHOT_ON_CHANGE = {
     "r61994",
     "r61998",
@@ -59,7 +61,11 @@ class Tracer:
 
     def __call__(self, emu):
         values = dict(zip(self.names, (reader(emu) for _name, reader in self.probes)))
-        row = [emu.frame, f"{emu.buttons:04x}", *(format_value(values[n]) for n in self.names)]
+        row = [
+            emu.frame,
+            f"{emu.buttons:0{MASK_HEX_DIGITS}x}",
+            *(format_value(values[n]) for n in self.names),
+        ]
         self.writer.writerow(row)
         if self.previous is not None:
             for probe_name in self.names:
@@ -134,7 +140,7 @@ class Session:
         self.shots_taken += 1
         safe = "".join(c if c.isalnum() or c in "-_" else "-" for c in label)
         return self.emu.screenshot(
-            self.shot_dir / f"{self.emu.frame:06d}-{safe[:MAX_SHOT_LABEL_CHARS]}.png"
+            self.shot_dir / f"{self.emu.frame:0{FRAME_DIGITS}d}-{safe[:MAX_SHOT_LABEL_CHARS]}.png"
         )
 
     def step(self, frames=1, buttons=()):

@@ -38,6 +38,7 @@ MAX_CELLS_WITH_STATE = 700
 DEFAULT_ITERATIONS = 20000
 DEFAULT_SEED = 1
 LOG_EVERY = 50
+ITERATION_DIGITS = 5
 COMPRESSION_LEVEL = 1
 POSITION_BYTES = 4
 SIGN_BIT = 1 << 31
@@ -173,7 +174,7 @@ class Explorer:
         )
         self.emu.restore(zlib.decompress(self.archive[deepest]["state"]))
         self.emu.run(1, 0)
-        self.emu.screenshot(SHOTS_DIR / "explore" / f"it{iteration:05d}.png")
+        self.emu.screenshot(SHOTS_DIR / "explore" / f"it{iteration:0{ITERATION_DIGITS}d}.png")
 
 
 def main():

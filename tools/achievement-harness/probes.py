@@ -51,14 +51,12 @@ DEATH_COUNT = 0x61A3C  # 24.8
 PAUSED = 0x56400
 PLAYER_POINTER = 0x566B4
 
-# Offsets inside objects.
 AKU_LEVEL_OFFSET = 0x189
 PLAYER_LIVES_OFFSET = 0x164
 PLAYER_POSITION_OFFSETS = (0x80, 0x84, 0x88)
 # The code notes give +0x06 as the first hop of the lives chain; only +0x6C reads the lives.
 HUD_COUNT_CHAIN = (0x6C, 0xE4, 0x0C)
 
-# Values.
 LID_TITLE = 0x19  # title screen, menus and the island map
 LID_NSANITY_BEACH = 0x09
 LID_STAGE_CLEAR = 0x2D

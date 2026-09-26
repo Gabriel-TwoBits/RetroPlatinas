@@ -21,6 +21,7 @@ from provision import PLANS_DIR, STATES_DIR
 
 NSANITY_BEACH_CLEAR_PLAN = PLANS_DIR / "nsanity-beach-clear.json"
 STAGE_CLEAR_SETTLE_FRAMES = 60
+NAME_COLUMN_WIDTH = 24
 
 _derived_this_process = set()
 
@@ -109,4 +110,7 @@ if __name__ == "__main__":
     print(f"{emu.core_version}, rcheevos {emu.rcheevos_version}")
     for state_name in args.names:
         derived = load(emu, state_name, fresh=args.fresh)
-        print(f"{state_name:24} {digest(derived)}  {RECIPES[state_name].about}", flush=True)
+        print(
+            f"{state_name:{NAME_COLUMN_WIDTH}} {digest(derived)}  {RECIPES[state_name].about}",
+            flush=True,
+        )
