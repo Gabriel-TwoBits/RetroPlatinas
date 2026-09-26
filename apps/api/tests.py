@@ -18,6 +18,8 @@ from apps.api.handlers import (
     API_TOKEN_LIFETIME,
     DEFAULT_GAME_ICON_PATH,
     HANDLERS,
+    LBINFO_DEFAULT_COUNT,
+    LEADERBOARD_UNKNOWN_DATETIME,
     PRESENCE_TTL_SECONDS,
     _rarity,
 )
@@ -36,6 +38,7 @@ IMPLEMENTED_ACTIONS = (
     "startsession",
     "ping",
     "submitlbentry",
+    "lbinfo",
 )
 STUB_ACTIONS = [k for k in HANDLERS if k not in IMPLEMENTED_ACTIONS]
 
@@ -1636,3 +1639,211 @@ def test_submitlbentry_missing_token(client, game_with_leaderboards):
     data = response.json()
     assert data["Success"] is False
     assert data["Error"] == "Credentials invalid."
+
+
+# --- lbinfo ---
+
+
+def _lbinfo(client, **params):
+    return client.post("/dorequest.php", {"r": "lbinfo", **params}).json()
+
+
+def _board_with_scores(leaderboard, scores):
+    """One entry per score, submitted in list order, by users named `p0`, `p1`, …"""
+    base = timezone.now()
+    for index, score in enumerate(scores):
+        user = User.objects.create_user(username=f"p{index}", password="pw")
+        entry = LeaderboardEntry.objects.create(leaderboard=leaderboard, user=user, score=score)
+        LeaderboardEntry.objects.filter(pk=entry.pk).update(
+            submitted_at=base + timedelta(seconds=index)
+        )
+
+
+@pytest.mark.django_db
+def test_lbinfo_serves_leaderboard_data_without_authentication(client, game_with_leaderboards):
+    game, lb = game_with_leaderboards
+    _board_with_scores(lb, [300, 100, 300])
+
+    data = _lbinfo(client, i=lb.id)
+
+    assert data["Success"] is True
+    board = data["LeaderboardData"]
+    assert board == {
+        "LBID": lb.id,
+        "GameID": game.pk,
+        "LowerIsBetter": 1,
+        "LBTitle": lb.title,
+        "LBDesc": lb.description,
+        "LBFormat": "FRAMES",
+        "LBMem": LEADERBOARD_MEM,
+        "LBAuthor": None,
+        "LBCreated": LEADERBOARD_UNKNOWN_DATETIME,
+        "LBUpdated": LEADERBOARD_UNKNOWN_DATETIME,
+        "TotalEntries": 3,
+        "Entries": board["Entries"],
+    }
+    first = board["Entries"][0]
+    submitted = LeaderboardEntry.objects.get(leaderboard=lb, user__username="p1").submitted_at
+    assert first == {
+        "User": "p1",
+        "AvatarUrl": "http://testserver/UserPic/p1.png",
+        "DateSubmitted": int(submitted.timestamp()),
+        "Score": 100,
+        "Rank": 1,
+        "Index": 1,
+    }
+    ranked = [(e["User"], e["Rank"], e["Index"]) for e in board["Entries"]]
+    assert ranked == [("p1", 1, 1), ("p0", 2, 2), ("p2", 2, 3)]
+
+
+@pytest.mark.django_db
+def test_lbinfo_sends_lower_is_better_as_zero_when_higher_wins(client, game_with_leaderboards):
+    _, lb = game_with_leaderboards
+    lb.lower_is_better = False
+    lb.save(update_fields=["lower_is_better"])
+    _board_with_scores(lb, [100, 300])
+
+    board = _lbinfo(client, i=lb.id)["LeaderboardData"]
+
+    assert board["LowerIsBetter"] == 0
+    assert [e["User"] for e in board["Entries"]] == ["p1", "p0"]
+
+
+@pytest.mark.django_db
+def test_lbinfo_empty_board(client, game_with_leaderboards):
+    _, lb = game_with_leaderboards
+    board = _lbinfo(client, i=lb.id)["LeaderboardData"]
+    assert board["TotalEntries"] == 0
+    assert board["Entries"] == []
+
+
+@pytest.mark.django_db
+def test_lbinfo_defaults_to_the_first_page(client, game_with_leaderboards):
+    _, lb = game_with_leaderboards
+    _board_with_scores(lb, range(LBINFO_DEFAULT_COUNT + 5))
+
+    board = _lbinfo(client, i=lb.id)["LeaderboardData"]
+
+    assert [e["Index"] for e in board["Entries"]] == list(range(1, LBINFO_DEFAULT_COUNT + 1))
+
+
+@pytest.mark.django_db
+def test_lbinfo_pages_with_offset_and_count(client, game_with_leaderboards):
+    _, lb = game_with_leaderboards
+    _board_with_scores(lb, [10, 20, 20, 30, 40])
+
+    entries = _lbinfo(client, i=lb.id, o=2, c=2)["LeaderboardData"]["Entries"]
+
+    # The page opens on the second of two tied entries, which keeps the shared rank.
+    assert [(e["User"], e["Rank"], e["Index"]) for e in entries] == [("p2", 2, 3), ("p3", 4, 4)]
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    ("username", "expected_indexes"),
+    [
+        ("p10", [9, 10, 11, 12, 13]),
+        ("p1", [1, 2, 3, 4, 5]),
+        ("p19", [16, 17, 18, 19, 20]),
+    ],
+)
+def test_lbinfo_centres_the_page_on_the_user(
+    client, game_with_leaderboards, username, expected_indexes
+):
+    _, lb = game_with_leaderboards
+    _board_with_scores(lb, range(20))
+
+    entries = _lbinfo(client, i=lb.id, u=username, c=5)["LeaderboardData"]["Entries"]
+
+    assert [e["Index"] for e in entries] == expected_indexes
+    assert username in [e["User"] for e in entries]
+
+
+@pytest.mark.django_db
+def test_lbinfo_centres_on_the_user_among_tied_scores(client, game_with_leaderboards):
+    _, lb = game_with_leaderboards
+    _board_with_scores(lb, [5] * 9)
+
+    entries = _lbinfo(client, i=lb.id, u="p6", c=3)["LeaderboardData"]["Entries"]
+
+    assert [(e["User"], e["Rank"], e["Index"]) for e in entries] == [
+        ("p5", 1, 6),
+        ("p6", 1, 7),
+        ("p7", 1, 8),
+    ]
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("username", ["nobody", "author"])
+def test_lbinfo_user_without_entry_gets_the_offset_page(
+    client, game_with_leaderboards, achievement_author, username
+):
+    _, lb = game_with_leaderboards
+    _board_with_scores(lb, range(10))
+
+    entries = _lbinfo(client, i=lb.id, u=username, o=4, c=2)["LeaderboardData"]["Entries"]
+
+    assert [e["Index"] for e in entries] == [5, 6]
+
+
+@pytest.mark.django_db
+def test_lbinfo_caps_the_count(client, game_with_leaderboards):
+    _, lb = game_with_leaderboards
+    _board_with_scores(lb, range(4))
+
+    with patch("apps.api.handlers.LBINFO_MAX_COUNT", 3):
+        entries = _lbinfo(client, i=lb.id, c=100)["LeaderboardData"]["Entries"]
+
+    assert len(entries) == 3
+
+
+MISSING_PARAMETER = {
+    "Success": False,
+    "Error": "One or more required parameters is missing.",
+    "Status": HTTPStatus.UNPROCESSABLE_ENTITY,
+    "Code": "missing_parameter",
+}
+
+
+def _invalid_parameter(name):
+    return {
+        "Success": False,
+        "Error": f"Invalid {name}: expected an unsigned integer.",
+        "Status": HTTPStatus.UNPROCESSABLE_ENTITY,
+        "Code": "invalid_parameter",
+    }
+
+
+def _not_found(resource):
+    return {
+        "Success": False,
+        "Error": f"Unknown {resource}.",
+        "Status": HTTPStatus.NOT_FOUND,
+        "Code": "not_found",
+    }
+
+
+@pytest.mark.django_db
+def test_lbinfo_missing_leaderboard_id(client):
+    assert _lbinfo(client) == MISSING_PARAMETER
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    ("params", "invalid_name"),
+    [
+        ({"i": "abc"}, "i"),
+        ({"i": "-1"}, "i"),
+        ({"i": "1.5"}, "i"),
+        ({"i": str(2**32)}, "i"),
+        ({"i": "1", "c": "x"}, "c"),
+        ({"i": "1", "o": "-3"}, "o"),
+    ],
+)
+def test_lbinfo_invalid_parameter(client, game_with_leaderboards, params, invalid_name):
+    assert _lbinfo(client, **params) == _invalid_parameter(invalid_name)
+
+
+@pytest.mark.django_db
+def test_lbinfo_unknown_leaderboard(client):
+    assert _lbinfo(client, i=999) == _not_found("leaderboard")

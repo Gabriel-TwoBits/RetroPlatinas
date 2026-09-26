@@ -1,7 +1,9 @@
 import logging
+import re
 import secrets
 from datetime import timedelta
 from http import HTTPStatus
+from urllib.parse import quote
 
 from django.contrib.auth import authenticate
 from django.core.cache import cache
@@ -44,6 +46,12 @@ _ACHIEVEMENT_NOT_FOUND = {
     "Status": HTTPStatus.NOT_FOUND,
     "Code": "not_found",
 }
+_MISSING_PARAMETER = {
+    "Success": False,
+    "Error": "One or more required parameters is missing.",
+    "Status": HTTPStatus.UNPROCESSABLE_ENTITY,
+    "Code": "missing_parameter",
+}
 _ACHIEVEMENT_UNPUBLISHED = {
     "Success": False,
     "Error": "Unpublished achievements cannot be unlocked.",
@@ -62,6 +70,50 @@ BADGE_NAME_DIGITS = 5
 PERCENT = 100
 # rcheevos' JSON parser reads plain decimals only: `1e-05` would not parse.
 RARITY_DECIMAL_PLACES = 2
+
+
+# rcheevos sends every id, offset and count as a uint32.
+MAX_UINT32 = 0xFFFFFFFF
+UNSIGNED_INTEGER = re.compile(r"[0-9]+")
+
+
+def _invalid_parameter(message):
+    return {
+        "Success": False,
+        "Error": message,
+        "Status": HTTPStatus.UNPROCESSABLE_ENTITY,
+        "Code": "invalid_parameter",
+    }
+
+
+def _not_found(resource):
+    return {
+        "Success": False,
+        "Error": f"Unknown {resource}.",
+        "Status": HTTPStatus.NOT_FOUND,
+        "Code": "not_found",
+    }
+
+
+def _uint_param(request, name, default=None):
+    """`(value, None)` for a uint32 parameter, else `(None, error)`.
+
+    An absent or empty parameter takes `default`; without one it is a missing parameter.
+    """
+    raw = request.POST.get(name, "")
+    if raw == "" and default is None:
+        return None, _MISSING_PARAMETER
+    elif raw == "":
+        return default, None
+    elif UNSIGNED_INTEGER.fullmatch(raw) and int(raw) <= MAX_UINT32:
+        return int(raw), None
+    else:
+        return None, _invalid_parameter(f"Invalid {name}: expected an unsigned integer.")
+
+
+def _user_avatar_url(request, username):
+    """Absolute URL of the RA-compatible avatar path, so clients never fall back to RA's host."""
+    return request.build_absolute_uri(f"/UserPic/{quote(username)}.png")
 
 
 def _authenticate(request):
@@ -511,6 +563,91 @@ def handle_submitlbentry(request):
     }
 
 
+LBINFO_DEFAULT_COUNT = 10
+LBINFO_MAX_COUNT = 500
+# Leaderboards record no creation or update time, yet rcheevos requires both as datetime
+# strings; rc_client never reads them.
+LEADERBOARD_UNKNOWN_DATETIME = "1970-01-01 00:00:00"
+
+
+def _position_of(leaderboard, entry):
+    """1-based index of `entry` on the board: its rank plus the ties submitted before it."""
+    earlier_ties = (
+        leaderboard.entries.filter(score=entry.score)
+        .filter(
+            Q(submitted_at__lt=entry.submitted_at)
+            | Q(submitted_at=entry.submitted_at, id__lt=entry.id)
+        )
+        .count()
+    )
+    return _rank_of(leaderboard, entry.score) + earlier_ties
+
+
+def _offset_around(position, count, total):
+    """Entries to skip so the page of `count` centres on `position`, clamped to the board."""
+    offset = position - count // 2 - 1
+    if offset <= 0:
+        return 0
+    elif total - position + 1 < count:
+        return max(0, total - count)
+    else:
+        return offset
+
+
+def handle_lbinfo(request):
+    leaderboard_id, error = _uint_param(request, "i")
+    if error is not None:
+        return error
+    offset, error = _uint_param(request, "o", default=0)
+    if error is not None:
+        return error
+    count, error = _uint_param(request, "c", default=LBINFO_DEFAULT_COUNT)
+    if error is not None:
+        return error
+    count = min(count, LBINFO_MAX_COUNT)
+
+    leaderboard = Leaderboard.objects.filter(pk=leaderboard_id).first()
+    if leaderboard is None:
+        return _not_found("leaderboard")
+
+    total = leaderboard.entries.count()
+    username = request.POST.get("u", "")
+    # An unknown user, or one without an entry, gets the page `o` names, as on RA.
+    user_entry = leaderboard.entries.filter(user__username=username).first() if username else None
+    if user_entry is not None:
+        offset = _offset_around(_position_of(leaderboard, user_entry), count, total)
+
+    return {
+        "Success": True,
+        "LeaderboardData": {
+            "LBID": leaderboard.pk,
+            "GameID": leaderboard.game_id,
+            # rcheevos reads LowerIsBetter here as an unsigned integer, not a boolean.
+            "LowerIsBetter": int(leaderboard.lower_is_better),
+            "LBTitle": leaderboard.title,
+            "LBDesc": leaderboard.description,
+            "LBFormat": leaderboard.format,
+            "LBMem": leaderboard.mem_addr,
+            # No leaderboard author is recorded; rcheevos accepts null, as RA sends for none.
+            "LBAuthor": None,
+            "LBCreated": LEADERBOARD_UNKNOWN_DATETIME,
+            "LBUpdated": LEADERBOARD_UNKNOWN_DATETIME,
+            "TotalEntries": total,
+            "Entries": [
+                {
+                    "User": entry.user.username,
+                    "AvatarUrl": _user_avatar_url(request, entry.user.username),
+                    "DateSubmitted": int(entry.submitted_at.timestamp()),
+                    "Score": entry.score,
+                    "Rank": rank,
+                    "Index": index,
+                }
+                for index, rank, entry in _ranked_entries(leaderboard, offset, count)
+            ],
+        },
+    }
+
+
 HANDLERS = {
     "login2": handle_login2,
     "gameid": handle_gameid,
@@ -522,4 +659,5 @@ HANDLERS = {
     "awardachievement": handle_awardachievement,
     "ping": handle_ping,
     "submitlbentry": handle_submitlbentry,
+    "lbinfo": handle_lbinfo,
 }
