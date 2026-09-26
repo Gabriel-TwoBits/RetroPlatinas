@@ -148,6 +148,13 @@ def test_homepage_renders_portuguese_by_default(client):
 
 
 @pytest.mark.django_db
+def test_homepage_prints_each_portuguese_sentence_once(client):
+    body = client.get("/").content.decode()
+    assert body.count("Somos novos:") == 1
+    assert body.count("Escolha um jogo,") == 1
+
+
+@pytest.mark.django_db
 def test_set_language_switches_to_english(client):
     resp = client.post("/i18n/setlang/", {"language": "en", "next": "/"}, follow=True)
     assert resp.status_code == 200
