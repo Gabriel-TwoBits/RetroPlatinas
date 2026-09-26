@@ -549,7 +549,7 @@ def test_admin_changelist_lists_and_filters_activities(admin_client, suspect):
 
     response = admin_client.get(SUSPICIOUS_CHANGELIST_URL, {"kind__exact": "rate_limited"})
 
-    assert response.status_code == 200
+    assert response.status_code == HTTPStatus.OK
     listed = list(response.context["cl"].result_list)
     assert [activity.kind for activity in listed] == [SuspiciousActivity.Kind.RATE_LIMITED]
     assert set(response.context["action_form"].fields["action"].choices) >= {
@@ -575,7 +575,7 @@ def test_admin_review_action_sets_the_verdict_reviewer_and_time(
 
     response = _run_review_action(admin_client, action, selected)
 
-    assert response.status_code == 302
+    assert response.status_code == HTTPStatus.FOUND
     for activity in selected:
         activity.refresh_from_db()
         assert activity.review_status == verdict
@@ -603,7 +603,7 @@ def test_admin_review_action_message_is_in_brazilian_portuguese(admin_client, su
 def test_admin_cannot_add_activities(admin_client):
     response = admin_client.get(f"{SUSPICIOUS_CHANGELIST_URL}add/")
 
-    assert response.status_code == 403
+    assert response.status_code == HTTPStatus.FORBIDDEN
 
 
 @pytest.mark.django_db
