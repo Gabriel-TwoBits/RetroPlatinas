@@ -1,4 +1,4 @@
-# Env e secrets
+# Environment and secrets
 .env
 
 # Python
@@ -27,7 +27,7 @@ static/css/output.css
 # uv
 .python-version
 
-# Ferramentas
+# Tooling caches
 .ruff_cache/
 .pytest_cache/
 .mypy_cache/
@@ -40,5 +40,5 @@ htmlcov/
 *.swp
 *.swo
 
-# Binário do validador de mem_addr (scripts/check-mem-addr.sh)
+# Compiled mem_addr validator (scripts/check-mem-addr.sh)
 .cache/
