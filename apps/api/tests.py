@@ -1297,11 +1297,14 @@ def test_awardachievement_records_the_game_as_played(client, authed_user, game_w
     assert player_game.hardcore is False
 
 
+PREVIOUS_SESSION_AGE = timedelta(days=30)
+
+
 @pytest.mark.django_db
 def test_awardachievement_moves_last_played_only(client, authed_user, game_with_achievements):
     user, token = authed_user
     achievement = game_with_achievements.achievements.get(title="Community One")
-    long_ago = timezone.now() - timedelta(days=30)
+    long_ago = timezone.now() - PREVIOUS_SESSION_AGE
     PlayerGame.objects.create(
         user=user,
         game=game_with_achievements,
@@ -1480,7 +1483,7 @@ def test_startsession_moves_last_played_but_keeps_first_played(
     client, authed_user, game_with_achievements
 ):
     user, token = authed_user
-    long_ago = timezone.now() - timedelta(days=30)
+    long_ago = timezone.now() - PREVIOUS_SESSION_AGE
     PlayerGame.objects.create(
         user=user, game=game_with_achievements, first_played_at=long_ago, last_played_at=long_ago
     )
