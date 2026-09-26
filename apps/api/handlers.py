@@ -172,7 +172,8 @@ def handle_achievementsets(request):
         "ImageIconUrl": icon_url,
         "RichPresenceGameId": game.pk,
         "RichPresencePatch": game.rich_presence_patch,
-        # ponytail: single core set per game — no subset model, game.pk is a stable set id
+        # TRADEOFF: one core set per game, so game.pk doubles as the set id; a set model
+        # takes over when subsets (bonus/specialty) are supported.
         "Sets": [
             {
                 "AchievementSetId": game.pk,
@@ -191,7 +192,8 @@ def handle_allprogress(request):
     user = user_from_token(request.POST.get("t", ""))
     if user is None:
         return _INVALID_CREDENTIALS
-    # ponytail: per-console progress hints are informational, not on the load path — empty is valid
+    # TRADEOFF: no per-game progress (an empty map is valid and off the load path);
+    # aggregate UserUnlock counts per game when a client needs to show it.
     return {"Success": True, "Response": {}}
 
 

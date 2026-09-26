@@ -1,9 +1,7 @@
-"""Placeholder home data for the PR 22 landing page.
+"""Placeholder home data: static stand-ins the home view renders instead of queries."""
 
-Not wired to real queries yet — the home view renders these stand-ins so the
-design can be built and reviewed. Real aggregation lands in a later PR; delete
-this module then.
-"""
+# TRADEOFF: the home shows invented activity and totals; replace with Game/Achievement/UserUnlock
+# aggregation and delete this module.
 
 
 def _numbers():

@@ -1,11 +1,7 @@
-"""Placeholder profile data for the PR 22/24 UI work.
+"""Placeholder profile data: static stand-ins the profile views render instead of queries."""
 
-None of this is wired to real queries yet — the profile view renders these
-stand-ins so the design can be built and reviewed. Real aggregation lands in a
-later PR; delete this module then.
-"""
-
-# ponytail: placeholder data; real queries land in a later PR.
+# TRADEOFF: no value reflects the user's real progress; replace with UserUnlock/PlayerGame
+# aggregation and delete this module.
 
 VALID_TABS = ["overview", "games", "progress", "awards", "wall"]
 
