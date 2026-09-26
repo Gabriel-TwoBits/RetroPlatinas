@@ -227,8 +227,10 @@ def test_seed_level_achievements_is_idempotent(seeded_game):
 
 @pytest.mark.django_db
 def test_patch_exposes_seeded_level_achievements(client, seeded_game, player_token):
-    _, token = player_token
-    response = client.post("/dorequest.php", {"r": "patch", "t": token, "g": seeded_game.pk})
+    user, token = player_token
+    response = client.post(
+        "/dorequest.php", {"r": "patch", "u": user.username, "t": token, "g": seeded_game.pk}
+    )
     data = response.json()
 
     assert data["Success"] is True
@@ -247,7 +249,7 @@ def test_awardachievement_unlocks_seeded_achievement(client, seeded_game, player
 
     response = client.post(
         "/dorequest.php",
-        {"r": "awardachievement", "t": token, "a": achievement.pk, "h": "0"},
+        {"r": "awardachievement", "u": user.username, "t": token, "a": achievement.pk, "h": "0"},
     )
     data = response.json()
 
@@ -265,7 +267,13 @@ def test_awardachievement_unlocks_seeded_achievement(client, seeded_game, player
 def test_awardachievement_seeded_is_one_shot(client, seeded_game, player_token):
     user, token = player_token
     achievement = seeded_game.achievements.get(title="Jungle Rollers")
-    payload = {"r": "awardachievement", "t": token, "a": achievement.pk, "h": "0"}
+    payload = {
+        "r": "awardachievement",
+        "u": user.username,
+        "t": token,
+        "a": achievement.pk,
+        "h": "0",
+    }
 
     client.post("/dorequest.php", payload)
     client.post("/dorequest.php", payload)
@@ -282,7 +290,7 @@ def test_awardachievement_seeded_hardcore_creates_both_unlocks(client, seeded_ga
 
     client.post(
         "/dorequest.php",
-        {"r": "awardachievement", "t": token, "a": achievement.pk, "h": "1"},
+        {"r": "awardachievement", "u": user.username, "t": token, "a": achievement.pk, "h": "1"},
     )
 
     assert UserUnlock.objects.filter(user=user, achievement=achievement, hardcore=False).exists()
@@ -470,7 +478,13 @@ def unlocked_community_and_verified(client, game, user, player_token):
     for achievement, hardcore in ((community, "1"), (verified, "0")):
         client.post(
             "/dorequest.php",
-            {"r": "awardachievement", "t": token, "a": achievement.pk, "h": hardcore},
+            {
+                "r": "awardachievement",
+                "u": player.username,
+                "t": token,
+                "a": achievement.pk,
+                "h": hardcore,
+            },
         )
     assert _points_of(player) == (COMMUNITY_POINTS + VERIFIED_POINTS, COMMUNITY_POINTS)
     return player, community

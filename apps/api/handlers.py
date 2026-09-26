@@ -11,17 +11,26 @@ from django.utils import timezone
 
 from apps.accounts.models import API_TOKEN_BYTES
 from apps.achievements.models import Achievement, UserUnlock
-from apps.api.auth import user_from_token
+from apps.api.auth import is_expired_token, user_from_token
 from apps.games.models import Game, GameHash
 from apps.leaderboards.models import Leaderboard, LeaderboardEntry
 
 logger = logging.getLogger("apps.api")
 
 _NOT_IMPLEMENTED = {"Success": False, "Error": "not implemented"}
+# rcheevos turns these `Code` values into RC_INVALID_CREDENTIALS / RC_EXPIRED_TOKEN;
+# a missing or unknown code is only a generic RC_API_FAILURE.
 _INVALID_CREDENTIALS = {
     "Success": False,
     "Error": "Credentials invalid.",
     "Status": HTTPStatus.UNAUTHORIZED,
+    "Code": "invalid_credentials",
+}
+_EXPIRED_TOKEN = {
+    "Success": False,
+    "Error": "The access token has expired. Please log in again.",
+    "Status": HTTPStatus.UNAUTHORIZED,
+    "Code": "expired_token",
 }
 _GAME_NOT_FOUND = {
     "Success": False,
@@ -52,21 +61,35 @@ API_TOKEN_LIFETIME = timedelta(days=14)
 BADGE_NAME_DIGITS = 5
 
 
+def _authenticate(request):
+    """`(user, None)` when `t` is a live token of the user named in `u`, else `(None, error)`."""
+    username = request.POST.get("u", "")
+    token = request.POST.get("t", "")
+    user = user_from_token(token)
+    if user is not None and user.username == username:
+        return user, None
+    elif user is not None:
+        return None, _INVALID_CREDENTIALS
+    elif is_expired_token(username, token):
+        return None, _EXPIRED_TOKEN
+    else:
+        return None, _INVALID_CREDENTIALS
+
+
 def handle_login2(request):
     username = request.POST.get("u")
     password = request.POST.get("p")
-    request_token = request.POST.get("t")
     if not username:
         return _INVALID_CREDENTIALS
-    if password:
+    elif password:
         user = authenticate(username=username, password=password)
-    elif request_token:
-        user = user_from_token(request_token)
-        if user is not None and user.username != username:
-            user = None
+        if user is None:
+            return _INVALID_CREDENTIALS
+    elif request.POST.get("t"):
+        user, error = _authenticate(request)
+        if error is not None:
+            return error
     else:
-        user = None
-    if user is None:
         return _INVALID_CREDENTIALS
     # Echo the existing valid token instead of rotating: rc_client fires login2
     # twice on connect, and rotating would invalidate the second call's token.
@@ -146,9 +169,9 @@ def _serialize_leaderboard(lb):
 
 
 def handle_patch(request):
-    user = user_from_token(request.POST.get("t", ""))
-    if user is None:
-        return _INVALID_CREDENTIALS
+    user, error = _authenticate(request)
+    if error is not None:
+        return error
 
     try:
         game_id = int(request.POST.get("g", ""))
@@ -176,9 +199,9 @@ def handle_patch(request):
 
 
 def handle_achievementsets(request):
-    user = user_from_token(request.POST.get("t", ""))
-    if user is None:
-        return _INVALID_CREDENTIALS
+    user, error = _authenticate(request)
+    if error is not None:
+        return error
 
     md5 = request.POST.get("m", "").lower()
     game_id_param = request.POST.get("g", "")
@@ -224,9 +247,9 @@ def handle_achievementsets(request):
 
 
 def handle_allprogress(request):
-    user = user_from_token(request.POST.get("t", ""))
-    if user is None:
-        return _INVALID_CREDENTIALS
+    user, error = _authenticate(request)
+    if error is not None:
+        return error
     # TRADEOFF: no per-game progress (an empty map is valid and off the load path);
     # aggregate UserUnlock counts per game when a client needs to show it.
     return {"Success": True, "Response": {}}
@@ -237,9 +260,9 @@ def handle_postactivity(request):
 
 
 def handle_startsession(request):
-    user = user_from_token(request.POST.get("t", ""))
-    if user is None:
-        return _INVALID_CREDENTIALS
+    user, error = _authenticate(request)
+    if error is not None:
+        return error
 
     try:
         game_id = int(request.POST.get("g", ""))
@@ -282,9 +305,9 @@ def _remaining_in_set(user, game, hardcore):
 
 
 def handle_awardachievement(request):
-    user = user_from_token(request.POST.get("t", ""))
-    if user is None:
-        return _INVALID_CREDENTIALS
+    user, error = _authenticate(request)
+    if error is not None:
+        return error
 
     try:
         achievement_id = int(request.POST.get("a", ""))
@@ -331,9 +354,9 @@ def handle_awardachievement(request):
 
 
 def handle_ping(request):
-    user = user_from_token(request.POST.get("t", ""))
-    if user is None:
-        return _INVALID_CREDENTIALS
+    user, error = _authenticate(request)
+    if error is not None:
+        return error
 
     try:
         game_id = int(request.POST.get("g", ""))
@@ -354,9 +377,9 @@ def _rank_of(leaderboard, score):
 
 
 def handle_submitlbentry(request):
-    user = user_from_token(request.POST.get("t", ""))
-    if user is None:
-        return _INVALID_CREDENTIALS
+    user, error = _authenticate(request)
+    if error is not None:
+        return error
 
     try:
         leaderboard_id = int(request.POST.get("i", ""))
