@@ -3,7 +3,7 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 
-from apps.games.models import Console, Game, GameHash
+from apps.games.models import Console, Game, GameHash, PlayerGame
 from apps.images.catalog import versioned_game_icon_path
 from apps.images.rendering import ADMIN_LIST_THUMBNAIL_PX, GAME_ICON_SIZE_PX
 
@@ -70,3 +70,27 @@ class GameHashAdmin(admin.ModelAdmin):
     list_display = ("md5", "game", "label")
     search_fields = ("md5", "label")
     list_filter = ("game__console",)
+
+
+@admin.register(PlayerGame)
+class PlayerGameAdmin(admin.ModelAdmin):
+    """View and delete only: the emulator's session requests write these rows."""
+
+    list_display = (
+        "user",
+        "game",
+        "hardcore",
+        "playtime_seconds",
+        "first_played_at",
+        "last_played_at",
+        "last_ping_at",
+    )
+    list_filter = ("hardcore", "game__console")
+    search_fields = ("user__username", "game__title", "last_rich_presence")
+    list_select_related = ("user", "game")
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RetroPlatinas\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-26 19:41-0300\n"
+"POT-Creation-Date: 2026-09-26 20:01-0300\n"
 "PO-Revision-Date: 2026-05-23 18:15-0300\n"
 "Last-Translator: RetroPlatinas\n"
 "Language-Team: Brazilian Portuguese\n"
@@ -20,44 +20,44 @@ msgstr ""
 msgid "A user with that email already exists."
 msgstr "Já existe um usuário com esse email."
 
-#: apps/achievements/admin.py:24
+#: apps/achievements/admin.py:23
 msgid "Locked badge"
 msgstr "Emblema bloqueado"
 
-#: apps/achievements/admin.py:24
+#: apps/achievements/admin.py:23
 msgid "Badge"
 msgstr "Emblema"
 
-#: apps/achievements/admin.py:83 apps/achievements/models.py:53
+#: apps/achievements/admin.py:82 apps/achievements/models.py:53
 msgid "status"
 msgstr "status"
 
-#: apps/achievements/admin.py:89 apps/achievements/models.py:48
+#: apps/achievements/admin.py:88 apps/achievements/models.py:48
 msgid "badge"
 msgstr "emblema"
 
-#: apps/achievements/admin.py:93
+#: apps/achievements/admin.py:92
 msgid "badge preview"
 msgstr "prévia do emblema"
 
-#: apps/achievements/admin.py:97 apps/games/admin.py:64
-#: apps/images/tests.py:305
+#: apps/achievements/admin.py:96 apps/games/admin.py:62
+#: apps/images/tests.py:330
 msgid "Available after saving."
 msgstr "Disponível depois de salvar."
 
-#: apps/achievements/admin.py:106
+#: apps/achievements/admin.py:105
 msgid "Publish selected achievements as community"
 msgstr "Publicar as conquistas selecionadas como comunidade"
 
-#: apps/achievements/admin.py:111
+#: apps/achievements/admin.py:110
 msgid "Mark selected achievements as verified"
 msgstr "Marcar as conquistas selecionadas como verificadas"
 
-#: apps/achievements/admin.py:116
+#: apps/achievements/admin.py:115
 msgid "Move selected achievements back to draft"
 msgstr "Voltar as conquistas selecionadas para rascunho"
 
-#: apps/achievements/admin.py:134
+#: apps/achievements/admin.py:133
 #, python-format
 msgid "%(count)d achievement moved to %(status)s."
 msgid_plural "%(count)d achievements moved to %(status)s."
@@ -93,7 +93,7 @@ msgid "Missable"
 msgstr "Perdível"
 
 #: apps/achievements/models.py:37 apps/achievements/models.py:104
-#: apps/games/models.py:49 apps/games/models.py:62
+#: apps/games/models.py:59 apps/games/models.py:72 apps/games/models.py:125
 #: apps/leaderboards/models.py:37
 msgid "game"
 msgstr "jogo"
@@ -102,12 +102,12 @@ msgstr "jogo"
 msgid "author"
 msgstr "autor"
 
-#: apps/achievements/models.py:44 apps/games/models.py:36
+#: apps/achievements/models.py:44 apps/games/models.py:46
 #: apps/leaderboards/models.py:39
 msgid "title"
 msgstr "título"
 
-#: apps/achievements/models.py:45 apps/games/models.py:44
+#: apps/achievements/models.py:45 apps/games/models.py:54
 #: apps/leaderboards/models.py:40
 msgid "description"
 msgstr "descrição"
@@ -124,7 +124,7 @@ msgstr "expressão de endereço de memória"
 msgid "type"
 msgstr "tipo"
 
-#: apps/achievements/models.py:62 apps/games/models.py:46
+#: apps/achievements/models.py:62 apps/games/models.py:56
 msgid "created at"
 msgstr "criado em"
 
@@ -140,7 +140,8 @@ msgstr "conquista"
 msgid "achievements"
 msgstr "conquistas"
 
-#: apps/achievements/models.py:79 apps/leaderboards/models.py:66
+#: apps/achievements/models.py:79 apps/games/models.py:119
+#: apps/leaderboards/models.py:66
 msgid "user"
 msgstr "usuário"
 
@@ -180,66 +181,98 @@ msgstr "anotação de código"
 msgid "code notes"
 msgstr "anotações de código"
 
-#: apps/games/admin.py:17
+#: apps/games/admin.py:15
 msgid "Game icon"
 msgstr "Ícone do jogo"
 
-#: apps/games/admin.py:56 apps/games/models.py:43
+#: apps/games/admin.py:54 apps/games/models.py:53
 msgid "icon"
 msgstr "ícone"
 
-#: apps/games/admin.py:60
+#: apps/games/admin.py:58
 msgid "icon preview"
 msgstr "prévia do ícone"
 
-#: apps/games/models.py:17
+#: apps/games/models.py:27
 msgid "RA ID"
 msgstr "ID no RA"
 
-#: apps/games/models.py:18
+#: apps/games/models.py:28
 msgid "name"
 msgstr "nome"
 
-#: apps/games/models.py:19
+#: apps/games/models.py:29
 msgid "short name"
 msgstr "nome curto"
 
-#: apps/games/models.py:24 apps/games/models.py:41
+#: apps/games/models.py:34 apps/games/models.py:51
 msgid "console"
 msgstr "console"
 
-#: apps/games/models.py:25
+#: apps/games/models.py:35
 msgid "consoles"
 msgstr "consoles"
 
-#: apps/games/models.py:45
+#: apps/games/models.py:55
 msgid "rich presence patch"
 msgstr "script de rich presence"
 
-#: apps/games/models.py:50
+#: apps/games/models.py:60
 msgid "games"
 msgstr "jogos"
 
-#: apps/games/models.py:65
+#: apps/games/models.py:75
 msgid "MD5"
 msgstr "MD5"
 
-#: apps/games/models.py:67
+#: apps/games/models.py:77
 msgid "label"
 msgstr "rótulo"
 
-#: apps/games/models.py:70
+#: apps/games/models.py:80
 msgid "game hash"
 msgstr "hash do jogo"
 
-#: apps/games/models.py:71
+#: apps/games/models.py:81
 msgid "game hashes"
 msgstr "hashes do jogo"
 
-#: apps/games/models.py:83
+#: apps/games/models.py:93
 #, python-format
 msgid "Enter an MD5 hash: %(digits)s hexadecimal digits."
 msgstr "Informe um hash MD5: %(digits)s dígitos hexadecimais."
+
+#: apps/games/models.py:127
+msgid "first played at"
+msgstr "jogou pela primeira vez em"
+
+#: apps/games/models.py:128
+msgid "last played at"
+msgstr "jogou pela última vez em"
+
+#: apps/games/models.py:129
+msgid "playtime (seconds)"
+msgstr "tempo de jogo (segundos)"
+
+#: apps/games/models.py:131
+msgid "last rich presence"
+msgstr "último rich presence"
+
+#: apps/games/models.py:133
+msgid "last ping at"
+msgstr "último ping em"
+
+#: apps/games/models.py:134
+msgid "hardcore session"
+msgstr "sessão hardcore"
+
+#: apps/games/models.py:139
+msgid "player game"
+msgstr "jogo do jogador"
+
+#: apps/games/models.py:140
+msgid "player games"
+msgstr "jogos dos jogadores"
 
 #: apps/leaderboards/models.py:12
 msgid "Score (000000)"
