@@ -403,8 +403,23 @@ TOP_ENTRIES_LIMIT = 10
 
 
 def _rank_of(leaderboard, score):
+    """Competition rank ("1224"): one more than the number of strictly better scores."""
     better = "score__lt" if leaderboard.lower_is_better else "score__gt"
     return leaderboard.entries.filter(**{better: score}).count() + 1
+
+
+def _top_entries(leaderboard):
+    order = "score" if leaderboard.lower_is_better else "-score"
+    ranked = leaderboard.entries.select_related("user").order_by(order, "submitted_at")
+    top_entries = []
+    for position, entry in enumerate(ranked[:TOP_ENTRIES_LIMIT], start=1):
+        # Tied scores share the rank of the first of them, as `_rank_of` counts it.
+        if top_entries and top_entries[-1]["Score"] == entry.score:
+            rank = top_entries[-1]["Rank"]
+        else:
+            rank = position
+        top_entries.append({"User": entry.user.username, "Score": entry.score, "Rank": rank})
+    return top_entries
 
 
 def handle_submitlbentry(request):
@@ -437,13 +452,6 @@ def handle_submitlbentry(request):
                 entry.submitted_at = timezone.now()
                 entry.save(update_fields=["score", "submitted_at"])
 
-    order = "score" if leaderboard.lower_is_better else "-score"
-    ranked = leaderboard.entries.select_related("user").order_by(order, "submitted_at")
-    top_entries = [
-        {"User": e.user.username, "Score": e.score, "Rank": rank}
-        for rank, e in enumerate(ranked[:TOP_ENTRIES_LIMIT], start=1)
-    ]
-
     return {
         "Success": True,
         "Response": {
@@ -453,7 +461,7 @@ def handle_submitlbentry(request):
                 "Rank": _rank_of(leaderboard, entry.score),
                 "NumEntries": leaderboard.entries.count(),
             },
-            "TopEntries": top_entries,
+            "TopEntries": _top_entries(leaderboard),
         },
     }
 

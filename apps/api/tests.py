@@ -1521,6 +1521,45 @@ def test_submitlbentry_top_entries_and_rank(client, authed_user, game_with_leade
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize(
+    ("lower_is_better", "rival_scores", "submitted", "expected_ranks", "expected_rank"),
+    [
+        (True, [300, 300, 900], 300, [1, 1, 1, 4], 1),
+        (True, [100, 500, 500], 700, [1, 2, 2, 4], 4),
+        (False, [900, 900, 100], 500, [1, 1, 3, 4], 3),
+    ],
+)
+def test_submitlbentry_top_entries_rank_ties_like_rank_info(
+    client,
+    authed_user,
+    game_with_leaderboards,
+    lower_is_better,
+    rival_scores,
+    submitted,
+    expected_ranks,
+    expected_rank,
+):
+    _, token = authed_user
+    _, lb = game_with_leaderboards
+    lb.lower_is_better = lower_is_better
+    lb.save(update_fields=["lower_is_better"])
+    for index, rival_score in enumerate(rival_scores):
+        rival = _make_user(f"rival{index}", f"{index}" * API_TOKEN_HEX_LENGTH)
+        LeaderboardEntry.objects.create(leaderboard=lb, user=rival, score=rival_score)
+
+    resp = client.post(
+        "/dorequest.php",
+        {"r": "submitlbentry", "u": PLAYER_USERNAME, "t": token, "i": lb.id, "s": submitted},
+    ).json()["Response"]
+
+    top = resp["TopEntries"]
+    assert [e["Rank"] for e in top] == expected_ranks
+    assert resp["RankInfo"]["Rank"] == expected_rank
+    player_entry = next(e for e in top if e["User"] == PLAYER_USERNAME)
+    assert player_entry["Rank"] == resp["RankInfo"]["Rank"]
+
+
+@pytest.mark.django_db
 def test_submitlbentry_unknown_leaderboard(client, authed_user):
     _, token = authed_user
     response = client.post(
