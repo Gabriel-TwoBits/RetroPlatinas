@@ -86,6 +86,8 @@ class GameHash(models.Model):
                 }
             )
 
+    # TRADEOFF: lowercased in Python only; update()/bulk_create/loaddata and rows stored in
+    # uppercase escape it. A data migration plus CheckConstraint(md5=Lower("md5")) closes it.
     def save(self, *args, **kwargs):
         self.md5 = self.md5.lower()
         super().save(*args, **kwargs)
