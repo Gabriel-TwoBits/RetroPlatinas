@@ -16,7 +16,7 @@ BADGE_NAME_DIGITS = 5
 # rc_client_achievement_t.badge_name is a char[8].
 BADGE_NAME_MAX_CHARS = 7
 GAME_IMAGE_NAME_DIGITS = 6
-# rc_client_game_t.badge_name is a char[16].
+# rc_client_subset_t.badge_name (which rc_client_game_t.badge_name points to) is a char[16].
 GAME_IMAGE_NAME_MAX_CHARS = 15
 # rc_client's icon for an unknown game, RA's generic game icon; answers even without a game.
 FALLBACK_GAME_IMAGE_NAME = "000001"
