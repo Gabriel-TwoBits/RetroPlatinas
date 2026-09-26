@@ -151,6 +151,16 @@ class PlayerGame(models.Model):
     def __str__(self):
         return f"{self.user} — {self.game}"
 
+    def start_session(self, now):
+        """Marks a new session live at `now`.
+
+        The gap since the previous session was not play, so it credits nothing, and the
+        previous session's rich presence is cleared until this one's first ping.
+        """
+        self.last_played_at = now
+        self.last_rich_presence = ""
+        self.last_ping_at = now
+
     def record_ping(self, now):
         """Marks the session live at `now`, crediting the time since the previous contact.
 

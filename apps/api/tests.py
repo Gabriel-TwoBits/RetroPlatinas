@@ -1323,6 +1323,8 @@ def test_awardachievement_moves_last_played_only(client, authed_user, game_with_
 
 # --- startsession ---
 
+EARLIER_PLAYTIME_SECONDS = 600
+
 
 @pytest.mark.django_db
 def test_startsession_missing_token(client, game_with_achievements):
@@ -1491,17 +1493,24 @@ def test_startsession_moves_last_played_but_keeps_first_played(
 
 
 @pytest.mark.django_db
-def test_startsession_credits_play_since_a_recent_ping(client, authed_user, game_with_achievements):
+def test_startsession_credits_nothing_and_clears_the_previous_presence(
+    client, authed_user, game_with_achievements
+):
     user, token = authed_user
     PlayerGame.objects.create(
-        user=user, game=game_with_achievements, last_ping_at=timezone.now() - timedelta(minutes=1)
+        user=user,
+        game=game_with_achievements,
+        playtime_seconds=EARLIER_PLAYTIME_SECONDS,
+        last_rich_presence="Previous session",
+        last_ping_at=timezone.now() - RC_CLIENT_PING_INTERVAL,
     )
 
     _start_session(client, token, game_with_achievements)
 
-    assert (
-        PlayerGame.objects.get(user=user).playtime_seconds == timedelta(minutes=1).total_seconds()
-    )
+    player_game = PlayerGame.objects.get(user=user)
+    assert player_game.playtime_seconds == EARLIER_PLAYTIME_SECONDS
+    assert player_game.last_rich_presence == ""
+    assert player_game.last_ping_at == player_game.last_played_at
 
 
 @pytest.mark.django_db
@@ -1667,9 +1676,6 @@ def test_ping_rejects_an_invalid_hardcore_flag(client, authed_user, game_with_ac
 
     assert data == HARDCORE_FLAG_INVALID
     assert not PlayerGame.objects.exists()
-
-
-EARLIER_PLAYTIME_SECONDS = 600
 
 
 @pytest.mark.django_db

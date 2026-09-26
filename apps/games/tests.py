@@ -216,6 +216,24 @@ def test_ping_earlier_than_the_previous_credits_nothing(player_game):
 
 
 @pytest.mark.django_db
+def test_session_start_credits_nothing_and_clears_the_presence(player_game):
+    previous = timezone.now()
+    player_game.record_ping(previous)
+    player_game.last_rich_presence = "Previous session"
+    started = previous + RC_CLIENT_PING_INTERVAL
+
+    player_game.start_session(started)
+
+    assert player_game.playtime_seconds == 0
+    assert player_game.last_rich_presence == ""
+    assert player_game.last_ping_at == started
+    assert player_game.last_played_at == started
+
+    player_game.record_ping(started + RC_CLIENT_PING_INTERVAL)
+    assert player_game.playtime_seconds == RC_CLIENT_PING_INTERVAL.total_seconds()
+
+
+@pytest.mark.django_db
 def test_playing_now_keeps_sessions_pinged_within_the_ttl(player_game):
     player_game.last_ping_at = timezone.now() - PLAYING_NOW_TTL + ONE_SECOND
     player_game.save()

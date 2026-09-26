@@ -373,20 +373,21 @@ def handle_postactivity(request):
     return _NOT_IMPLEMENTED
 
 
-def _record_session_contact(user, game, hardcore, *, starting=False, rich_presence=None):
-    """Marks `user`'s session of `game` live now; `hardcore` and `rich_presence` when sent."""
+def _record_session_contact(user, game, hardcore, *, starting=False, rich_presence=""):
+    """Marks `user`'s session of `game` live now, as a new session when `starting`, else as a
+    ping carrying `rich_presence`; records `hardcore` when sent."""
     now = timezone.now()
     with transaction.atomic():
         player_game, _ = PlayerGame.objects.select_for_update().get_or_create(
             user=user, game=game, defaults={"first_played_at": now, "last_played_at": now}
         )
         if starting:
-            player_game.last_played_at = now
-        if rich_presence is not None:
+            player_game.start_session(now)
+        else:
             player_game.last_rich_presence = rich_presence
+            player_game.record_ping(now)
         if hardcore is not None:
             player_game.hardcore = hardcore
-        player_game.record_ping(now)
         player_game.save()
 
 

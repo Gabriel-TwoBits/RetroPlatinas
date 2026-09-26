@@ -80,9 +80,10 @@ DuckStation caches images by URL, and a missing URL makes rcheevos fetch RetroAc
 
 `PlayerGame` (one row per user and game) records who plays what. `startsession` creates it and
 moves its last-played time, `ping` (rc_client sends one every 120 s while the emulator runs)
-stores the current rich presence, and an unlock also moves last played. Each `startsession` or
-`ping` credits the time since the previous one as playtime when the gap is at most 4 minutes; a
-longer gap (emulator paused, closed or offline) credits nothing. A session pinged within the last
+stores the current rich presence, and an unlock also moves last played. Each `ping` credits the
+time since the previous contact as playtime when the gap is at most 4 minutes; a longer gap
+(emulator paused, closed or offline) credits nothing, and so does a new `startsession`, which also
+clears the previous session's rich presence. A session pinged within the last
 5 minutes is "playing now" (`PlayerGame.objects.playing_now()`). Rarity counts a game's
 `PlayerGame` rows as its players.
 
