@@ -326,6 +326,24 @@ def test_submit_with_a_wrong_v_is_rejected_and_flagged(client, player, leaderboa
     )
 
 
+# A client looping on bad signatures.
+REPEATED_BAD_SIGNATURES = 5
+
+
+@pytest.mark.django_db
+def test_repeated_bad_signatures_are_flagged_once_per_action_and_window(
+    client, player, achievement, leaderboard
+):
+    for _ in range(REPEATED_BAD_SIGNATURES):
+        assert _submit(client, i=LEADERBOARD_ID, s=SCORE).json() == MISSING_PARAMETER
+        assert _award(client, a=ACHIEVEMENT_ID, h="1").json() == MISSING_PARAMETER
+
+    actions = SuspiciousActivity.objects.filter(user=player).values_list(
+        "detail__action", flat=True
+    )
+    assert sorted(actions) == ["awardachievement", "submitlbentry"]
+
+
 # --- rate limit and unlock heuristics ---
 
 

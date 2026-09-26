@@ -14,12 +14,11 @@ from apps.achievements.models import Achievement, UserUnlock
 from apps.anticheat.detection import (
     award_rate_exceeded,
     award_validation_hash,
-    flag,
+    flag_invalid_signature,
     inspect_unlock,
     leaderboard_validation_hash,
     signature_matches,
 )
-from apps.anticheat.models import SuspiciousActivity
 from apps.api.auth import is_expired_token, user_from_token
 from apps.games.models import RICH_PRESENCE_MAX_LENGTH, Console, Game, GameHash, PlayerGame
 from apps.images.catalog import (
@@ -149,13 +148,7 @@ def _signature_error(request, user, expected, **detail):
     else:
         reason = "mismatch"
         error = _invalid_parameter("Invalid v: the validation hash does not match.")
-    flag(
-        user,
-        SuspiciousActivity.Kind.INVALID_SIGNATURE,
-        action=request.POST.get("r", ""),
-        reason=reason,
-        **detail,
-    )
+    flag_invalid_signature(user, request.POST.get("r", ""), reason=reason, **detail)
     return error
 
 

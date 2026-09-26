@@ -20,6 +20,11 @@ UNLOCK_BURST_THRESHOLD = 10
 UNLOCK_BURST_WINDOW = timedelta(minutes=1)
 UNLOCK_BURST_KEY = "anticheat:new-unlocks:{user_id}:{game_id}"
 
+# A bad `v` is flagged once per user and action within this window, so a loop of bad requests
+# cannot flood the review queue.
+INVALID_SIGNATURE_FLAG_WINDOW = timedelta(minutes=1)
+INVALID_SIGNATURE_KEY = "anticheat:invalid-signatures:{user_id}:{action}"
+
 # rcheevos skips achievements already true when the game loads, so an unlock this soon after
 # startsession needs a save state loaded near the trigger, or a forged request.
 EARLY_UNLOCK_WINDOW = timedelta(seconds=30)
@@ -78,6 +83,12 @@ def _count_in_window(key, window):
         # without an expiry; left so, the window would never close.
         cache.touch(key, timeout)
     return count
+
+
+def flag_invalid_signature(user, action, **detail):
+    key = INVALID_SIGNATURE_KEY.format(user_id=user.pk, action=action)
+    if _count_in_window(key, INVALID_SIGNATURE_FLAG_WINDOW) == 1:
+        flag(user, SuspiciousActivity.Kind.INVALID_SIGNATURE, action=action, **detail)
 
 
 def award_rate_exceeded(user):
