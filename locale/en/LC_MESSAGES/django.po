@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RetroPlatinas\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-26 20:01-0300\n"
+"POT-Creation-Date: 2026-09-26 20:25-0300\n"
 "PO-Revision-Date: 2026-05-23 18:15-0300\n"
 "Last-Translator: RetroPlatinas\n"
 "Language-Team: English\n"
@@ -20,44 +20,44 @@ msgstr ""
 msgid "A user with that email already exists."
 msgstr ""
 
-#: apps/achievements/admin.py:23
+#: apps/achievements/admin.py:24
 msgid "Locked badge"
 msgstr ""
 
-#: apps/achievements/admin.py:23
+#: apps/achievements/admin.py:24
 msgid "Badge"
 msgstr ""
 
-#: apps/achievements/admin.py:82 apps/achievements/models.py:53
+#: apps/achievements/admin.py:103 apps/achievements/models.py:53
 msgid "status"
 msgstr ""
 
-#: apps/achievements/admin.py:88 apps/achievements/models.py:48
+#: apps/achievements/admin.py:109 apps/achievements/models.py:48
 msgid "badge"
 msgstr ""
 
-#: apps/achievements/admin.py:92
+#: apps/achievements/admin.py:113
 msgid "badge preview"
 msgstr ""
 
-#: apps/achievements/admin.py:96 apps/games/admin.py:62
+#: apps/achievements/admin.py:117 apps/games/admin.py:62
 #: apps/images/tests.py:330
 msgid "Available after saving."
 msgstr ""
 
-#: apps/achievements/admin.py:105
+#: apps/achievements/admin.py:126
 msgid "Publish selected achievements as community"
 msgstr ""
 
-#: apps/achievements/admin.py:110
+#: apps/achievements/admin.py:131
 msgid "Mark selected achievements as verified"
 msgstr ""
 
-#: apps/achievements/admin.py:115
+#: apps/achievements/admin.py:136
 msgid "Move selected achievements back to draft"
 msgstr ""
 
-#: apps/achievements/admin.py:133
+#: apps/achievements/admin.py:156
 #, python-format
 msgid "%(count)d achievement moved to %(status)s."
 msgid_plural "%(count)d achievements moved to %(status)s."
@@ -93,7 +93,7 @@ msgid "Missable"
 msgstr ""
 
 #: apps/achievements/models.py:37 apps/achievements/models.py:104
-#: apps/games/models.py:59 apps/games/models.py:72 apps/games/models.py:125
+#: apps/games/models.py:62 apps/games/models.py:75 apps/games/models.py:128
 #: apps/leaderboards/models.py:37
 msgid "game"
 msgstr ""
@@ -102,12 +102,12 @@ msgstr ""
 msgid "author"
 msgstr ""
 
-#: apps/achievements/models.py:44 apps/games/models.py:46
+#: apps/achievements/models.py:44 apps/games/models.py:49
 #: apps/leaderboards/models.py:39
 msgid "title"
 msgstr ""
 
-#: apps/achievements/models.py:45 apps/games/models.py:54
+#: apps/achievements/models.py:45 apps/games/models.py:57
 #: apps/leaderboards/models.py:40
 msgid "description"
 msgstr ""
@@ -124,7 +124,8 @@ msgstr ""
 msgid "type"
 msgstr ""
 
-#: apps/achievements/models.py:62 apps/games/models.py:56
+#: apps/achievements/models.py:62 apps/anticheat/models.py:28
+#: apps/games/models.py:59
 msgid "created at"
 msgstr ""
 
@@ -140,8 +141,8 @@ msgstr ""
 msgid "achievements"
 msgstr ""
 
-#: apps/achievements/models.py:79 apps/games/models.py:119
-#: apps/leaderboards/models.py:66
+#: apps/achievements/models.py:79 apps/anticheat/models.py:24
+#: apps/games/models.py:122 apps/leaderboards/models.py:66
 msgid "user"
 msgstr ""
 
@@ -181,11 +182,86 @@ msgstr ""
 msgid "code notes"
 msgstr ""
 
+#: apps/anticheat/admin.py:41
+msgid "Mark selected activities as legitimate"
+msgstr ""
+
+#: apps/anticheat/admin.py:45
+msgid "Mark selected activities as cheating"
+msgstr ""
+
+#: apps/anticheat/admin.py:54
+#, python-format
+msgid "%(count)d activity reviewed as “%(status)s”."
+msgid_plural "%(count)d activities reviewed as “%(status)s”."
+msgstr[0] ""
+msgstr[1] ""
+
+#: apps/anticheat/apps.py:8
+msgid "Anti-cheat"
+msgstr ""
+
+#: apps/anticheat/models.py:10
+msgid "Missing or invalid validation hash"
+msgstr ""
+
+#: apps/anticheat/models.py:11
+msgid "Unlock rate limit exceeded"
+msgstr ""
+
+#: apps/anticheat/models.py:12
+msgid "Many unlocks in a short window"
+msgstr ""
+
+#: apps/anticheat/models.py:13
+msgid "Unlock right after the session started"
+msgstr ""
+
+#: apps/anticheat/models.py:16
+msgid "Pending"
+msgstr ""
+
+#: apps/anticheat/models.py:17
+msgid "Legitimate"
+msgstr ""
+
+#: apps/anticheat/models.py:18
+msgid "Cheater"
+msgstr ""
+
+#: apps/anticheat/models.py:26
+msgid "kind"
+msgstr ""
+
+#: apps/anticheat/models.py:27
+msgid "detail"
+msgstr ""
+
+#: apps/anticheat/models.py:33
+msgid "review status"
+msgstr ""
+
+#: apps/anticheat/models.py:41
+msgid "reviewed by"
+msgstr ""
+
+#: apps/anticheat/models.py:43
+msgid "reviewed at"
+msgstr ""
+
+#: apps/anticheat/models.py:46
+msgid "suspicious activity"
+msgstr ""
+
+#: apps/anticheat/models.py:47
+msgid "suspicious activities"
+msgstr ""
+
 #: apps/games/admin.py:15
 msgid "Game icon"
 msgstr ""
 
-#: apps/games/admin.py:54 apps/games/models.py:53
+#: apps/games/admin.py:54 apps/games/models.py:56
 msgid "icon"
 msgstr ""
 
@@ -193,84 +269,88 @@ msgstr ""
 msgid "icon preview"
 msgstr ""
 
-#: apps/games/models.py:27
+#: apps/games/models.py:30
 msgid "RA ID"
 msgstr ""
 
-#: apps/games/models.py:28
+#: apps/games/models.py:31
 msgid "name"
 msgstr ""
 
-#: apps/games/models.py:29
+#: apps/games/models.py:32
 msgid "short name"
 msgstr ""
 
-#: apps/games/models.py:34 apps/games/models.py:51
+#: apps/games/models.py:37 apps/games/models.py:54
 msgid "console"
 msgstr ""
 
-#: apps/games/models.py:35
+#: apps/games/models.py:38
 msgid "consoles"
 msgstr ""
 
-#: apps/games/models.py:55
+#: apps/games/models.py:58
 msgid "rich presence patch"
 msgstr ""
 
-#: apps/games/models.py:60
+#: apps/games/models.py:63
 msgid "games"
 msgstr ""
 
-#: apps/games/models.py:75
+#: apps/games/models.py:78
 msgid "MD5"
 msgstr ""
 
-#: apps/games/models.py:77
+#: apps/games/models.py:80
 msgid "label"
 msgstr ""
 
-#: apps/games/models.py:80
+#: apps/games/models.py:83
 msgid "game hash"
 msgstr ""
 
-#: apps/games/models.py:81
+#: apps/games/models.py:84
 msgid "game hashes"
 msgstr ""
 
-#: apps/games/models.py:93
+#: apps/games/models.py:96
 #, python-format
 msgid "Enter an MD5 hash: %(digits)s hexadecimal digits."
 msgstr ""
 
-#: apps/games/models.py:127
+#: apps/games/models.py:130
 msgid "first played at"
 msgstr ""
 
-#: apps/games/models.py:128
+#: apps/games/models.py:131
 msgid "last played at"
 msgstr ""
 
-#: apps/games/models.py:129
+#: apps/games/models.py:132
 msgid "playtime (seconds)"
 msgstr ""
 
-#: apps/games/models.py:131
+#: apps/games/models.py:134
 msgid "last rich presence"
 msgstr ""
 
-#: apps/games/models.py:133
+#: apps/games/models.py:136
 msgid "last ping at"
 msgstr ""
 
-#: apps/games/models.py:134
-msgid "hardcore session"
-msgstr ""
-
-#: apps/games/models.py:139
-msgid "player game"
+#: apps/games/models.py:138
+msgid "session started at"
 msgstr ""
 
 #: apps/games/models.py:140
+msgid "hardcore session"
+msgstr ""
+
+#: apps/games/models.py:145
+msgid "player game"
+msgstr ""
+
+#: apps/games/models.py:146
 msgid "player games"
 msgstr ""
 

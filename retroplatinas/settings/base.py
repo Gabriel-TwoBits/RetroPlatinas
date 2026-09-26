@@ -19,6 +19,7 @@ INSTALLED_APPS = [
     "apps.leaderboards",
     "apps.api",
     "apps.images",
+    "apps.anticheat",
 ]
 
 AUTH_USER_MODEL = "accounts.User"
