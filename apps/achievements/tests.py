@@ -20,6 +20,7 @@ from apps.achievements.management.commands.seed_crash1_level_achievements import
     build_mem_addr,
 )
 from apps.achievements.models import Achievement, CodeNote, UserUnlock
+from apps.api.handlers import ACHIEVEMENT_FLAGS_CORE
 from apps.games.models import Console, Game
 
 MEM_ADDR_PATTERN = re.compile(
@@ -228,7 +229,7 @@ def test_patch_exposes_seeded_level_achievements(client, seeded_game, player_tok
     achievements = data["PatchData"]["Achievements"]
     assert len(achievements) == LEVEL_COUNT
     for achievement in achievements:
-        assert achievement["Flags"] == 5
+        assert achievement["Flags"] == ACHIEVEMENT_FLAGS_CORE
         assert achievement["Points"] == ACHIEVEMENT_POINTS
         assert MEM_ADDR_PATTERN.match(achievement["MemAddr"]), achievement["MemAddr"]
 

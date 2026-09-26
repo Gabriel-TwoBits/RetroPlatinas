@@ -6,6 +6,7 @@ from http import HTTPStatus
 from django.contrib.auth import authenticate
 from django.core.cache import cache
 from django.db import transaction
+from django.db.models import Q
 from django.utils import timezone
 
 from apps.accounts.models import API_TOKEN_BYTES
@@ -28,6 +29,22 @@ _GAME_NOT_FOUND = {
     "Status": HTTPStatus.NOT_FOUND,
     "Code": "not_found",
 }
+_ACHIEVEMENT_NOT_FOUND = {
+    "Success": False,
+    "Error": "Unknown achievement.",
+    "Status": HTTPStatus.NOT_FOUND,
+    "Code": "not_found",
+}
+_ACHIEVEMENT_UNPUBLISHED = {
+    "Success": False,
+    "Error": "Unpublished achievements cannot be unlocked.",
+    "Status": HTTPStatus.CONFLICT,
+    "Code": "invalid_state",
+}
+
+# rcheevos RC_ACHIEVEMENT_CATEGORY_CORE / RC_ACHIEVEMENT_CATEGORY_UNOFFICIAL.
+ACHIEVEMENT_FLAGS_CORE = 3
+ACHIEVEMENT_FLAGS_UNOFFICIAL = 5
 
 PRESENCE_TTL_SECONDS = 300
 DEFAULT_GAME_ICON_PATH = "/Images/000001.png"
@@ -80,8 +97,27 @@ def handle_gameid(request):
     return {"Success": True, "GameID": game_id if game_id is not None else 0}
 
 
+def _achievements_visible_to(user):
+    return Achievement.objects.filter(
+        Q(status__in=Achievement.PUBLISHED_STATUSES)
+        | Q(status=Achievement.STATUS_DRAFT, author=user)
+    )
+
+
+def _served_achievements(user, game):
+    return _achievements_visible_to(user).filter(game=game).select_related("author").order_by("id")
+
+
+def _achievement_flags(achievement):
+    if achievement.status in Achievement.PUBLISHED_STATUSES:
+        return ACHIEVEMENT_FLAGS_CORE
+    elif achievement.status == Achievement.STATUS_DRAFT:
+        return ACHIEVEMENT_FLAGS_UNOFFICIAL
+    else:
+        raise ValueError(f"Achievement {achievement.pk} has unknown status {achievement.status!r}")
+
+
 def _serialize_achievement(a):
-    flags = 3 if a.status == Achievement.STATUS_VERIFIED else 5
     return {
         "ID": a.id,
         "MemAddr": a.mem_addr,
@@ -92,7 +128,7 @@ def _serialize_achievement(a):
         "Modified": int(a.updated_at.timestamp()),
         "Created": int(a.created_at.timestamp()),
         "BadgeName": f"{a.id:0{BADGE_NAME_DIGITS}d}",
-        "Flags": flags,
+        "Flags": _achievement_flags(a),
     }
 
 
@@ -122,13 +158,7 @@ def handle_patch(request):
     if game is None:
         return {"Success": False, "Error": "Unknown game"}
 
-    achievements = (
-        game.achievements.filter(
-            status__in=[Achievement.STATUS_COMMUNITY, Achievement.STATUS_VERIFIED]
-        )
-        .select_related("author")
-        .order_by("id")
-    )
+    achievements = _served_achievements(user, game)
     image_icon = game.icon.url if game.icon else DEFAULT_GAME_ICON_PATH
     return {
         "Success": True,
@@ -165,13 +195,7 @@ def handle_achievementsets(request):
         logger.info("achievementsets unknown game hash=%s g=%s", md5, game_id_param)
         return _GAME_NOT_FOUND
 
-    achievements = (
-        game.achievements.filter(
-            status__in=[Achievement.STATUS_COMMUNITY, Achievement.STATUS_VERIFIED]
-        )
-        .select_related("author")
-        .order_by("id")
-    )
+    achievements = _served_achievements(user, game)
     icon_path = game.icon.url if game.icon else DEFAULT_GAME_ICON_PATH
     icon_url = request.build_absolute_uri(icon_path)
     return {
@@ -246,13 +270,12 @@ def handle_startsession(request):
 
 
 def _remaining_in_set(user, game, hardcore):
-    visible_statuses = [Achievement.STATUS_COMMUNITY, Achievement.STATUS_VERIFIED]
-    total = game.achievements.filter(status__in=visible_statuses).count()
+    total = game.achievements.filter(status__in=Achievement.PUBLISHED_STATUSES).count()
     unlocked = UserUnlock.objects.filter(
         user=user,
         hardcore=hardcore,
         achievement__game=game,
-        achievement__status__in=visible_statuses,
+        achievement__status__in=Achievement.PUBLISHED_STATUSES,
     ).count()
     return max(total - unlocked, 0)
 
@@ -265,11 +288,16 @@ def handle_awardachievement(request):
     try:
         achievement_id = int(request.POST.get("a", ""))
     except (ValueError, TypeError):
-        return {"Success": False, "Error": "Unknown achievement"}
+        return _ACHIEVEMENT_NOT_FOUND
 
-    achievement = Achievement.objects.select_related("game").filter(pk=achievement_id).first()
+    # Another user's draft answers as unknown, so drafts stay invisible to everyone but the author.
+    achievement = (
+        _achievements_visible_to(user).select_related("game").filter(pk=achievement_id).first()
+    )
     if achievement is None:
-        return {"Success": False, "Error": "Unknown achievement"}
+        return _ACHIEVEMENT_NOT_FOUND
+    if achievement.status not in Achievement.PUBLISHED_STATUSES:
+        return _ACHIEVEMENT_UNPUBLISHED
 
     hardcore = request.POST.get("h", "0") == "1"
 

@@ -14,6 +14,9 @@ class Achievement(models.Model):
         (STATUS_COMMUNITY, _("Community")),
         (STATUS_VERIFIED, _("Verified")),
     ]
+    # Served to every client as official, awarded and worth points; a draft is served
+    # only to its author, as unofficial, and is never awarded.
+    PUBLISHED_STATUSES = (STATUS_COMMUNITY, STATUS_VERIFIED)
 
     game = models.ForeignKey(
         Game,
