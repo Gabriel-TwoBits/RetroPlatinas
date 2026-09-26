@@ -60,6 +60,22 @@ podman-compose exec web uv add package-name
 
 http://localhost:8000/admin/ → log in with the superuser created above.
 
+## Badges, game icons and avatars
+
+Upload an achievement's badge or a game's icon in the admin; until one is uploaded, a neutral
+placeholder is drawn in code. Emulators fetch them from RetroAchievements-compatible paths, served
+by Django views (not by the `/media/` static serving, which exists in development only):
+
+| Path | Image |
+| --- | --- |
+| `/Badge/<badge name>.png` | the badge, 64×64 |
+| `/Badge/<badge name>_lock.png` | the grayscale locked badge, derived from the upload |
+| `/Images/<game image name>.png` | the game icon, 96×96 (`000001` also answers without a game) |
+| `/UserPic/<username>.png` | an identicon drawn from the username, 128×128 |
+
+API payloads carry these as absolute URLs with a `?v=` version that changes with the image:
+DuckStation caches images by URL, and a missing URL makes rcheevos fetch RetroAchievements' own art.
+
 ## Running in background
 
 ```bash
