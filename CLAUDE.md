@@ -20,7 +20,7 @@ podman-compose exec web python manage.py migrate
 podman-compose exec web python manage.py makemigrations <app>
 podman-compose exec web python manage.py createsuperuser
 podman-compose exec web python -m pytest
-podman-compose exec web python manage.py makemessages -l pt -l en --ignore=staticfiles
+podman-compose exec web python manage.py makemessages -l pt_BR -l en --ignore=staticfiles
 podman-compose exec web python manage.py compilemessages
 ```
 
@@ -49,7 +49,7 @@ Dark-first, mobile-first SSR: Django templates + **HTMX** (vendored, `static/js/
 - Good: `feat: add game search endpoint`
 - Bad: `adiciona busca de jogo` / multi-line with bullets
 
-**Naming** — kebab-case in all repo files, directories, and configs. Forced exceptions: (1) gettext locale directories that require a country code (`pt_BR`, `en_US`) — that's why we use `pt` and `en`, no underscores needed; (2) Python modules and packages, which must be importable and so stay snake_case (migrations, management commands, app modules).
+**Naming** — kebab-case in all repo files, directories, and configs. Forced exceptions: (1) gettext locale directories, whose names are fixed by gettext — `locale/pt_BR` (the site speaks Brazilian Portuguese, `LANGUAGE_CODE = "pt-br"`; plain `pt` would make Django render European Portuguese) and `locale/en`; (2) Python modules and packages, which must be importable and so stay snake_case (migrations, management commands, app modules).
 
 **i18n mandatory** — every user-visible string is born inside `{% trans %}` / `{% blocktrans %}` (templates) or `gettext_lazy` (forms/models). No "we'll translate later" PRs.
 
@@ -99,7 +99,7 @@ the user's global `CLAUDE.md`, line by line.
 - **Bind mounts:** the `:Z` suffix (SELinux relabel) is inert on Debian 13 — harmless, kept for portability. Dev host migrated from Fedora 44 to Debian; there is no SELinux/`dnf`/`rpm` here — use `apt`.
 - **`podman-compose` orphaned:** it was `pip --user` installed for python3.14; the Debian upgrade moved system `python3` to 3.13 (no `pip`), so the module is unreachable and `podman-compose` fails with `ModuleNotFoundError: podman_compose`. Fix: `sudo apt install podman-compose`.
 - **`gettext` lives in the container only.** Run `makemessages` and `compilemessages` inside the container, not on the host.
-- **After `makemessages`:** remove the `#, fuzzy` flag from the `.po` header and set `Language:` correctly before running `compilemessages`, or Django silently ignores the translations.
+- **After `makemessages`:** remove the `#, fuzzy` flag from the `.po` header and set `Language:` correctly (`pt_BR`, `en`) before running `compilemessages`, or Django silently ignores the translations.
 
 ## Writing `mem_addr` (achievement conditions)
 
@@ -168,6 +168,8 @@ When any UI-touching change adds new visible strings:
 1. `{% load i18n %}` at the top of the template (once per file).
 2. Wrap strings: `{% trans "..." %}` for simple strings, `{% blocktrans %}...{% endblocktrans %}` for strings with variables.
 3. In forms/models: `from django.utils.translation import gettext_lazy as _`, then `_("string")`.
-4. `podman-compose exec web python manage.py makemessages -l pt -l en --ignore=staticfiles`
-5. Fill in `msgstr` entries in `locale/pt/LC_MESSAGES/django.po`.
-6. `compilemessages`, then commit both `.po` and `.mo` files.
+4. `podman-compose exec web python manage.py makemessages -l pt_BR -l en --ignore=staticfiles`
+5. Fill in `msgstr` entries in `locale/pt_BR/LC_MESSAGES/django.po` in **Brazilian** Portuguese
+   ("usuário", "senha", "arquivo", "tela", "você", gerund "está rodando"), never European Portuguese.
+6. `compilemessages` to check the result, then commit only the `.po` files: `.mo` files are
+   gitignored build artifacts, compiled by `entrypoint.sh` at container startup.
