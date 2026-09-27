@@ -1,7 +1,7 @@
 import io
 import json
 import logging
-from datetime import timedelta
+from datetime import UTC, datetime, timedelta
 from http import HTTPStatus
 from unittest.mock import patch
 
@@ -23,7 +23,6 @@ from apps.api.handlers import (
     GAMEINFOLIST_MAX_IDS,
     HANDLERS,
     LBINFO_DEFAULT_COUNT,
-    LEADERBOARD_UNKNOWN_DATETIME,
     _rarity,
 )
 from apps.games.models import (
@@ -2068,10 +2067,28 @@ def _board_with_scores(leaderboard, scores):
         )
 
 
+LEADERBOARD_CREATED_AT = datetime(2026, 1, 2, 3, 4, 5, tzinfo=UTC)
+LEADERBOARD_UPDATED_AT = datetime(2026, 6, 7, 8, 9, 10, tzinfo=UTC)
+
+
+@pytest.mark.django_db
+def test_lbinfo_serves_the_leaderboards_author(client, game_with_leaderboards, achievement_author):
+    _, lb = game_with_leaderboards
+    lb.author = achievement_author
+    lb.save()
+
+    data = _info(client, "lbinfo", i=lb.id)
+
+    assert data["LeaderboardData"]["LBAuthor"] == achievement_author.username
+
+
 @pytest.mark.django_db
 def test_lbinfo_serves_leaderboard_data_without_authentication(client, game_with_leaderboards):
     game, lb = game_with_leaderboards
     _board_with_scores(lb, [300, 100, 300])
+    Leaderboard.objects.filter(pk=lb.pk).update(
+        created_at=LEADERBOARD_CREATED_AT, updated_at=LEADERBOARD_UPDATED_AT
+    )
 
     data = _info(client, "lbinfo", i=lb.id)
 
@@ -2086,8 +2103,8 @@ def test_lbinfo_serves_leaderboard_data_without_authentication(client, game_with
         "LBFormat": "FRAMES",
         "LBMem": LEADERBOARD_MEM,
         "LBAuthor": None,
-        "LBCreated": LEADERBOARD_UNKNOWN_DATETIME,
-        "LBUpdated": LEADERBOARD_UNKNOWN_DATETIME,
+        "LBCreated": "2026-01-02 03:04:05",
+        "LBUpdated": "2026-06-07 08:09:10",
         "TotalEntries": 3,
         "Entries": board["Entries"],
     }

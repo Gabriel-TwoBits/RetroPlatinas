@@ -5,10 +5,10 @@ from apps.leaderboards.models import Leaderboard, LeaderboardEntry
 
 @admin.register(Leaderboard)
 class LeaderboardAdmin(admin.ModelAdmin):
-    list_display = ("title", "game", "format", "lower_is_better")
+    list_display = ("title", "game", "format", "lower_is_better", "author", "updated_at")
     list_filter = ("game__console", "format", "lower_is_better")
     search_fields = ("title", "description", "mem_addr")
-    autocomplete_fields = ("game",)
+    autocomplete_fields = ("game", "author")
 
 
 @admin.register(LeaderboardEntry)

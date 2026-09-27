@@ -1,7 +1,7 @@
 import logging
 import re
 import secrets
-from datetime import timedelta
+from datetime import UTC, timedelta
 from http import HTTPStatus
 
 from django.contrib.auth import authenticate
@@ -694,9 +694,12 @@ def handle_submitlbentry(request):
 
 LBINFO_DEFAULT_COUNT = 10
 LBINFO_MAX_COUNT = 500
-# Leaderboards record no creation or update time, yet rcheevos requires both as datetime
-# strings; rc_client never reads them.
-LEADERBOARD_UNKNOWN_DATETIME = "1970-01-01 00:00:00"
+# The UTC "DB format" rcheevos' `rc_json_get_datetime` parses.
+RCHEEVOS_DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
+
+
+def _rcheevos_datetime(moment):
+    return moment.astimezone(UTC).strftime(RCHEEVOS_DATETIME_FORMAT)
 
 
 def _position_of(leaderboard, entry):
@@ -736,7 +739,7 @@ def handle_lbinfo(request):
         return error
     count = min(count, LBINFO_MAX_COUNT)
 
-    leaderboard = Leaderboard.objects.filter(pk=leaderboard_id).first()
+    leaderboard = Leaderboard.objects.select_related("author").filter(pk=leaderboard_id).first()
     if leaderboard is None:
         return _not_found("leaderboard")
 
@@ -758,10 +761,10 @@ def handle_lbinfo(request):
             "LBDesc": leaderboard.description,
             "LBFormat": leaderboard.format,
             "LBMem": leaderboard.mem_addr,
-            # No leaderboard author is recorded; rcheevos accepts null, as RA sends for none.
-            "LBAuthor": None,
-            "LBCreated": LEADERBOARD_UNKNOWN_DATETIME,
-            "LBUpdated": LEADERBOARD_UNKNOWN_DATETIME,
+            # rcheevos accepts null, as RA sends for a leaderboard without an author.
+            "LBAuthor": leaderboard.author.username if leaderboard.author else None,
+            "LBCreated": _rcheevos_datetime(leaderboard.created_at),
+            "LBUpdated": _rcheevos_datetime(leaderboard.updated_at),
             "TotalEntries": total,
             "Entries": [
                 {

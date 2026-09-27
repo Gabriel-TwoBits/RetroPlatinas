@@ -43,6 +43,16 @@ class Leaderboard(models.Model):
         max_length=16, choices=Format.choices, default=Format.VALUE, verbose_name=_("format")
     )
     lower_is_better = models.BooleanField(default=False, verbose_name=_("lower is better"))
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+        verbose_name=_("author"),
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("created at"))
+    updated_at = models.DateTimeField(auto_now=True, verbose_name=_("updated at"))
 
     class Meta:
         verbose_name = _("leaderboard")
