@@ -1,7 +1,11 @@
 # Crash Bandicoot 1 — Memory Map (Code Notes)
 
 > **Source:** RetroAchievements code notes for *Crash Bandicoot* (PlayStation), game id 10434 — <https://retroachievements.org/codenotes.php?g=10434>  
-> **Community authors:** matheus2653, CySlaytor, Alfex, msdmario, TheJediSonic.
+> **Community authors:** matheus2653, CySlaytor, Alfex, msdmario, TheJediSonic.  
+> **Also used:** the wurlyfox/c1 decompilation of Crash Bandicoot — <https://github.com/wurlyfox/c1>; the
+> CBHacks Crash 1 memory map — <https://wiki.cbhacks.com/w/Memory_Map>; DuckStation's cheat database for
+> SCUS-94900 — <https://github.com/duckstation/chtdb/blob/master/cheats/SCUS-94900.cht>; the Crash Bandicoot
+> Wiki (Fandom) — <https://crashbandicoot.fandom.com/>.
 
 RetroAchievements maps system memory at `$00000000` immediately followed by cartridge memory, so the addresses below may not correspond to real-hardware addresses. The `Type` column is inferred from each note's text and is best-effort. Seed these notes into the database as `CodeNote` rows with `python manage.py seed_crash1_code_notes` (idempotent).
 
