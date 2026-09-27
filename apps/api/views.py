@@ -6,11 +6,13 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.http import Http404, HttpResponseNotAllowed, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_GET, require_POST
 
 from apps.api.editor import EDITOR_HANDLERS, UPLOAD_HANDLERS
 from apps.api.handlers import HANDLERS, _invalid_parameter
-from apps.games.models import PlayerGame
+from apps.core import stats
+from apps.games.models import Game, PlayerGame
+from apps.images.catalog import badge_path
 
 logger = logging.getLogger("apps.api")
 
@@ -76,6 +78,10 @@ def _respond(request, action, handler):
         return JsonResponse(payload)
 
 
+def _unknown(resource, key):
+    return JsonResponse({"Error": f"Unknown {resource} {key}."}, status=HTTPStatus.NOT_FOUND)
+
+
 def debug_presence(request, username):
     """The user's live sessions (`PlayerGame.objects.playing_now`); a DEBUG-only test endpoint."""
     # DEBUG is checked before the method so the route answers 404 to anything without it.
@@ -85,7 +91,7 @@ def debug_presence(request, username):
         return HttpResponseNotAllowed(["GET"])
     user = get_user_model().objects.filter(username=username).first()
     if user is None:
-        return JsonResponse({"Error": f"Unknown user {username}."}, status=HTTPStatus.NOT_FOUND)
+        return _unknown("user", username)
     sessions = (
         PlayerGame.objects.playing_now().filter(user=user).select_related("game").order_by("game")
     )
@@ -101,6 +107,122 @@ def debug_presence(request, username):
                     "LastPingAt": session.last_ping_at.isoformat(),
                 }
                 for session in sessions
+            ],
+        }
+    )
+
+
+RECENT_UNLOCKS_LIMIT = 20
+LEADERBOARD_TOP_LIMIT = 100
+# TRADEOFF: only the most recent players are listed; page through them if the list is ever shown
+# in full.
+GAME_PLAYERS_LIMIT = 100
+
+
+def _by_mode(values):
+    return {"Hardcore": values.hardcore, "Softcore": values.softcore}
+
+
+@require_GET
+def user_summary(request, username):
+    user = get_user_model().objects.filter(username=username).first()
+    if user is None:
+        return _unknown("user", username)
+    return JsonResponse(
+        {
+            "User": user.username,
+            "Points": _by_mode(stats.ByMode(user.hardcore_points, user.softcore_points)),
+            "Rank": _by_mode(stats.global_ranks(user)),
+            "GamesPlayed": stats.games_played_count(user),
+            "AchievementsUnlocked": _by_mode(stats.unlocked_achievement_counts(user)),
+        }
+    )
+
+
+@require_GET
+def user_recent_unlocks(request, username):
+    user = get_user_model().objects.filter(username=username).first()
+    if user is None:
+        return _unknown("user", username)
+    return JsonResponse(
+        {
+            "User": user.username,
+            "Unlocks": [
+                {
+                    "AchievementID": unlock.achievement_id,
+                    "Title": unlock.achievement.title,
+                    "Description": unlock.achievement.description,
+                    "Points": unlock.achievement.points,
+                    "BadgeURL": request.build_absolute_uri(
+                        badge_path(unlock.achievement.badge_name)
+                    ),
+                    "GameID": unlock.achievement.game_id,
+                    "GameTitle": unlock.achievement.game.title,
+                    "Hardcore": unlock.hardcore,
+                    "UnlockedAt": unlock.unlocked_at.isoformat(),
+                }
+                for unlock in stats.recent_unlocks(user, RECENT_UNLOCKS_LIMIT)
+            ],
+        }
+    )
+
+
+@require_GET
+def game_leaderboard(request, game_id, leaderboard_id):
+    game = Game.objects.filter(pk=game_id).first()
+    if game is None:
+        return _unknown("game", game_id)
+    # A leaderboard of another game answers as unknown under this one.
+    leaderboard = game.leaderboards.filter(pk=leaderboard_id).first()
+    if leaderboard is None:
+        return _unknown("leaderboard", leaderboard_id)
+    entries = stats.leaderboard_entries(leaderboard)
+    return JsonResponse(
+        {
+            "GameID": game.pk,
+            "LeaderboardID": leaderboard.pk,
+            "Title": leaderboard.title,
+            "Description": leaderboard.description,
+            "Format": leaderboard.format,
+            "LowerIsBetter": leaderboard.lower_is_better,
+            "TotalEntries": entries.count(),
+            "Entries": [
+                {
+                    "Rank": rank,
+                    "User": entry.user.username,
+                    "Score": entry.score,
+                    "SubmittedAt": entry.submitted_at.isoformat(),
+                }
+                for _, rank, entry in stats.ranked_entries(
+                    entries, leaderboard.lower_is_better, 0, LEADERBOARD_TOP_LIMIT
+                )
+            ],
+        }
+    )
+
+
+@require_GET
+def game_players(request, game_id):
+    game = Game.objects.filter(pk=game_id).first()
+    if game is None:
+        return _unknown("game", game_id)
+    return JsonResponse(
+        {
+            "GameID": game.pk,
+            "Title": game.title,
+            "AchievementsTotal": stats.published_achievement_count(game),
+            "TotalPlayers": stats.game_players(game).count(),
+            "Players": [
+                {
+                    "User": player.user.username,
+                    "FirstPlayedAt": player.first_played_at.isoformat(),
+                    "LastPlayedAt": player.last_played_at.isoformat(),
+                    "PlaytimeSeconds": player.playtime_seconds,
+                    "AchievementsUnlocked": _by_mode(
+                        stats.ByMode(player.hardcore_unlocked, player.softcore_unlocked)
+                    ),
+                }
+                for player in stats.game_players_with_progress(game, GAME_PLAYERS_LIMIT)
             ],
         }
     )
