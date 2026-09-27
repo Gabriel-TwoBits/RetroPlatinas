@@ -31,6 +31,7 @@ MEM_ADDR_PATTERN = re.compile(r"^0xH6188d=h2d_d0xH6188d=h(?P<level_id>[0-9a-f]{2
 HEX = 16
 LEVEL_COUNT = len(LEVEL_ACHIEVEMENTS)
 CODE_NOTE_COUNT = 113
+EDITED_POINTS = 10
 SEED_COMMANDS = ("seed_crash1_code_notes", "seed_crash1_level_achievements")
 MEM_ADDR_CHECKER = Path(__file__).resolve().parents[2] / "scripts" / "check-mem-addr.sh"
 
@@ -129,7 +130,7 @@ def test_load_code_notes_unescapes_the_markdown_table():
         (
             "| `0x54b84` | 8-bit | Frames |",
             "| `0x54b84` | Frames |",
-            "parsed 112 of 113 code-note rows",
+            f"parsed {CODE_NOTE_COUNT - 1} of {CODE_NOTE_COUNT} code-note rows",
         ),
     ],
 )
@@ -299,7 +300,7 @@ def test_seed_level_achievements_updates_an_existing_condition_by_title(player_t
     stale = Achievement.objects.get(title="Jungle Rollers")
     stale.mem_addr = "0xH61998=1_d0xH61998=0"
     stale.description = "Complete Jungle Rollers."
-    stale.points = 10
+    stale.points = EDITED_POINTS
     stale.status = Achievement.STATUS_VERIFIED
     stale.save()
     UserUnlock.objects.create(user=user, achievement=stale, hardcore=False)
@@ -309,7 +310,7 @@ def test_seed_level_achievements_updates_an_existing_condition_by_title(player_t
     updated = Achievement.objects.get(pk=stale.pk)
     assert updated.mem_addr == build_mem_addr(dict(LEVEL_ACHIEVEMENTS)["Jungle Rollers"])
     assert updated.description == build_description("Jungle Rollers")
-    assert (updated.points, updated.status) == (10, Achievement.STATUS_VERIFIED)
+    assert (updated.points, updated.status) == (EDITED_POINTS, Achievement.STATUS_VERIFIED)
     assert UserUnlock.objects.filter(achievement=updated).count() == 1
     assert Achievement.objects.filter(game__title=GAME_TITLE).count() == LEVEL_COUNT
 
