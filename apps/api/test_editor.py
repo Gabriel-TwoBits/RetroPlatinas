@@ -53,6 +53,7 @@ ACHIEVEMENT_ID = 42
 LEADERBOARD_ID = 9
 BADGE_NUMBER = 12
 BADGE_NAME = "00012"
+WON_ACHIEVEMENT_ID = 3
 
 RCHEEVOS_NEW_ACHIEVEMENT = (
     "r=uploadachievement&u=player&t=tok&g=7&n=Beach&d=Clear+it&m=0xH0001%3d1_0xH0002%3d2"
@@ -416,16 +417,19 @@ def test_uploadachievement_unknown_achievement(client, player, game):
     assert data == _not_found("achievement")
 
 
+RAISED_POINTS = 25
+
+
 @pytest.mark.django_db
 def test_uploadachievement_new_points_are_recounted_for_its_unlockers(client, player, other, game):
     achievement = _achievement(game, player)
     UserUnlock.objects.create(user=other, achievement=achievement, hardcore=False)
     UserUnlock.objects.create(user=other, achievement=achievement, hardcore=True)
 
-    _post(client, **_signed_achievement(PLAYER, PLAYER_TOKEN, achievement.pk, z=25))
+    _post(client, **_signed_achievement(PLAYER, PLAYER_TOKEN, achievement.pk, z=RAISED_POINTS))
 
     other.refresh_from_db()
-    assert (other.softcore_points, other.hardcore_points) == (25, 25)
+    assert (other.softcore_points, other.hardcore_points) == (RAISED_POINTS, RAISED_POINTS)
 
 
 # --- uploadleaderboard ---
@@ -893,7 +897,7 @@ def test_doupload_rejects_other_uploads(client, player):
 @pytest.fixture
 def won_achievement(game, player, other, staff):
     """Unlocked in softcore by `player`, then in both modes by `other`, then by `staff`."""
-    achievement = _achievement(game, player, pk=3)
+    achievement = _achievement(game, player, pk=WON_ACHIEVEMENT_ID)
     now = timezone.now()
     for minutes_ago, user, hardcore in (
         (30, player, False),
@@ -944,7 +948,9 @@ def test_achievementwondata_lists_the_latest_winners(client, player, other, staf
 
 @pytest.mark.django_db
 def test_achievementwondata_pages_by_o_and_c(client, player, won_achievement):
-    data = _post(client, r="achievementwondata", u=PLAYER, t=PLAYER_TOKEN, a=3, o=1, c=1)
+    data = _post(
+        client, r="achievementwondata", u=PLAYER, t=PLAYER_TOKEN, a=WON_ACHIEVEMENT_ID, o=1, c=1
+    )
 
     assert [winner["User"] for winner in data["Response"]["RecentWinner"]] == [OTHER]
 
