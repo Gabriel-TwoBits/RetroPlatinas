@@ -613,6 +613,20 @@ def test_codenotes2_serves_notes_without_authentication(client, player, other, g
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize("address", ["$54b84", "0x", "-0x10"])
+def test_codenotes2_leaves_out_a_note_whose_address_is_not_hex(client, player, game, address):
+    _note(game, player, address, "Typed in the admin")
+    _note(game, player, "0x001234", "Lives")
+
+    data = _post(client, r="codenotes2", g=GAME_ID)
+
+    assert data == {
+        "Success": True,
+        "CodeNotes": [{"User": PLAYER, "Address": "0x001234", "Note": "Lives"}],
+    }
+
+
+@pytest.mark.django_db
 def test_codenotes2_unknown_or_missing_game(client, game):
     assert _post(client, r="codenotes2", g=GAME_ID + 1) == _not_found("game")
     assert _post(client, r="codenotes2") == MISSING_PARAMETER

@@ -1,6 +1,7 @@
 """The dorequest and doupload actions RAIntegration writes a set with: code notes, achievements,
 leaderboards, rich presence, badges and hashes (`rc_api_editor.c`)."""
 
+import logging
 import re
 from http import HTTPStatus
 
@@ -36,6 +37,8 @@ from apps.api.handlers import (
 )
 from apps.games.models import LOWERCASE_HEX, MD5_HEX_DIGITS, Console, Game, GameHash
 from apps.leaderboards.models import Leaderboard
+
+logger = logging.getLogger("apps.api")
 
 
 def _access_denied(message="Access denied."):
@@ -106,11 +109,34 @@ def _stored_address(address):
     return f"0x{address:x}"
 
 
+def _parsed_address(note):
+    """The note's address as a number, else `None`: the column is free text, typed in the admin."""
+    try:
+        address = int(note.address, HEX_BASE)
+    except ValueError:
+        address = None
+    if address is None or address < 0:
+        logger.warning("Code note %s has no hex address: %r", note.pk, note.address)
+        return None
+    else:
+        return address
+
+
 def _code_notes_by_address(game):
-    """The game's notes by address; the text column holds hex addresses in any padding."""
+    """The game's notes by address; the text column holds hex addresses in any padding.
+
+    A note whose address does not parse is left out rather than failing the whole game.
+    """
     # TRADEOFF: parsed in Python because `address` is text; an integer column makes it a query.
     notes = CodeNote.objects.filter(game=game).select_related("author").order_by("id")
-    return {int(note.address, HEX_BASE): note for note in notes}
+    by_address = {}
+    for note in notes:
+        address = _parsed_address(note)
+        if address is not None:
+            by_address[address] = note
+        else:
+            continue
+    return by_address
 
 
 def _save_code_notes(user, game, notes):
@@ -122,6 +148,8 @@ def _save_code_notes(user, game, notes):
     successful = []
     denied = []
     with transaction.atomic():
+        # Serializes writers per game, so two adds of one new address cannot both insert it.
+        Game.objects.select_for_update().get(pk=game.pk)
         existing = _code_notes_by_address(game)
         for address, text in notes.items():
             note = existing.get(address)
