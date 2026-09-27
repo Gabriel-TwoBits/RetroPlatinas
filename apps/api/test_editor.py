@@ -489,6 +489,9 @@ def test_leaderboard_upload_checksum_matches_rcheevos():
 
 @pytest.mark.django_db
 def test_uploadleaderboard_creates_a_leaderboard_by_its_uploader(client, player, game):
+    player.is_staff = True
+    player.save(update_fields=["is_staff"])
+
     data = _raw(client, RCHEEVOS_NEW_LEADERBOARD)
 
     leaderboard = Leaderboard.objects.get()
@@ -505,6 +508,12 @@ def test_uploadleaderboard_creates_a_leaderboard_by_its_uploader(client, player,
 
 
 @pytest.mark.django_db
+def test_uploadleaderboard_new_is_staff_only(client, player, game):
+    assert _raw(client, RCHEEVOS_NEW_LEADERBOARD) == STAFF_ONLY
+    assert not Leaderboard.objects.exists()
+
+
+@pytest.mark.django_db
 def test_uploadleaderboard_updates_its_authors_leaderboard(client, player, game):
     _leaderboard(game, player, pk=LEADERBOARD_ID)
 
@@ -516,8 +525,8 @@ def test_uploadleaderboard_updates_its_authors_leaderboard(client, player, game)
 
 
 @pytest.mark.django_db
-def test_uploadleaderboard_stores_a_format_alias_under_its_canonical_name(client, player, game):
-    assert _post(client, **_signed_leaderboard(PLAYER, PLAYER_TOKEN, f="TIME"))["Success"] is True
+def test_uploadleaderboard_stores_a_format_alias_under_its_canonical_name(client, staff, game):
+    assert _post(client, **_signed_leaderboard(STAFF, STAFF_TOKEN, f="TIME"))["Success"] is True
     assert Leaderboard.objects.get().format == Leaderboard.Format.FRAMES
 
 
@@ -568,11 +577,11 @@ def test_uploadleaderboard_lets_staff_change_any_leaderboard(client, staff, game
 
 
 @pytest.mark.django_db
-def test_uploadleaderboard_unknown_leaderboard_or_game(client, player, game):
+def test_uploadleaderboard_unknown_leaderboard_or_game(client, player, staff, game):
     assert _post(client, **_signed_leaderboard(PLAYER, PLAYER_TOKEN, LEADERBOARD_ID)) == (
         _not_found("leaderboard")
     )
-    assert _post(client, **_signed_leaderboard(PLAYER, PLAYER_TOKEN, g=GAME_ID + 1)) == (
+    assert _post(client, **_signed_leaderboard(STAFF, STAFF_TOKEN, g=GAME_ID + 1)) == (
         _not_found("game")
     )
 

@@ -471,6 +471,9 @@ def handle_uploadleaderboard(request):
 
     if leaderboard_id == 0 and game_id == 0:
         return _MISSING_PARAMETER
+    elif leaderboard_id == 0 and not user.is_staff:
+        # A leaderboard has no draft state: a new one reaches every player at once.
+        return _STAFF_ONLY
     elif leaderboard_id == 0:
         game = _game(game_id)
         if game is None:
