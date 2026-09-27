@@ -19,7 +19,7 @@ from dataclasses import dataclass
 import achievements
 import navigation
 import plan as plans
-from harness import CORE_DEFAULTS, DEFAULT_CORE, Btn
+from harness import CORE_DEFAULTS, DEFAULT_CORE, FRAMES_PER_SECOND, SECONDS_PER_MINUTE, Btn
 from probes import (
     FIXED_POINT_SHIFT,
     GAME_STATE,
@@ -32,8 +32,6 @@ from probes import (
 from session import Session
 from states import STAGES
 
-FRAMES_PER_SECOND = 60
-SECONDS_PER_MINUTE = 60
 COLD_BOOT_FRAMES = 3 * SECONDS_PER_MINUTE * FRAMES_PER_SECOND
 COLD_BOOT_SHOT_FRAMES = 10 * FRAMES_PER_SECOND
 ATTRACT_FRAMES = 15 * SECONDS_PER_MINUTE * FRAMES_PER_SECOND

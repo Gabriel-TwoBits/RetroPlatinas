@@ -19,7 +19,7 @@ from pathlib import Path
 
 import plan as plans
 import states
-from harness import Emu, mask_of
+from harness import SECONDS_PER_MINUTE, Emu, mask_of
 from probes import (
     DISPLAY_FLAGS_NORMAL,
     GAME_STATE,
@@ -40,7 +40,6 @@ DEATH_CONFIRM_FRAMES = 300
 MAX_CELLS_WITH_STATE = 700
 DEFAULT_ITERATIONS = 20000
 DEFAULT_MINUTES = 45
-SECONDS_PER_MINUTE = 60
 DEFAULT_SEED = 1
 LOG_EVERY = 50
 ITERATION_DIGITS = 5
