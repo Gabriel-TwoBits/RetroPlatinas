@@ -105,6 +105,24 @@ With `DEBUG` on, `GET /api/test/presence/<username>/` returns that user's live s
 rich presence, mode, last ping) as JSON, or 404 for an unknown user. It is a test endpoint and
 answers 404 whenever `DEBUG` is off.
 
+## Stats API
+
+Read-only JSON for the public site, outside `dorequest.php` (`GET` only; an unknown user, game or
+leaderboard answers 404 with `{"Error": …}`). The queries behind it live in `apps/core/stats.py`,
+which the site pages reuse.
+
+| Path | Returns |
+| --- | --- |
+| `/api/users/<username>/` | hardcore and softcore points, global rank per mode, games played, achievements unlocked per mode |
+| `/api/users/<username>/recent/` | the last 20 unlocks, newest first |
+| `/api/games/<id>/leaderboard/<lb_id>/` | the top 100 entries: rank, raw score and the leaderboard's `Format` |
+| `/api/games/<id>/players/` | the 100 most recent players: first and last played, playtime, achievements unlocked per mode |
+
+Only published achievements count. A hardcore unlock also counts as a softcore one, as in the point
+totals. Ranks are competition ranks (ties share a rank); a user with no points in a mode has no rank
+in it. Inactive accounts (deactivated users and system accounts such as `ra-import`) hold no rank
+and are left out of leaderboards and player lists.
+
 ## Anti-cheat
 
 The `anticheat` app flags requests for manual review in the admin (**Anti-cheat → Suspicious
