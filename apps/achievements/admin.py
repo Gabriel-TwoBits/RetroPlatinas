@@ -108,7 +108,7 @@ class AchievementAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
-        if "status" in form.changed_data:
+        if "status" in form.changed_data or "points" in form.changed_data:
             recalculate_unlocker_points([obj.pk])
         if "game" in form.changed_data:
             _record_unlockers_as_players(UserUnlock.objects.filter(achievement=obj))

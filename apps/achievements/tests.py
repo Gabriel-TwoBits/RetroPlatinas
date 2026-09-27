@@ -529,6 +529,35 @@ def test_admin_change_form_status_change_recalculates_the_points(
     assert _points_of(player) == (VERIFIED_POINTS, 0)
 
 
+RAISED_COMMUNITY_POINTS = 50
+
+
+@pytest.mark.django_db
+def test_admin_change_form_points_change_recalculates_the_points(
+    admin_client, unlocked_community_and_verified
+):
+    player, community = unlocked_community_and_verified
+
+    response = admin_client.post(
+        f"{ACHIEVEMENT_CHANGELIST_URL}{community.pk}/change/",
+        {
+            "game": community.game_id,
+            "author": community.author_id,
+            "title": community.title,
+            "description": community.description,
+            "points": RAISED_COMMUNITY_POINTS,
+            "mem_addr": community.mem_addr,
+            "status": community.status,
+        },
+    )
+
+    assert response.status_code == HTTPStatus.FOUND
+    assert _points_of(player) == (
+        RAISED_COMMUNITY_POINTS + VERIFIED_POINTS,
+        RAISED_COMMUNITY_POINTS,
+    )
+
+
 USER_UNLOCK_ADD_URL = "/admin/achievements/userunlock/add/"
 
 
