@@ -105,7 +105,7 @@ writes a clear, a level id or a game state.
 | `cold-boot` | 3 minutes from power-on, no input | nothing fires |
 | `attract` | 15 minutes of attract demos from power-on (Jungle Rollers, The Great Gate, Boulders, Papu Papu, The Lost City, Jaws of Darkness, The Lab, and again) | nothing fires |
 | `game-over` | N. Sanity Beach: deaths down to the game over and the title screen | nothing fires |
-| `<stage>-deaths`, all six stages | a death, a death right after the respawn, a death after idling where the player respawned; mid-stage where a plan leads there | nothing fires |
+| `<stage>-deaths`, all six stages | a death, a death with the achievements re-armed right after the respawn, a death after idling where the player respawned; each replays a plan first where one leads mid-stage | nothing fires |
 | `<stage>-quit`, all six stages | pause → SELECT right after control, after running and standing, after standing | nothing fires |
 | `nsanity-beach-clear` | a real clear (`plans/nsanity-beach-clear.json`), then Stage Clear → map, Jungle Rollers entered and quit | N. Sanity Beach fires once, on the switch to `2d`; nothing else fires |
 | `jungle-rollers-clear` | a real clear (`plans/jungle-rollers-clear.json`), then Stage Clear → map, The Great Gate entered and quit | Jungle Rollers fires once, on the switch to `2d`; nothing else fires |

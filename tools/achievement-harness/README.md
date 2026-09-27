@@ -123,7 +123,7 @@ while the others keep their hits, as in a live session.
 | `cold-boot` | cold boot | nothing | Boot-time RAM noise (zeroed RAM reads as "stage 0") |
 | `attract` | cold boot | nothing | 15 minutes of attract-mode demos, which play real stages with no player |
 | `game-over` | `nsanity-beach-start` | nothing | Deaths down to the game over and the title screen it returns to |
-| `<stage>-deaths` | `<stage>-start` | nothing | Three deaths: the first, one right after a respawn, one after idling where the player respawned |
+| `<stage>-deaths` | `<stage>-start` | nothing | Three deaths: the first, one re-armed right after the respawn, one after idling where the player respawned; each replays the stage's route first when it has one |
 | `<stage>-quit` | `<stage>-start` | nothing | Pause -> SELECT quits: right after control, after running and standing, after standing |
 | `<stage>-clear` | `<stage>-start` | the stage's achievement, once, on Stage Clear (lid `0x2D`) | Replays the clearing plan (a real completion); after a re-arm, Stage Clear -> map, the next stage and a quit fire nothing |
 

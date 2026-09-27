@@ -80,10 +80,12 @@ def die(s, stage, rng, label, route):
     Returns True on a respawn (the player is back in control), False on the game over.
     """
     before = respawns(s.emu)
+    replayed = 0
     for frames, mask in route:
         if respawns(s.emu) != before or game_over(s.emu):
             break  # Off the route after a respawn: the rest would play into the menus.
         s.emu.run(frames, mask)
+        replayed += frames
     names = plans.HEADINGS[stage.heading]
     played = 0
     while respawns(s.emu) == before and not game_over(s.emu):
@@ -93,9 +95,12 @@ def die(s, stage, rng, label, route):
             s.step(frames, buttons)
         played += plans.SEGMENT_FRAMES
     if game_over(s.emu):
-        s.note(f"{label}: game over after {played} frames")
+        s.note(f"{label}: game over after {replayed} replayed and {played} random frames")
         return False
-    s.note(f"{label}: respawn count {before} -> {respawns(s.emu)} after {played} frames")
+    s.note(
+        f"{label}: respawn count {before} -> {respawns(s.emu)} "
+        f"after {replayed} replayed and {played} random frames"
+    )
     s.wait_until(player_in_control, navigation.LOAD_TIMEOUT_FRAMES, f"control after {label}")
     return True
 
@@ -134,7 +139,7 @@ def deaths(stage):
         rng = random.Random(DEATH_SEED)
         route = death_route(s, stage)
         die(s, stage, rng, "death 1", route)
-        s.rearm("death 2: right after a respawn")
+        s.rearm("death 2: re-armed right after the respawn")
         die(s, stage, rng, "death 2", route)
         s.step(AFTER_DEATH_FRAMES)
         s.rearm("death 3: after idling where the player respawned")
