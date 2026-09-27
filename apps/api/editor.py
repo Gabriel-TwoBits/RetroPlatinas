@@ -582,7 +582,9 @@ def handle_submitgametitle(request):
             return error
         linked = GameHash.objects.filter(md5=md5).first()
         if linked is None:
-            GameHash.objects.create(game=game, md5=md5, label=label or game.title)
+            # A title may be longer than a label can hold.
+            label = label or game.title[:HASH_LABEL_MAX_LENGTH]
+            GameHash.objects.create(game=game, md5=md5, label=label)
         elif linked.game_id != game.pk:
             # Undoes the game just created for the title, if any.
             transaction.set_rollback(True)

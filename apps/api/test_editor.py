@@ -23,6 +23,8 @@ from apps.achievements.models import (
     UserUnlock,
 )
 from apps.api.editor import (
+    GAME_TITLE_MAX_LENGTH,
+    HASH_LABEL_MAX_LENGTH,
     MAX_CODE_NOTES_PER_REQUEST,
     achievement_upload_checksum,
     leaderboard_upload_checksum,
@@ -768,6 +770,18 @@ def test_submitgametitle_links_the_hash_to_the_game_named(client, staff, game):
 
     assert data == _game_response(GAME_ID)
     assert GameHash.objects.get().game == game
+
+
+@pytest.mark.django_db
+def test_submitgametitle_without_d_labels_the_hash_with_the_title_cut_to_fit(
+    client, staff, console
+):
+    title = "t" * GAME_TITLE_MAX_LENGTH
+
+    data = _raw(client, _with(RCHEEVOS_GAME_HASH, i=title, d=""))
+
+    assert data["Success"] is True
+    assert GameHash.objects.get().label == title[:HASH_LABEL_MAX_LENGTH]
 
 
 @pytest.mark.django_db
