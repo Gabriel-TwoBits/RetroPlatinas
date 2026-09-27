@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RetroPlatinas\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-26 21:23-0300\n"
+"POT-Creation-Date: 2026-09-26 21:45-0300\n"
 "PO-Revision-Date: 2026-05-23 18:15-0300\n"
 "Last-Translator: RetroPlatinas\n"
 "Language-Team: English\n"
@@ -28,12 +28,12 @@ msgstr ""
 msgid "Badge"
 msgstr ""
 
-#: apps/achievements/admin.py:71 apps/achievements/models.py:165
+#: apps/achievements/admin.py:71 apps/achievements/models.py:179
 msgid "status"
 msgstr ""
 
 #: apps/achievements/admin.py:77 apps/achievements/admin.py:137
-#: apps/achievements/models.py:99
+#: apps/achievements/models.py:113
 msgid "badge"
 msgstr ""
 
@@ -42,7 +42,7 @@ msgid "badge preview"
 msgstr ""
 
 #: apps/achievements/admin.py:85 apps/games/admin.py:62
-#: apps/images/tests.py:382
+#: apps/images/tests.py:394
 msgid "Available after saving."
 msgstr ""
 
@@ -65,7 +65,7 @@ msgid_plural "%(count)d achievements moved to %(status)s."
 msgstr[0] ""
 msgstr[1] ""
 
-#: apps/achievements/admin.py:141 apps/achievements/models.py:158
+#: apps/achievements/admin.py:141 apps/achievements/models.py:172
 msgid "badge name"
 msgstr ""
 
@@ -75,6 +75,7 @@ msgid "The badge image must be at most %(limit)s bytes."
 msgstr ""
 
 #: apps/achievements/models.py:48 apps/achievements/models.py:53
+#: apps/achievements/models.py:72
 msgid "Upload a PNG, JPEG or GIF image."
 msgstr ""
 
@@ -83,144 +84,144 @@ msgstr ""
 msgid "The badge image must be at most %(limit)s pixels on each side."
 msgstr ""
 
-#: apps/achievements/models.py:84
+#: apps/achievements/models.py:98
 msgid "image"
 msgstr ""
 
-#: apps/achievements/models.py:92
+#: apps/achievements/models.py:106
 msgid "uploaded by"
 msgstr ""
 
-#: apps/achievements/models.py:94 apps/achievements/models.py:174
+#: apps/achievements/models.py:108 apps/achievements/models.py:188
 #: apps/anticheat/models.py:28 apps/games/models.py:59
 #: apps/leaderboards/models.py:54
 msgid "created at"
 msgstr ""
 
-#: apps/achievements/models.py:100
+#: apps/achievements/models.py:114
 msgid "badges"
 msgstr ""
 
-#: apps/achievements/models.py:120
+#: apps/achievements/models.py:134
 msgid "Draft"
 msgstr ""
 
-#: apps/achievements/models.py:121 templates/home.html:78
+#: apps/achievements/models.py:135 templates/home.html:78
 msgid "Community"
 msgstr ""
 
-#: apps/achievements/models.py:122
+#: apps/achievements/models.py:136
 msgid "Verified"
 msgstr ""
 
-#: apps/achievements/models.py:134
+#: apps/achievements/models.py:148
 msgid "None"
 msgstr ""
 
-#: apps/achievements/models.py:135
+#: apps/achievements/models.py:149
 msgid "Progression"
 msgstr ""
 
-#: apps/achievements/models.py:136
+#: apps/achievements/models.py:150
 msgid "Win condition"
 msgstr ""
 
-#: apps/achievements/models.py:137
+#: apps/achievements/models.py:151
 msgid "Missable"
 msgstr ""
 
-#: apps/achievements/models.py:144 apps/achievements/models.py:225
+#: apps/achievements/models.py:158 apps/achievements/models.py:239
 #: apps/games/models.py:62 apps/games/models.py:75 apps/games/models.py:128
 #: apps/leaderboards/models.py:37
 msgid "game"
 msgstr ""
 
-#: apps/achievements/models.py:149 apps/achievements/models.py:230
+#: apps/achievements/models.py:163 apps/achievements/models.py:244
 #: apps/leaderboards/models.py:52
 msgid "author"
 msgstr ""
 
-#: apps/achievements/models.py:151 apps/games/models.py:49
+#: apps/achievements/models.py:165 apps/games/models.py:49
 #: apps/leaderboards/models.py:39
 msgid "title"
 msgstr ""
 
-#: apps/achievements/models.py:152 apps/games/models.py:57
+#: apps/achievements/models.py:166 apps/games/models.py:57
 #: apps/leaderboards/models.py:40
 msgid "description"
 msgstr ""
 
-#: apps/achievements/models.py:153
+#: apps/achievements/models.py:167
 msgid "points"
 msgstr ""
 
-#: apps/achievements/models.py:154 apps/leaderboards/models.py:41
+#: apps/achievements/models.py:168 apps/leaderboards/models.py:41
 msgid "memory address expression"
 msgstr ""
 
-#: apps/achievements/models.py:159
+#: apps/achievements/models.py:173
 msgid "The number of an uploaded badge, or 00000 for the placeholder."
 msgstr ""
 
-#: apps/achievements/models.py:172
+#: apps/achievements/models.py:186
 msgid "type"
 msgstr ""
 
-#: apps/achievements/models.py:175 apps/achievements/models.py:234
+#: apps/achievements/models.py:189 apps/achievements/models.py:248
 #: apps/leaderboards/models.py:55
 msgid "updated at"
 msgstr ""
 
-#: apps/achievements/models.py:178 apps/achievements/models.py:203
+#: apps/achievements/models.py:192 apps/achievements/models.py:217
 msgid "achievement"
 msgstr ""
 
-#: apps/achievements/models.py:179
+#: apps/achievements/models.py:193
 msgid "achievements"
 msgstr ""
 
-#: apps/achievements/models.py:189
+#: apps/achievements/models.py:203
 msgid "No badge has this name; upload the badge first."
 msgstr ""
 
-#: apps/achievements/models.py:198 apps/anticheat/models.py:24
+#: apps/achievements/models.py:212 apps/anticheat/models.py:24
 #: apps/games/models.py:122 apps/leaderboards/models.py:93
 msgid "user"
 msgstr ""
 
-#: apps/achievements/models.py:205 apps/achievements/models.py:216
+#: apps/achievements/models.py:219 apps/achievements/models.py:230
 msgid "hardcore"
 msgstr ""
 
-#: apps/achievements/models.py:207
+#: apps/achievements/models.py:221
 msgid "unlocked at"
 msgstr ""
 
-#: apps/achievements/models.py:211
+#: apps/achievements/models.py:225
 msgid "user unlock"
 msgstr ""
 
-#: apps/achievements/models.py:212
+#: apps/achievements/models.py:226
 msgid "user unlocks"
 msgstr ""
 
-#: apps/achievements/models.py:216
+#: apps/achievements/models.py:230
 msgid "softcore"
 msgstr ""
 
-#: apps/achievements/models.py:232
+#: apps/achievements/models.py:246
 msgid "address"
 msgstr ""
 
-#: apps/achievements/models.py:233
+#: apps/achievements/models.py:247
 msgid "note"
 msgstr ""
 
-#: apps/achievements/models.py:237
+#: apps/achievements/models.py:251
 msgid "code note"
 msgstr ""
 
-#: apps/achievements/models.py:238
+#: apps/achievements/models.py:252
 msgid "code notes"
 msgstr ""
 
