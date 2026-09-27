@@ -401,3 +401,25 @@ def test_awardachievement_seeded_hardcore_creates_both_unlocks(client, seeded_ga
     user.refresh_from_db()
     assert user.softcore_points == ACHIEVEMENT_POINTS
     assert user.hardcore_points == ACHIEVEMENT_POINTS
+
+
+def test_mem_addr_checker_accepts_a_rich_presence_script():
+    result = run_mem_addr_checker(
+        "Lookup:Stage\n9=N. Sanity Beach\n\nDisplay:\nIn @Stage(0xH6188d)\n"
+    )
+
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
+def test_mem_addr_checker_rejects_a_rich_presence_with_an_unknown_macro():
+    result = run_mem_addr_checker("Display:\nIn @Stage(0xH6188d)\n")
+
+    assert result.returncode == 1, result.stdout + result.stderr
+    assert "unknown macro Stage(0xH6188d)" in result.stdout
+
+
+def test_mem_addr_checker_rejects_a_rich_presence_without_a_display():
+    result = run_mem_addr_checker("Lookup:Stage\n9=N. Sanity Beach\n")
+
+    assert result.returncode == 1, result.stdout + result.stderr
+    assert "INVALID  rich presence" in result.stdout
