@@ -129,8 +129,8 @@ while the others keep their hits, as in a live session.
 
 A `<stage>-clear` scenario exists only for a stage with a committed plan. Deaths come from seeded
 random play of the stage's macros; before each one, the harness replays half the stage's clearing
-plan, or its deepest plan, when one is committed, so the deaths happen mid-stage (it stops replaying
-at the first death: after a respawn the route no longer fits).
+plan, or its deepest plan, when one is committed, so the deaths happen mid-stage. A replay stops at
+the death it runs into, and each death after a respawn replays the route again from its start.
 
 A new achievement needs a scenario that reaches its event and the look-alike events that must not
 fire it; add it to `SCENARIOS` with the lid its event shows.
@@ -161,8 +161,8 @@ camera, `right` for The Great Gate). A rollout wins when the game reports the st
 round), ends it. It stops at the first win or when `--minutes` (default 45) run out, logging the
 archive size and the deepest plan (with a screenshot of its cell) as it goes. A win writes
 `plans/<stage>-clear.json`; a failed search writes its deepest alive route as
-`plans/<stage>-deepest.json` (`done: false`), which the deaths scenario replays to die mid-stage. To search, or re-search a plan that stopped replaying
-(a new core build, a changed recipe):
+`plans/<stage>-deepest.json` (`done: false`), which the deaths scenario replays to die mid-stage.
+To search, or re-search a plan that stopped replaying (a new core build, a changed recipe):
 
 ```bash
 python tools/achievement-harness/explore.py jungle-rollers
