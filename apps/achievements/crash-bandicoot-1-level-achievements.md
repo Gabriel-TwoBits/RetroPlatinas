@@ -78,9 +78,9 @@ The constants carry rcheevos' `h` prefix: a bare `0x2d` is a memory read, not th
   demo handed back to it.
 - **`0x618cc`** (Aku Aku pointer) is null only until the first level loads after power-on and is never
   cleared afterwards, so it cannot tell a stage from the map, and a `ResetIf` on it never fires.
-- **`0x61a30`** (attract-demo playback, c1 `pbak_state`) is non-zero while a demo plays but drops to `00`
-  about 35 frames **before** the demo's level switches back to the title, so it would be `00` on any switch
-  frame; and no demo loads `2d`.
+- **`0x61a30`** (attract-demo playback, c1 `pbak_state`) is non-zero while a demo plays but is back to `00`
+  about 15–18 frames **before** the demo's level switches back to the title, so it would be `00` on any
+  switch frame; and no demo loads `2d`.
 - **`0x618d1`** (game state) reads `05` ("stage cleared") for about 90 frames before a real clear switches to
   `2d`. It would only guard a stage → `2d` switch that is not a clear, for which no path is known, at the
   cost of a second address per condition.
