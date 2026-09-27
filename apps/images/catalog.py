@@ -99,7 +99,8 @@ def badge_path(name, locked=False):
 def badge_png(name, locked):
     """`(png, version)` of the badge named `name`, else `None`."""
     # TRADEOFF: every badge is served, including those of drafts: the emulator fetches images
-    # without credentials, and a draft's author must see its badge while testing it.
+    # without credentials, and a draft's author must see its badge while testing it. Serve
+    # unpublished badges under unguessable names if their art must stay private.
     if name == PLACEHOLDER_BADGE_NAME:
         return _rendered_png(None, _badge_source(name), rendering.BADGE_SIZE_PX, locked)
     badge = Badge.objects.named(name)
