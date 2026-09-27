@@ -68,10 +68,12 @@ The official DuckStation build works as is: it sends its achievement requests to
 
    ```bash
    podman-compose exec web python manage.py seed_crash1_level_achievements
+   podman-compose exec web python manage.py seed_crash1_rich_presence
    ```
 
-   It registers *Crash Bandicoot (USA)* (SCUS-94900, rcheevos hash
-   `35386fd0891e594c9b6d8a4a5baa0027`) with its achievements. Any other disc is an unknown game.
+   They register *Crash Bandicoot (USA)* (SCUS-94900, rcheevos hash
+   `35386fd0891e594c9b6d8a4a5baa0027`) with its achievements and its rich presence script. Any
+   other disc is an unknown game.
 2. With DuckStation closed, edit the `[Cheevos]` section of its `settings.ini` (on Linux,
    `~/.local/share/duckstation/settings.ini`):
 

@@ -1,6 +1,7 @@
 import re
 import subprocess
 from datetime import timedelta
+from io import StringIO
 from pathlib import Path
 
 import pytest
@@ -17,6 +18,7 @@ from apps.achievements.management.commands.seed_crash1_level_achievements import
     build_description,
     build_mem_addr,
 )
+from apps.achievements.management.commands.seed_crash1_rich_presence import build_rich_presence
 from apps.achievements.management.crash1 import (
     GAME_TITLE,
     IMPORT_AUTHOR,
@@ -32,7 +34,12 @@ HEX = 16
 LEVEL_COUNT = len(LEVEL_ACHIEVEMENTS)
 CODE_NOTE_COUNT = 113
 EDITED_POINTS = 10
-SEED_COMMANDS = ("seed_crash1_code_notes", "seed_crash1_level_achievements")
+SEED_COMMANDS = (
+    "seed_crash1_code_notes",
+    "seed_crash1_level_achievements",
+    "seed_crash1_rich_presence",
+)
+MAX_RICH_PRESENCE_SCRIPT_BYTES = 65535  # the RetroAchievements limit on a script
 MEM_ADDR_CHECKER = Path(__file__).resolve().parents[2] / "scripts" / "check-mem-addr.sh"
 
 
@@ -403,6 +410,16 @@ def test_awardachievement_seeded_hardcore_creates_both_unlocks(client, seeded_ga
     assert user.hardcore_points == ACHIEVEMENT_POINTS
 
 
+def test_rich_presence_parses_in_rcheevos():
+    script = build_rich_presence()
+
+    result = run_mem_addr_checker(script)
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "VALID    rich presence" in result.stdout
+    assert len(script.encode()) <= MAX_RICH_PRESENCE_SCRIPT_BYTES
+
+
 def test_mem_addr_checker_accepts_a_rich_presence_script():
     result = run_mem_addr_checker(
         "Lookup:Stage\n9=N. Sanity Beach\n\nDisplay:\nIn @Stage(0xH6188d)\n"
@@ -423,3 +440,43 @@ def test_mem_addr_checker_rejects_a_rich_presence_without_a_display():
 
     assert result.returncode == 1, result.stdout + result.stderr
     assert "INVALID  rich presence" in result.stdout
+
+
+@pytest.mark.django_db
+def test_seed_rich_presence_stores_the_script():
+    call_command("seed_crash1_rich_presence", verbosity=0)
+
+    assert Game.objects.get(title=GAME_TITLE).rich_presence_patch == build_rich_presence()
+
+
+@pytest.mark.django_db
+def test_seed_rich_presence_is_idempotent():
+    call_command("seed_crash1_rich_presence", verbosity=0)
+    output = StringIO()
+
+    call_command("seed_crash1_rich_presence", stdout=output)
+
+    assert "already current" in output.getvalue()
+    assert Game.objects.get(title=GAME_TITLE).rich_presence_patch == build_rich_presence()
+
+
+@pytest.mark.django_db
+def test_seed_rich_presence_replaces_a_stale_script():
+    call_command("seed_crash1_rich_presence", verbosity=0)
+    Game.objects.filter(title=GAME_TITLE).update(rich_presence_patch="Display:\nPlaying\n")
+
+    call_command("seed_crash1_rich_presence", verbosity=0)
+
+    assert Game.objects.get(title=GAME_TITLE).rich_presence_patch == build_rich_presence()
+
+
+@pytest.mark.django_db
+def test_patch_serves_the_seeded_rich_presence(client, player_token):
+    _, token = player_token
+    call_command("seed_crash1_rich_presence", verbosity=0)
+    game = Game.objects.get(title=GAME_TITLE)
+
+    data = client.post("/dorequest.php", {"r": "patch", "t": token, "g": game.pk}).json()
+
+    assert data["Success"] is True
+    assert data["PatchData"]["RichPresencePatch"] == build_rich_presence()
