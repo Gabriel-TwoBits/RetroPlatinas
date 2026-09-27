@@ -156,8 +156,19 @@ class BadgeAdmin(admin.ModelAdmin):
             return self.get_readonly_fields(request, obj)
 
     def has_delete_permission(self, request, obj=None):
-        # Achievements refer to badges by name, with no foreign key to protect them.
-        return False
+        # Achievements refer to badges by name, with no foreign key to protect them, so only a
+        # badge no achievement uses may go, and one at a time.
+        if obj is None:
+            return False
+        elif Achievement.objects.filter(badge_name=obj.name).exists():
+            return False
+        else:
+            return super().has_delete_permission(request, obj)
+
+    def delete_model(self, request, obj):
+        super().delete_model(request, obj)
+        # Nothing serves the file once its badge is gone.
+        obj.image.delete(save=False)
 
     def save_model(self, request, obj, form, change):
         if not change:

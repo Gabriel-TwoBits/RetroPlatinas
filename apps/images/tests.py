@@ -421,14 +421,38 @@ def test_badge_admin_rejects_a_file_that_is_not_an_image(admin_client):
 
 
 @pytest.mark.django_db
-def test_badge_admin_never_replaces_or_deletes_an_uploaded_image(admin_client, uploaded_badge):
+def test_badge_admin_never_replaces_an_uploaded_image(admin_client, uploaded_badge):
     response = admin_client.get(f"{BADGE_CHANGELIST_URL}{uploaded_badge.pk}/change/")
 
     assert response.status_code == HTTPStatus.OK
     assert 'type="file"' not in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_badge_admin_never_deletes_a_badge_an_achievement_uses(
+    admin_client, achievement, uploaded_badge
+):
+    achievement.badge_name = uploaded_badge.name
+    achievement.save(update_fields=["badge_name"])
+
     delete_url = f"{BADGE_CHANGELIST_URL}{uploaded_badge.pk}/delete/"
+
     assert admin_client.post(delete_url, {"post": "yes"}).status_code == HTTPStatus.FORBIDDEN
     assert Badge.objects.filter(pk=uploaded_badge.pk).exists()
+
+
+@pytest.mark.django_db
+def test_badge_admin_deletes_an_unused_badge_and_its_file(admin_client, uploaded_badge):
+    storage, file_name = uploaded_badge.image.storage, uploaded_badge.image.name
+
+    delete_url = f"{BADGE_CHANGELIST_URL}{uploaded_badge.pk}/delete/"
+
+    assert admin_client.post(delete_url, {"post": "yes"}).status_code == HTTPStatus.FOUND
+    assert not Badge.objects.exists()
+    assert not storage.exists(file_name)
+    assert admin_client.get(f"/Badge/{uploaded_badge.name}.png").status_code == (
+        HTTPStatus.NOT_FOUND
+    )
 
 
 def _achievement_form(achievement, badge_name):
