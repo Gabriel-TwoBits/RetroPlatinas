@@ -58,7 +58,21 @@ def validate_badge_image(file):
             params={"limit": MAX_BADGE_UPLOAD_SIDE_PX},
         )
     else:
-        return
+        _validate_badge_pixels(file)
+
+
+def _validate_badge_pixels(file):
+    """Decodes the image: verify() checks only PNG chunks, so a truncated JPEG or GIF passes it
+    and then fails on every render."""
+    try:
+        with Image.open(file) as image:
+            image.load()
+    except (OSError, SyntaxError) as error:
+        raise ValidationError(
+            _("Upload a PNG, JPEG or GIF image."), code="invalid_image"
+        ) from error
+    finally:
+        file.seek(0)
 
 
 class BadgeQuerySet(models.QuerySet):

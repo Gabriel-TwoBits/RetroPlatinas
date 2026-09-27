@@ -169,6 +169,19 @@ def _png(size=BADGE_SIZE_PX, image_format="PNG"):
     return buffer.getvalue()
 
 
+# Noise keeps every part of the file load-bearing, so cutting it loses pixels.
+NOISE_SIGMA = 64
+
+
+def _truncated(image_format):
+    """A noisy badge in `image_format` cut in half: its header is intact, its pixels are not."""
+    buffer = io.BytesIO()
+    noise = Image.effect_noise((BADGE_SIZE_PX, BADGE_SIZE_PX), NOISE_SIGMA).convert("RGB")
+    noise.save(buffer, format=image_format)
+    content = buffer.getvalue()
+    return content[: len(content) // 2]
+
+
 @pytest.fixture
 def badge(db):
     return Badge.objects.create(pk=BADGE_NUMBER, image=SimpleUploadedFile("b.png", _png()))
@@ -861,6 +874,9 @@ def test_uploadbadgeimage_accepts_r_with_any_file_name(client, player):
     [
         (b"not an image", "Upload a PNG, JPEG or GIF image."),
         (_png(image_format="BMP"), "Upload a PNG, JPEG or GIF image."),
+        (_truncated("PNG"), "Upload a PNG, JPEG or GIF image."),
+        (_truncated("JPEG"), "Upload a PNG, JPEG or GIF image."),
+        (_truncated("GIF"), "Upload a PNG, JPEG or GIF image."),
         (
             b"0" * (MAX_BADGE_UPLOAD_BYTES + 1),
             f"The badge image must be at most {MAX_BADGE_UPLOAD_BYTES} bytes.",
