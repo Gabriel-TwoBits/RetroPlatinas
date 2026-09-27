@@ -126,6 +126,18 @@ def test_badge_serves_the_uploaded_badge_as_a_64px_png(client, uploaded_badge):
 
 
 @pytest.mark.django_db
+def test_badge_number_issued_again_serves_its_new_upload(client, uploaded_badge):
+    number, name = uploaded_badge.pk, uploaded_badge.name
+    _image(client.get(f"/Badge/{name}.png"))
+    uploaded_badge.delete()
+    Badge.objects.create(pk=number, image=_png_upload("reissued.png", BLUE))
+
+    image = _image(client.get(f"/Badge/{name}.png"))
+
+    assert image.getpixel((0, 0)) == BLUE
+
+
+@pytest.mark.django_db
 def test_placeholder_badge_name_serves_the_placeholder(client):
     image = _image(client.get(f"/Badge/{PLACEHOLDER_BADGE_NAME}.png"))
 

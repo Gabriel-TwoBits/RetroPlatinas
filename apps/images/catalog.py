@@ -53,11 +53,9 @@ def _versioned(path, source):
     return f"{path}?{VERSION_PARAM}={_version(source)}"
 
 
-def _rendered_png(field_file, source, size, locked):
-    """`(png, version)` of the upload, or of the placeholder when nothing was uploaded.
-
-    `source` is what versions the image: it changes whenever the served image does.
-    """
+def _cached_png(field_file, cache_source, size, locked):
+    """The upload drawn as a PNG, or the placeholder when nothing was uploaded, cached under
+    `cache_source`."""
 
     def render():
         if field_file:
@@ -66,8 +64,16 @@ def _rendered_png(field_file, source, size, locked):
             image = rendering.placeholder_image(size)
         return rendering.encode_png(rendering.locked_image(image) if locked else image)
 
-    key = f"rendered-image:{size}:{int(locked)}:{_source_digest(source)}"
-    return cache.get_or_set(key, render, RENDERED_IMAGE_CACHE_SECONDS), _version(source)
+    key = f"rendered-image:{size}:{int(locked)}:{_source_digest(cache_source)}"
+    return cache.get_or_set(key, render, RENDERED_IMAGE_CACHE_SECONDS)
+
+
+def _rendered_png(field_file, source, size, locked):
+    """`(png, version)` of the upload, or of the placeholder when nothing was uploaded.
+
+    `source` is what versions the image: it changes whenever the served image does.
+    """
+    return _cached_png(field_file, source, size, locked), _version(source)
 
 
 # --- Badges ---
@@ -76,6 +82,9 @@ def _rendered_png(field_file, source, size, locked):
 def _badge_source(name):
     """A badge's image never changes under its name (new art is a new badge), so the name
     versions it; the placeholder is drawn from nothing."""
+    # TRADEOFF: a number issued again (a sequence reset by hand, a restored backup) keeps its
+    # version, so a client that cached the old art keeps it. Version by the stored file name,
+    # a query per badge in each payload, if numbers are ever issued again.
     if name == PLACEHOLDER_BADGE_NAME:
         return ""
     else:
@@ -97,7 +106,11 @@ def badge_png(name, locked):
     if badge is None:
         return None
     else:
-        return _rendered_png(badge.image, _badge_source(name), rendering.BADGE_SIZE_PX, locked)
+        # Cached per stored file, unique to each upload, so a number issued again never
+        # serves the rendering of the upload it had before.
+        cache_source = f"{_badge_source(name)}:{badge.image.name}"
+        png = _cached_png(badge.image, cache_source, rendering.BADGE_SIZE_PX, locked)
+        return png, _version(_badge_source(name))
 
 
 # --- Game icons ---
