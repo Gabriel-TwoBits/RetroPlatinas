@@ -5,7 +5,7 @@ from apps.achievements.management.crash1 import seed_crash1_game
 from apps.achievements.models import Achievement
 
 ACHIEVEMENT_POINTS = 5
-# c1 `cur_lid`: byte 1 of GOOL global 0 (`lid << 8`), the level file the engine has loaded.
+# c1 `cur_lid_ro`: byte 1 of GOOL global 0 (`lid << 8`, set by `GoolInitLid`), the loaded level.
 LEVEL_ID_ADDRESS = "0xH6188d"
 # c1 `LID_LEVELEND`: the Stage Clear screen, loaded only when a stage is finished.
 STAGE_CLEAR_LEVEL_ID = 0x2D

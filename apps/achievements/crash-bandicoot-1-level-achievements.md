@@ -44,11 +44,11 @@ map (`states.py` refuses a stage whose level id differs).
 
 ## Logic
 
-`0x6188d` is byte 1 of GOOL global 0, `cur_lid << 8`: the level file the engine has loaded. Crash Bandicoot
-loads a separate level, `LID_LEVELEND` (`2d`), for the Stage Clear screen that tallies the boxes. c1's
-`CoreLoop` forces `LID_TITLE` (`19`) on a game over, a continue and a pause → quit; any other switch is
-requested by the level's own GOOL objects (`next_lid`), and the only one ever seen loading `2d` is a stage's
-exit. A death respawns inside the same level.
+`0x6188d` is byte 1 of GOOL global 0, c1 `cur_lid_ro` (`lid << 8`, written by `GoolInitLid`): the level file
+the engine has loaded. Crash Bandicoot loads a separate level, `LID_LEVELEND` (`2d`), for the Stage Clear
+screen that tallies the boxes. c1's `CoreLoop` forces `LID_TITLE` (`19`) on a game over, a continue and a
+pause → quit; any other switch is requested by the level's own GOOL objects (`next_lid`), and the only one
+ever seen loading `2d` is a stage's exit. A death respawns inside the same level.
 
 | Part | Meaning |
 | --- | --- |

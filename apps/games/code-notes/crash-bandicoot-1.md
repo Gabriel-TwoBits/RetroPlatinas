@@ -48,7 +48,7 @@ The c1 name is the global's name in the decompilation.
 
 | Address (rcheevos) | Size | Meaning | Source | Status |
 | --- | --- | --- | --- | --- |
-| `0xH6188d` | 8-bit | Level id (c1 `cur_lid`, `LID_*` in `src/common.h`): `19` title, menus and island map · `09` N. Sanity Beach · `0c` Jungle Rollers · `12` The Great Gate · `0e` Boulders · `0f` Upstream · `15` Rolling Stones · `2d` Stage Clear screen (`LID_LEVELEND`). A clear moves it from the stage's id to `2d`; a death respawns in place; a game over and a pause → quit move it to `19`; the attract demos go stage id → `19` | c1 + harness | **VALIDATED** (harness) |
+| `0xH6188d` | 8-bit | Level id (c1 `cur_lid_ro`, GOOL global 0 set by `GoolInitLid`; `LID_*` in `src/common.h`): `19` title, menus and island map · `09` N. Sanity Beach · `0c` Jungle Rollers · `12` The Great Gate · `0e` Boulders · `0f` Upstream · `15` Rolling Stones · `2d` Stage Clear screen (`LID_LEVELEND`). A clear moves it from the stage's id to `2d`; a death respawns in place; a game over and a pause → quit move it to `19`; the attract demos go stage id → `19` | c1 + harness | **VALIDATED** (harness) |
 | `0xH618d1` | 8-bit | Game state (c1 `game_state >> 8`): `00` cutscene / menus · `01` playing · `02` game over · `03` leaving the Stage Clear screen · `04` quitting from the pause menu · `05` stage cleared (c1 `GAME_STATE_NEW_GEM`, set on every clear, gem or not) · `06` title / demo ending. On a clear it reads `05` for about 90 frames, then `01` from the frame `0x6188d` becomes `2d` | c1 + harness | **VALIDATED** (harness) |
 | `0xH61a30` | 8-bit | Attract-demo playback (c1 `pbak_state`): `03` demo picked · `02` demo playing · `00` in normal play. Drops back to `00` about 35 frames **before** a demo's level switches back to `19` | c1 + harness | **VALIDATED** (harness) |
 | `0xH618a1` | 8-bit | Respawn counter (c1 `respawn_count`, 24.8): `+1` on every in-stage respawn; back to `0` whenever the title level `19` loads (game over, pause → quit, Stage Clear → map, a demo ending) | c1 + harness | **VALIDATED** (harness) |
@@ -179,7 +179,7 @@ validation contradicts them, plus five addresses marked *RetroPlatinas* that the
 | `0x60e1a` | 8-bit | Big TNT moving pattern (left column moves down, ?) |
 | `0x61665` | 8-bit | Number of crates broken/missed (EU) |
 | `0x61678` | enum/flag | 01: On results screen/you died after first checkpoint (EU) |
-| `0x6188d` | 8-bit | Level id (RetroPlatinas; c1 cur_lid, validated in the headless harness):<br>19 - Title, menus and island map<br>09 - N. Sanity Beach<br>0C - Jungle Rollers<br>0E - Boulders<br>0F - Upstream<br>12 - The Great Gate<br>15 - Rolling Stones<br>2D - Stage Clear screen<br>A stage clear changes it from the stage's id to 2D. |
+| `0x6188d` | 8-bit | Level id (RetroPlatinas; c1 cur_lid_ro, GOOL global 0, validated in the headless harness):<br>19 - Title, menus and island map<br>09 - N. Sanity Beach<br>0C - Jungle Rollers<br>0E - Boulders<br>0F - Upstream<br>12 - The Great Gate<br>15 - Rolling Stones<br>2D - Stage Clear screen<br>A stage clear changes it from the stage's id to 2D. |
 | `0x61898` | pointer | [24-bit Pointer]<br>+0x6c \|<br>.+0x105 \| Koala Kong Health |
 | `0x618a1` | 8-bit | Respawn counter (RetroPlatinas; c1 respawn_count, validated in the headless harness): +1 on every in-stage respawn, back to 0 whenever the title level (19) loads: game over, pause → quit, Stage Clear → map. |
 | `0x618a4` | pointer | [24-bit Pointer]<br>+0x6c \|<br>.+0xe4 \|<br>..+0x0c \| [8-bit] Wumpa Fruits |
