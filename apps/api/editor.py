@@ -318,10 +318,9 @@ def _achievement_upload(request):
 
 
 def _achievement_upload_error(fields):
-    """The error for a value RAIntegration may not set, else `None`."""
-    if fields["points"] not in ACHIEVEMENT_POINT_VALUES:
-        return _invalid_parameter(f"Invalid points value: {fields['points']}.")
-    elif fields["category"] not in UPLOAD_CATEGORIES:
+    """The error for a value RAIntegration may not set, else `None`; points are checked only
+    when they change."""
+    if fields["category"] not in UPLOAD_CATEGORIES:
         return _invalid_parameter(f"Unknown flag: {fields['category']}.")
     elif fields["type"] is not None and fields["type"] not in ACHIEVEMENT_TYPES:
         return _invalid_parameter(f"Unknown type: {fields['type']}.")
@@ -334,9 +333,15 @@ def _achievement_upload_error(fields):
         return None
 
 
+def _invalid_points(points):
+    return _invalid_parameter(f"Invalid points value: {points}.")
+
+
 def _create_achievement(user, game_id, fields):
     if game_id == 0:
         return _MISSING_PARAMETER
+    if fields["points"] not in ACHIEVEMENT_POINT_VALUES:
+        return _invalid_points(fields["points"])
     game = _game(game_id)
     if game is None:
         return _GAME_NOT_FOUND
@@ -369,6 +374,12 @@ def _update_achievement(user, achievement_id, game_id, fields):
             return _invalid_parameter("Invalid g: the achievement belongs to another game.")
         elif not _can_edit(user, achievement.author_id):
             return _NOT_THE_AUTHOR
+        elif (
+            achievement.points != fields["points"]
+            and fields["points"] not in ACHIEVEMENT_POINT_VALUES
+        ):
+            # Unchanged points pass as they are, even a value the admin set outside RA's scale.
+            return _invalid_points(fields["points"])
         else:
             points_changed = achievement.points != fields["points"]
             achievement.title = fields["title"]

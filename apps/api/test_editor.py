@@ -207,13 +207,18 @@ def _with(body, **changes):
 # --- uploadachievement ---
 
 
-def _achievement(game, author, status=Achievement.STATUS_COMMUNITY, **fields):
+ORIGINAL_POINTS = 5
+
+
+def _achievement(
+    game, author, status=Achievement.STATUS_COMMUNITY, points=ORIGINAL_POINTS, **fields
+):
     return Achievement.objects.create(
         game=game,
         author=author,
         title="Old",
         description="old",
-        points=5,
+        points=points,
         mem_addr="0xH0009=9",
         status=status,
         type=Achievement.TYPE_MISSABLE,
@@ -445,6 +450,30 @@ def test_uploadachievement_new_points_are_recounted_for_its_unlockers(client, pl
 
     other.refresh_from_db()
     assert (other.softcore_points, other.hardcore_points) == (RAISED_POINTS, RAISED_POINTS)
+
+
+# Outside RA's point scale, which the admin still lets staff set.
+OFF_SCALE_POINTS = 15
+
+
+@pytest.mark.django_db
+def test_uploadachievement_keeps_unchanged_points_outside_the_scale(client, player, game):
+    achievement = _achievement(game, player, points=OFF_SCALE_POINTS)
+    params = _signed_achievement(PLAYER, PLAYER_TOKEN, achievement.pk, z=OFF_SCALE_POINTS)
+
+    assert _post(client, **params) == {"Success": True, "AchievementID": achievement.pk}
+    achievement.refresh_from_db()
+    assert (achievement.title, achievement.points) == ("Beach", OFF_SCALE_POINTS)
+
+
+@pytest.mark.django_db
+def test_uploadachievement_cannot_change_points_to_a_value_outside_the_scale(client, player, game):
+    achievement = _achievement(game, player)
+    params = _signed_achievement(PLAYER, PLAYER_TOKEN, achievement.pk, z=OFF_SCALE_POINTS)
+
+    assert _post(client, **params) == _invalid(f"Invalid points value: {OFF_SCALE_POINTS}.")
+    achievement.refresh_from_db()
+    assert achievement.title == "Old"
 
 
 # --- uploadleaderboard ---
