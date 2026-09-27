@@ -21,6 +21,7 @@ from apps.anticheat.detection import (
     signature_matches,
 )
 from apps.api.auth import is_expired_token, user_from_token
+from apps.core.stats import rank_by_score, ranked_entries
 from apps.games.models import RICH_PRESENCE_MAX_LENGTH, Console, Game, GameHash, PlayerGame
 from apps.images.catalog import (
     avatar_path,
@@ -593,33 +594,11 @@ TOP_ENTRIES_LIMIT = 10
 
 
 def _rank_of(leaderboard, score):
-    """Competition rank ("1224"): one more than the number of strictly better scores."""
-    better = "score__lt" if leaderboard.lower_is_better else "score__gt"
-    return leaderboard.entries.filter(**{better: score}).count() + 1
+    return rank_by_score(leaderboard.entries.all(), leaderboard.lower_is_better, score)
 
 
 def _ranked_entries(leaderboard, offset, count):
-    """`(index, rank, entry)` for `count` entries after the first `offset`, best first.
-
-    `index` is the 1-based position on the board; tied scores share the competition rank
-    `_rank_of` gives them.
-    """
-    order = "score" if leaderboard.lower_is_better else "-score"
-    board = leaderboard.entries.select_related("user").order_by(order, "submitted_at", "id")
-    ranked = []
-    previous_score = None
-    previous_rank = None
-    for index, entry in enumerate(board[offset : offset + count], start=offset + 1):
-        if previous_rank is None:
-            rank = _rank_of(leaderboard, entry.score)
-        elif entry.score == previous_score:
-            rank = previous_rank
-        else:
-            rank = index
-        ranked.append((index, rank, entry))
-        previous_score = entry.score
-        previous_rank = rank
-    return ranked
+    return ranked_entries(leaderboard.entries.all(), leaderboard.lower_is_better, offset, count)
 
 
 def _top_entries(leaderboard):
