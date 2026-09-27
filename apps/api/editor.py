@@ -98,11 +98,13 @@ CODE_NOTE_ESCAPES = {"\\": "\\", "r": "\r", "n": "\n"}
 CODE_NOTE_LINE_SEPARATOR = "\n"
 CODE_NOTE_ADDRESS_SEPARATOR = ":"
 HEX_BASE = 16
+# RA serves code note addresses as `0x%06x`.
+CODE_NOTE_ADDRESS_HEX_DIGITS = 6
 
 
 def _served_address(address):
     """The address as RA serves it, which rcheevos reads back as hex."""
-    return f"0x{address:06x}"
+    return f"0x{address:0{CODE_NOTE_ADDRESS_HEX_DIGITS}x}"
 
 
 def _stored_address(address):

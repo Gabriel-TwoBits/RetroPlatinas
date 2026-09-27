@@ -23,6 +23,7 @@ from apps.achievements.models import (
     UserUnlock,
 )
 from apps.api.editor import (
+    ACHIEVEMENT_TITLE_MAX_LENGTH,
     GAME_TITLE_MAX_LENGTH,
     HASH_LABEL_MAX_LENGTH,
     MAX_CODE_NOTES_PER_REQUEST,
@@ -30,11 +31,12 @@ from apps.api.editor import (
     leaderboard_upload_checksum,
 )
 from apps.api.handlers import (
+    ACHIEVEMENT_FLAGS_CORE,
     ACHIEVEMENT_FLAGS_UNOFFICIAL,
     ACHIEVEMENTWONDATA_DEFAULT_COUNT,
     API_TOKEN_LIFETIME,
 )
-from apps.games.models import Console, Game, GameHash, PlayerGame
+from apps.games.models import MD5_HEX_DIGITS, Console, Game, GameHash, PlayerGame
 from apps.images.catalog import avatar_path
 from apps.images.rendering import BADGE_SIZE_PX
 from apps.leaderboards.models import Leaderboard
@@ -76,6 +78,7 @@ RCHEEVOS_UPDATE_LEADERBOARD = (
     "&c=0xH0003%3d1&l=M%3a0xH0004&w=1&f=FRAMES&h=079e343e19a0f3fe42e1064d071c11aa"
 )
 RCHEEVOS_LEADERBOARD_MEM = "STA:0xH0001=1::CAN:0xH0003=1::SUB:0xH0002=1::VAL:M:0xH0004"
+LIVES_ADDRESS = 0x1234
 # Notes "Lives\r\nBit0 - x\y" at 0x1234, none (a delete) at 0x61994 and "a:b" at 0x10.
 RCHEEVOS_CODE_NOTES = (
     "r=submitcodenotes&u=player&t=tok&g=7"
@@ -294,7 +297,7 @@ def test_uploaded_achievement_reaches_only_its_author_as_unofficial(
 
 @pytest.mark.django_db
 def test_uploadachievement_never_publishes_a_new_achievement(client, player, game):
-    params = _signed_achievement(PLAYER, PLAYER_TOKEN, f=3)
+    params = _signed_achievement(PLAYER, PLAYER_TOKEN, f=ACHIEVEMENT_FLAGS_CORE)
 
     assert _post(client, **params)["Success"] is True
     assert Achievement.objects.get().status == Achievement.STATUS_DRAFT
@@ -363,7 +366,10 @@ def test_uploadachievement_requires_every_field(client, player, game, param):
         ({"f": 1}, "Unknown flag: 1."),
         ({"x": "bonus"}, "Unknown type: bonus."),
         ({"b": "00099"}, "Unknown badge: 00099. Upload it first, or use 00000."),
-        ({"n": "t" * 256}, "Invalid n: at most 255 characters."),
+        (
+            {"n": "t" * (ACHIEVEMENT_TITLE_MAX_LENGTH + 1)},
+            f"Invalid n: at most {ACHIEVEMENT_TITLE_MAX_LENGTH} characters.",
+        ),
     ],
 )
 def test_uploadachievement_rejects_values_the_set_cannot_hold(
@@ -696,7 +702,7 @@ def test_submitcodenotes_reports_the_notes_of_others_as_denied(client, player, o
 @pytest.mark.django_db
 def test_submitcodenotes_lets_staff_rewrite_the_notes_of_others(client, staff, other, game):
     theirs = _note(game, other, "0x1234", "Lives")
-    body = _with(RCHEEVOS_CODE_NOTES, u=STAFF, t=STAFF_TOKEN, n="4660:Lives (1 byte)\n")
+    body = _with(RCHEEVOS_CODE_NOTES, u=STAFF, t=STAFF_TOKEN, n=f"{LIVES_ADDRESS}:Lives (1 byte)\n")
 
     assert _raw(client, body) == {"Success": True, "SuccessfulAddresses": [0x1234]}
     theirs.refresh_from_db()
@@ -734,7 +740,9 @@ def test_submitcodenote_deletes_its_authors_note(client, player, game):
 
 @pytest.mark.django_db
 def test_submitcodenote_adds_a_note(client, player, game):
-    data = _post(client, r="submitcodenote", u=PLAYER, t=PLAYER_TOKEN, g=GAME_ID, m=4660, n="x")
+    data = _post(
+        client, r="submitcodenote", u=PLAYER, t=PLAYER_TOKEN, g=GAME_ID, m=LIVES_ADDRESS, n="x"
+    )
 
     assert data == {"Success": True}
     assert CodeNote.objects.get().address == "0x1234"
@@ -866,7 +874,7 @@ def test_submitgametitle_is_staff_only(client, player, console):
     ("changes", "error"),
     [
         ({"m": "abc"}, "Hash must be 32 hexadecimal characters."),
-        ({"m": "z" * 32}, "Hash must be 32 hexadecimal characters."),
+        ({"m": "z" * MD5_HEX_DIGITS}, "Hash must be 32 hexadecimal characters."),
         ({"i": "C"}, "Title must be at least 2 characters long."),
         ({"c": "99"}, "Unknown system ID."),
     ],

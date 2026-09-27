@@ -922,7 +922,7 @@ def handle_achievementwondata(request):
         return _ACHIEVEMENT_NOT_FOUND
 
     winners = _achievement_winners(achievement)
-    # No one has friends yet, so a friends-only page is empty.
+    # There is no friends model, so a friends-only page is empty.
     page = [] if friends_only else winners[offset : offset + count]
     return {
         "Success": True,
