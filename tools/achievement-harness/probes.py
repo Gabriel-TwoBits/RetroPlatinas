@@ -16,7 +16,7 @@ DECIMAL_DIGIT_MAX = 9  # values up to 9 read the same in hex and decimal
 # GOOL globals (c1 `gool_globals`).
 LEVEL_ID = 0x6188D  # byte 1 of global 0, `lid << 8`: the loaded level file
 NEXT_DISPLAY_FLAGS = 0x6189C  # leaves DISPLAY_FLAGS_NORMAL when the death camera starts
-RESPAWN_COUNT = 0x618A0  # 24.8, +1 per in-level respawn, reset by a game over
+RESPAWN_COUNT = 0x618A0  # 24.8, +1 per in-level respawn, reset when the title LID loads
 FRUIT_HUD_POINTER = 0x618A4
 LIFE_HUD_POINTER = 0x618A8
 PAUSE_OBJECT = 0x618BC
