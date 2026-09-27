@@ -1,8 +1,11 @@
-"""Recorded scenarios: scripted play from a derivable state, judged against the repo's achievements.
+"""Recorded scenarios: scripted play from a derivable state, judged against the repo's achievements
+and rich presence.
 
 Each scenario states which level achievements must trigger and the level (lid) the game must show
 when they do (usually none: a death, a quit or the attract demo must never unlock anything), and
-exits non-zero when a trigger is missing, repeated, unexpected or fires on another level.
+exits non-zero when a trigger is missing, repeated, unexpected or fires on another level. It also
+lists the rich presence strings the game must show on the way (regular expressions), and fails
+when one never shows or when a string names an unknown macro or level.
 
     python tools/achievement-harness/scenarios.py [--core CORE] NAME [NAME ...] | all
 
@@ -11,6 +14,7 @@ A core and the rcheevos runtime are process-global, so several scenarios run one
 
 import argparse
 import random
+import re
 import subprocess
 import sys
 from collections.abc import Callable
@@ -30,7 +34,7 @@ from probes import (
     RESPAWN_COUNT,
 )
 from session import Session
-from states import STAGES
+from states import BOSS_FIGHTS, STAGES
 
 COLD_BOOT_FRAMES = 3 * SECONDS_PER_MINUTE * FRAMES_PER_SECOND
 COLD_BOOT_SHOT_FRAMES = 10 * FRAMES_PER_SECOND
@@ -53,6 +57,40 @@ PLAN_PREFIX_DIVISOR = 2  # deaths start halfway through a stage's clearing plan
 
 HEADING_BUTTONS = {"up": Btn.UP, "down": Btn.DOWN, "right": Btn.RIGHT}
 
+# Rich presence strings (seed_crash1_rich_presence) as regular expressions. Stage names come from
+# the level achievements' titles or are spelled out here, never from the script's own lookup.
+STARTING_UP = "Starting up"
+TITLE_SCREEN = "At the title screen"
+INTRO = "Watching the intro"
+ISLAND_MAP = "On the island map"
+STAGE_CLEAR = "On the Stage Clear screen"
+GAME_OVER = "Game Over"
+ANY_COUNT = r"\d+"
+LOW_LIVES = "[0-3]"  # a new game's 4 lives after a death, extra lives picked up on the way aside
+NEW_GAME_LIVES = "4"
+ATTRACT_DEMOS = (
+    "Jungle Rollers",
+    "The Great Gate",
+    "Boulders",
+    "Papu Papu",
+    "The Lost City",
+    "Jaws of Darkness",
+    "The Lab",
+)
+BROKEN_PRESENCE = ("[Unknown macro]", "an unknown level")
+
+
+def demo_of(name):
+    return f"Watching a demo of {re.escape(name)}"
+
+
+def in_stage(name, lives=ANY_COUNT):
+    return rf"In {re.escape(name)} · {lives} li(fe|ves) · {ANY_COUNT} Wumpa"
+
+
+def fighting(name, lives=ANY_COUNT):
+    return rf"Fighting {re.escape(name)} · {lives} li(fe|ves)"
+
 
 @dataclass(frozen=True)
 class Scenario:
@@ -60,6 +98,7 @@ class Scenario:
     expected: dict  # stage level id -> the lid the game shows when its achievement must trigger
     about: str
     play: Callable
+    presence: tuple  # patterns each matched in full by at least one rich presence string shown
 
 
 def respawns(emu):
@@ -197,6 +236,13 @@ def quits(stage):
     return play
 
 
+def boss_quit(s):
+    """Quits before the boss first reaches Crash: SELECT does nothing while he is being hit."""
+    s.step(QUIT_AFTER_CONTROL_FRAMES)
+    navigation.pause_and_quit(s.emu)
+    s.step(AFTER_LAST_QUIT_FRAMES)
+
+
 def clear(stage):
     def play(s):
         plan = plans.load(stage.plan_path)
@@ -222,21 +268,44 @@ def clear(stage):
 
 NOTHING_FIRES = {}
 SCENARIOS = {
-    "cold-boot": Scenario(None, NOTHING_FIRES, "3 minutes from power-on, no input", play_cold_boot),
-    "attract": Scenario(None, NOTHING_FIRES, "15 minutes of attract-mode demos", play_attract),
+    "cold-boot": Scenario(
+        None,
+        NOTHING_FIRES,
+        "3 minutes from power-on, no input",
+        play_cold_boot,
+        (STARTING_UP, TITLE_SCREEN, INTRO, demo_of(ATTRACT_DEMOS[0])),
+    ),
+    "attract": Scenario(
+        None,
+        NOTHING_FIRES,
+        "15 minutes of attract-mode demos",
+        play_attract,
+        (TITLE_SCREEN, INTRO, *(demo_of(name) for name in ATTRACT_DEMOS)),
+    ),
 }
+_beach = achievements.level_title(STAGES[0].level_id)
 SCENARIOS["game-over"] = Scenario(
     STAGES[0].start,
     NOTHING_FIRES,
     "deaths on N. Sanity Beach down to a game over",
     down_to_game_over(STAGES[0]),
+    (in_stage(_beach, NEW_GAME_LIVES), in_stage(_beach, "0"), GAME_OVER),
 )
 for _stage in STAGES:
+    _name = achievements.level_title(_stage.level_id)
     SCENARIOS[f"{_stage.name}-deaths"] = Scenario(
-        _stage.start, NOTHING_FIRES, f"three deaths on {_stage.name}", deaths(_stage)
+        _stage.start,
+        NOTHING_FIRES,
+        f"three deaths on {_stage.name}",
+        deaths(_stage),
+        (in_stage(_name, NEW_GAME_LIVES), in_stage(_name, LOW_LIVES)),
     )
     SCENARIOS[f"{_stage.name}-quit"] = Scenario(
-        _stage.start, NOTHING_FIRES, f"three pause -> SELECT quits of {_stage.name}", quits(_stage)
+        _stage.start,
+        NOTHING_FIRES,
+        f"three pause -> SELECT quits of {_stage.name}",
+        quits(_stage),
+        (in_stage(_name), ISLAND_MAP),
     )
     if _stage.plan_path.is_file():
         SCENARIOS[f"{_stage.name}-clear"] = Scenario(
@@ -244,9 +313,17 @@ for _stage in STAGES:
             {_stage.level_id: LID_STAGE_CLEAR},
             f"{_stage.name} cleared by its plan, then the next stage quit (pcsx_rearmed only)",
             clear(_stage),
+            (in_stage(_name), STAGE_CLEAR, ISLAND_MAP),
         )
     else:
         pass  # No clearing plan committed: the clear stays for the in-game check.
+SCENARIOS["papu-papu-quit"] = Scenario(
+    BOSS_FIGHTS[0].start,
+    NOTHING_FIRES,
+    "the Papu Papu boss fight, quit with pause -> SELECT right after gaining control",
+    boss_quit,
+    (fighting("Papu Papu", NEW_GAME_LIVES), ISLAND_MAP),
+)
 
 
 def on_expected_level(trigger, expected):
@@ -254,11 +331,24 @@ def on_expected_level(trigger, expected):
     return expected.get(trigger.title) == trigger.level_id
 
 
+def presence_problems(scenario, shown):
+    """Patterns no shown string matched, and shown strings naming an unknown macro or level."""
+    texts = [text for _frame, text in shown]
+    missing = [
+        pattern
+        for pattern in scenario.presence
+        if not any(re.fullmatch(pattern, text) for text in texts)
+    ]
+    broken = sorted({text for text in texts if any(mark in text for mark in BROKEN_PRESENCE)})
+    return missing, broken
+
+
 def run(name, core):
-    """Plays one scenario in this process; returns True when the triggers match expectations.
+    """Plays one scenario in this process; returns True when triggers and presence match.
 
     Every expected achievement must fire exactly once, while the game shows its expected lid, and
     nothing else may fire: a trigger on another level fails even when its title was expected.
+    Every expected rich presence pattern must match a string shown on the way.
     """
     scenario = SCENARIOS[name]
     session = Session(name, state=scenario.start, core=core)
@@ -268,14 +358,20 @@ def run(name, core):
     expected = {achievements.level_title(stage): lid for stage, lid in scenario.expected.items()}
     off_level = [trigger for trigger in triggers if not on_expected_level(trigger, expected)]
     on_level = sorted(trigger.title for trigger in triggers if on_expected_level(trigger, expected))
-    passed = not off_level and on_level == sorted(expected)
+    missing, broken = presence_problems(scenario, session.presence)
+    passed = not off_level and on_level == sorted(expected) and not missing and not broken
     verdict = "OK" if passed else "FAIL"
     wanted = [f"{title} on lid {lid:#x}" for title, lid in sorted(expected.items())]
     fired = [
         f"{trigger.title} at frame {trigger.frame} on lid {trigger.level_id:#x}"
         for trigger in triggers
     ]
-    print(f"{verdict} {name}: expected {wanted}; triggered {fired}")
+    for frame, text in session.presence:
+        print(f"  presence frame {frame}: {text}")
+    print(
+        f"{verdict} {name}: expected {wanted}; triggered {fired}; "
+        f"presence never shown {missing}; broken presence {broken}"
+    )
     return passed
 
 

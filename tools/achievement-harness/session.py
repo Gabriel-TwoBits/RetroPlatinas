@@ -1,4 +1,5 @@
-"""A traced play session: emulator + the repo's achievements + per-frame CSV + event log + shots.
+"""A traced play session: emulator + the repo's achievements and rich presence + per-frame CSV +
+event log + shots.
 
 Writes `.cache/achievement-harness/traces/<name>.csv` (one row per frame, every probe),
 `traces/<name>.events.log` (every probe change, every rcheevos event, free-text notes) and
@@ -19,6 +20,7 @@ MAX_AUTO_SHOTS = 120
 MAX_SHOT_LABEL_CHARS = 80
 FRAME_DIGITS = 6
 MASK_HEX_DIGITS = 4
+RICH_PRESENCE = "rich_presence"
 SCREENSHOT_ON_CHANGE = {
     "r6188d",
     "r61994",
@@ -58,10 +60,10 @@ class Tracer:
         self.names = [probe_name for probe_name, _reader in probes]
         self.quiet = quiet
         self.on_change = on_change
-        self.csv_file = (TRACES_DIR / f"{name}.csv").open("w", newline="")
+        self.csv_file = (TRACES_DIR / f"{name}.csv").open("w", newline="", encoding="utf-8")
         self.writer = csv.writer(self.csv_file)
         self.writer.writerow(["frame", "input", *self.names])
-        self.event_log = (TRACES_DIR / f"{name}.events.log").open("w")
+        self.event_log = (TRACES_DIR / f"{name}.events.log").open("w", encoding="utf-8")
         self.previous = None
 
     def note(self, text):
@@ -100,7 +102,9 @@ class Session:
             states.load(self.emu, state)
         self.definitions = achievements.definitions()
         self.titles = {definition.runtime_id: definition.title for definition in self.definitions}
-        probes = list(ALL)
+        self.emu.activate_rich_presence(achievements.rich_presence())
+        self.presence = []  # (frame, display string) on every change
+        probes = [*ALL, (RICH_PRESENCE, lambda emu: emu.rich_presence())]
         quiet = set(NOISY)
         for definition in self.definitions:
             runtime_id = definition.runtime_id
@@ -115,6 +119,7 @@ class Session:
         self.shots_taken = 0
         self.triggers = []
         self.tracer = Tracer(self.name, probes, quiet, self._on_change)
+        self.emu.frame_hooks.append(self._record_presence)
         self.emu.frame_hooks.append(self.tracer)
         self.note(
             f"session {self.name} from {state or 'cold boot'}; core {self.emu.core_version}; "
@@ -128,6 +133,11 @@ class Session:
     @staticmethod
     def _hits_reader(runtime_id):
         return lambda emu: hit_counts(emu, runtime_id)
+
+    def _record_presence(self, emu):
+        text = emu.rich_presence()
+        if not self.presence or self.presence[-1][1] != text:
+            self.presence.append((emu.frame, text))
 
     def _on_change(self, emu, old, new):
         for runtime_id, title in self.titles.items():
@@ -177,7 +187,7 @@ class Session:
         self.note(f"re-armed {[self.titles[runtime_id] for runtime_id in fired]}: {reason}")
 
     def close(self):
-        """Ends the trace; returns every Trigger, in order."""
+        """Ends the trace; returns every Trigger, in order. `presence` keeps the display strings."""
         self.note(f"end; triggers={self.triggers}")
         self.tracer.close()
         return self.triggers

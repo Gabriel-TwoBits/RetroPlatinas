@@ -60,6 +60,7 @@ HUD_COUNT_CHAIN = (0x6C, 0xE4, 0x0C)
 # Level ids (c1 `LID_*`, src/common.h).
 LID_TITLE = 0x19  # title screen, menus and the island map
 LID_NSANITY_BEACH = 0x09
+LID_PAPU_PAPU = 0x0A
 LID_JUNGLE_ROLLERS = 0x0C
 LID_BOULDERS = 0x0E
 LID_UPSTREAM = 0x0F

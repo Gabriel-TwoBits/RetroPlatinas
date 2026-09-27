@@ -1,9 +1,10 @@
 # Achievement harness (headless PS1 + real rcheevos)
 
 A scriptable, headless PlayStation that boots the real *Crash Bandicoot (USA)* disc and evaluates
-the repo's achievement conditions **frame by frame with the rcheevos runtime**, the same library
-DuckStation runs. It exists so a `mem_addr` is proven against real game RAM before anyone boots
-the game by hand: every scenario states which achievements must fire and which must not.
+the repo's achievement conditions and rich presence script **frame by frame with the rcheevos
+runtime**, the same library DuckStation runs. It exists so a `mem_addr` is proven against real game
+RAM before anyone boots the game by hand: every scenario states which achievements must fire and
+which must not, and which rich presence strings the game must show.
 
 - **Emulation:** a libretro core loaded by a small C frontend (`src/harness.c`), driven from
   Python through `ctypes`. `pcsx_rearmed` (default) runs with its HLE BIOS in interpreter mode,
@@ -13,9 +14,12 @@ the game by hand: every scenario states which achievements must fire and which m
   `retro_run` it calls `rc_runtime_do_frame` with a peek callback that maps RA addresses
   `$000000-$1FFFFF` onto the 2 MiB main RAM; the scratchpad (`$200000+`) reads as 0. DuckStation's
   `rc_client_do_frame` does the same memref update and trigger evaluation per achievement.
+  The rich presence script is activated in the same runtime (`rc_runtime_activate_richpresence`),
+  updated by the same `rc_runtime_do_frame` and read back after every frame
+  (`rc_runtime_get_richpresence`), where DuckStation reads it once per ping.
 - **Definitions:** `achievements.py` imports the seed commands and calls their builders
-  (`build_mem_addr`), so the harness tests exactly the strings the server serves. Nothing is
-  copied.
+  (`build_mem_addr`, `build_rich_presence`), so the harness tests exactly the strings the server
+  serves. Nothing is copied.
 
 The harness runs **inside the project container**, like everything else. Nothing it downloads or
 produces is committed: cores, the compiled shim, states, traces and screenshots live in
@@ -62,7 +66,7 @@ Add `-v /path/to/bios:/bios:ro -e CRASH1_BIOS_DIR=/bios` for swanstation. Every 
 | Command | What it does |
 | --- | --- |
 | `harness.py` | Boots the disc and prints the core, rcheevos and disc in use |
-| `achievements.py` | Lists the repo's achievements as the harness activates them (id, title, `mem_addr`) |
+| `achievements.py` | Lists the repo's achievements as the harness activates them (id, title, `mem_addr`), then the rich presence script |
 | `states.py [--core C] [--fresh] [NAME ...]` | Derives the named states from a cold boot (all by default) and prints their digests |
 | `scenarios.py [--core C] NAME ... \| all` | Plays scenarios; prints `OK`/`FAIL` per scenario and exits non-zero on any `FAIL` |
 | `nav.py [--from STATE] "cmd; cmd"` | Drives the emulator by hand (see *Navigation DSL*) |
@@ -93,7 +97,8 @@ came from the cache or was derived moments earlier.
 
 `<stage>` is each level achievement's stage, in `states.STAGES` with its level id, map cursor and
 the direction it runs on screen: `nsanity-beach`, `jungle-rollers`, `the-great-gate`, `boulders`,
-`upstream`, `rolling-stones`.
+`upstream`, `rolling-stones`. `states.BOSS_FIGHTS` adds `papu-papu` (map cursor 5, on the way to
+Rolling Stones), which only gets a `-start` state.
 
 `map-unlocked` is the harness's only RAM write: it sets c1 `levels_unlocked` (`0x61948`) to 7,
 then enters and quits N. Sanity Beach so the map reloads with the paths to the later stages, which
@@ -126,6 +131,15 @@ while the others keep their hits, as in a live session.
 | `<stage>-deaths` | `<stage>-start` | nothing | Three deaths: the first, one re-armed right after the respawn, one after idling where the player respawned; each replays the stage's route first when it has one |
 | `<stage>-quit` | `<stage>-start` | nothing | Pause -> SELECT quits: right after control, after running and standing, after standing |
 | `<stage>-clear` | `<stage>-start` | the stage's achievement, once, on Stage Clear (lid `0x2D`) | Replays the clearing plan (a real completion); after a re-arm, Stage Clear -> map, the next stage and a quit fire nothing |
+| `papu-papu-quit` | `papu-papu-start` | nothing | Standing in the Papu Papu boss fight, then pause -> SELECT |
+
+Every scenario also lists the rich presence strings the game must show on the way (`presence`,
+regular expressions matched in full): the title and demo strings in `cold-boot` and `attract`, the
+stage with a new game's 4 lives and then fewer in `<stage>-deaths`, `Game Over`, the island map,
+the Stage Clear screen and the boss fight. Stage names in the patterns come from the level
+achievements' titles or are spelled out, never from the script's own lookup. A scenario fails when
+an expected string never shows, or when any string shows `[Unknown macro]` or `an unknown level`.
+The verdict prints every change of the display string with its frame.
 
 A `<stage>-clear` scenario exists only for a stage with a committed plan. Deaths come from seeded
 random play of the stage's macros; before each one, the harness replays half the stage's clearing
@@ -137,7 +151,8 @@ fire it; add it to `SCENARIOS` with the lid its event shows.
 
 Outputs, per scenario (`<core>-` prefixed when not on pcsx_rearmed):
 
-- `traces/<name>.csv`: one row per frame, the input mask and every probe, plus `achN_state` and
+- `traces/<name>.csv`: one row per frame, the input mask and every probe, `rich_presence` (the
+  display string on that frame; its changes are in the events log too), plus `achN_state` and
   `achN_hits` (`current/required` of every condition with a hit target).
 - `traces/<name>.events.log`: every probe change, every rcheevos event (`ACTIVATED`, `PRIMED`,
   `TRIGGERED`, ...) and the scenario's notes, by frame.
@@ -199,13 +214,15 @@ emu.activate(id, mem_addr) / reset_achievement(id)  # reset: WAITING, zeroed hit
 emu.achievement_state(id)  # 'waiting' | 'active' | 'primed' | 'triggered' | ...
 emu.achievement_hits(id)  # [[(type, required, current, is_true), ...] per condset]
 emu.events()  # [(frame, 'ACHIEVEMENT_TRIGGERED', id, value), ...]
+emu.activate_rich_presence(script) / rich_presence()  # the display string of the last frame
 emu.frame  # frames since boot or since the last state load
 emu.core_version / emu.rcheevos_version / emu.options()
 emu.frame_hooks.append(callable)  # called with emu after every frame
 ```
 
 `states.load(emu, name)` derives or restores a state. `Session(name, state=None, core=...)` in
-`session.py` wraps an `Emu` with every repo achievement active and the tracer attached; helpers:
+`session.py` wraps an `Emu` with every repo achievement and the rich presence active and the tracer
+attached (`presence` lists every change of the display string); helpers:
 `step`, `press`, `wait_until`, `shot`, `note`, `rearm`, `close` (returns every `Trigger`: frame,
 title and the lid on that frame).
 `navigation.py` holds the menu moves (`boot_to_map`, `move_cursor_to`, `enter_stage`,

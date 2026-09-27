@@ -1,9 +1,9 @@
-"""The repo's achievement definitions, built by the seed commands' own code (never copied strings).
+"""The repo's achievements and rich presence, built by the seed commands' own code (never copied).
 
 Importing a seed command needs Django, so this module puts the repo root on `sys.path` and calls
 `django.setup()` with the project's settings before the import.
 
-    python tools/achievement-harness/achievements.py      # id, title, mem_addr as served
+    python tools/achievement-harness/achievements.py      # id, title, mem_addr, then the script
 """
 
 import os
@@ -41,6 +41,14 @@ def _level_seed():
     return seed_crash1_level_achievements
 
 
+def rich_presence():
+    """The Crash Bandicoot rich presence script, as `seed_crash1_rich_presence` stores it."""
+    _setup_django()
+    from apps.achievements.management.commands import seed_crash1_rich_presence
+
+    return seed_crash1_rich_presence.build_rich_presence()
+
+
 def level_title(level_id):
     """Title of the level-completion achievement for a stage (c1 level id, `0xH6188d`)."""
     for title, seeded_level_id in _level_seed().LEVEL_ACHIEVEMENTS:
@@ -61,3 +69,4 @@ def definitions():
 if __name__ == "__main__":
     for definition in definitions():
         print(definition.runtime_id, definition.title, definition.mem_addr, sep="\t")
+    print(rich_presence(), end="")

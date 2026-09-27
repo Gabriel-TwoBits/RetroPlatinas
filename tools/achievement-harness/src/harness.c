@@ -509,6 +509,21 @@ int h_ach_hits(uint32_t id, char *out, int size) {
     return written;
 }
 
+/* Parses a rich presence script; 0 on success, an rc_error.h code otherwise. */
+int h_rp_activate(const char *script) {
+    ensure_runtime();
+    return rc_runtime_activate_richpresence(&runtime, script, NULL, 0);
+}
+
+/* The display string for the current frame (evaluated by rc_runtime_do_frame); its length. */
+int h_rp_get(char *out, int size) {
+    ensure_runtime();
+    if (size <= 0) {
+        return -1;
+    }
+    return rc_runtime_get_richpresence(&runtime, out, (size_t)size, peek_cb, NULL, NULL);
+}
+
 int h_events(uint64_t *frames, int32_t *types, uint32_t *ids, int32_t *values, int max) {
     int n = event_count < max ? event_count : max;
     for (int i = 0; i < n; i++) {

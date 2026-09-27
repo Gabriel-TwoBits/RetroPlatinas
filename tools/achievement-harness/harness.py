@@ -23,6 +23,7 @@ MAX_FRAME_WIDTH = 1024
 MAX_FRAME_HEIGHT = 1024
 MAX_FRAMEBUFFER_BYTES = MAX_FRAME_WIDTH * MAX_FRAME_HEIGHT * BYTES_PER_PIXEL
 HITS_BUFFER_BYTES = 8192
+RICH_PRESENCE_BUFFER_BYTES = 1024
 OPTIONS_BUFFER_BYTES = 65536
 EVENT_BATCH = 4096
 POINTER_BYTES = 3
@@ -176,6 +177,8 @@ class Emu:
         lib.h_ach_reset_one.argtypes = [ctypes.c_uint32]
         lib.h_ach_state.argtypes = [ctypes.c_uint32]
         lib.h_ach_hits.argtypes = [ctypes.c_uint32, ctypes.c_char_p, ctypes.c_int]
+        lib.h_rp_activate.argtypes = [ctypes.c_char_p]
+        lib.h_rp_get.argtypes = [ctypes.c_char_p, ctypes.c_int]
         lib.h_events.argtypes = [
             ctypes.POINTER(ctypes.c_uint64),
             ctypes.POINTER(ctypes.c_int32),
@@ -357,6 +360,19 @@ class Emu:
             if conditions:
                 condsets.append(conditions)
         return condsets
+
+    def activate_rich_presence(self, script):
+        """Loads a rich presence script; rcheevos then updates it on every frame."""
+        result = self.lib.h_rp_activate(script.encode())
+        if result != 0:
+            raise ValueError(f"rc_runtime_activate_richpresence -> {result}")
+
+    def rich_presence(self):
+        """The display string the active script gives for the last frame run."""
+        buf = ctypes.create_string_buffer(RICH_PRESENCE_BUFFER_BYTES)
+        if self.lib.h_rp_get(buf, RICH_PRESENCE_BUFFER_BYTES) < 0:
+            raise RuntimeError("rc_runtime_get_richpresence failed")
+        return buf.value.decode()
 
     def events(self):
         """rcheevos events since the last call: [(frame, name, achievement_id, value), ...]."""

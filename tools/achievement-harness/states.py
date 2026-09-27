@@ -22,6 +22,7 @@ from probes import (
     LID_BOULDERS,
     LID_JUNGLE_ROLLERS,
     LID_NSANITY_BEACH,
+    LID_PAPU_PAPU,
     LID_ROLLING_STONES,
     LID_THE_GREAT_GATE,
     LID_UPSTREAM,
@@ -68,6 +69,8 @@ STAGES = (
     Stage("upstream", LID_UPSTREAM, 4, "up"),
     Stage("rolling-stones", LID_ROLLING_STONES, 6, "up"),
 )
+# Boss fights on the map path of STAGES, entered only to judge what they show and fire.
+BOSS_FIGHTS = (Stage("papu-papu", LID_PAPU_PAPU, 5, "up"),)
 # Every file that decides what a derived state holds, clearing plans included.
 RECIPE_SOURCES = (
     HARNESS_DIR / "states.py",
@@ -151,7 +154,7 @@ RECIPES = {
         f"island map with {MAP_STAGES_UNLOCKED} stages unlocked by a RAM poke",
     ),
 }
-for _stage in STAGES:
+for _stage in (*STAGES, *BOSS_FIGHTS):
     RECIPES.update(_stage_recipes(_stage))
 
 

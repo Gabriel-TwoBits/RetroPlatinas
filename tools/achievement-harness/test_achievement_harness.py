@@ -1,4 +1,5 @@
-"""Harness tests: the real disc with every repo achievement active, judged by the rcheevos runtime.
+"""Harness tests: the real disc with every repo achievement and the rich presence active, judged by
+the rcheevos runtime.
 
 Skipped (not failed) when CRASH1_CUE is unset or names no file, so the suite stays green without
 the disc. The first run downloads the core, builds the shim and derives the states into the cache.
@@ -32,6 +33,7 @@ def test_cold_boot_reaches_the_map_without_unlocking_anything(disc):
     definitions = achievements.definitions()
     for definition in definitions:
         emu.activate(definition.runtime_id, definition.mem_addr)
+    emu.activate_rich_presence(achievements.rich_presence())
 
     navigation.boot_to_map(emu)
 
@@ -43,11 +45,13 @@ def test_cold_boot_reaches_the_map_without_unlocking_anything(disc):
         if emu.achievement_state(definition.runtime_id) == TRIGGERED
     ]
     assert unlocked == []
+    assert emu.rich_presence() == scenarios.ISLAND_MAP
 
 
 @pytest.mark.parametrize("name", list(scenarios.SCENARIOS))
 def test_scenario_fires_exactly_the_expected_achievements(disc, name):
-    """A clear fires its stage's achievement once, on Stage Clear; nothing else fires anything.
+    """A clear fires its stage's achievement once, on Stage Clear; nothing else fires anything;
+    the rich presence shows every string the scenario expects.
 
     Each scenario runs in its own process: the core and the rcheevos shim are process-global.
     """
