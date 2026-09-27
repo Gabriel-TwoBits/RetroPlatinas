@@ -6,7 +6,8 @@ from http import HTTPStatus
 
 from django.contrib.auth import authenticate
 from django.db import transaction
-from django.db.models import Count, Q, Sum
+from django.db.models import Count, Min, Q, Sum
+from django.db.models.functions import Coalesce
 from django.utils import timezone
 
 from apps.accounts.models import API_TOKEN_BYTES
@@ -877,6 +878,79 @@ def handle_hashlibrary(request):
     }
 
 
+ACHIEVEMENTWONDATA_DEFAULT_COUNT = 10
+ACHIEVEMENTWONDATA_MAX_COUNT = 500
+
+
+def _achievement_winners(achievement):
+    """One row per unlocker, latest first, dated by the hardcore unlock when there is one."""
+    return (
+        UserUnlock.objects.filter(achievement=achievement)
+        .values("user_id", "user__username")
+        .annotate(
+            awarded_at=Coalesce(
+                Min("unlocked_at", filter=Q(hardcore=True)),
+                Min("unlocked_at", filter=Q(hardcore=False)),
+            )
+        )
+        .order_by("-awarded_at", "user_id")
+    )
+
+
+def handle_achievementwondata(request):
+    user, error = _authenticate(request)
+    if error is not None:
+        return error
+    achievement_id, error = _uint_param(request, "a")
+    if error is not None:
+        return error
+    friends_only, error = _flag_param(request, "f")
+    if error is not None:
+        return error
+    offset, error = _uint_param(request, "o", default=0)
+    if error is not None:
+        return error
+    count, error = _uint_param(request, "c", default=ACHIEVEMENTWONDATA_DEFAULT_COUNT)
+    if error is not None:
+        return error
+    count = min(count, ACHIEVEMENTWONDATA_MAX_COUNT)
+
+    achievement = (
+        _achievements_visible_to(user).select_related("game").filter(pk=achievement_id).first()
+    )
+    if achievement is None:
+        return _ACHIEVEMENT_NOT_FOUND
+
+    winners = _achievement_winners(achievement)
+    # No one has friends yet, so a friends-only page is empty.
+    page = [] if friends_only else winners[offset : offset + count]
+    return {
+        "Success": True,
+        "AchievementID": achievement.pk,
+        "Response": {
+            "NumEarned": winners.count(),
+            "TotalPlayers": _player_count(achievement.game),
+            "GameID": achievement.game_id,
+            "RecentWinner": [
+                {
+                    "User": winner["user__username"],
+                    "DateAwarded": int(winner["awarded_at"].timestamp()),
+                    "AvatarUrl": _user_avatar_url(request, winner["user__username"]),
+                }
+                for winner in page
+            ],
+        },
+    }
+
+
+def handle_latestclient(request):
+    _, error = _uint_param(request, "e")
+    if error is not None:
+        return error
+    # No client versions are published; `not_found` lets every emulator through.
+    return _not_found("client")
+
+
 HANDLERS = {
     "login2": handle_login2,
     "gameid": handle_gameid,
@@ -892,4 +966,6 @@ HANDLERS = {
     "systemgames": handle_systemgames,
     "gameinfolist": handle_gameinfolist,
     "hashlibrary": handle_hashlibrary,
+    "achievementwondata": handle_achievementwondata,
+    "latestclient": handle_latestclient,
 }

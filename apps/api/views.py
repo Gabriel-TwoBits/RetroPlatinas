@@ -1,5 +1,6 @@
 import logging
 from http import HTTPStatus
+from pathlib import Path
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -7,6 +8,7 @@ from django.http import Http404, HttpResponseNotAllowed, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
+from apps.api.editor import EDITOR_HANDLERS, UPLOAD_HANDLERS
 from apps.api.handlers import HANDLERS, _invalid_parameter
 from apps.games.models import PlayerGame
 
@@ -31,15 +33,35 @@ def _has_nul(params):
     return any(NUL in value for _, values in params.lists() for value in values)
 
 
+def _unknown_action(action):
+    return JsonResponse({"Success": False, "Error": f"Unknown action: {action}"})
+
+
 @csrf_exempt
 @require_POST
 def dorequest(request):
     action = request.POST.get("r")
     if not action:
         return JsonResponse({"Success": False, "Error": "Missing 'r' parameter"})
-    handler = HANDLERS.get(action)
+    handler = HANDLERS.get(action) or EDITOR_HANDLERS.get(action)
     if handler is None:
-        return JsonResponse({"Success": False, "Error": f"Unknown action: {action}"})
+        return _unknown_action(action)
+    return _respond(request, action, handler)
+
+
+@csrf_exempt
+@require_POST
+def doupload(request):
+    """File uploads, named by `r` or, as RAWeb reads them, by the uploaded file's name."""
+    upload = request.FILES.get("file")
+    action = request.POST.get("r") or (Path(upload.name).stem if upload else "")
+    handler = UPLOAD_HANDLERS.get(action)
+    if handler is None:
+        return _unknown_action(action)
+    return _respond(request, action, handler)
+
+
+def _respond(request, action, handler):
     if _has_nul(request.POST):
         return JsonResponse(_invalid_parameter("Parameters cannot contain NUL characters."))
     try:

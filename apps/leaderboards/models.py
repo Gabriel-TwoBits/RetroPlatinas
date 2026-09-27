@@ -62,6 +62,23 @@ class Leaderboard(models.Model):
     def __str__(self):
         return f"{self.title} ({self.game})"
 
+    @staticmethod
+    def canonical_format(name):
+        """The canonical name of the format `rc_parse_format` reads `name` as, else `None`."""
+        if name in Leaderboard.Format.values:
+            return name
+        else:
+            return LEADERBOARD_FORMAT_ALIASES.get(name)
+
+
+# Aliases rcheevos' `rc_parse_format` reads as the same format as a canonical name.
+LEADERBOARD_FORMAT_ALIASES = {
+    "TIME": Leaderboard.Format.FRAMES,
+    "TIMESECS": Leaderboard.Format.SECS,
+    "POINTS": Leaderboard.Format.SCORE,
+    "OTHER": Leaderboard.Format.SCORE,
+}
+
 
 class LeaderboardEntry(models.Model):
     leaderboard = models.ForeignKey(
