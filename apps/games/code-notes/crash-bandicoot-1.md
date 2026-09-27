@@ -14,7 +14,8 @@ Target ROM: **NTSC-US, SCUS-94900**.
   written and tested against the USA ROM only, so every address the set actually uses is, by definition, a
   USA address.
 - **Untagged notes = the canonical USA map.** This is where the `0x619xx` block lives — the block validated
-  in-game, whose four addresses the code notes agree with.
+  in game and in the headless harness; **Validated addresses** lists the notes that validation corrected
+  (`0x61998`, `0x618cc`).
 - **`(EU)`-tagged notes are out of scope.** They are annotations for a different ROM left in the shared
   code-note file; they are not our target (NTSC-US, SCUS-94900) and are **not addresses to validate** —
   rechecking them makes no sense. They are kept in the raw dump below only as a record that they exist and
@@ -58,10 +59,11 @@ The c1 name is the global's name in the decompilation.
 | `0xH61998` | 8-bit | c1 `is_first_zone`, **not** a results flag: `0→1` on every level-file load (boot logos, title, demos, stages, map, Stage Clear) and on every respawn; back to `0` when Crash leaves the first zone | c1 + harness | **CORRECTED** (the note says "On Results Screen") |
 | `0xW618cc` | 24-bit ptr | Aku Aku object pointer (shield level at `+0x189`). `0` only until the first level or demo loads after power-on, **never cleared** afterwards: it means "something loaded since power-on", not "a stage is loaded" | code note + harness | **CORRECTED** (not a "game running" guard) |
 
-## Key addresses (code note only — NOT yet validated in game)
+## Key addresses (code notes; partial harness observations marked)
 
 Same `0x619xx` block as the validated addresses, so high confidence for NTSC-US, but each still needs a check
-before shipping a condition against it.
+before shipping a condition against it. A row marked *(harness)* records one behaviour the headless harness
+observed, not a full validation of the address.
 
 | Address | Size | Meaning | Notes |
 | --- | --- | --- | --- |
