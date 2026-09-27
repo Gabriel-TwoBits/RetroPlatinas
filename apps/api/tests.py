@@ -13,7 +13,7 @@ from django.utils import timezone
 from PIL import Image
 
 from apps.accounts.models import API_TOKEN_HEX_LENGTH
-from apps.achievements.models import Achievement, UserUnlock
+from apps.achievements.models import PLACEHOLDER_BADGE_NAME, Achievement, Badge, UserUnlock
 from apps.anticheat.detection import award_validation_hash, leaderboard_validation_hash
 from apps.api.auth import is_expired_token, user_from_token
 from apps.api.handlers import (
@@ -738,16 +738,21 @@ def test_patch_achievement_shape(client, authed_user, game_with_achievements):
 
 
 @pytest.mark.django_db
-def test_patch_badge_name_zero_padded(client, authed_user, game_with_achievements):
+def test_patch_serves_each_achievements_badge_name(
+    client, settings, tmp_path, authed_user, game_with_achievements
+):
+    settings.MEDIA_ROOT = tmp_path
     _, token = authed_user
     game = game_with_achievements
+    badge = Badge.objects.create(image=_png_upload("verified.png"))
+    game.achievements.filter(title="Verified One").update(badge_name=badge.name)
     response = client.post(
         "/dorequest.php", {"r": "patch", "u": PLAYER_USERNAME, "t": token, "g": game.pk}
     )
-    for ach in response.json()["PatchData"]["Achievements"]:
-        badge = ach["BadgeName"]
-        assert len(badge) == 5
-        assert badge == f"{ach['ID']:05d}"
+    badge_names = {
+        ach["Title"]: ach["BadgeName"] for ach in response.json()["PatchData"]["Achievements"]
+    }
+    assert badge_names == {"Community One": PLACEHOLDER_BADGE_NAME, "Verified One": badge.name}
 
 
 @pytest.mark.django_db
@@ -2437,9 +2442,9 @@ def _assert_badge_urls(achievement_payloads):
     assert achievement_payloads
     for payload in achievement_payloads:
         achievement = Achievement.objects.get(pk=payload["ID"])
-        assert payload["BadgeURL"] == f"http://testserver{badge_path(achievement)}"
+        assert payload["BadgeURL"] == f"http://testserver{badge_path(achievement.badge_name)}"
         assert payload["BadgeLockedURL"] == (
-            f"http://testserver{badge_path(achievement, locked=True)}"
+            f"http://testserver{badge_path(achievement.badge_name, locked=True)}"
         )
         assert f"?{VERSION_PARAM}=" in payload["BadgeURL"]
         assert f"?{VERSION_PARAM}=" in payload["BadgeLockedURL"]
@@ -2484,7 +2489,7 @@ def test_set_image_urls_change_when_art_is_uploaded(
     game = game_with_achievements
     before = _set_request(client, "achievementsets", token, game)
     uploaded = game.achievements.get(title="Verified One")
-    uploaded.badge = _png_upload("verified.png")
+    uploaded.badge_name = Badge.objects.create(image=_png_upload("verified.png")).name
     uploaded.save()
     game.icon = _png_upload("crash.png")
     game.save()

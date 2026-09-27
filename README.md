@@ -62,9 +62,13 @@ http://localhost:8000/admin/ → log in with the superuser created above.
 
 ## Badges, game icons and avatars
 
-Upload an achievement's badge or a game's icon in the admin; until one is uploaded, a neutral
-placeholder is drawn in code. Emulators fetch them from RetroAchievements-compatible paths, served
-by Django views (not by the `/media/` static serving, which exists in development only):
+Badges are uploaded images named after their sequential number, as RetroAchievements names them
+(`00001`, `00002`, …): upload one in the admin (**Achievements → Badges**) or from RAIntegration,
+then set that name as the achievement's badge name. A badge's image never changes; new art is a new
+badge. `00000` is the placeholder every achievement shows until it gets a badge. Upload a game's
+icon in the game's admin page; until one is uploaded, a placeholder is shown too. Placeholders are
+drawn in code. Emulators fetch the images from RetroAchievements-compatible paths, served by Django
+views (not by the `/media/` static serving, which exists in development only):
 
 | Path | Image |
 | --- | --- |

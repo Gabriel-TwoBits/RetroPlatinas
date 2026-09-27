@@ -8,13 +8,10 @@ from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.urls import reverse
 
-from apps.achievements.models import Achievement
+from apps.achievements.models import PLACEHOLDER_BADGE_NAME, Badge
 from apps.games.models import Game
 from apps.images import rendering
 
-BADGE_NAME_DIGITS = 5
-# rc_client_achievement_t.badge_name is a char[8].
-BADGE_NAME_MAX_CHARS = 7
 GAME_IMAGE_NAME_DIGITS = 6
 # rc_client_subset_t.badge_name (which rc_client_game_t.badge_name points to) is a char[16].
 GAME_IMAGE_NAME_MAX_CHARS = 15
@@ -22,7 +19,6 @@ GAME_IMAGE_NAME_MAX_CHARS = 15
 FALLBACK_GAME_IMAGE_NAME = "000001"
 # Game image numbers start past the reserved fallback: game N is named N + this offset.
 GAME_IMAGE_NUMBER_OFFSET = int(FALLBACK_GAME_IMAGE_NAME)
-BADGE_NAME_PATTERN = re.compile(rf"[0-9]{{1,{BADGE_NAME_MAX_CHARS}}}")
 GAME_IMAGE_NAME_PATTERN = re.compile(rf"[0-9]{{1,{GAME_IMAGE_NAME_MAX_CHARS}}}")
 
 # Part of every version: bump it when the drawing (placeholder, locked filter, identicon) changes.
@@ -57,9 +53,11 @@ def _versioned(path, source):
     return f"{path}?{VERSION_PARAM}={_version(source)}"
 
 
-def _rendered_png(field_file, size, locked):
-    """`(png, version)` of the upload, or of the placeholder when nothing was uploaded."""
-    source = _file_source(field_file)
+def _rendered_png(field_file, source, size, locked):
+    """`(png, version)` of the upload, or of the placeholder when nothing was uploaded.
+
+    `source` is what versions the image: it changes whenever the served image does.
+    """
 
     def render():
         if field_file:
@@ -75,37 +73,31 @@ def _rendered_png(field_file, size, locked):
 # --- Badges ---
 
 
-def badge_name(achievement):
-    return f"{achievement.pk:0{BADGE_NAME_DIGITS}d}"
-
-
-def achievement_for_badge_name(name):
-    """The achievement whose badge `name` is, else `None`; only the canonical name matches."""
-    if BADGE_NAME_PATTERN.fullmatch(name) is None:
-        return None
-    # TRADEOFF: any status matches, drafts included: the emulator fetches images without
-    # credentials, and a draft's author must see its badge while testing it. Serve drafts under
-    # unguessable names if their art must stay private.
-    achievement = Achievement.objects.filter(pk=int(name)).first()
-    if achievement is not None and badge_name(achievement) == name:
-        return achievement
+def _badge_source(name):
+    """A badge's image never changes under its name (new art is a new badge), so the name
+    versions it; the placeholder is drawn from nothing."""
+    if name == PLACEHOLDER_BADGE_NAME:
+        return ""
     else:
-        return None
+        return f"badge:{name}"
 
 
-def badge_path(achievement, locked=False):
+def badge_path(name, locked=False):
     route = "badge-locked" if locked else "badge"
-    path = reverse(route, args=[badge_name(achievement)])
-    return _versioned(path, _file_source(achievement.badge))
+    return _versioned(reverse(route, args=[name]), _badge_source(name))
 
 
 def badge_png(name, locked):
     """`(png, version)` of the badge named `name`, else `None`."""
-    achievement = achievement_for_badge_name(name)
-    if achievement is None:
+    # TRADEOFF: every badge is served, drafts' included: the emulator fetches images without
+    # credentials, and a draft's author must see its badge while testing it.
+    if name == PLACEHOLDER_BADGE_NAME:
+        return _rendered_png(None, _badge_source(name), rendering.BADGE_SIZE_PX, locked)
+    badge = Badge.objects.named(name)
+    if badge is None:
         return None
     else:
-        return _rendered_png(achievement.badge, rendering.BADGE_SIZE_PX, locked)
+        return _rendered_png(badge.image, _badge_source(name), rendering.BADGE_SIZE_PX, locked)
 
 
 # --- Game icons ---
@@ -138,12 +130,14 @@ def versioned_game_icon_path(game):
 def game_icon_png(name):
     """`(png, version)` of the game icon named `name`, else `None`."""
     if name == FALLBACK_GAME_IMAGE_NAME:
-        return _rendered_png(None, rendering.GAME_ICON_SIZE_PX, locked=False)
+        return _rendered_png(None, "", rendering.GAME_ICON_SIZE_PX, locked=False)
     game = game_for_image_name(name)
     if game is None:
         return None
     else:
-        return _rendered_png(game.icon, rendering.GAME_ICON_SIZE_PX, locked=False)
+        return _rendered_png(
+            game.icon, _file_source(game.icon), rendering.GAME_ICON_SIZE_PX, locked=False
+        )
 
 
 # --- Avatars ---

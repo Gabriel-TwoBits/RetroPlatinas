@@ -1,9 +1,115 @@
+import re
+
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from PIL import Image
 
 from apps.games.models import Game
+
+BADGE_NAME_DIGITS = 5
+# rc_client_achievement_t.badge_name is a char[8].
+BADGE_NAME_MAX_CHARS = 7
+BADGE_NAME_PATTERN = re.compile(rf"[0-9]{{{BADGE_NAME_DIGITS},{BADGE_NAME_MAX_CHARS}}}")
+# RA's name for "no badge": served as the placeholder, never given to an upload.
+PLACEHOLDER_BADGE_NAME = "0" * BADGE_NAME_DIGITS
+
+BYTES_PER_MIB = 2**20
+# RAWeb's limit for a badge upload.
+MAX_BADGE_UPLOAD_BYTES = BYTES_PER_MIB
+BADGE_UPLOAD_FORMATS = ("PNG", "JPEG", "GIF")
+# Bounds the memory a small compressed upload can take once decoded.
+MAX_BADGE_UPLOAD_SIDE_PX = 1024
+
+
+def badge_name_for(number):
+    return f"{number:0{BADGE_NAME_DIGITS}d}"
+
+
+def validate_badge_image(file):
+    """Accepts a PNG, JPEG or GIF of at most `MAX_BADGE_UPLOAD_BYTES` and
+    `MAX_BADGE_UPLOAD_SIDE_PX` a side, judged by its contents rather than its name."""
+    if file.size > MAX_BADGE_UPLOAD_BYTES:
+        raise ValidationError(
+            _("The badge image must be at most %(limit)s bytes."),
+            code="file_too_large",
+            params={"limit": MAX_BADGE_UPLOAD_BYTES},
+        )
+    try:
+        file.seek(0)
+        with Image.open(file) as image:
+            image_format = image.format
+            width, height = image.size
+            image.verify()
+    except (OSError, SyntaxError, Image.DecompressionBombError) as error:
+        raise ValidationError(
+            _("Upload a PNG, JPEG or GIF image."), code="invalid_image"
+        ) from error
+    finally:
+        file.seek(0)
+    if image_format not in BADGE_UPLOAD_FORMATS:
+        raise ValidationError(_("Upload a PNG, JPEG or GIF image."), code="invalid_image")
+    elif max(width, height) > MAX_BADGE_UPLOAD_SIDE_PX:
+        raise ValidationError(
+            _("The badge image must be at most %(limit)s pixels on each side."),
+            code="image_too_large",
+            params={"limit": MAX_BADGE_UPLOAD_SIDE_PX},
+        )
+    else:
+        return
+
+
+class BadgeQuerySet(models.QuerySet):
+    def named(self, name):
+        """The badge called `name`, else `None`; only the canonical zero-padded name matches."""
+        if BADGE_NAME_PATTERN.fullmatch(name) is None:
+            return None
+        number = int(name)
+        if badge_name_for(number) != name:
+            return None
+        else:
+            return self.filter(pk=number).first()
+
+
+class Badge(models.Model):
+    """An uploaded badge image, named after its sequential number as RA names badges.
+
+    The image never changes once uploaded: new art is a new badge, so a name always shows the
+    same picture and clients may cache it by name.
+    """
+
+    image = models.ImageField(
+        upload_to="badges/", validators=[validate_badge_image], verbose_name=_("image")
+    )
+    uploaded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+        verbose_name=_("uploaded by"),
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("created at"))
+
+    objects = BadgeQuerySet.as_manager()
+
+    class Meta:
+        verbose_name = _("badge")
+        verbose_name_plural = _("badges")
+        ordering = ["id"]
+
+    def __str__(self):
+        return self.name
+
+    @property
+    def name(self):
+        return badge_name_for(self.pk)
+
+
+def is_known_badge_name(name):
+    return name == PLACEHOLDER_BADGE_NAME or Badge.objects.named(name) is not None
 
 
 class Achievement(models.Model):
@@ -46,7 +152,12 @@ class Achievement(models.Model):
     description = models.TextField(verbose_name=_("description"))
     points = models.IntegerField(default=0, verbose_name=_("points"))
     mem_addr = models.TextField(verbose_name=_("memory address expression"))
-    badge = models.ImageField(upload_to="badges/", null=True, blank=True, verbose_name=_("badge"))
+    badge_name = models.CharField(
+        max_length=BADGE_NAME_MAX_CHARS,
+        default=PLACEHOLDER_BADGE_NAME,
+        verbose_name=_("badge name"),
+        help_text=_("The number of an uploaded badge, or 00000 for the placeholder."),
+    )
     status = models.CharField(
         max_length=16,
         choices=STATUS_CHOICES,
@@ -70,6 +181,13 @@ class Achievement(models.Model):
 
     def __str__(self):
         return f"{self.title} ({self.game})"
+
+    def clean(self):
+        super().clean()
+        if not is_known_badge_name(self.badge_name):
+            raise ValidationError(
+                {"badge_name": _("No badge has this name; upload the badge first.")}
+            )
 
 
 class UserUnlock(models.Model):

@@ -522,6 +522,7 @@ def test_admin_change_form_status_change_recalculates_the_points(
             "points": community.points,
             "mem_addr": community.mem_addr,
             "status": Achievement.STATUS_DRAFT,
+            "badge_name": community.badge_name,
         },
     )
 
@@ -548,6 +549,7 @@ def test_admin_change_form_points_change_recalculates_the_points(
             "points": RAISED_COMMUNITY_POINTS,
             "mem_addr": community.mem_addr,
             "status": community.status,
+            "badge_name": community.badge_name,
         },
     )
 
@@ -601,6 +603,7 @@ def test_admin_moving_an_achievement_records_its_unlockers_as_players_of_the_new
             "points": achievement.points,
             "mem_addr": achievement.mem_addr,
             "status": achievement.status,
+            "badge_name": achievement.badge_name,
         },
     )
 

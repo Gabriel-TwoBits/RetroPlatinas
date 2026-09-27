@@ -287,7 +287,7 @@ def restores_latest_schema():
 @pytest.mark.django_db(transaction=True)
 def test_player_game_migration_backfills_players_from_their_unlocks(restores_latest_schema):
     executor = MigrationExecutor(connection)
-    executor.migrate(BEFORE_PLAYER_GAME)
+    executor.migrate(BEFORE_PLAYER_GAME + BACKFILL_SOURCE)
     old_apps = executor.loader.project_state(BEFORE_PLAYER_GAME + BACKFILL_SOURCE).apps
     user = old_apps.get_model("accounts", "User").objects.create(username="player")
     console = old_apps.get_model("games", "Console").objects.create(

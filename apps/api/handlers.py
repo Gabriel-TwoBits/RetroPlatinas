@@ -23,7 +23,6 @@ from apps.api.auth import is_expired_token, user_from_token
 from apps.games.models import RICH_PRESENCE_MAX_LENGTH, Console, Game, GameHash, PlayerGame
 from apps.images.catalog import (
     avatar_path,
-    badge_name,
     badge_path,
     game_icon_path,
     versioned_game_icon_path,
@@ -301,9 +300,9 @@ def _serialize_achievement(request, a, players):
         "Author": a.author.username,
         "Modified": int(a.updated_at.timestamp()),
         "Created": int(a.created_at.timestamp()),
-        "BadgeName": badge_name(a),
-        "BadgeURL": request.build_absolute_uri(badge_path(a)),
-        "BadgeLockedURL": request.build_absolute_uri(badge_path(a, locked=True)),
+        "BadgeName": a.badge_name,
+        "BadgeURL": request.build_absolute_uri(badge_path(a.badge_name)),
+        "BadgeLockedURL": request.build_absolute_uri(badge_path(a.badge_name, locked=True)),
         "Flags": flags,
         "Type": a.type,
         "Rarity": rarity,

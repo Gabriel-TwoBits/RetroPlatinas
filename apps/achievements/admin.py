@@ -5,7 +5,7 @@ from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 from django.utils.translation import ngettext
 
-from apps.achievements.models import Achievement, CodeNote, UserUnlock
+from apps.achievements.models import Achievement, Badge, CodeNote, UserUnlock
 from apps.achievements.scoring import recalculate_unlocker_points
 from apps.games.models import PlayerGame
 from apps.images.catalog import badge_path
@@ -18,11 +18,11 @@ _STATUS_COLORS = {
 }
 
 
-def _badge_img(achievement, locked, size):
+def _badge_img(name, locked, size):
     alt = _("Locked badge") if locked else _("Badge")
     return format_html(
         '<img src="{}" alt="{}" width="{}" height="{}">',
-        badge_path(achievement, locked=locked),
+        badge_path(name, locked=locked),
         alt,
         size,
         size,
@@ -76,7 +76,7 @@ class AchievementAdmin(admin.ModelAdmin):
 
     @admin.display(description=_("badge"))
     def badge_thumbnail(self, obj):
-        return _badge_img(obj, locked=False, size=ADMIN_LIST_THUMBNAIL_PX)
+        return _badge_img(obj.badge_name, locked=False, size=ADMIN_LIST_THUMBNAIL_PX)
 
     @admin.display(description=_("badge preview"))
     def badge_preview(self, obj):
@@ -86,8 +86,8 @@ class AchievementAdmin(admin.ModelAdmin):
         else:
             return format_html(
                 "{} {}",
-                _badge_img(obj, locked=False, size=BADGE_SIZE_PX),
-                _badge_img(obj, locked=True, size=BADGE_SIZE_PX),
+                _badge_img(obj.badge_name, locked=False, size=BADGE_SIZE_PX),
+                _badge_img(obj.badge_name, locked=True, size=BADGE_SIZE_PX),
             )
 
     @admin.action(
@@ -126,6 +126,43 @@ class AchievementAdmin(admin.ModelAdmin):
             changed,
         ) % {"count": changed, "status": dict(Achievement.STATUS_CHOICES)[status]}
         self.message_user(request, message)
+
+
+@admin.register(Badge)
+class BadgeAdmin(admin.ModelAdmin):
+    list_display = ("badge_thumbnail", "badge_name", "uploaded_by", "created_at")
+    list_display_links = ("badge_thumbnail", "badge_name")
+    search_fields = ("uploaded_by__username",)
+
+    @admin.display(description=_("badge"))
+    def badge_thumbnail(self, obj):
+        return _badge_img(obj.name, locked=False, size=ADMIN_LIST_THUMBNAIL_PX)
+
+    @admin.display(description=_("badge name"), ordering="id")
+    def badge_name(self, obj):
+        return obj.name
+
+    def get_readonly_fields(self, request, obj=None):
+        # A name always shows the same image, so an uploaded image is never replaced.
+        if obj is None:
+            return ()
+        else:
+            return ("badge_name", "badge_thumbnail", "image", "uploaded_by", "created_at")
+
+    def get_fields(self, request, obj=None):
+        if obj is None:
+            return ("image",)
+        else:
+            return self.get_readonly_fields(request, obj)
+
+    def has_delete_permission(self, request, obj=None):
+        # Achievements refer to badges by name, with no foreign key to protect them.
+        return False
+
+    def save_model(self, request, obj, form, change):
+        if not change:
+            obj.uploaded_by = request.user
+        super().save_model(request, obj, form, change)
 
 
 @admin.register(UserUnlock)
