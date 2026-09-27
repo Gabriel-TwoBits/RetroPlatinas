@@ -114,9 +114,10 @@ The same scenarios, except the clears and `the-great-gate-deaths` (plans replay 
 searched on), also pass on `SwanStation 1.0.0 b6c30a7`, the DuckStation fork, with a real NTSC-U BIOS.
 
 The Go-Explore search (`explore.py`) found no clear of The Great Gate, Boulders, Upstream or Rolling Stones
-within its time box of about 45 minutes of wall-clock search per stage or more, over two or three seeds (the
-deepest routes went from about 100 segments of 16 frames into Upstream to about 500 into The Great Gate). For those four stages everything but the clear is validated: the level id
-the condition names is measured on entry, and deaths and quits fire nothing.
+within its time box of about 45 minutes of wall-clock search per stage or more, over two or three seeds. The
+deepest route kept, 383 segments of 16 frames into The Great Gate, is `plans/the-great-gate-deepest.json`; the
+search logs are not kept. For those four stages everything but the clear is validated: the level id the
+condition names is measured on entry, and deaths and quits fire nothing.
 
 ### Still for the in-game check (DuckStation)
 
