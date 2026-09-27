@@ -135,6 +135,34 @@ not zero. An unlock carrying `o` is dated that far back, at most one day. A requ
 (curl, a test script) must sign itself the same way — `award_validation_hash` and
 `leaderboard_validation_hash` in `apps/anticheat/detection.py` compute it.
 
+## Editing sets from RAIntegration
+
+RAIntegration writes sets through `POST /dorequest.php` (the badge upload goes to
+`POST /doupload.php`). Every action but `codenotes2`, `badgeiter` and `latestclient` needs `u` + `t`.
+A refusal answers `access_denied` with `Status` 403, as RetroAchievements does.
+
+| Action | Allowed to | Behaviour |
+| --- | --- | --- |
+| `codenotes2` | anyone | the game's notes, `Address` as `0x%06x` |
+| `submitcodenote`, `submitcodenotes` | any user adds; only the note's author or staff changes or deletes it | an empty note deletes; the last writer becomes the note's author; `submitcodenotes` lists the refused addresses in `AccessDeniedAddresses` |
+| `uploadachievement` | any user creates; only the author or staff changes | a new achievement is always a **draft**, whatever `f` says, and `f` never changes a status: publish in the admin. `b` must be an uploaded badge or `00000`; `x` is the type |
+| `uploadleaderboard` | any user creates; only the author or staff changes | stored as `STA:…::CAN:…::SUB:…::VAL:…`; format aliases (`TIME`, `POINTS`, …) are stored by their canonical name. Leaderboards have no draft state: a new one is live |
+| `submitrichpresence` | staff | replaces the game's rich presence script |
+| `submitgametitle` | staff | links the hash to game `g`, or to the game titled `i` on console `c`, created if there is none |
+| `badgeiter` | anyone | the first badge number and the next one |
+| `uploadbadgeimage` | any user | multipart `u`, `t`, `file` (PNG, JPEG or GIF, at most 1 MiB and 1024 px a side); answers the new badge's name as `BadgeIter` |
+| `achievementwondata` | any user | the achievement's latest unlockers; the friends-only page (`f=1`) is empty |
+| `latestclient` | anyone | answers `not_found`, which lets every emulator through |
+
+`uploadachievement` and `uploadleaderboard` carry a checksum `h`, the lowercase hex MD5 rcheevos
+computes (`u` is the username as sent; `a`/`i` is `0` for a new one), checked by
+`achievement_upload_checksum` and `leaderboard_upload_checksum` in `apps/api/editor.py`:
+
+| Request | `h` |
+| --- | --- |
+| `uploadachievement` | `md5(u + "SECRET" + a + "SEC" + m + z + "RE2" + z × 3)` |
+| `uploadleaderboard` | `md5(u + "SECRET" + i + "SEC" + s + b + c + l + "RE2" + f)` |
+
 ## Running in background
 
 ```bash
