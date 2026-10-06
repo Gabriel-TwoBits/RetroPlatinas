@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "How to start playing" %} — RetroPlatinas{% endblock %}
+
+{% block content %}
+<article class="mx-auto max-w-2xl px-4 py-8">
+  <h1 class="font-display text-2xl font-bold leading-tight tracking-tight text-txt">{% trans "How to start playing" %}</h1>
+  <p class="mt-2 text-sm leading-relaxed text-txt-muted">{% trans "RetroPlatinas works with an unmodified DuckStation: point it at this site, log in and play." %}</p>
+
+  <div class="mt-8">
+    {% include "components/section-heading.html" with title=_("Step by step") accent="gold" %}
+    <ol class="mt-4 flex flex-col gap-6 border-l-2 border-brand-dim pl-4">
+      <li>
+        <h3 class="font-display text-base font-semibold text-txt"><span class="mr-2 font-mono text-brand">1</span>{% trans "Create an account" %}</h3>
+        <p class="mt-1 text-sm leading-relaxed text-txt-muted">{% trans "Pick a username and a password. They are the same ones you will type into the emulator." %}</p>
+        {% if user.is_authenticated %}
+          <p class="mt-1 font-mono text-xs text-txt-faint">{% blocktrans with username=user.username %}You're already logged in as {{ username }}.{% endblocktrans %}</p>
+        {% else %}
+          <a href="{% url 'register' %}" class="mt-1 inline-block font-mono text-xs text-brand">{% trans "Create account →" %}</a>
+        {% endif %}
+      </li>
+      <li>
+        <h3 class="font-display text-base font-semibold text-txt"><span class="mr-2 font-mono text-brand">2</span>{% trans "Get DuckStation" %}</h3>
+        <p class="mt-1 text-sm leading-relaxed text-txt-muted">{% trans "Download DuckStation for your system from its official site and open it once, so it creates its settings file. Today it is the only emulator we test, for PlayStation (PS1) games." %}</p>
+        <a href="https://www.duckstation.org/" target="_blank" rel="noopener" class="mt-1 inline-block font-mono text-xs text-brand">duckstation.org ↗</a>
+      </li>
+      <li>
+        <h3 class="font-display text-base font-semibold text-txt"><span class="mr-2 font-mono text-brand">3</span>{% trans "Point DuckStation at RetroPlatinas" %}</h3>
+        <p class="mt-1 text-sm leading-relaxed text-txt-muted">{% trans "Close DuckStation, open its settings.ini in a text editor and set the server address in the [Cheevos] section (add the section if it isn't there):" %}</p>
+        <pre class="mt-2 overflow-x-auto rounded-card border border-line px-3 py-2 font-mono text-sm text-txt">[Cheevos]
+Host = {{ server_url }}</pre>
+        <p class="mt-2 text-sm leading-relaxed text-txt-muted">{% trans "settings.ini lives in DuckStation's user folder: Documents\DuckStation on Windows, ~/.local/share/duckstation on Linux, ~/Library/Application Support/DuckStation on macOS." %}</p>
+      </li>
+      <li>
+        <h3 class="font-display text-base font-semibold text-txt"><span class="mr-2 font-mono text-brand">4</span>{% trans "Log in from the emulator" %}</h3>
+        <p class="mt-1 text-sm leading-relaxed text-txt-muted">{% trans "Open DuckStation, go to Settings → Achievements, enable achievements and log in with your RetroPlatinas username and password. DuckStation remembers the login, so you only do this once." %}</p>
+      </li>
+      <li>
+        <h3 class="font-display text-base font-semibold text-txt"><span class="mr-2 font-mono text-brand">5</span>{% trans "Play" %}</h3>
+        <p class="mt-1 text-sm leading-relaxed text-txt-muted">{% trans "Load a game that has a set — today, Crash Bandicoot (PS1). Achievements pop up as you unlock them and show up on your profile." %}</p>
+      </li>
+    </ol>
+  </div>
+
+  <div class="mt-10">
+    {% include "components/section-heading.html" with title=_("Hardcore mode") accent="state-hardcore" %}
+    <p class="mt-3 text-sm leading-relaxed text-txt-muted">{% trans "Hardcore Mode, in the same Achievements settings, turns off save states, cheats and rewind. Unlocks earned that way carry the hardcore seal and are shown apart from softcore ones; they are worth the same points." %}</p>
+  </div>
+</article>
+{% endblock %}
