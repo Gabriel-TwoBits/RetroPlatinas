@@ -23,6 +23,8 @@ from apps.api.handlers import (
     GAMEINFOLIST_MAX_IDS,
     HANDLERS,
     LBINFO_DEFAULT_COUNT,
+    MAX_INT32,
+    MIN_INT32,
     _rarity,
 )
 from apps.games.models import (
@@ -2040,6 +2042,30 @@ def test_submitlbentry_invalid_score(client, authed_user, game_with_leaderboards
     data = response.json()
     assert data["Success"] is False
     assert data["Error"] == "Invalid score"
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("score", [MIN_INT32 - 1, MAX_INT32 + 1])
+def test_submitlbentry_rejects_score_outside_int32(
+    client, authed_user, game_with_leaderboards, score
+):
+    _, token = authed_user
+    _, lb = game_with_leaderboards
+    response = client.post("/dorequest.php", _lbentry_params(token, lb.id, score))
+    data = response.json()
+    assert data["Success"] is False
+    assert data["Error"] == "Invalid score"
+    assert not LeaderboardEntry.objects.filter(leaderboard=lb).exists()
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("score", [MIN_INT32, MAX_INT32])
+def test_submitlbentry_accepts_int32_bounds(client, authed_user, game_with_leaderboards, score):
+    _, token = authed_user
+    _, lb = game_with_leaderboards
+    response = client.post("/dorequest.php", _lbentry_params(token, lb.id, score))
+    assert response.json()["Success"] is True
+    assert LeaderboardEntry.objects.get(leaderboard=lb).score == score
 
 
 @pytest.mark.django_db

@@ -99,6 +99,9 @@ RARITY_DECIMAL_PLACES = 2
 MAX_UINT32 = 0xFFFFFFFF
 # Bounds the digits before `int()`, which rejects strings past Python's digit limit.
 UINT32_PATTERN = re.compile(rf"[0-9]{{1,{len(str(MAX_UINT32))}}}")
+# rcheevos sends and parses a leaderboard score as an int32.
+MIN_INT32 = -(2**31)
+MAX_INT32 = 2**31 - 1
 
 
 def _invalid_parameter(message):
@@ -619,6 +622,8 @@ def handle_submitlbentry(request):
     try:
         score = int(request.POST.get("s", ""))
     except (ValueError, TypeError):
+        return {"Success": False, "Error": "Invalid score"}
+    if not MIN_INT32 <= score <= MAX_INT32:
         return {"Success": False, "Error": "Invalid score"}
 
     # `o` (seconds since the leaderboard completed) only enters the signature: an entry keeps
