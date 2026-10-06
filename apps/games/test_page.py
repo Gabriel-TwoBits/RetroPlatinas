@@ -136,7 +136,12 @@ def test_game_page_groups_points_in_brazilian_portuguese(client, crash):
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "path", [f"/games/{UNKNOWN_GAME_ID}/", f"/games/{UNKNOWN_GAME_ID}/panel/players/"]
+    "path",
+    [
+        f"/games/{UNKNOWN_GAME_ID}/",
+        f"/games/{UNKNOWN_GAME_ID}/panel/players/",
+        f"/games/{UNKNOWN_GAME_ID}/panel/achievements/?filter=bogus",
+    ],
 )
 def test_unknown_game_answers_404(client, crash, path):
     assert client.get(path).status_code == HTTPStatus.NOT_FOUND
