@@ -227,7 +227,9 @@ def test_pages_split_the_ranking_and_keep_ranks_across_the_cut(client):
     first = _body(client)
     second = _body(client, page=2)
     assert len(_ranking(first)) == USERS_PER_PAGE
-    assert _ranking(second) == [(1, "player-0100"), (1, "player-0101")]
+    assert _ranking(second) == [
+        (1, f"player-{index:04d}") for index in range(USERS_PER_PAGE, USERS_PER_PAGE + EXTRA_USERS)
+    ]
     assert "Page 2 of 2" in second
     assert 'href="/ranking/?mode=hardcore&amp;page=1"' in second
     assert 'href="/ranking/?mode=hardcore&amp;page=2"' in first
