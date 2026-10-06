@@ -169,6 +169,7 @@ def test_sets_list_published_games_with_icon_link_and_counts(client, crash):
     assert "2 achievements" in section
     assert "1,510 pts" in section
     assert "2 players" in section
+    assert "First set: Crash Bandicoot (PS1)" in resp.content.decode()
 
 
 @pytest.mark.django_db
@@ -231,10 +232,12 @@ def test_sets_use_singular_labels_for_one(client, crash):
 def test_sets_show_an_honest_empty_state_without_published_games(client, crash):
     _achievement(crash, "Draft", status=Achievement.STATUS_DRAFT)
 
-    section = _section(_get(client).content.decode(), "Available sets")
+    body = _get(client).content.decode()
 
+    section = _section(body, "Available sets")
     assert "No sets published yet" in section
     assert "/games/" not in section
+    assert "First set" not in body
 
 
 # --- Recent activity ---

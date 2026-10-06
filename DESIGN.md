@@ -202,6 +202,7 @@ unlock's softcore twin is not counted again.
 - **Hero strip** — headline, sub, a mono status line and the dual CTA, over a `border-line2`
   rule. One strip, never a full-height hero.
 - **Changelog entry** — a mono category label in its colour + title + body, as a ruled row.
+  The new-set entry shows only once a set is published.
 - **Set card** — a game object, so it is filled (`bg-surface`). One per game with a published
   achievement, by title: the icon through the `/Images/` route, title, console, published
   achievements, points and players (active users with points who unlocked one of them, as the
