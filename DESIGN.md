@@ -253,7 +253,8 @@ reader of the doc, not the user; they never ship.
 
 **Known debt:** `/games/`, `/ranking/` and `/feed/` are linked from the header, footer and the
 hero's secondary CTA but have no `urls.py` yet, so they 404 today. They predate this carve-out;
-removing them is a product decision, not a drift fix.
+removing them is a product decision, not a drift fix. The home set cards link to
+`/games/<id>/`, which the roadmap requires and which 404s until PR 23 adds the game page.
 
 ## Identity
 
