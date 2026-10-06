@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Games" %} — RetroPlatinas{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-6xl px-4 py-6 sm:py-8">
+  <section class="border-b border-line2 pb-6">
+    <h1 class="font-display text-2xl font-bold leading-tight text-txt sm:text-3xl">{% trans "Games" %}</h1>
+    <p class="mt-2 text-sm leading-relaxed text-txt-muted">{% trans "Games with a published achievement set. Search by title, or narrow the list by console and set size." %}</p>
+  </section>
+
+  {# A plain GET form that HTMX upgrades: typing or changing a filter swaps the results after 300 ms. #}
+  <form action="{% url 'games_list' %}" method="get" role="search"
+        class="rp-form mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
+        hx-get="{% url 'games_results' %}" hx-trigger="input changed delay:300ms, submit" hx-target="#games-results" hx-swap="outerHTML">
+    <div>
+      <label for="game-search" class="mb-1 block font-display text-sm font-semibold text-txt">{{ form.q.label }}</label>
+      <input id="game-search" type="search" name="q" value="{{ filters.q }}" maxlength="{{ form.q.field.max_length }}" autocomplete="off" placeholder="{% trans 'Search by title' %}">
+    </div>
+    <div>
+      <label for="{{ form.console.id_for_label }}" class="mb-1 block font-display text-sm font-semibold text-txt">{{ form.console.label }}</label>
+      {{ form.console }}
+    </div>
+    <div>
+      <label for="game-min-achievements" class="mb-1 block font-display text-sm font-semibold text-txt">{{ form.min_achievements.label }}</label>
+      <input id="game-min-achievements" type="number" name="min_achievements" value="{{ filters.min_achievements }}" min="0" inputmode="numeric">
+    </div>
+    <div>
+      <label for="{{ form.order.id_for_label }}" class="mb-1 block font-display text-sm font-semibold text-txt">{{ form.order.label }}</label>
+      {{ form.order }}
+    </div>
+    <noscript>
+      <button type="submit" class="rounded-tile border border-line2 px-4 py-2 font-display text-sm font-semibold text-txt">{% trans "Apply filters" %}</button>
+    </noscript>
+  </form>
+
+  {% include "games/partials/results.html" %}
+</div>
+{% endblock %}

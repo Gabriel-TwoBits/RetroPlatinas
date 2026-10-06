@@ -1,6 +1,6 @@
 """Rankings, point totals, completion and site-wide activity for the stats API, the
 `dorequest.php` leaderboard handlers, the profile page, the home page, the game page, the
-leaderboard page, the ranking page and the feed page.
+leaderboard page, the ranking page, the feed page and the games list.
 
 Only published achievements count. Inactive accounts (system accounts such as `ra-import`,
 deactivated users) hold no rank and are left out of player lists and `leaderboard_entries`; the
@@ -233,6 +233,24 @@ def published_games():
         .select_related("console")
         .order_by("title", "id")
     )
+
+
+def catalog_games():
+    """Every game, each annotated with `published_achievements` and `played_by` (the active
+    users who played it, as `game_players` lists them)."""
+    played_by = (
+        PlayerGame.objects.filter(game=OuterRef("pk"), user__is_active=True)
+        .order_by()
+        .values("game")
+        .annotate(count=Count("pk"))
+        .values("count")
+    )
+    return Game.objects.annotate(
+        published_achievements=Count(
+            "achievements", filter=Q(achievements__status__in=Achievement.PUBLISHED_STATUSES)
+        ),
+        played_by=Coalesce(Subquery(played_by), 0),
+    ).select_related("console")
 
 
 def playing_now():

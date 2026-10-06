@@ -1,14 +1,56 @@
+from http import HTTPStatus
+
+from django.core.paginator import InvalidPage
 from django.http import Http404, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, render
+from django.urls import reverse
 from django.utils.translation import gettext
 from django.views.decorators.http import require_safe
 
-from apps.games import page
+from apps.games import listing, page
+from apps.games.forms import GameFilterForm
 from apps.games.models import Game
+
+PAGE_PARAM = "page"
 
 
 def _game(game_id):
     return get_object_or_404(Game.objects.select_related("console"), pk=game_id)
+
+
+def _games_listing(request, template):
+    form = GameFilterForm(request.GET)
+    if not form.is_valid():
+        return HttpResponseBadRequest(gettext("Invalid games filter"))
+    else:
+        query = request.GET.copy()
+        query.pop(PAGE_PARAM, None)
+        try:
+            context = listing.list_context(
+                form.cleaned_data, request.GET.get(PAGE_PARAM, 1), query.urlencode()
+            )
+        except InvalidPage as error:
+            raise Http404("Unknown games page") from error
+        return render(request, template, {**context, "form": form})
+
+
+@require_safe
+def games_list(request):
+    return _games_listing(request, "games/list.html")
+
+
+@require_safe
+def games_results(request):
+    """The results of the list for its HTMX swaps, pushing the list's own URL into history."""
+    response = _games_listing(request, "games/partials/results.html")
+    if response.status_code != HTTPStatus.OK:
+        # htmx swaps nothing on an error, so the address bar keeps the last list shown.
+        return response
+    elif request.GET:
+        response["HX-Push-Url"] = f"{reverse('games_list')}?{request.GET.urlencode()}"
+    else:
+        response["HX-Push-Url"] = reverse("games_list")
+    return response
 
 
 @require_safe

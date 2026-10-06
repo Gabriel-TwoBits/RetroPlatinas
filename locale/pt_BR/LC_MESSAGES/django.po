@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RetroPlatinas\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-06 17:31-0300\n"
+"POT-Creation-Date: 2026-10-06 17:44-0300\n"
 "PO-Revision-Date: 2026-05-23 18:15-0300\n"
 "Last-Translator: RetroPlatinas\n"
 "Language-Team: Brazilian Portuguese\n"
@@ -379,6 +379,38 @@ msgstr "ícone"
 msgid "icon preview"
 msgstr "prévia do ícone"
 
+#: apps/games/forms.py:11
+msgid "Alphabetical"
+msgstr "Ordem alfabética"
+
+#: apps/games/forms.py:12
+msgid "Most achievements"
+msgstr "Mais conquistas"
+
+#: apps/games/forms.py:13
+msgid "Most players"
+msgstr "Mais jogadores"
+
+#: apps/games/forms.py:24
+msgid "Title"
+msgstr "Título"
+
+#: apps/games/forms.py:28
+msgid "All consoles"
+msgstr "Todos os consoles"
+
+#: apps/games/forms.py:29 templates/accounts/partials/sec-completion.html:6
+msgid "Console"
+msgstr "Console"
+
+#: apps/games/forms.py:32
+msgid "Minimum achievements"
+msgstr "Mínimo de conquistas"
+
+#: apps/games/forms.py:34
+msgid "Order by"
+msgstr "Ordenar por"
+
 #: apps/games/models.py:30
 msgid "RA ID"
 msgstr "ID no RA"
@@ -505,7 +537,11 @@ msgstr "Todas as conquistas desbloqueadas"
 msgid "Your drafts"
 msgstr "Seus rascunhos"
 
-#: apps/games/views.py:27
+#: apps/games/views.py:24
+msgid "Invalid games filter"
+msgstr "Filtro de jogos inválido"
+
+#: apps/games/views.py:68
 msgid "Unknown achievement filter"
 msgstr "Filtro de conquistas desconhecido"
 
@@ -775,7 +811,8 @@ msgid_plural "%(shown)s ranked players"
 msgstr[0] "%(shown)s jogador no ranking"
 msgstr[1] "%(shown)s jogadores no ranking"
 
-#: templates/accounts/partials/ranking-board.html:34 templates/home.html:73
+#: templates/accounts/partials/ranking-board.html:34
+#: templates/games/partials/results.html:21 templates/home.html:73
 #, python-format
 msgid "%(shown)s achievement"
 msgid_plural "%(shown)s achievements"
@@ -791,17 +828,20 @@ msgid "Ranking pages"
 msgstr "Páginas do ranking"
 
 #: templates/accounts/partials/ranking-board.html:52
+#: templates/games/partials/results.html:41
 #: templates/leaderboards/detail.html:45
 msgid "Previous"
 msgstr "Anterior"
 
 #: templates/accounts/partials/ranking-board.html:56
+#: templates/games/partials/results.html:45
 #: templates/leaderboards/detail.html:49
 #, python-format
 msgid "Page %(number)s of %(total)s"
 msgstr "Página %(number)s de %(total)s"
 
 #: templates/accounts/partials/ranking-board.html:59
+#: templates/games/partials/results.html:48
 #: templates/leaderboards/detail.html:52
 msgid "Next"
 msgstr "Próxima"
@@ -813,10 +853,6 @@ msgstr "Platinas & prêmios"
 #: templates/accounts/partials/sec-completion.html:5
 msgid "Game"
 msgstr "Jogo"
-
-#: templates/accounts/partials/sec-completion.html:6
-msgid "Console"
-msgstr "Console"
 
 #: templates/accounts/partials/sec-completion.html:8
 msgid "Completion"
@@ -940,7 +976,8 @@ msgid "Awards"
 msgstr "Prêmios"
 
 #: templates/accounts/profile.html:31 templates/base.html:59
-#: templates/components/site-menu.html:8 templates/home.html:7
+#: templates/components/site-menu.html:8 templates/games/list.html:4
+#: templates/games/list.html:9 templates/home.html:7
 msgid "Games"
 msgstr "Jogos"
 
@@ -1183,6 +1220,22 @@ msgstr "Seja o primeiro a jogar →"
 msgid "Points"
 msgstr "Pontos"
 
+#: templates/games/list.html:10
+msgid ""
+"Games with a published achievement set. Search by title, or narrow the list "
+"by console and set size."
+msgstr ""
+"Jogos com um set de conquistas publicado. Busque pelo título ou filtre a "
+"lista por console e tamanho do set."
+
+#: templates/games/list.html:19
+msgid "Search by title"
+msgstr "Buscar pelo título"
+
+#: templates/games/list.html:34
+msgid "Apply filters"
+msgstr "Aplicar filtros"
+
 #: templates/games/partials/panel-achievements.html:3
 msgid "Filter achievements"
 msgstr "Filtrar conquistas"
@@ -1211,6 +1264,33 @@ msgstr "%(unlocked)s/%(total)s conquistas (%(hardcore)s hardcore)"
 #: templates/games/partials/panel-players.html:17
 msgid "Nobody has played it yet"
 msgstr "Ninguém jogou ainda"
+
+#: templates/games/partials/results.html:8
+#, python-format
+msgid "%(shown)s game"
+msgid_plural "%(shown)s games"
+msgstr[0] "%(shown)s jogo"
+msgstr[1] "%(shown)s jogos"
+
+#: templates/games/partials/results.html:31
+msgid "No games match these filters"
+msgstr "Nenhum jogo corresponde a estes filtros"
+
+#: templates/games/partials/results.html:31
+msgid "Clear the filters →"
+msgstr "Limpar os filtros →"
+
+#: templates/games/partials/results.html:33 templates/home.html:80
+msgid "No sets published yet"
+msgstr "Nenhum set publicado ainda"
+
+#: templates/games/partials/results.html:33 templates/home.html:80
+msgid "A game shows up here as soon as its first achievement is published."
+msgstr "Um jogo aparece aqui assim que sua primeira conquista é publicada."
+
+#: templates/games/partials/results.html:38
+msgid "Games pages"
+msgstr "Páginas de jogos"
 
 #: templates/games/partials/tabs.html:2
 msgid "Game sections"
@@ -1302,14 +1382,6 @@ msgid "%(shown)s player"
 msgid_plural "%(shown)s players"
 msgstr[0] "%(shown)s jogador"
 msgstr[1] "%(shown)s jogadores"
-
-#: templates/home.html:80
-msgid "No sets published yet"
-msgstr "Nenhum set publicado ainda"
-
-#: templates/home.html:80
-msgid "A game shows up here as soon as its first achievement is published."
-msgstr "Um jogo aparece aqui assim que sua primeira conquista é publicada."
 
 #: templates/home.html:86
 msgid "How to contribute"
@@ -1461,12 +1533,6 @@ msgstr "você"
 
 #~ msgid "+ more statistics (social, averages)"
 #~ msgstr "+ mais estatísticas (sociais, médias)"
-
-#, python-format
-#~ msgid "%(n)s game"
-#~ msgid_plural "%(n)s games"
-#~ msgstr[0] "%(n)s jogo"
-#~ msgstr[1] "%(n)s jogos"
 
 #~ msgid "hide completed"
 #~ msgstr "ocultar concluídos"

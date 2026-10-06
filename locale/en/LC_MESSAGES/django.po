@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RetroPlatinas\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-06 17:31-0300\n"
+"POT-Creation-Date: 2026-10-06 17:44-0300\n"
 "PO-Revision-Date: 2026-05-23 18:15-0300\n"
 "Last-Translator: RetroPlatinas\n"
 "Language-Team: English\n"
@@ -377,6 +377,38 @@ msgstr ""
 msgid "icon preview"
 msgstr ""
 
+#: apps/games/forms.py:11
+msgid "Alphabetical"
+msgstr ""
+
+#: apps/games/forms.py:12
+msgid "Most achievements"
+msgstr ""
+
+#: apps/games/forms.py:13
+msgid "Most players"
+msgstr ""
+
+#: apps/games/forms.py:24
+msgid "Title"
+msgstr ""
+
+#: apps/games/forms.py:28
+msgid "All consoles"
+msgstr ""
+
+#: apps/games/forms.py:29 templates/accounts/partials/sec-completion.html:6
+msgid "Console"
+msgstr ""
+
+#: apps/games/forms.py:32
+msgid "Minimum achievements"
+msgstr ""
+
+#: apps/games/forms.py:34
+msgid "Order by"
+msgstr ""
+
 #: apps/games/models.py:30
 msgid "RA ID"
 msgstr ""
@@ -503,7 +535,11 @@ msgstr ""
 msgid "Your drafts"
 msgstr ""
 
-#: apps/games/views.py:27
+#: apps/games/views.py:24
+msgid "Invalid games filter"
+msgstr ""
+
+#: apps/games/views.py:68
 msgid "Unknown achievement filter"
 msgstr ""
 
@@ -771,7 +807,8 @@ msgid_plural "%(shown)s ranked players"
 msgstr[0] ""
 msgstr[1] ""
 
-#: templates/accounts/partials/ranking-board.html:34 templates/home.html:73
+#: templates/accounts/partials/ranking-board.html:34
+#: templates/games/partials/results.html:21 templates/home.html:73
 #, python-format
 msgid "%(shown)s achievement"
 msgid_plural "%(shown)s achievements"
@@ -787,17 +824,20 @@ msgid "Ranking pages"
 msgstr ""
 
 #: templates/accounts/partials/ranking-board.html:52
+#: templates/games/partials/results.html:41
 #: templates/leaderboards/detail.html:45
 msgid "Previous"
 msgstr ""
 
 #: templates/accounts/partials/ranking-board.html:56
+#: templates/games/partials/results.html:45
 #: templates/leaderboards/detail.html:49
 #, python-format
 msgid "Page %(number)s of %(total)s"
 msgstr ""
 
 #: templates/accounts/partials/ranking-board.html:59
+#: templates/games/partials/results.html:48
 #: templates/leaderboards/detail.html:52
 msgid "Next"
 msgstr ""
@@ -808,10 +848,6 @@ msgstr ""
 
 #: templates/accounts/partials/sec-completion.html:5
 msgid "Game"
-msgstr ""
-
-#: templates/accounts/partials/sec-completion.html:6
-msgid "Console"
 msgstr ""
 
 #: templates/accounts/partials/sec-completion.html:8
@@ -936,7 +972,8 @@ msgid "Awards"
 msgstr ""
 
 #: templates/accounts/profile.html:31 templates/base.html:59
-#: templates/components/site-menu.html:8 templates/home.html:7
+#: templates/components/site-menu.html:8 templates/games/list.html:4
+#: templates/games/list.html:9 templates/home.html:7
 msgid "Games"
 msgstr ""
 
@@ -1150,6 +1187,20 @@ msgstr ""
 msgid "Points"
 msgstr ""
 
+#: templates/games/list.html:10
+msgid ""
+"Games with a published achievement set. Search by title, or narrow the list "
+"by console and set size."
+msgstr ""
+
+#: templates/games/list.html:19
+msgid "Search by title"
+msgstr ""
+
+#: templates/games/list.html:34
+msgid "Apply filters"
+msgstr ""
+
 #: templates/games/partials/panel-achievements.html:3
 msgid "Filter achievements"
 msgstr ""
@@ -1177,6 +1228,33 @@ msgstr ""
 
 #: templates/games/partials/panel-players.html:17
 msgid "Nobody has played it yet"
+msgstr ""
+
+#: templates/games/partials/results.html:8
+#, python-format
+msgid "%(shown)s game"
+msgid_plural "%(shown)s games"
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/games/partials/results.html:31
+msgid "No games match these filters"
+msgstr ""
+
+#: templates/games/partials/results.html:31
+msgid "Clear the filters →"
+msgstr ""
+
+#: templates/games/partials/results.html:33 templates/home.html:80
+msgid "No sets published yet"
+msgstr ""
+
+#: templates/games/partials/results.html:33 templates/home.html:80
+msgid "A game shows up here as soon as its first achievement is published."
+msgstr ""
+
+#: templates/games/partials/results.html:38
+msgid "Games pages"
 msgstr ""
 
 #: templates/games/partials/tabs.html:2
@@ -1265,14 +1343,6 @@ msgid "%(shown)s player"
 msgid_plural "%(shown)s players"
 msgstr[0] ""
 msgstr[1] ""
-
-#: templates/home.html:80
-msgid "No sets published yet"
-msgstr ""
-
-#: templates/home.html:80
-msgid "A game shows up here as soon as its first achievement is published."
-msgstr ""
 
 #: templates/home.html:86
 msgid "How to contribute"

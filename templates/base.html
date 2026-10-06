@@ -56,7 +56,7 @@
     <div class="mx-auto flex max-w-6xl flex-wrap items-center gap-4 px-4 py-6 font-mono text-xs text-txt-faint">
       {% include "components/logo.html" with variant="selo" size=22 %}
       <span>© RetroPlatinas</span>
-      <a class="text-txt-faint no-underline hover:text-brand-hi" href="/games/">{% trans "Games" %}</a>
+      <a class="text-txt-faint no-underline hover:text-brand-hi" href="{% url 'games_list' %}">{% trans "Games" %}</a>
       <a class="text-txt-faint no-underline hover:text-brand-hi" href="{% url 'ranking' %}">{% trans "Ranking" %}</a>
       <a class="text-txt-faint no-underline hover:text-brand-hi" href="{% url 'feed' %}">{% trans "Feed" %}</a>
       <a class="text-txt-faint no-underline hover:text-brand-hi" href="{% url 'getting_started' %}">{% trans "How to start" %}</a>

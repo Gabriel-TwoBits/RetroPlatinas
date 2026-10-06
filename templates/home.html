@@ -23,7 +23,7 @@
       </div>
       <div class="flex shrink-0 flex-wrap gap-3">
         <a href="{{ register_url }}" class="rounded-tile bg-brand px-4 py-2.5 font-display text-sm font-bold text-brand-ink no-underline hover:no-underline">{% trans "Create account" %}</a>
-        <a href="/games/" class="rounded-tile border border-line2 px-4 py-2.5 font-display text-sm font-semibold text-txt no-underline hover:text-txt hover:no-underline">{% trans "See the games" %}</a>
+        <a href="{% url 'games_list' %}" class="rounded-tile border border-line2 px-4 py-2.5 font-display text-sm font-semibold text-txt no-underline hover:text-txt hover:no-underline">{% trans "See the games" %}</a>
       </div>
     </div>
   </section>

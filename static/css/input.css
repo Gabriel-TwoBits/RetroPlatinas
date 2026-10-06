@@ -34,6 +34,7 @@
 
   /* Django renders form widgets without classes, so the inputs are styled from the form. */
   .rp-form input:not([type="hidden"]):not([type="checkbox"]),
+  .rp-form select,
   .rp-form textarea {
     @apply block w-full rounded-card border border-line2 bg-bg px-3 py-2 font-sans text-sm text-txt focus:border-brand focus:outline-none;
   }
