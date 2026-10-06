@@ -1,0 +1,28 @@
+{% load i18n %}
+<section>
+  {% include "components/section-heading.html" with title=_("Recent unlocks") accent="gold" %}
+  <div>
+    {% for u in recent_unlocks %}
+      {% with achievement=u.unlock.achievement %}
+        <div class="flex items-center gap-3 border-t border-line py-2 first:border-t-0">
+          <img src="{{ u.badge_url }}" alt="" width="40" height="40" class="h-10 w-10 shrink-0 rounded-tile border-2 {% if u.unlock.hardcore %}border-state-hardcore{% else %}border-state-softcore{% endif %}">
+          <div class="min-w-0 flex-1">
+            <div class="truncate text-sm font-semibold text-txt">{{ achievement.title }}</div>
+            <div class="truncate font-mono text-xs text-txt-faint">{{ achievement.game.title }} · <time datetime="{{ u.unlock.unlocked_at|date:'c' }}">{{ u.unlock.unlocked_at|date:"SHORT_DATETIME_FORMAT" }}</time></div>
+          </div>
+          <div class="shrink-0 text-right font-mono text-xs">
+            <div class="text-gold">{% blocktrans count points=achievement.points %}{{ points }} pt{% plural %}{{ points }} pts{% endblocktrans %}</div>
+            {% if u.unlock.hardcore %}<div class="text-state-hardcore">{% trans "hardcore" %}</div>{% else %}<div class="text-state-softcore">{% trans "softcore" %}</div>{% endif %}
+          </div>
+        </div>
+      {% endwith %}
+    {% empty %}
+      {% if is_owner %}
+        {% url 'getting_started' as start_url %}
+        {% include "components/empty-state.html" with title=_("No unlocks yet") body=_("Play a game with achievements and your unlocks show up here.") href=start_url cta=_("How to start →") %}
+      {% else %}
+        {% include "components/empty-state.html" with title=_("No unlocks yet") %}
+      {% endif %}
+    {% endfor %}
+  </div>
+</section>

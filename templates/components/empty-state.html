@@ -1,0 +1,13 @@
+{% comment %}
+  Honest "nothing here yet" line for a data block, no box. Args:
+    title : the line
+    body  : optional sentence under it
+    href, cta : optional link and its text
+{% endcomment %}
+<div class="py-4">
+  <div class="flex items-center gap-2 font-display text-sm font-semibold text-txt">
+    <span class="h-2 w-2 rounded-full bg-brand animate-rp-pulse"></span>{{ title }}
+  </div>
+  {% if body %}<div class="mt-1 text-xs leading-relaxed text-txt-muted">{{ body }}</div>{% endif %}
+  {% if href %}<a href="{{ href }}" class="mt-2 inline-block font-mono text-xs text-brand">{{ cta }}</a>{% endif %}
+</div>

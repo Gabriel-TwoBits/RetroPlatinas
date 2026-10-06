@@ -10,8 +10,11 @@
 <div class="mx-auto hidden max-w-6xl gap-8 px-4 py-6 lg:flex lg:items-start">
   <div class="flex min-w-0 flex-1 flex-col gap-8">
     {% include "accounts/partials/sec-recent-games.html" %}
-    {% include "accounts/partials/sec-progression.html" %}
-    {% include "accounts/partials/sec-completion.html" %}
+    {% include "accounts/partials/sec-recent-unlocks.html" %}
+    {% if completion %}
+      {% include "accounts/partials/sec-progression.html" %}
+      {% include "accounts/partials/sec-completion.html" %}
+    {% endif %}
   </div>
   <aside class="flex w-80 shrink-0 flex-col gap-8">
     {% include "accounts/partials/sec-awards.html" %}

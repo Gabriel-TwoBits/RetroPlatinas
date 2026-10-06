@@ -1,11 +1,12 @@
 """Rankings, point totals and completion for the stats API, the `dorequest.php` leaderboard
-handlers and, later, the site pages.
+handlers and the profile page.
 
 Only published achievements count. Inactive accounts (system accounts such as `ra-import`,
 deactivated users) hold no rank and are left out of player lists and `leaderboard_entries`; the
 leaderboard rank helpers rank whichever entries they are given.
 """
 
+from dataclasses import dataclass
 from typing import NamedTuple
 
 from django.contrib.auth import get_user_model
@@ -55,6 +56,23 @@ def global_ranks(user):
     )
 
 
+def ranked_player_counts():
+    """How many users hold a rank in each mode: active, with points in it."""
+    counts = ranked_users().aggregate(
+        hardcore=Count("pk", filter=Q(hardcore_points__gt=0)),
+        softcore=Count("pk", filter=Q(softcore_points__gt=0)),
+    )
+    return ByMode(hardcore=counts["hardcore"], softcore=counts["softcore"])
+
+
+def first_unlocks(user):
+    """The user's published unlocks, one per achievement, at its first unlock in any mode.
+
+    A hardcore unlock writes its softcore twin, so the softcore rows are exactly these.
+    """
+    return published_unlocks().filter(user=user, hardcore=False)
+
+
 def unlocked_achievement_counts(user):
     """How many distinct published achievements the user unlocked in each mode."""
     counts = (
@@ -91,6 +109,81 @@ def recent_unlocks(user, limit):
         .select_related("achievement__game")
         .order_by("-unlocked_at", "-id")[:limit]
     )
+
+
+# Unlocking every published achievement of these types beats a game.
+BEATING_TYPES = (Achievement.TYPE_PROGRESSION, Achievement.TYPE_WIN_CONDITION)
+
+
+@dataclass
+class GameProgress:
+    """A user's progress on one played game's published achievements."""
+
+    played: PlayerGame
+    achievements: int
+    points: int
+    unlocked: ByMode
+    points_unlocked: int
+    beaten: bool
+    platinum: bool
+
+
+def _game_progress(played, achievements, hardcore_ids, softcore_ids):
+    """`achievements` are the game's published `(id, points, type)`; the id sets hold what the
+    user unlocked in each mode, softcore covering both."""
+    ids = {achievement_id for achievement_id, _, _ in achievements}
+    beating_ids = {
+        achievement_id
+        for achievement_id, _, achievement_type in achievements
+        if achievement_type in BEATING_TYPES
+    }
+    return GameProgress(
+        played=played,
+        achievements=len(ids),
+        points=sum(points for _, points, _ in achievements),
+        unlocked=ByMode(hardcore=len(ids & hardcore_ids), softcore=len(ids & softcore_ids)),
+        points_unlocked=sum(
+            points for achievement_id, points, _ in achievements if achievement_id in softcore_ids
+        ),
+        beaten=bool(beating_ids) and beating_ids <= softcore_ids,
+        platinum=bool(ids) and ids <= hardcore_ids,
+    )
+
+
+def played_games_progress(user):
+    """A `GameProgress` for each game the user played, most recently played first.
+
+    A game is beaten once every published progression and win-condition achievement is unlocked
+    in any mode, and platinum once every published achievement is unlocked in hardcore.
+    """
+    played = list(
+        PlayerGame.objects.filter(user=user)
+        .select_related("game__console")
+        .order_by("-last_played_at", "id")
+    )
+    game_ids = [played_game.game_id for played_game in played]
+    achievements_by_game = {game_id: [] for game_id in game_ids}
+    for achievement_id, game_id, points, achievement_type in Achievement.objects.filter(
+        game_id__in=game_ids, status__in=Achievement.PUBLISHED_STATUSES
+    ).values_list("id", "game_id", "points", "type"):
+        achievements_by_game[game_id].append((achievement_id, points, achievement_type))
+    hardcore_ids = set()
+    softcore_ids = set()
+    for achievement_id, hardcore in (
+        published_unlocks()
+        .filter(user=user, achievement__game_id__in=game_ids)
+        .values_list("achievement_id", "hardcore")
+    ):
+        if hardcore:
+            hardcore_ids.add(achievement_id)
+        else:
+            softcore_ids.add(achievement_id)
+    return [
+        _game_progress(
+            played_game, achievements_by_game[played_game.game_id], hardcore_ids, softcore_ids
+        )
+        for played_game in played
+    ]
 
 
 def _unlocked_in_game(game, hardcore):

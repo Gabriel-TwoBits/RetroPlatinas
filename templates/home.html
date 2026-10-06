@@ -140,13 +140,7 @@
               {% if a.hardcore %}<span class="shrink-0 font-mono text-xs text-state-hardcore">{% trans "HC" %}</span>{% endif %}
             </div>
           {% empty %}
-            <div class="py-4">
-              <div class="flex items-center gap-2 font-display text-sm font-semibold text-txt">
-                <span class="h-2 w-2 rounded-full bg-brand animate-rp-pulse"></span>{% trans "No unlocks yet" %}
-              </div>
-              <div class="mt-1 text-xs leading-relaxed text-txt-muted">{% trans "As soon as someone plays, unlocks show up here in real time." %}</div>
-              <a href="{{ register_url }}" class="mt-2 inline-block font-mono text-xs text-brand">{% trans "Be the first to play →" %}</a>
-            </div>
+            {% include "components/empty-state.html" with title=_("No unlocks yet") body=_("As soon as someone plays, unlocks show up here in real time.") href=register_url cta=_("Be the first to play →") %}
           {% endfor %}
         </div>
       </section>

@@ -11,13 +11,13 @@
     <div class="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-line py-3 sm:flex-nowrap">
       <div class="flex min-w-0 flex-1 items-center gap-3">
         <div class="rp-hatch flex h-7 w-7 shrink-0 items-center justify-center rounded-card font-display text-xs font-bold text-brand">{{ g.initials }}</div>
-        <span class="truncate text-sm font-medium text-txt">{{ g.title }}</span>
+        <span class="truncate text-sm font-medium text-txt">{{ g.game.title }}</span>
       </div>
       <span class="font-mono text-xs text-txt-muted sm:w-16">{{ g.tag }}</span>
-      <span class="font-mono text-xs {% if g.done %}text-state-platinum{% else %}text-txt-muted{% endif %} sm:w-24 sm:text-right">{{ g.a }} / {{ g.t }}</span>
+      <span class="font-mono text-xs text-state-{{ g.state }} sm:w-24 sm:text-right">{{ g.unlocked.softcore }} / {{ g.achievements }}</span>
       <div class="flex items-center gap-2 sm:w-36 sm:justify-end">
         <div class="h-1.5 w-20 overflow-hidden rounded-full bg-elevated">
-          <div class="h-full bg-{{ g.bar_tone }}" style="width:{{ g.pct }}%"></div>
+          <div class="h-full bg-state-{{ g.state }}" style="width:{{ g.pct }}%"></div>
         </div>
         <span class="w-9 text-right font-mono text-xs text-txt-faint">{{ g.pct }}%</span>
       </div>

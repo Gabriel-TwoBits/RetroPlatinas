@@ -1,9 +1,19 @@
-{% load i18n %}
+{% load i18n humanize %}
 <section>
   {% include "components/section-heading.html" with title=_("Player statistics") %}
   <div>
-    {% for s in stats %}
-      {% include "components/stat-line.html" with label=s.label value=s.value sub=s.sub %}
-    {% endfor %}
+    {% include "components/stat-line.html" with label=_("Hardcore achievements") value=unlocked.hardcore|intcomma %}
+    {% include "components/stat-line.html" with label=_("Softcore achievements") sub=_("hardcore included") value=unlocked.softcore|intcomma %}
+    {% include "components/stat-line.html" with label=_("Games played") value=games_played|intcomma %}
+    {% include "components/stat-line.html" with label=_("Games beaten") value=games_beaten|intcomma %}
+    {% include "components/stat-line.html" with label=_("Platinums") value=platinums|intcomma %}
+    {% if average_completion is None %}
+      {% include "components/stat-line.html" with label=_("Average completion") sub=_("per game") value="—" %}
+    {% else %}
+      {% include "components/stat-line.html" with label=_("Average completion") sub=_("per game") value=average_completion|stringformat:"d%%" %}
+    {% endif %}
+    {% include "components/stat-line.html" with label=_("Points (7 days)") sub=_("any mode") value=points_short_window|intcomma %}
+    {% include "components/stat-line.html" with label=_("Points (30 days)") sub=_("any mode") value=points_long_window|intcomma %}
+    {% include "components/stat-line.html" with label=_("Average per week") sub=_("points since joining") value=points_per_week|intcomma %}
   </div>
 </section>

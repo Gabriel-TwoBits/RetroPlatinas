@@ -1,0 +1,7 @@
+{% load i18n %}
+{% if is_owner %}
+  {% url 'getting_started' as start_url %}
+  {% include "components/empty-state.html" with title=_("No games played yet") body=_("Your games show up here once you play with RetroPlatinas set as the achievements server.") href=start_url cta=_("How to start →") %}
+{% else %}
+  {% include "components/empty-state.html" with title=_("No games played yet") %}
+{% endif %}

@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n humanize %}
 <div class="flex flex-col gap-8">
   {% include "accounts/partials/sec-stats.html" %}
 
@@ -11,8 +11,10 @@
     </div>
     <div class="mt-2 flex justify-between font-mono text-xs text-txt-faint">
       <span>{% trans "14d ago" %}</span>
-      <span>{{ heat_rate }}</span>
+      <span>{% blocktrans count points=heat_points with shown=heat_points|intcomma %}{{ shown }} pt{% plural %}{{ shown }} pts{% endblocktrans %}</span>
       <span>{% trans "today" %}</span>
     </div>
   </section>
+
+  {% include "accounts/partials/sec-recent-unlocks.html" %}
 </div>

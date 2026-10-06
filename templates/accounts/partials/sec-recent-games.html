@@ -8,7 +8,7 @@
           <div class="rp-hatch flex h-14 w-14 shrink-0 items-center justify-center rounded-tile border border-line2 font-display font-bold text-brand">{{ g.initials }}</div>
           <div class="min-w-0 flex-1">
             <div class="flex items-start justify-between gap-3">
-              <div class="font-display text-base font-semibold text-txt">{{ g.title }}</div>
+              <div class="font-display text-base font-semibold text-txt">{{ g.game.title }}</div>
               <span class="whitespace-nowrap font-mono text-xs text-state-{{ g.state }}">{{ g.state_label }}</span>
             </div>
             <div class="mb-3 mt-1 font-mono text-xs text-txt-faint">{{ g.meta }}</div>
@@ -20,15 +20,19 @@
             </div>
           </div>
         </div>
-        <div class="mt-4 grid grid-cols-10 gap-1.5 sm:grid-cols-20">
-          {% for c in g.grid.cells %}
-            <div class="aspect-square rounded-chip {% if c.unlocked %}bg-gold{% else %}border border-line opacity-45{% endif %}"></div>
-          {% endfor %}
-          {% if g.grid.more %}
-            <div class="flex aspect-square items-center justify-center font-mono text-xs text-txt-muted">+{{ g.grid.more }}</div>
-          {% endif %}
-        </div>
+        {% if g.grid.cells %}
+          <div class="mt-4 grid grid-cols-10 gap-1.5 sm:grid-cols-20">
+            {% for c in g.grid.cells %}
+              <div class="aspect-square rounded-chip {% if c.unlocked %}bg-gold{% else %}border border-line opacity-45{% endif %}"></div>
+            {% endfor %}
+            {% if g.grid.more %}
+              <div class="flex aspect-square items-center justify-center font-mono text-xs text-txt-muted">+{{ g.grid.more }}</div>
+            {% endif %}
+          </div>
+        {% endif %}
       </div>
+    {% empty %}
+      {% include "accounts/partials/empty-games.html" %}
     {% endfor %}
   </div>
 </section>

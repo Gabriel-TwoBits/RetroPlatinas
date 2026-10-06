@@ -1,49 +1,68 @@
-{% load i18n %}
+{% load i18n humanize %}
 <div class="mx-auto max-w-6xl border-b border-line px-4 py-6">
   <div class="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
-    <div class="flex gap-4">
-      <div class="rp-hatch relative flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl border border-line2 font-display text-2xl font-bold text-brand">
-        {{ profile_user.username|slice:":2"|upper }}
-        <span class="absolute -bottom-2 -right-2 flex h-7 w-7 items-center justify-center rounded-full border-2 border-bg bg-state-platinum text-sm text-bg">★</span>
-      </div>
+    <div class="flex min-w-0 gap-4">
+      <img src="{{ avatar_url }}" alt="" width="80" height="80" class="h-20 w-20 shrink-0 rounded-2xl border border-line2">
       <div class="min-w-0">
-        <div class="flex flex-wrap items-center gap-3">
-          <h1 class="break-all font-display text-3xl font-bold leading-none text-txt">{{ profile_user.username }}</h1>
-          {% if is_hardcore %}
-            <span class="rounded-full border border-state-hardcore px-2 py-0.5 font-mono text-xs text-state-hardcore">{% trans "HARDCORE" %}</span>
-          {% endif %}
-        </div>
-        <p class="mt-2 max-w-lg text-sm leading-relaxed text-txt-muted">{{ bio }}</p>
+        <h1 class="break-all font-display text-3xl font-bold leading-none text-txt">{{ profile_user.username }}</h1>
+        {% if profile_user.bio %}
+          <p class="mt-2 max-w-lg whitespace-pre-line break-words text-sm leading-relaxed text-txt-muted">{{ profile_user.bio }}</p>
+        {% endif %}
         <div class="mt-1 font-mono text-xs text-txt-faint">
-          {% blocktrans %}member since {{ member_since }}{% endblocktrans %} ·
-          <span class="text-brand">{% blocktrans %}active {{ active_ago }} ago{% endblocktrans %}</span>
+          {% blocktrans with date=profile_user.date_joined|date:"YEAR_MONTH_FORMAT" %}member since {{ date }}{% endblocktrans %}
         </div>
       </div>
     </div>
 
     <div class="flex gap-6 sm:text-right">
       <div>
-        <div class="font-mono text-xs uppercase tracking-wide text-txt-faint">{% trans "Total points" %}</div>
-        <div class="font-mono text-2xl font-bold leading-tight text-gold">{{ points_total }}</div>
+        <div class="font-mono text-xs uppercase tracking-wide text-state-hardcore">{% trans "Hardcore" %}</div>
+        <div class="font-mono text-2xl font-bold leading-tight text-gold">{{ points.hardcore|intcomma }}</div>
+        <div class="font-mono text-xs text-txt-faint">
+          {% if ranks.hardcore %}
+            {% blocktrans with rank=ranks.hardcore|intcomma players=ranked_players.hardcore|intcomma %}#{{ rank }} of {{ players }}{% endblocktrans %}
+          {% else %}
+            {% trans "unranked" %}
+          {% endif %}
+        </div>
       </div>
       <div class="border-l border-line pl-6">
-        <div class="font-mono text-xs uppercase tracking-wide text-txt-faint">{% trans "Global rank" %}</div>
-        <div class="font-mono text-2xl font-bold leading-tight text-txt">{{ rank }}</div>
-        <div class="font-mono text-xs text-brand">{% blocktrans %}of {{ rank_total }} · Top {{ top_pct }}{% endblocktrans %}</div>
+        <div class="font-mono text-xs uppercase tracking-wide text-state-softcore">{% trans "Softcore" %}</div>
+        <div class="font-mono text-2xl font-bold leading-tight text-gold">{{ points.softcore|intcomma }}</div>
+        <div class="font-mono text-xs text-txt-faint">
+          {% if ranks.softcore %}
+            {% blocktrans with rank=ranks.softcore|intcomma players=ranked_players.softcore|intcomma %}#{{ rank }} of {{ players }}{% endblocktrans %}
+          {% else %}
+            {% trans "unranked" %}
+          {% endif %}
+        </div>
       </div>
     </div>
   </div>
 
-  <div class="mt-5 flex items-center gap-3 border-t border-line pt-4">
-    <div class="rp-hatch flex h-11 w-11 shrink-0 items-center justify-center rounded-tile font-display font-bold text-brand">{{ last_played.initials }}</div>
-    <div class="min-w-0 flex-1">
-      <div class="font-mono text-xs uppercase tracking-wide text-txt-faint">{% trans "Playing now" %}</div>
-      <div class="truncate font-display text-base font-semibold text-txt">{{ last_played.title }}
-        <span class="font-mono text-xs font-normal text-txt-faint">· {{ last_played.tag }}</span>
+  {% if current_game %}
+    {% with played=current_game.played %}
+      <div class="mt-5 flex items-center gap-3 border-t border-line pt-4">
+        <div class="rp-hatch flex h-11 w-11 shrink-0 items-center justify-center rounded-tile font-display font-bold text-brand">{{ current_game.initials }}</div>
+        <div class="min-w-0 flex-1">
+          <div class="font-mono text-xs uppercase tracking-wide text-txt-faint">
+            {% if current_game.live %}{% trans "Playing now" %}{% else %}{% trans "Last played" %}{% endif %}
+          </div>
+          <div class="truncate font-display text-base font-semibold text-txt">{{ played.game.title }}
+            <span class="font-mono text-xs font-normal text-txt-faint">· {{ played.game.console.short_name }}</span>
+          </div>
+          {% if current_game.live and played.last_rich_presence %}
+            <div class="truncate text-sm text-txt-muted">{{ played.last_rich_presence }}</div>
+          {% endif %}
+        </div>
+        {% if current_game.live %}
+          <span class="flex shrink-0 items-center gap-2 font-mono text-xs {% if played.hardcore %}text-state-hardcore{% else %}text-state-softcore{% endif %}">
+            <span class="h-2 w-2 rounded-full bg-brand animate-rp-pulse"></span>{% if played.hardcore %}{% trans "hardcore" %}{% else %}{% trans "softcore" %}{% endif %}
+          </span>
+        {% else %}
+          <span class="shrink-0 font-mono text-xs text-txt-faint">{{ played.last_played_at|naturaltime }}</span>
+        {% endif %}
       </div>
-    </div>
-    <span class="flex shrink-0 items-center gap-2 font-mono text-xs text-brand">
-      <span class="h-2 w-2 rounded-full bg-brand"></span>{% trans "active session" %}
-    </span>
-  </div>
+    {% endwith %}
+  {% endif %}
 </div>
