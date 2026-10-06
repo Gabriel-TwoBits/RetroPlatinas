@@ -26,6 +26,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 
+import achievements
 import navigation
 import plan as plans
 import states
@@ -72,9 +73,8 @@ FORBIDDEN = "forbidden"
 STUCK = "stuck"  # a quit that never reached the map (SELECT ignored mid-air)
 QUIT_MOVE = "quit-and-reenter"
 QUIT_PROBABILITY = 0.02  # per segment: a quit costs about a thousand frames of menus and loading
-QUIT_STAND_FRAMES = 60  # SELECT does not quit while Crash is still moving or falling
-AKU_INVINCIBLE_LEVEL = 3  # the third mask
 CLEAR_GOAL = "clear"
+AKU_INVINCIBLE_LEVEL = achievements.collectible_seed().AKU_INVINCIBLE_LEVEL
 
 
 @dataclass(frozen=True)
@@ -225,7 +225,7 @@ class Runner:
 
         self.emu.frame_hooks.append(record)
         try:
-            outcome = self.run_macro([(QUIT_STAND_FRAMES, [])])
+            outcome = self.run_macro([(navigation.QUIT_STAND_FRAMES, [])])
             if outcome is None:
                 navigation.pause_and_quit(self.emu)
                 entered = navigation.enter_stage(self.emu)

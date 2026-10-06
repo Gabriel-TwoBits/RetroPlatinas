@@ -45,7 +45,8 @@ FARMED_MASKS = 2
 WUMPA_ROUTE_FRAMES = 6100
 WUMPA_FARM_PASSES = 2
 FARMED_WUMPA = 36
-STAND_BEFORE_QUIT_FRAMES = 120  # SELECT does not quit while Crash is still moving or falling
+# Longer than navigation.QUIT_STAND_FRAMES; the plans searched from the farmed states depend on it.
+FARM_STAND_FRAMES = 120
 
 
 @dataclass(frozen=True)
@@ -180,7 +181,7 @@ def _farm(route_frames, passes, probe, expected, what):
         for _ in range(passes):
             for run_frames, mask in route:
                 emu.run(run_frames, mask)
-            emu.step(STAND_BEFORE_QUIT_FRAMES)
+            emu.step(FARM_STAND_FRAMES)
             navigation.pause_and_quit(emu)
             navigation.enter_stage(emu)
         if probe(emu) != expected:
