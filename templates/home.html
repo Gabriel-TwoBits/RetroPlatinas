@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n humanize %}
 
 {% block title %}{% trans "Home" %} — RetroPlatinas{% endblock %}
 
@@ -9,6 +9,7 @@
 {% trans "Players" as l_players %}
 {% trans "Unlocks" as l_unlocks %}
 {% url 'register' as register_url %}
+{% url 'getting_started' as start_url %}
 {% with codeberg_url="https://codeberg.org/Gabriel-TwoBits/retroplatinas" %}
 <div class="mx-auto max-w-6xl px-4 py-6 sm:py-8">
 
@@ -18,7 +19,7 @@
         <h1 class="font-display text-xl font-bold leading-tight tracking-tight text-txt sm:text-2xl">{% trans "Achievements for retro games, truly open." %}</h1>
         <p class="mt-2 text-sm leading-relaxed text-txt-muted">{% trans "RetroPlatinas adds achievements to classics running on an emulator. Play, unlock and show up on the board." %}</p>
         <p class="mt-3 font-mono text-xs text-txt-faint"><span class="text-brand">{% trans "New project · under construction" %}</span> · AGPL-3.0 · Codeberg</p>
-        <p class="mt-1 font-mono text-xs leading-relaxed text-txt-faint">{% trans "We're new: 1 game, few players. We'd rather show that than fake scale." %}</p>
+        <p class="mt-1 font-mono text-xs leading-relaxed text-txt-faint">{% trans "We're new: every number on this page is real, however small." %}</p>
       </div>
       <div class="flex shrink-0 flex-wrap gap-3">
         <a href="{{ register_url }}" class="rounded-tile bg-brand px-4 py-2.5 font-display text-sm font-bold text-brand-ink no-underline hover:no-underline">{% trans "Create account" %}</a>
@@ -57,18 +58,24 @@
         {% include "components/section-heading.html" with title=_("Available sets") %}
         <div class="mt-3 flex flex-col gap-3">
           {% for s in sets %}
-            <div class="flex gap-3 rounded-tile bg-surface p-3">
-              <div class="rp-hatch flex h-14 w-14 shrink-0 items-center justify-center rounded-tile border border-line2 font-display text-sm font-bold text-brand">{{ s.initials }}</div>
+            <a href="/games/{{ s.game.pk }}/" class="group flex gap-3 rounded-tile bg-surface p-3 text-txt no-underline hover:text-txt hover:no-underline">
+              <img src="{{ s.icon_url }}" alt="" width="56" height="56" class="h-14 w-14 shrink-0 rounded-tile border border-line2">
               <div class="min-w-0 flex-1">
-                <div class="font-display text-base font-semibold text-txt">{{ s.title }}</div>
+                <div class="font-display text-base font-semibold text-txt group-hover:text-brand-hi">{{ s.game.title }}</div>
                 <div class="my-2 flex flex-wrap items-center gap-2 font-mono text-xs">
-                  {% include "components/console-tag.html" with label=s.tag %}
+                  {% include "components/console-tag.html" with label=s.game.console.short_name %}
                   <span class="text-state-hardcore">{% trans "hardcore" %}</span>
                   <span class="text-state-softcore">{% trans "softcore" %}</span>
                 </div>
-                <div class="font-mono text-xs text-txt-faint">{{ s.meta }}</div>
+                <div class="font-mono text-xs text-txt-faint">
+                  {% blocktrans count achievements=s.achievements with shown=s.achievements|intcomma %}{{ shown }} achievement{% plural %}{{ shown }} achievements{% endblocktrans %}
+                  · {% blocktrans count points=s.points with shown=s.points|intcomma %}{{ shown }} pt{% plural %}{{ shown }} pts{% endblocktrans %}
+                  · {% blocktrans count players=s.players with shown=s.players|intcomma %}{{ shown }} player{% plural %}{{ shown }} players{% endblocktrans %}
+                </div>
               </div>
-            </div>
+            </a>
+          {% empty %}
+            {% include "components/empty-state.html" with title=_("No sets published yet") body=_("A game shows up here as soon as its first achievement is published.") %}
           {% endfor %}
         </div>
       </section>
@@ -106,41 +113,59 @@
       <section class="order-first md:order-none">
         {% include "components/section-heading.html" with title=_("The project in numbers") %}
         <div>
-          {% include "components/stat-line.html" with label=l_games value=numbers.games %}
-          {% include "components/stat-line.html" with label=l_achievements value=numbers.achievements %}
-          {% include "components/stat-line.html" with label=l_players value=numbers.players %}
-          {% include "components/stat-line.html" with label=l_unlocks value=numbers.unlocks %}
-          <div class="flex items-baseline justify-between border-t border-line py-2">
-            <span class="flex items-center gap-2 text-sm text-txt">
-              {% if numbers.online %}<span class="h-2 w-2 rounded-full bg-brand animate-rp-pulse"></span>{% endif %}{% trans "Online now" %}
-            </span>
-            {% if numbers.online %}
-              <span class="font-mono text-base font-bold text-txt">{{ numbers.online }}</span>
-            {% else %}
-              <span class="font-mono text-base font-bold text-txt-faint">—</span>
-            {% endif %}
-          </div>
+          {% include "components/stat-line.html" with label=l_games value=numbers.games|intcomma %}
+          {% include "components/stat-line.html" with label=l_achievements value=numbers.achievements|intcomma %}
+          {% include "components/stat-line.html" with label=l_players value=numbers.players|intcomma %}
+          {% include "components/stat-line.html" with label=l_unlocks value=numbers.unlocks|intcomma %}
         </div>
       </section>
+
+      {% if playing_now.total %}
+        <section>
+          {% include "components/section-heading.html" with title=_("Playing now") %}
+          <div>
+            {% for p in playing_now.sessions %}
+              {% with played=p.played %}
+                <div class="flex items-center gap-3 border-t border-line py-3 first:border-t-0">
+                  <img src="{{ p.avatar_url }}" alt="" width="32" height="32" class="h-8 w-8 shrink-0 rounded-card border border-line2">
+                  <div class="min-w-0 flex-1">
+                    <a href="{% url 'user_detail' played.user.username %}" class="block truncate font-display text-xs font-semibold leading-tight text-txt">{{ played.user.username }}</a>
+                    <div class="mt-1 truncate font-mono text-xs text-txt-faint">{{ played.game.title }} · {{ played.game.console.short_name }}</div>
+                    {% if played.last_rich_presence %}
+                      <div class="mt-1 truncate text-xs text-txt-muted">{{ played.last_rich_presence }}</div>
+                    {% endif %}
+                  </div>
+                  <span class="flex shrink-0 items-center gap-2 font-mono text-xs {% if played.hardcore %}text-state-hardcore{% else %}text-state-softcore{% endif %}">
+                    <span class="h-2 w-2 rounded-full bg-brand animate-rp-pulse"></span>{% if played.hardcore %}{% trans "hardcore" %}{% else %}{% trans "softcore" %}{% endif %}
+                  </span>
+                </div>
+              {% endwith %}
+            {% endfor %}
+            {% if playing_now.total > playing_now.sessions|length %}
+              <div class="border-t border-line py-2 font-mono text-xs text-txt-faint">
+                {% blocktrans with total=playing_now.total|intcomma %}{{ total }} playing in all{% endblocktrans %}
+              </div>
+            {% endif %}
+          </div>
+        </section>
+      {% endif %}
 
       <section>
         {% include "components/section-heading.html" with title=_("Recent activity") %}
         <div>
           {% for a in activity %}
-            <div class="flex items-center gap-3 border-t border-line py-3 first:border-t-0">
-              {% if a.hardcore %}
-                <div class="rp-hatch flex h-8 w-8 shrink-0 items-center justify-center rounded-card border border-state-hardcore font-display text-xs font-bold text-brand">{{ a.initials }}</div>
-              {% else %}
-                <div class="rp-hatch flex h-8 w-8 shrink-0 items-center justify-center rounded-card border border-line2 font-display text-xs font-bold text-brand">{{ a.initials }}</div>
-              {% endif %}
-              <div class="min-w-0 flex-1">
-                <div class="text-xs leading-tight text-txt"><strong class="font-display text-txt">{{ a.who }}</strong> {{ a.verb }} {% if a.ach %}<span class="text-gold">“{{ a.ach }}”</span>{% else %}<span class="text-brand">{{ a.game }}</span>{% endif %}</div>
-                <div class="mt-1 font-mono text-xs text-txt-faint">{% if a.ach %}{{ a.game }} · {% endif %}{{ a.tag }} · {{ a.when }}</div>
+            {% with unlock=a.unlock achievement=a.unlock.achievement %}
+              <div class="flex items-center gap-3 border-t border-line py-3 first:border-t-0">
+                <img src="{{ a.badge_url }}" alt="" width="32" height="32" class="h-8 w-8 shrink-0 rounded-card border {% if unlock.hardcore %}border-state-hardcore{% else %}border-line2{% endif %}">
+                <div class="min-w-0 flex-1">
+                  <div class="text-xs leading-tight text-txt"><a href="{% url 'user_detail' unlock.user.username %}" class="font-display font-semibold text-txt">{{ unlock.user.username }}</a> {% trans "unlocked" %} <span class="text-gold">“{{ achievement.title }}”</span></div>
+                  <div class="mt-1 font-mono text-xs text-txt-faint">{{ achievement.game.title }} · {{ achievement.game.console.short_name }} · <time datetime="{{ unlock.unlocked_at|date:'c' }}">{{ unlock.unlocked_at|naturaltime }}</time></div>
+                </div>
+                {% if unlock.hardcore %}<span class="shrink-0 font-mono text-xs text-state-hardcore">{% trans "HC" %}</span>{% endif %}
               </div>
-              {% if a.hardcore %}<span class="shrink-0 font-mono text-xs text-state-hardcore">{% trans "HC" %}</span>{% endif %}
-            </div>
+            {% endwith %}
           {% empty %}
-            {% include "components/empty-state.html" with title=_("No unlocks yet") body=_("As soon as someone plays, unlocks show up here in real time.") href=register_url cta=_("Be the first to play →") %}
+            {% include "components/empty-state.html" with title=_("No unlocks yet") body=_("As soon as someone plays, their unlocks show up here.") href=start_url cta=_("Be the first to play →") %}
           {% endfor %}
         </div>
       </section>

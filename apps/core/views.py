@@ -1,10 +1,10 @@
 from django.shortcuts import render
 
-from .fake_home import fake_home_context
+from .home import home_context
 
 
 def home(request):
-    return render(request, "home.html", fake_home_context())
+    return render(request, "home.html", home_context())
 
 
 def getting_started(request):

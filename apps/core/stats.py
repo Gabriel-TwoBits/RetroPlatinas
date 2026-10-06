@@ -1,5 +1,5 @@
-"""Rankings, point totals and completion for the stats API, the `dorequest.php` leaderboard
-handlers and the profile page.
+"""Rankings, point totals, completion and site-wide activity for the stats API, the
+`dorequest.php` leaderboard handlers, the profile page and the home page.
 
 Only published achievements count. Inactive accounts (system accounts such as `ra-import`,
 deactivated users) hold no rank and are left out of player lists and `leaderboard_entries`; the
@@ -10,10 +10,11 @@ from dataclasses import dataclass
 from typing import NamedTuple
 
 from django.contrib.auth import get_user_model
-from django.db.models import Count, Exists, OuterRef, Q
+from django.db.models import Count, Exists, OuterRef, Q, Subquery, Sum
+from django.db.models.functions import Coalesce
 
 from apps.achievements.models import Achievement, UserUnlock
-from apps.games.models import PlayerGame
+from apps.games.models import Game, PlayerGame
 
 
 class ByMode(NamedTuple):
@@ -90,10 +91,8 @@ def games_played_count(user):
     return PlayerGame.objects.filter(user=user).count()
 
 
-def recent_unlocks(user, limit):
-    """The user's latest `limit` unlocks of published achievements, newest first.
-
-    A hardcore unlock writes its softcore twin at the same instant; the twin is left out, so each
+def _one_row_per_unlock(unlocks):
+    """`unlocks` without the softcore twin a hardcore unlock writes at the same instant, so each
     unlock appears once. A softcore unlock earlier than the hardcore one is an unlock of its own.
     """
     hardcore_twin = UserUnlock.objects.filter(
@@ -102,12 +101,69 @@ def recent_unlocks(user, limit):
         hardcore=True,
         unlocked_at=OuterRef("unlocked_at"),
     )
+    return unlocks.filter(Q(hardcore=True) | ~Exists(hardcore_twin))
+
+
+def recent_unlocks(user, limit):
+    """The user's latest `limit` unlocks of published achievements, newest first, each once."""
     return (
-        published_unlocks()
-        .filter(user=user)
-        .filter(Q(hardcore=True) | ~Exists(hardcore_twin))
+        _one_row_per_unlock(published_unlocks().filter(user=user))
         .select_related("achievement__game")
         .order_by("-unlocked_at", "-id")[:limit]
+    )
+
+
+def _active_users_unlocks():
+    return _one_row_per_unlock(published_unlocks().filter(user__is_active=True))
+
+
+def site_unlock_count():
+    """How many unlocks of published achievements active users made, each once."""
+    return _active_users_unlocks().count()
+
+
+def recent_site_unlocks(limit):
+    """The latest `limit` unlocks of published achievements by active users, newest first, each
+    once."""
+    return (
+        _active_users_unlocks()
+        .select_related("user", "achievement__game__console")
+        .order_by("-unlocked_at", "-id")[:limit]
+    )
+
+
+def published_games():
+    """The games with a published achievement, by title, each annotated with
+    `published_achievements`, `published_points` and `player_count` (the active users who played
+    it)."""
+    published = Q(achievements__status__in=Achievement.PUBLISHED_STATUSES)
+    # A subquery: counting players through a second join would multiply the achievement sums.
+    player_count = (
+        PlayerGame.objects.filter(game=OuterRef("pk"), user__is_active=True)
+        .order_by()
+        .values("game")
+        .annotate(count=Count("pk"))
+        .values("count")
+    )
+    return (
+        Game.objects.annotate(
+            published_achievements=Count("achievements", filter=published),
+            published_points=Sum("achievements__points", filter=published),
+            player_count=Coalesce(Subquery(player_count), 0),
+        )
+        .filter(published_achievements__gt=0)
+        .select_related("console")
+        .order_by("title", "id")
+    )
+
+
+def playing_now():
+    """The live sessions of active users, latest ping first."""
+    return (
+        PlayerGame.objects.playing_now()
+        .filter(user__is_active=True)
+        .select_related("user", "game__console")
+        .order_by("-last_ping_at", "id")
     )
 
 
