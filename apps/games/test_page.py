@@ -316,6 +316,17 @@ def test_locked_filter_with_everything_unlocked_says_so(client, crash, player):
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize("achievement_filter", VALID_FILTERS)
+def test_every_filter_on_a_game_without_achievements_says_there_are_none(
+    client, crash, player, achievement_filter
+):
+    client.force_login(player)
+    body = _panel(client, crash, "achievements", filter=achievement_filter)
+    assert "No published achievements yet" in body
+    assert "Every achievement unlocked" not in body
+
+
+@pytest.mark.django_db
 def test_unknown_filter_answers_400(client, crash, player):
     client.force_login(player)
     response = _get(client, f"/games/{crash.pk}/panel/achievements/", filter="bogus")

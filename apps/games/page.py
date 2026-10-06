@@ -114,11 +114,13 @@ def _achievements_panel(rows, achievement_filter):
         }
         for status, title, accent in GROUPS
     ]
+    # With nothing to filter, every filter is empty for the same reason: the game has no set.
+    empty_filter = achievement_filter if rows else FILTER_ALL
     return {
         "achievement_filter": achievement_filter,
         "filters": FILTERS,
         "groups": [group for group in groups if group["rows"]],
-        "empty_title": EMPTY_TITLES[achievement_filter],
+        "empty_title": EMPTY_TITLES[empty_filter],
     }
 
 
