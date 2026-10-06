@@ -7,13 +7,14 @@ clear without a Wumpa, the Wumpa count wrapping at 100, a third Aku Aku mask); a
 change that is not the clear (a bonus round), or a move the goal forbids ends it. A goal that
 farms also plays QUIT_MOVE now and then: stand, quit from the pause menu and enter the stage
 again, which commits the player's Wumpa and masks and brings the stage's items back, as a player
-farming them would. The winning plan starts from the stage's derivable start state, so it replays
-on any checkout running the core build it records (a quit is kept as the inputs it took).
+farming them would. The winning plan starts from a derivable state (the stage's start, or
+`--from`), so it replays on any checkout running the core build it records (a quit is kept as the
+inputs it took).
 Progress is logged every LOG_EVERY iterations, with a screenshot of the best cell (highest score,
 then deepest).
 
-    python tools/achievement-harness/explore.py STAGE [--goal G] [--out PLAN] [--minutes M]
-        [--seed N]
+    python tools/achievement-harness/explore.py STAGE [--goal G] [--from STATE] [--out PLAN]
+        [--minutes M] [--seed N]
 """
 
 import argparse
@@ -384,14 +385,21 @@ def main():
     parser = argparse.ArgumentParser(description="Search an input plan that reaches a goal.")
     parser.add_argument("stage", choices=sorted(stages))
     parser.add_argument("--goal", default=CLEAR_GOAL, choices=sorted(GOALS))
+    parser.add_argument(
+        "--from",
+        dest="start",
+        choices=sorted(states.RECIPES),
+        help="derivable state inside the stage to search from (default: the stage's start)",
+    )
     parser.add_argument("--out", help="plan to write (default: the stage's plan for the goal)")
     parser.add_argument("--iterations", type=int, default=DEFAULT_ITERATIONS)
     parser.add_argument("--minutes", type=float, default=DEFAULT_MINUTES, help="wall-clock box")
     parser.add_argument("--seed", type=int, default=DEFAULT_SEED)
     args = parser.parse_args()
     stage = stages[args.stage]
+    start = args.start or stage.start
     emu = Emu().load()
-    states.load(emu, stage.start)
+    states.load(emu, start)
     macro_names = plans.HEADINGS[stage.heading]
     shot_dir = SHOTS_DIR / "explore" / f"{stage.name}-{args.goal}"
     explorer = Explorer(emu, GOALS[args.goal], args.seed, macro_names, shot_dir)
@@ -408,7 +416,7 @@ def main():
         return 1
     names, inputs = explorer.inputs(best, quits)
     plan = plans.Plan(
-        start=stage.start,
+        start=start,
         core=emu.core_name,
         core_version=emu.core_version,
         done=won is not None,

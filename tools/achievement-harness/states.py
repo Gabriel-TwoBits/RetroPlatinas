@@ -26,6 +26,8 @@ from probes import (
     LID_ROLLING_STONES,
     LID_THE_GREAT_GATE,
     LID_UPSTREAM,
+    aku_level,
+    player_fruit,
 )
 from provision import HARNESS_DIR, PLANS_DIR, SHIM_SOURCE, STATES_DIR
 
@@ -34,6 +36,16 @@ NAME_COLUMN_WIDTH = 24
 FIRST_MAP_INDEX = 0
 # Map stages up to Rolling Stones (cursor 6), the last of the level achievements.
 MAP_STAGES_UNLOCKED = 7
+# Farming N. Sanity Beach: its clearing plan, replayed up to a point, then a quit and a re-entry,
+# which commits what was collected and brings the crates back.
+# The plan breaks the stage's first Aku Aku crate at frame 2229.
+FIRST_MASK_ROUTE_FRAMES = 2320
+FARMED_MASKS = 2
+# The plan's 20th Wumpa lands at frame 6087; the second pass collects 16 of them.
+WUMPA_ROUTE_FRAMES = 6100
+WUMPA_FARM_PASSES = 2
+FARMED_WUMPA = 36
+STAND_BEFORE_QUIT_FRAMES = 120  # SELECT does not quit while Crash is still moving or falling
 
 
 @dataclass(frozen=True)
@@ -150,6 +162,33 @@ def _stage_recipes(stage):
     return recipes
 
 
+def _farm(route_frames, passes, probe, expected, what):
+    """`passes` times: the beach's clearing plan up to `route_frames`, a stand, a quit and a
+    re-entry; then `probe` must read `expected`, or the replay diverged.
+
+    Real play, as a player farming crates would: nothing is written to RAM.
+    """
+
+    def derive(emu):
+        plan = plans.load(STAGES[FIRST_MAP_INDEX].plan_path)
+        route, frames = [], 0
+        for run in plan.inputs:
+            if frames >= route_frames:
+                break
+            route.append(run)
+            frames += run[0]
+        for _ in range(passes):
+            for run_frames, mask in route:
+                emu.run(run_frames, mask)
+            emu.step(STAND_BEFORE_QUIT_FRAMES)
+            navigation.pause_and_quit(emu)
+            navigation.enter_stage(emu)
+        if probe(emu) != expected:
+            raise RuntimeError(f"expected {expected} {what} after farming, got {probe(emu)}")
+
+    return derive
+
+
 RECIPES = {
     "map": Recipe(None, navigation.boot_to_map, "island map after NEW GAME, on N. Sanity Beach"),
     "map-unlocked": Recipe(
@@ -160,6 +199,16 @@ RECIPES = {
 }
 for _stage in (*STAGES, *BOSS_FIGHTS):
     RECIPES.update(_stage_recipes(_stage))
+RECIPES["nsanity-beach-two-masks"] = Recipe(
+    STAGES[FIRST_MAP_INDEX].start,
+    _farm(FIRST_MASK_ROUTE_FRAMES, FARMED_MASKS, aku_level, FARMED_MASKS, "Aku Aku masks"),
+    f"N. Sanity Beach re-entered with {FARMED_MASKS} Aku Aku masks farmed from its first crate",
+)
+RECIPES["nsanity-beach-farmed-wumpa"] = Recipe(
+    STAGES[FIRST_MAP_INDEX].start,
+    _farm(WUMPA_ROUTE_FRAMES, WUMPA_FARM_PASSES, player_fruit, FARMED_WUMPA, "Wumpa"),
+    f"N. Sanity Beach re-entered with {FARMED_WUMPA} Wumpa farmed by its clearing route",
+)
 
 
 def build_dir(emu):
