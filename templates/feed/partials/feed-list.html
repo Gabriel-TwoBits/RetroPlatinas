@@ -1,0 +1,23 @@
+{% load i18n humanize %}
+<ol id="feed-list">
+  {% for row in rows %}
+    {% with unlock=row.unlock achievement=row.unlock.achievement %}
+      <li class="flex items-center gap-3 border-t border-line py-3 first:border-t-0">
+        <img src="{{ row.avatar_url }}" alt="" width="32" height="32" class="h-8 w-8 shrink-0 rounded-card border border-line2">
+        <div class="min-w-0 flex-1">
+          <div class="text-sm leading-snug text-txt">
+            <a href="{% url 'user_detail' unlock.user.username %}" class="font-display font-semibold text-txt">{{ unlock.user.username }}</a>
+            {% trans "unlocked" %} <span class="text-gold">“{{ achievement.title }}”</span>
+            {% translate "in" context "achievement unlocked in a game" %} <a href="{% url 'game_detail' achievement.game.pk %}" class="text-txt hover:text-brand-hi">{{ achievement.game.title }}</a>
+          </div>
+          <div class="mt-1 font-mono text-xs text-txt-faint">
+            {{ achievement.game.console.short_name }} · <time datetime="{{ unlock.unlocked_at|date:'c' }}">{{ unlock.unlocked_at|naturaltime }}</time>{% if unlock.hardcore %} · <span class="text-state-hardcore">{% trans "hardcore" %}</span>{% endif %}
+          </div>
+        </div>
+        <img src="{{ row.badge_url }}" alt="" width="40" height="40" class="h-10 w-10 shrink-0 rounded-card border {% if unlock.hardcore %}border-state-hardcore{% else %}border-line2{% endif %}">
+      </li>
+    {% endwith %}
+  {% empty %}
+    <li>{% url 'getting_started' as start_url %}{% include "components/empty-state.html" with title=_("No unlocks yet") body=_("As soon as someone plays, their unlocks show up here.") href=start_url cta=_("Be the first to play →") %}</li>
+  {% endfor %}
+</ol>

@@ -1,6 +1,6 @@
 """Rankings, point totals, completion and site-wide activity for the stats API, the
 `dorequest.php` leaderboard handlers, the profile page, the home page, the game page, the
-leaderboard page and the ranking page.
+leaderboard page, the ranking page and the feed page.
 
 Only published achievements count. Inactive accounts (system accounts such as `ra-import`,
 deactivated users) hold no rank and are left out of player lists and `leaderboard_entries`; the

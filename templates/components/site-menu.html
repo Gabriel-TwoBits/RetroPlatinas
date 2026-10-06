@@ -7,7 +7,7 @@
 <nav class="{{ nav_class }} font-display font-semibold" aria-label="{% trans 'Main navigation' %}">
   <a class="text-txt-muted no-underline hover:text-brand-hi hover:no-underline" href="/games/">{% trans "Games" %}</a>
   <a class="text-txt-muted no-underline hover:text-brand-hi hover:no-underline" href="{% url 'ranking' %}">{% trans "Ranking" %}</a>
-  <a class="text-txt-muted no-underline hover:text-brand-hi hover:no-underline" href="/feed/">{% trans "Feed" %}</a>
+  <a class="text-txt-muted no-underline hover:text-brand-hi hover:no-underline" href="{% url 'feed' %}">{% trans "Feed" %}</a>
   <a class="text-txt-muted no-underline hover:text-brand-hi hover:no-underline" href="/games/">{% trans "Search" %}</a>
   <a class="text-txt-muted no-underline hover:text-brand-hi hover:no-underline" href="{% url 'getting_started' %}">{% trans "How to start" %}</a>
 </nav>

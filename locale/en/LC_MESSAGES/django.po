@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RetroPlatinas\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-06 17:25-0300\n"
+"POT-Creation-Date: 2026-10-06 17:31-0300\n"
 "PO-Revision-Date: 2026-05-23 18:15-0300\n"
 "Last-Translator: RetroPlatinas\n"
 "Language-Team: English\n"
@@ -248,6 +248,7 @@ msgstr ""
 #: apps/achievements/models.py:232 apps/achievements/models.py:243
 #: templates/accounts/partials/identity-header.html:63
 #: templates/accounts/partials/sec-recent-unlocks.html:15
+#: templates/feed/partials/feed-list.html:14
 #: templates/games/partials/panel-achievements.html:29 templates/home.html:69
 #: templates/home.html:141
 msgid "hardcore"
@@ -818,6 +819,7 @@ msgid "Completion"
 msgstr ""
 
 #: templates/accounts/partials/sec-recent-unlocks.html:3
+#: templates/feed/feed.html:25
 msgid "Recent unlocks"
 msgstr ""
 
@@ -831,7 +833,7 @@ msgstr[1] ""
 
 #: templates/accounts/partials/sec-recent-unlocks.html:22
 #: templates/accounts/partials/sec-recent-unlocks.html:24
-#: templates/home.html:170
+#: templates/feed/partials/feed-list.html:21 templates/home.html:170
 msgid "No unlocks yet"
 msgstr ""
 
@@ -970,6 +972,7 @@ msgid "Menu"
 msgstr ""
 
 #: templates/base.html:61 templates/components/site-menu.html:10
+#: templates/feed/feed.html:4 templates/feed/feed.html:9
 msgid "Feed"
 msgstr ""
 
@@ -1097,6 +1100,50 @@ msgid ""
 "Hardcore Mode, in the same Achievements settings, turns off save states, "
 "cheats and rewind. Unlocks earned that way carry the hardcore seal and are "
 "shown apart from softcore ones; they are worth the same points."
+msgstr ""
+
+#: templates/feed/feed.html:11
+#, python-format
+msgid "The latest %(shown)s unlocks across the site, refreshed every second."
+msgid_plural ""
+"The latest %(shown)s unlocks across the site, refreshed every %(seconds)s "
+"seconds."
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/feed/feed.html:17
+msgid "Feed filter"
+msgstr ""
+
+#: templates/feed/feed.html:18
+msgctxt "feed filter"
+msgid "All"
+msgstr ""
+
+#: templates/feed/feed.html:19
+msgctxt "feed filter"
+msgid "Friends"
+msgstr ""
+
+#: templates/feed/feed.html:21
+msgid "The Friends filter arrives once you can follow other players."
+msgstr ""
+
+#: templates/feed/partials/feed-list.html:10 templates/home.html:163
+msgid "unlocked"
+msgstr ""
+
+#: templates/feed/partials/feed-list.html:11
+msgctxt "achievement unlocked in a game"
+msgid "in"
+msgstr ""
+
+#: templates/feed/partials/feed-list.html:21 templates/home.html:170
+msgid "As soon as someone plays, their unlocks show up here."
+msgstr ""
+
+#: templates/feed/partials/feed-list.html:21 templates/home.html:170
+msgid "Be the first to play →"
 msgstr ""
 
 #: templates/games/detail.html:23
@@ -1284,20 +1331,8 @@ msgstr ""
 msgid "Recent activity"
 msgstr ""
 
-#: templates/home.html:163
-msgid "unlocked"
-msgstr ""
-
 #: templates/home.html:166
 msgid "HC"
-msgstr ""
-
-#: templates/home.html:170
-msgid "As soon as someone plays, their unlocks show up here."
-msgstr ""
-
-#: templates/home.html:170
-msgid "Be the first to play →"
 msgstr ""
 
 #: templates/home.html:176
