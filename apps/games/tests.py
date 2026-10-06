@@ -274,6 +274,9 @@ BEFORE_PLAYER_GAME = [("games", "0001_initial")]
 AFTER_PLAYER_GAME = [("games", "0002_player_game")]
 # The unlock schema the backfill reads, the dependency it declares.
 BACKFILL_SOURCE = [("achievements", "0003_achievement_type")]
+# The user table the historical User writes to: left at the latest schema, it keeps NOT NULL
+# columns added later (`bio`) that the historical model leaves out.
+USER_SCHEMA = [("accounts", "0002_user_email_case_insensitive_unique")]
 
 
 @pytest.fixture
@@ -287,8 +290,10 @@ def restores_latest_schema():
 @pytest.mark.django_db(transaction=True)
 def test_player_game_migration_backfills_players_from_their_unlocks(restores_latest_schema):
     executor = MigrationExecutor(connection)
-    executor.migrate(BEFORE_PLAYER_GAME + BACKFILL_SOURCE)
-    old_apps = executor.loader.project_state(BEFORE_PLAYER_GAME + BACKFILL_SOURCE).apps
+    executor.migrate(BEFORE_PLAYER_GAME + BACKFILL_SOURCE + USER_SCHEMA)
+    old_apps = executor.loader.project_state(
+        BEFORE_PLAYER_GAME + BACKFILL_SOURCE + USER_SCHEMA
+    ).apps
     user = old_apps.get_model("accounts", "User").objects.create(username="player")
     console = old_apps.get_model("games", "Console").objects.create(
         ra_id=PLAYSTATION_RA_ID, name="PlayStation", short_name="PS1"
