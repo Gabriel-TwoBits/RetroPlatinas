@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RetroPlatinas\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-06 17:16-0300\n"
+"POT-Creation-Date: 2026-10-06 17:25-0300\n"
 "PO-Revision-Date: 2026-05-23 18:15-0300\n"
 "Last-Translator: RetroPlatinas\n"
 "Language-Team: Brazilian Portuguese\n"
@@ -73,6 +73,10 @@ msgstr "Hardcore"
 #: templates/accounts/partials/identity-header.html:33
 msgid "Softcore"
 msgstr "Softcore"
+
+#: apps/accounts/views.py:72
+msgid "Unknown ranking mode"
+msgstr "Modo de ranking desconhecido"
 
 #: apps/achievements/admin.py:22
 msgid "Locked badge"
@@ -499,6 +503,10 @@ msgstr "Todas as conquistas desbloqueadas"
 #: apps/games/page.py:45
 msgid "Your drafts"
 msgstr "Seus rascunhos"
+
+#: apps/games/views.py:27
+msgid "Unknown achievement filter"
+msgstr "Filtro de conquistas desconhecido"
 
 #: apps/leaderboards/models.py:12
 msgid "Score (000000)"
@@ -950,8 +958,12 @@ msgid "Players by points from published achievements, refreshed every minute."
 msgid_plural ""
 "Players by points from published achievements, refreshed every %(minutes)s "
 "minutes."
-msgstr[0] "Jogadores ordenados pelos pontos das conquistas publicadas. Atualiza a cada minuto."
-msgstr[1] "Jogadores ordenados pelos pontos das conquistas publicadas. Atualiza a cada %(minutes)s minutos."
+msgstr[0] ""
+"Jogadores ordenados pelos pontos das conquistas publicadas. Atualiza a cada "
+"minuto."
+msgstr[1] ""
+"Jogadores ordenados pelos pontos das conquistas publicadas. Atualiza a cada "
+"%(minutes)s minutos."
 
 #: templates/accounts/register.html:8 templates/home.html:25
 msgid "Create account"

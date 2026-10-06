@@ -241,8 +241,10 @@ def test_unknown_page_answers_404(client, page):
 
 
 @pytest.mark.django_db
-def test_unknown_mode_answers_400(client):
-    assert _get(client, mode="weighted").status_code == HTTPStatus.BAD_REQUEST
+def test_unknown_mode_answers_400_in_the_viewer_language(client):
+    response = _get(client, language="pt-br", mode="weighted")
+    assert response.status_code == HTTPStatus.BAD_REQUEST
+    assert response.content.decode() == "Modo de ranking desconhecido"
 
 
 @pytest.mark.django_db

@@ -1,5 +1,6 @@
 from django.http import Http404, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, render
+from django.utils.translation import gettext
 from django.views.decorators.http import require_safe
 
 from apps.games import page
@@ -23,7 +24,7 @@ def game_panel(request, game_id, tab):
     if tab not in page.VALID_TABS:
         raise Http404("Unknown game tab")
     elif achievement_filter not in page.VALID_FILTERS:
-        return HttpResponseBadRequest("Unknown achievement filter")
+        return HttpResponseBadRequest(gettext("Unknown achievement filter"))
     else:
         context = page.panel_context(game, request.user, tab, achievement_filter)
         return render(request, "games/partials/tabs.html", context)

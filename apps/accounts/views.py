@@ -4,6 +4,7 @@ from django.core.exceptions import PermissionDenied
 from django.core.paginator import InvalidPage
 from django.http import Http404, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils.translation import gettext
 from django.views.decorators.http import require_http_methods, require_safe
 
 from apps.accounts.forms import ProfileForm, RegistrationForm
@@ -68,7 +69,7 @@ def _ranking_page_number(request):
 def ranking(request):
     mode = request.GET.get("mode", MODE_HARDCORE)
     if mode not in VALID_MODES:
-        return HttpResponseBadRequest("Unknown ranking mode")
+        return HttpResponseBadRequest(gettext("Unknown ranking mode"))
     else:
         try:
             board = board_html(mode, _ranking_page_number(request))

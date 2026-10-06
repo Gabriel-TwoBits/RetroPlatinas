@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RetroPlatinas\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-06 17:16-0300\n"
+"POT-Creation-Date: 2026-10-06 17:25-0300\n"
 "PO-Revision-Date: 2026-05-23 18:15-0300\n"
 "Last-Translator: RetroPlatinas\n"
 "Language-Team: English\n"
@@ -70,6 +70,10 @@ msgstr ""
 #: apps/accounts/ranking.py:20
 #: templates/accounts/partials/identity-header.html:33
 msgid "Softcore"
+msgstr ""
+
+#: apps/accounts/views.py:72
+msgid "Unknown ranking mode"
 msgstr ""
 
 #: apps/achievements/admin.py:22
@@ -496,6 +500,10 @@ msgstr ""
 
 #: apps/games/page.py:45
 msgid "Your drafts"
+msgstr ""
+
+#: apps/games/views.py:27
+msgid "Unknown achievement filter"
 msgstr ""
 
 #: apps/leaderboards/models.py:12

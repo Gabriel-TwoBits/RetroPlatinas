@@ -334,10 +334,13 @@ def test_every_filter_on_a_game_without_achievements_says_there_are_none(
 
 
 @pytest.mark.django_db
-def test_unknown_filter_answers_400(client, crash, player):
+def test_unknown_filter_answers_400_in_the_viewer_language(client, crash, player):
     client.force_login(player)
-    response = _get(client, f"/games/{crash.pk}/panel/achievements/", filter="bogus")
+    response = client.get(
+        f"/games/{crash.pk}/panel/achievements/", {"filter": "bogus"}, HTTP_ACCEPT_LANGUAGE="pt-br"
+    )
     assert response.status_code == HTTPStatus.BAD_REQUEST
+    assert response.content.decode() == "Filtro de conquistas desconhecido"
 
 
 # --- Tabs ---
