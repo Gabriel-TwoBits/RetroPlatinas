@@ -1,5 +1,5 @@
 {% comment %}
-  Achievement badge. Args:
+  Achievement badge, flat: the state shows as a border colour over gold. Args:
     state : "unlocked" | "locked" | "hardcore" | "softcore"
     size  : px (default 52)
     label : optional caption under the badge
@@ -7,7 +7,7 @@
 {% with size=size|default:52 %}
 <div class="inline-flex flex-col items-center gap-1.5">
   {% if state == "locked" %}
-    <div class="flex items-center justify-center rounded-tile border border-dashed border-line2 bg-surface2 text-txt-faint opacity-65"
+    <div class="flex items-center justify-center rounded-tile border border-dashed border-line2 text-txt-faint opacity-65"
          style="width:{{ size }}px;height:{{ size }}px">
       <svg width="35%" height="35%" viewBox="0 0 24 24" fill="none" aria-hidden="true">
         <rect x="5" y="10" width="14" height="10" rx="2" fill="currentColor"/>
@@ -15,15 +15,15 @@
       </svg>
     </div>
   {% elif state == "hardcore" %}
-    <div class="rounded-tile border border-state-hardcore bg-gradient-to-br from-gold to-gold-deep shadow-[0_0_12px_-3px_theme(colors.state.hardcore)]"
+    <div class="rounded-tile border-2 border-state-hardcore bg-gold"
          style="width:{{ size }}px;height:{{ size }}px"></div>
   {% elif state == "softcore" %}
-    <div class="rounded-tile border border-state-softcore bg-gradient-to-br from-gold to-gold-deep opacity-90"
+    <div class="rounded-tile border-2 border-state-softcore bg-gold"
          style="width:{{ size }}px;height:{{ size }}px"></div>
   {% else %}
-    <div class="rp-sheen relative overflow-hidden rounded-tile border border-gold/50 bg-gradient-to-br from-gold to-gold-deep shadow-[0_0_14px_-3px_theme(colors.gold.DEFAULT)]"
+    <div class="rounded-tile border border-gold-dim bg-gold"
          style="width:{{ size }}px;height:{{ size }}px"></div>
   {% endif %}
-  {% if label %}<span class="font-mono text-[9px] text-txt-faint">{{ label }}</span>{% endif %}
+  {% if label %}<span class="font-mono text-xs text-txt-faint">{{ label }}</span>{% endif %}
 </div>
 {% endwith %}

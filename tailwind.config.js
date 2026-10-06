@@ -33,24 +33,25 @@ module.exports = {
         gold: {
           DEFAULT: "#f2b84b",
           dim: "#8a6a2c",
-          deep: "#c98d2e",
         },
         state: {
           locked: "#313b49",
           beaten: "#5cc48c",
-          platinum: {
-            DEFAULT: "#c2c9d8",
-            hi: "#dfe4ee",
-          },
+          platinum: "#c2c9d8",
           hardcore: "#e0552f",
           softcore: "#7e93b1",
           progress: "#d8922f",
         },
+        danger: "#e0552f",
       },
       fontFamily: {
         display: ["'Arial Narrow'", "'Roboto Condensed'", "Arial", "sans-serif"],
         sans: ["Arial", "Helvetica", "sans-serif"],
         mono: ["'Courier New'", "Courier", "monospace"],
+      },
+      width: {
+        // Accent strip on the left of a section heading.
+        strip: "0.1875rem",
       },
       borderRadius: {
         card: "0.1875rem",
@@ -62,17 +63,12 @@ module.exports = {
         20: "repeat(20, minmax(0, 1fr))",
       },
       keyframes: {
-        "rp-shimmer": {
-          "0%": { backgroundPosition: "-120% 0" },
-          "100%": { backgroundPosition: "220% 0" },
-        },
         "rp-pulse": {
           "0%, 100%": { opacity: "1" },
           "50%": { opacity: ".4" },
         },
       },
       animation: {
-        "rp-shimmer": "rp-shimmer 3.2s linear infinite",
         "rp-pulse": "rp-pulse 2s ease-in-out infinite",
       },
     },

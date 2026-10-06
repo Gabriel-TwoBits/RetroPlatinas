@@ -16,27 +16,28 @@
     );
   }
 
-  /* Mobile profile tab pill; .is-active is toggled client-side on tap. */
+  /* Mobile profile tab, underlined when active; .is-active is toggled client-side on tap. */
   .rp-tab {
-    @apply whitespace-nowrap rounded-card border border-line2 bg-transparent px-3 py-1.5 font-display text-xs font-semibold text-txt-muted;
+    @apply -mb-px flex-1 whitespace-nowrap border-b-2 border-transparent px-2 py-2 text-center font-display text-sm font-semibold text-txt-muted;
   }
   .rp-tab.is-active {
-    @apply border-brand bg-brand text-brand-ink;
+    @apply border-brand text-brand;
   }
 
-  /* Diagonal sheen sweeping across an unlocked achievement badge. */
-  .rp-sheen::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-      115deg,
-      transparent 30%,
-      rgba(255, 255, 255, 0.35) 50%,
-      transparent 70%
-    );
-    background-size: 200% 100%;
-    animation: theme("animation.rp-shimmer");
+  /* <summary> without the disclosure triangle (WebKit draws it through its own marker). */
+  .rp-summary {
+    @apply cursor-pointer list-none;
+  }
+  .rp-summary::-webkit-details-marker {
+    display: none;
+  }
+
+  /* Django renders form widgets without classes, so the inputs are styled from the form. */
+  .rp-form input:not([type="hidden"]):not([type="checkbox"]) {
+    @apply block w-full rounded-card border border-line2 bg-bg px-3 py-2 font-sans text-sm text-txt focus:border-brand focus:outline-none;
+  }
+  .rp-form ul {
+    @apply mt-1 list-disc pl-5 text-xs leading-relaxed text-txt-faint;
   }
 }
 

@@ -1,0 +1,24 @@
+{% comment %}
+  Every field of a Django form, labelled, with help text and errors. The surrounding .rp-form
+  styles the widgets, which Django renders without classes. Args: form
+{% endcomment %}
+{% if form.non_field_errors %}
+  <div class="mb-4 border-l-2 border-danger py-1 pl-3 text-sm text-danger">
+    {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+  </div>
+{% endif %}
+{% for field in form.hidden_fields %}{{ field }}{% endfor %}
+{% for field in form.visible_fields %}
+  <div class="mb-4">
+    <label for="{{ field.id_for_label }}" class="mb-1 block font-display text-sm font-semibold text-txt">{{ field.label }}</label>
+    {{ field }}
+    {% if field.help_text %}
+      <div id="{{ field.auto_id }}_helptext" class="mt-1 text-xs leading-relaxed text-txt-faint">{{ field.help_text|safe }}</div>
+    {% endif %}
+    {% if field.errors %}
+      <div id="{{ field.auto_id }}_error" class="mt-1 text-xs text-danger">
+        {% for error in field.errors %}<p>{{ error }}</p>{% endfor %}
+      </div>
+    {% endif %}
+  </div>
+{% endfor %}

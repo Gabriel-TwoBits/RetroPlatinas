@@ -1,10 +1,11 @@
 {% comment %}
-  Statistic row. Args: label, value, sub (optional secondary label under `label`).
+  Statistic row, ruled from the row above (none on the first row of its container).
+  Args: label, value, sub (optional secondary label under `label`).
 {% endcomment %}
-<div class="flex items-baseline justify-between border-t border-line py-2">
+<div class="flex items-baseline justify-between border-t border-line py-2 first:border-t-0">
   <div>
-    <div class="text-[12.5px] text-txt">{{ label }}</div>
-    {% if sub %}<div class="font-mono text-[9.5px] text-txt-faint">{{ sub }}</div>{% endif %}
+    <div class="text-sm text-txt">{{ label }}</div>
+    {% if sub %}<div class="font-mono text-xs text-txt-faint">{{ sub }}</div>{% endif %}
   </div>
-  <span class="font-mono text-[15px] font-bold text-txt">{{ value }}</span>
+  <span class="font-mono text-base font-bold text-txt">{{ value }}</span>
 </div>

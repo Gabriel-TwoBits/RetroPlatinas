@@ -1,21 +1,21 @@
 {% comment %}
-  Game card. Args:
+  Game card — a game object, so it keeps the surface fill. Args:
     initials, title, meta (e.g. "SNES · 34/48 · 420/620 pts · 21h")
     state       : colour key — beaten | platinum | progress | softcore
-    state_label : pill text (e.g. "BEATEN")
+    state_label : state text (e.g. "BEATEN")
     pct         : completion percent (integer)
     icons       : optional achievement cells [{unlocked}] — renders the strip
     icons_more  : count of achievements beyond the strip
 {% endcomment %}
-<div class="rounded-card border border-line bg-surface p-3">
+<div class="rounded-card bg-surface p-3">
   <div class="flex gap-3">
-    <div class="rp-hatch flex h-[46px] w-[46px] shrink-0 items-center justify-center rounded-tile border border-line2 font-display font-bold text-brand">{{ initials }}</div>
+    <div class="rp-hatch flex h-12 w-12 shrink-0 items-center justify-center rounded-tile border border-line2 font-display font-bold text-brand">{{ initials }}</div>
     <div class="min-w-0 flex-1">
-      <div class="flex items-start justify-between gap-1.5">
+      <div class="flex items-start justify-between gap-2">
         <div class="font-display text-sm font-semibold text-txt">{{ title }}</div>
-        <span class="whitespace-nowrap rounded-full border border-state-{{ state }} px-1.5 py-0.5 font-mono text-[8.5px] text-state-{{ state }}">{{ state_label }}</span>
+        <span class="whitespace-nowrap font-mono text-xs text-state-{{ state }}">{{ state_label }}</span>
       </div>
-      <div class="mb-2 mt-1 font-mono text-[9.5px] text-txt-faint">{{ meta }}</div>
+      <div class="mb-2 mt-1 font-mono text-xs text-txt-faint">{{ meta }}</div>
       <div class="h-1.5 overflow-hidden rounded-card bg-elevated">
         <div class="h-full bg-state-{{ state }}" style="width:{{ pct }}%"></div>
       </div>
@@ -25,11 +25,11 @@
     <div class="mt-3 flex items-center gap-1.5">
       <div class="grid flex-1 grid-cols-7 gap-1.5">
         {% for c in icons %}
-          <div class="aspect-square rounded-chip {% if c.unlocked %}border border-gold/40 bg-gradient-to-br from-gold to-gold-deep{% else %}border border-line bg-surface2 opacity-45{% endif %}"></div>
+          <div class="aspect-square rounded-chip {% if c.unlocked %}bg-gold{% else %}border border-line opacity-45{% endif %}"></div>
         {% endfor %}
       </div>
       {% if icons_more %}
-        <div class="flex h-[38px] shrink-0 items-center rounded-card border border-line2 bg-surface2 px-2 font-mono text-[10px] text-brand">+{{ icons_more }}</div>
+        <div class="shrink-0 px-1 font-mono text-xs text-txt-muted">+{{ icons_more }}</div>
       {% endif %}
     </div>
   {% endif %}
