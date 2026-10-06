@@ -245,7 +245,8 @@ answers 404. Every game title on the home and the profile links here.
   badges and no filters.
 - **Filters** — logged-in viewers get *All / Unlocked / Locked* outlined chips over the list,
   the active one in `brand`; each reloads the achievements panel through the same HTMX route
-  (`?filter=`). Each filter has its own empty state.
+  (`?filter=`). Each filter has its own empty state, except on a game with no achievements the
+  viewer can see, where every filter shows the no-achievements one.
 - **Leaderboards** — a row per leaderboard: title, description and its entries by active
   users. Scores and ranks belong to the leaderboard page.
 - **Recent players** — the 20 active users who played last: identicon, profile link, published
