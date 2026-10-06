@@ -68,6 +68,8 @@ GAME_OVER = "Game Over"
 ANY_COUNT = r"\d+"
 LOW_LIVES = "[0-3]"  # a new game's 4 lives after a death, extra lives picked up on the way aside
 NEW_GAME_LIVES = "4"
+# 0 lives where the last life is never reached: the read of a freed player object's null pointer.
+NO_LIVES = r".* · 0 lives( · .*)?"
 ATTRACT_DEMOS = (
     "Jungle Rollers",
     "The Great Gate",
@@ -99,6 +101,7 @@ class Scenario:
     about: str
     play: Callable
     presence: tuple  # patterns each matched in full by at least one rich presence string shown
+    never: tuple = ()  # patterns no rich presence string shown may match in full
 
 
 def respawns(emu):
@@ -299,6 +302,7 @@ for _stage in STAGES:
         f"three deaths on {_stage.name}",
         deaths(_stage),
         (in_stage(_name, NEW_GAME_LIVES), in_stage(_name, LOW_LIVES)),
+        never=(NO_LIVES,),
     )
     SCENARIOS[f"{_stage.name}-quit"] = Scenario(
         _stage.start,
@@ -306,6 +310,7 @@ for _stage in STAGES:
         f"three pause -> SELECT quits of {_stage.name}",
         quits(_stage),
         (in_stage(_name), ISLAND_MAP),
+        never=(NO_LIVES,),
     )
     if _stage.plan_path.is_file():
         SCENARIOS[f"{_stage.name}-clear"] = Scenario(
@@ -314,6 +319,7 @@ for _stage in STAGES:
             f"{_stage.name} cleared by its plan, then the next stage quit (pcsx_rearmed only)",
             clear(_stage),
             (in_stage(_name), STAGE_CLEAR, ISLAND_MAP),
+            never=(NO_LIVES,),
         )
     else:
         pass  # No clearing plan committed: the clear stays for the in-game check.
@@ -323,6 +329,7 @@ SCENARIOS["papu-papu-quit"] = Scenario(
     "the Papu Papu boss fight, quit with pause -> SELECT right after gaining control",
     boss_quit,
     (fighting("Papu Papu", NEW_GAME_LIVES), ISLAND_MAP),
+    never=(NO_LIVES,),
 )
 
 
@@ -332,14 +339,22 @@ def on_expected_level(trigger, expected):
 
 
 def presence_problems(scenario, shown):
-    """Patterns no shown string matched, and shown strings naming an unknown macro or level."""
+    """Patterns no shown string matched, and shown strings naming an unknown macro or level or
+    matching a `never` pattern."""
     texts = [text for _frame, text in shown]
     missing = [
         pattern
         for pattern in scenario.presence
         if not any(re.fullmatch(pattern, text) for text in texts)
     ]
-    broken = sorted({text for text in texts if any(mark in text for mark in BROKEN_PRESENCE)})
+    broken = sorted(
+        {
+            text
+            for text in texts
+            if any(mark in text for mark in BROKEN_PRESENCE)
+            or any(re.fullmatch(pattern, text) for pattern in scenario.never)
+        }
+    )
     return missing, broken
 
 
@@ -348,7 +363,8 @@ def run(name, core):
 
     Every expected achievement must fire exactly once, while the game shows its expected lid, and
     nothing else may fire: a trigger on another level fails even when its title was expected.
-    Every expected rich presence pattern must match a string shown on the way.
+    Every expected rich presence pattern must match a string shown on the way, and no string
+    shown may match a `never` pattern.
     """
     scenario = SCENARIOS[name]
     session = Session(name, state=scenario.start, core=core)

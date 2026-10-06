@@ -138,7 +138,8 @@ regular expressions matched in full): the title and demo strings in `cold-boot` 
 stage with a new game's 4 lives and then fewer in `<stage>-deaths`, `Game Over`, the island map,
 the Stage Clear screen and the boss fight. Stage names in the patterns come from the level
 achievements' titles or are spelled out, never from the script's own lookup. A scenario fails when
-an expected string never shows, or when any string shows `[Unknown macro]` or `an unknown level`.
+an expected string never shows, or when any string shows `[Unknown macro]` or `an unknown level` or
+matches one of the scenario's `never` patterns (`0 lives` wherever the last life is never reached).
 The verdict prints every change of the display string with its frame.
 
 A `<stage>-clear` scenario exists only for a stage with a committed plan. Deaths come from seeded
