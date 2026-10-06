@@ -35,7 +35,11 @@ STARTING_UP = "Starting up"  # power-on and the Sony, Universal and Naughty Dog 
 # before its level switches back to the title, where GAME_STATE_ATTRACT has already taken over.
 DEMO_PLAYBACK_ADDRESS = "0xH61a30"
 # The player object's lives (24.8 at +0x164, the integer's low byte at +0x165).
-LIVES_VALUE = "I:0xW566b4_M:0xH165"
+PLAYER_POINTER_ADDRESS = "0xW566b4"
+LIVES_VALUE = f"I:{PLAYER_POINTER_ADDRESS}_M:0xH165"
+# The player object is freed from a pause -> quit, and about 70 frames before Stage Clear, until
+# the level changes; a null pointer would read the lives from address 0x165.
+PLAYER_LOADED = f"{PLAYER_POINTER_ADDRESS}!=0"
 # The Wumpa HUD object: pointer, +0x6c, +0xe4, and the count at +0x0c.
 WUMPA_VALUE = "I:0xW618a4_I:0xW6c_I:0xWe4_M:0xHc"
 # Both objects hold leftovers of the previous level for up to about 20 frames after a level loads
@@ -45,6 +49,7 @@ LEVEL_SETTLED = (
     f"R:{LEVEL_ID_ADDRESS}!=d{LEVEL_ID_ADDRESS}_"
     f"{LEVEL_ID_ADDRESS}={LEVEL_ID_ADDRESS}.{LEVEL_SETTLE_FRAMES}."
 )
+COUNTS_VALID = f"{LEVEL_SETTLED}_{PLAYER_LOADED}"
 
 # c1 level id -> name, for the stages, the boss fights and the bonus rounds.
 STAGES = {
@@ -132,9 +137,9 @@ def build_rich_presence():
         f"?S{DEMO_PLAYBACK_ADDRESS}!=0S{GAME_STATE_ADDRESS}={GAME_STATE_ATTRACT}?"
         f"Watching a demo of {level}",
         f"?{GAME_STATE_ADDRESS}={GAME_STATE_GAME_OVER}?Game Over",
-        f"?{LEVEL_SETTLED}{any_level_of(BOSSES)}?Fighting {level}{SEPARATOR}{lives}",
+        f"?{COUNTS_VALID}{any_level_of(BOSSES)}?Fighting {level}{SEPARATOR}{lives}",
         f"?{any_level_of(BOSSES)}?Fighting {level}",
-        f"?{LEVEL_SETTLED}?In {level}{SEPARATOR}{lives}{SEPARATOR}{wumpa}",
+        f"?{COUNTS_VALID}?In {level}{SEPARATOR}{lives}{SEPARATOR}{wumpa}",
         f"In {level}",
     ]
     return "\n\n".join(lookups) + "\n\n" + "\n".join(display) + "\n"

@@ -45,7 +45,9 @@ The first line whose condition holds is shown, in this order:
 Both objects hold leftovers of the previous level for up to about 20 frames after a level loads (`120 lives`,
 `144 Wumpa` were measured), so the counts show only once the level id has held for 60 frames
 (`R:0xH6188d!=d0xH6188d_0xH6188d=0xH6188d.60.`); until then the line is `In <level>` or `Fighting <boss>`. A save
-state load restarts that count too. The committed copies at `0x618ed` / `0x618f5` are not used: they only
+state load restarts that count too. The player object is freed from a pause → quit, and about 70 frames before
+the Stage Clear screen, until the level changes: its pointer then reads `0` and the lives would come from address
+`0x165` (`0 lives`), so the counts also need `0xW566b4!=0`. The committed copies at `0x618ed` / `0x618f5` are not used: they only
 change on stage entry and exit.
 
 The demo's playback flag `0x61a30` clears about 18 frames before a demo hands back to the title level, but the
@@ -61,23 +63,25 @@ section) and parses it with the vendored `rc_richpresence_size`; it also fails o
 
 **Behaviour:** every harness scenario runs with the script active in the vendored rcheevos runtime, evaluated
 after every frame (`rc_runtime_get_richpresence`), and fails when a string it expects never shows or when any
-string shows `[Unknown macro]` or `an unknown level`. Runs on `PCSX-ReARMed r26 ff81ed1` with rcheevos 12.3.
+string shows `[Unknown macro]` or `an unknown level`; the deaths, quit, clear and boss scenarios, which never
+reach the last life, also fail on `0 lives`. Runs on `PCSX-ReARMed r26 ff81ed1` with rcheevos 12.3.
 
 | Scenario | Strings shown, in order (frame) |
 | --- | --- |
 | `cold-boot`, `attract` | `Starting up` (1) → `At the title screen` (1791) → `Watching the intro` (4130) → `At the title screen` → `Watching a demo of Jungle Rollers` (8266) → `At the title screen` (11433, as the title level loads) → … `The Great Gate`, `Boulders`, `Papu Papu`, `The Lost City`, `Jaws of Darkness`, `The Lab`, the intro again |
 | `game-over` | `In N. Sanity Beach` → `In N. Sanity Beach · 4 lives · 0 Wumpa` (frame 61) → `3 lives · 8 Wumpa` → `2 lives` → `1 life` → `0 lives · 14 Wumpa` → … `24 Wumpa` → `Game Over`, held from the fatal hit through the game over screen |
 | `<stage>-deaths`, six stages | `In <stage> · 4 lives · 0 Wumpa`, then one life less on each fatal hit, e.g. `In Upstream · 3 lives · 1 Wumpa` → `2 lives · 2 Wumpa` → `1 life · 2 Wumpa` |
-| `<stage>-quit`, six stages | `In <stage> · 4 lives · …` → `On the island map` → `In <stage>` for 60 frames on entry → `In <stage> · 4 lives · 0 Wumpa` → … |
-| `<stage>-clear` | `In N. Sanity Beach · … 20 Wumpa` → `On the Stage Clear screen` (7127, the achievement's frame) → `On the island map` → `In Jungle Rollers · 4 lives · 20 Wumpa` → `On the island map` |
-| `papu-papu-quit` | `Fighting Papu Papu` → `Fighting Papu Papu · 4 lives` → `On the island map` |
+| `<stage>-quit`, six stages | `In <stage> · 4 lives · …` → `In <stage>` from the quit (player object freed) → `On the island map` → `In <stage>` for 60 frames on entry → `In <stage> · 4 lives · 0 Wumpa` → … |
+| `<stage>-clear` | `In N. Sanity Beach · … 20 Wumpa` → `In N. Sanity Beach` (7057) → `On the Stage Clear screen` (7127, the achievement's frame) → `On the island map` → `In Jungle Rollers · 4 lives · 20 Wumpa` → `On the island map` |
+| `papu-papu-quit` | `Fighting Papu Papu` → `Fighting Papu Papu · 4 lives` → `Fighting Papu Papu` from the quit → `On the island map` |
 
 A cold boot that sits through the first demo, then starts a new game, shows `At the title screen` →
 `On the island map` → `In N. Sanity Beach` → `In N. Sanity Beach · 4 lives · 0 Wumpa`: the attract game state
 does not leak into play. Before the 60-frame guard, the harness caught `In The Great Gate · 120 lives` (player
 object) and `In N. Sanity Beach · 144 lives · 144 Wumpa` (HUD objects) on the frames after a level load, and
 `In Jungle Rollers · 4 lives · 14 Wumpa` on a demo's last 18 frames before the game state was added to the
-demo line; none shows now.
+demo line, and `0 lives` from every quit and before every Stage Clear screen before the pointer guard; none
+shows now.
 
 ### Still for the in-game check (DuckStation)
 
