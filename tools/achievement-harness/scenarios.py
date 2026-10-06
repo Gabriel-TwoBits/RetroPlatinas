@@ -301,7 +301,8 @@ def poke_lives(s, lives):
     """SECONDARY EVIDENCE ONLY: sets the player's lives (and the lives HUD, so it shows them
     without counting up and the run keeps the timing its plan was searched on).
 
-    The harness's one write that sets a game value: the cap is far out of a searched run's reach.
+    The harness's only write to a counter an achievement reads (`map-unlocked`'s
+    `levels_unlocked` write only reaches a stage): the cap is far out of a searched run's reach.
     The lives that then reach the cap are still real ones, earned by the replayed plan.
     """
     player = s.emu.u24(PLAYER_POINTER)
