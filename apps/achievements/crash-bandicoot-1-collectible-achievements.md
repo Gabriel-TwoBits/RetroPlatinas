@@ -150,9 +150,12 @@ stages, the two level clears and `papu-papu-quit`. None fires a collectible achi
   one more; then earn another at 99 and see nothing more.
 - **All four on DuckStation**, which runs rcheevos 12.4.0 with its own timing; the harness ran 12.3 on a libretro
   core.
+- **Beach Diet must not fire with fruit:** clear N. Sanity Beach after picking up Wumpa and see nothing. The
+  condition needs the clear's game state and Wumpa commit on one evaluated frame, as they are on PCSX-ReARMed;
+  a different frame split on DuckStation would unlock it falsely, which a check for the unlock alone cannot see.
 - **Fruit and masks in other stages, bonus rounds and boss fights:** only N. Sanity Beach was played. A bonus
   round loads its own level, so an event in its first 60 frames does not count; whether entering or leaving one
-  commits the counts (which would let `Beach Diet` count from the bonus round) was not measured.
+  commits the counts was not measured (N. Sanity Beach has no bonus round, so `Beach Diet` is unaffected).
 - **The end of invincibility** (Aku Aku 3 → 2 inside a stage) was not reached in the harness runs; it is a fall
   and cannot fire anything.
 - **A memory card load** with 99 lives or masks: the edges need a rise during play, so nothing should fire.
