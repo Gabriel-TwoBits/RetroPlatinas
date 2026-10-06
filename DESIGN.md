@@ -204,8 +204,8 @@ unlock's softcore twin is not counted again.
 - **Changelog entry** — a mono category label in its colour + title + body, as a ruled row.
 - **Set card** — a game object, so it is filled (`bg-surface`). One per game with a published
   achievement, by title: the icon through the `/Images/` route, title, console, published
-  achievements, points and players (active users who played it); the card links to
-  `/games/<id>/`.
+  achievements, points and players (active users with points who unlocked one of them, as the
+  numbers count players); the card links to `/games/<id>/`, which arrives with PR 23.
 - **Numbers** — games with a published achievement, published achievements, players (active
   users with points) and unlocks, each counted once.
 - **Playing now** — sessions pinged within `PLAYING_NOW_TTL`: identicon, user, game, rich

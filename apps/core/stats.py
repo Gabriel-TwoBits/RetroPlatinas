@@ -134,15 +134,16 @@ def recent_site_unlocks(limit):
 
 def published_games():
     """The games with a published achievement, by title, each annotated with
-    `published_achievements`, `published_points` and `player_count` (the active users who played
-    it)."""
+    `published_achievements`, `published_points` and `player_count` (the active users with points
+    who unlocked one of its published achievements, as `ranked_player_counts` counts players)."""
     published = Q(achievements__status__in=Achievement.PUBLISHED_STATUSES)
     # A subquery: counting players through a second join would multiply the achievement sums.
     player_count = (
-        PlayerGame.objects.filter(game=OuterRef("pk"), user__is_active=True)
+        published_unlocks()
+        .filter(achievement__game=OuterRef("pk"), user__is_active=True, user__softcore_points__gt=0)
         .order_by()
-        .values("game")
-        .annotate(count=Count("pk"))
+        .values("achievement__game")
+        .annotate(count=Count("user", distinct=True))
         .values("count")
     )
     return (

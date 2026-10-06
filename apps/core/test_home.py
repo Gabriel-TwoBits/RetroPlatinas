@@ -145,12 +145,13 @@ def test_numbers_show_zero_on_an_empty_site(client):
 
 @pytest.mark.django_db
 def test_sets_list_published_games_with_icon_link_and_counts(client, crash):
-    _achievement(crash, "N. Sanity Beach", points=LARGE_POINTS)
-    _achievement(crash, "Jungle Rollers", points=10, status=Achievement.STATUS_VERIFIED)
+    beach = _achievement(crash, "N. Sanity Beach", points=LARGE_POINTS)
+    rollers = _achievement(crash, "Jungle Rollers", points=10, status=Achievement.STATUS_VERIFIED)
     _achievement(crash, "Draft", points=50, status=Achievement.STATUS_DRAFT)
     for username in ("one", "two"):
-        _live(_user(username), crash, pinged_ago=timedelta(days=1))
-    _live(_user("banned", is_active=False), crash)
+        scorer = _user(username, softcore_points=LARGE_POINTS)
+        _unlock(scorer, beach, hardcore=True)
+        _unlock(scorer, rollers, hardcore=False)
 
     resp = _get(client)
 
@@ -198,9 +199,26 @@ def test_sets_are_ordered_by_title_across_consoles(client, crash):
 
 
 @pytest.mark.django_db
+def test_set_players_are_the_scoring_players_the_numbers_count(client, crash):
+    beach = _achievement(crash, "N. Sanity Beach")
+    draft = _achievement(crash, "Draft", status=Achievement.STATUS_DRAFT)
+    scorer = _user("scorer", softcore_points=5)
+    _unlock(scorer, beach, hardcore=False)
+    _live(scorer, crash)
+    _live(_user("idle"), crash)
+    _unlock(_user("drafter", softcore_points=5), draft, hardcore=False)
+    _unlock(_user("banned", softcore_points=5, is_active=False), beach, hardcore=False)
+
+    resp = _get(client)
+
+    [crash_set] = resp.context["sets"]
+    assert crash_set["players"] == 1
+
+
+@pytest.mark.django_db
 def test_sets_use_singular_labels_for_one(client, crash):
-    _achievement(crash, "N. Sanity Beach", points=1)
-    _live(_user("one"), crash)
+    beach = _achievement(crash, "N. Sanity Beach", points=1)
+    _unlock(_user("one", softcore_points=1), beach, hardcore=False)
 
     section = _section(_get(client).content.decode(), "Available sets")
 
