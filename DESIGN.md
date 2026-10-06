@@ -65,7 +65,7 @@ indigo/orange) and *Violeta Troféu* — and archives both. Neither ships.
 | `rounded-tile` | `0.25rem` (4px) | covers, badges, award tiles, primary CTAs |
 | `rounded-chip` | `0.375rem` (6px) | console tags, achievement cells, segmented bars |
 
-`rounded-full` stays on dots and the hardcore pill; `rounded-sm` (2px) on heat bars and
+`rounded-full` stays on dots and progress-bar tracks; `rounded-sm` (2px) on heat bars and
 section accent strips. The 80px identity avatar (the identicon from `/UserPic/<username>.png`)
 uses `rounded-2xl`.
 
