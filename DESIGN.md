@@ -126,8 +126,8 @@ Titles go in with an inline translation: `{% include "components/section-heading
 title=_("Recent activity") %}`.
 
 Django renders form widgets without classes, so `.rp-form` (in `static/css/input.css`) styles
-the inputs and help lists inside a form, and `form-fields.html` renders labels, help text and
-errors around them.
+the inputs, selects and help lists inside a form, and `form-fields.html` renders labels, help
+text and errors around them.
 
 The desktop recent-game card is a genuinely different structure from `game-card.html`
 (percent beside the bar, 20-column achievement grid) with one call site, so it stays inline in
@@ -223,10 +223,37 @@ into one list (`display: contents`) and `order-first` lifts **how to start** and
 numbers** to the top, right under the hero. The how-to-start block is the short version and
 links to the full guide.
 
+## Games list
+
+`/games/` (`templates/games/list.html`), built by `apps/games/listing.py` from the shared
+`apps/core/stats.py` queries; linked from the nav and the footer as *Games*, from the nav as
+*Search* (to the search field, `#game-search`) and from the home hero's *See the games*.
+
+- **Header** — a ruled section: the title and one line saying what is listed.
+- **Filters** — a plain GET form inside `.rp-form`: title search (case-insensitive substring),
+  console select, minimum published achievements (a number field, default `1`) and order
+  (*Alphabetical*, the default; *Most achievements*; *Most players*, the active users with a
+  `PlayerGame` for it). A game with no published achievement has no set to play, so it is
+  listed only once the minimum is set to `0`. Drafts never count. A filter the form rejects
+  (unknown console or order, negative or non-numeric minimum, an over-long search) answers 400.
+- **Live search** — HTMX upgrades the form: any input (`input changed delay:300ms`) or a submit
+  fetches `/games/results/`, the bare results block (`templates/games/partials/results.html`),
+  and swaps `#games-results`. The fragment answers with `HX-Push-Url` set to the matching
+  `/games/?…` URL, so the address bar always reloads the full list as shown. Without JavaScript
+  a submit button (in `<noscript>`) sends the same form to `/games/`.
+- **Cards** — game objects, so filled (`bg-surface`), 24 a page in a 1/2/3-column grid: the
+  icon through the `/Images/` route, title, console tag and published achievements; the card
+  links to the game page. The section heading counts the matching games.
+- **Pages** — as on the leaderboard page, each link carrying the search and filters (the
+  query string minus `page`) and swapping `#games-results` through `/games/results/`; a page
+  the list does not have answers 404.
+- **Empty states** — with a search or filter, *No games match these filters* with a link back
+  to the bare list; without one, the home's no-sets-published line.
+
 ## Game page
 
 `/games/<id>/` (`templates/games/detail.html`), built by `apps/games/page.py`; an unknown game
-answers 404. Every game title on the home and the profile links here.
+answers 404. Every game title on the home, the profile and the games list links here.
 
 - **Header** — a ruled section: the icon through the `/Images/` route (a game object, so it sits
   on `bg-surface`), title, console tag and name, then the published achievements and their
@@ -345,10 +372,6 @@ claims are not:
 The design docs also carry their own annotations — the numbered section headers, the principle
 cards, and the trailing `↳ …` notes explaining mobile-vs-desktop decisions. Those address the
 reader of the doc, not the user; they never ship.
-
-**Known debt:** `/games/` is linked from the header, footer and the hero's secondary CTA but
-has no `urls.py` yet, so it 404s today. It predates this carve-out;
-removing it is a product decision, not a drift fix.
 
 ## Identity
 
