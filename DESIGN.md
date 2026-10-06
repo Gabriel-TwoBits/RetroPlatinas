@@ -297,6 +297,26 @@ shared `apps/core/stats.py` queries; linked from the nav and the footer as *Rank
   shares it; the header around it, which shows the logged-in user, is rendered per request. The
   board must never read the request or the user.
 
+## Feed page
+
+`/feed/` (`templates/feed/feed.html`), built by `apps/core/feed.py` from the shared
+`apps/core/stats.py` queries; linked from the nav and the footer as *Feed*.
+
+- **Header** — a ruled section: the title and one line saying how many unlocks are listed and
+  how often they refresh.
+- **Filter** — *All* (active, `brand`, `aria-current`) and *Friends* outlined chips. *Friends* is
+  disabled (`aria-disabled`, faint, no link) with a note under the chips until following exists.
+- **Rows** — the last 50 unlocks of published achievements by active users, newest first, each
+  once (a hardcore unlock's softcore twin is left out, an earlier softcore unlock of the same
+  achievement is its own row): identicon, "*user* unlocked “*achievement*” in *game*" (profile
+  and game page links), console, relative time and the badge; an unlock earned in hardcore
+  carries a *hardcore* mark and a `state-hardcore` badge border (`line2` otherwise). Empty, it
+  shows the home's no-unlocks empty state.
+- **Polling** — a wrapper around the list polls `/feed/list/` every `POLL_SECONDS` (30 s,
+  `hx-trigger="every 30s"`) and swaps its contents; the fragment
+  (`templates/feed/partials/feed-list.html`) is the bare list, so the trigger stays on the
+  wrapper. Nothing is cached: the relative times must stay current.
+
 ## Getting started page
 
 `/docs/getting-started/` (`templates/docs/getting-started.html`), linked from the nav as
@@ -326,8 +346,8 @@ The design docs also carry their own annotations — the numbered section header
 cards, and the trailing `↳ …` notes explaining mobile-vs-desktop decisions. Those address the
 reader of the doc, not the user; they never ship.
 
-**Known debt:** `/games/` and `/feed/` are linked from the header, footer and the
-hero's secondary CTA but have no `urls.py` yet, so they 404 today. They predate this carve-out;
+**Known debt:** `/games/` is linked from the header, footer and the hero's secondary CTA but
+has no `urls.py` yet, so it 404s today. They predate this carve-out;
 removing them is a product decision, not a drift fix.
 
 ## Identity
