@@ -27,6 +27,7 @@ VERIFIED_POINTS = 10
 COMMUNITY_POINTS = 5
 DRAFT_POINTS = 25
 LARGE_POINTS = 1500
+ENTRY_SCORE = 100
 # More rows than the page lists, so the cut is visible.
 EXTRA_ROWS = 2
 
@@ -121,7 +122,7 @@ def test_game_page_shows_the_game_and_its_published_totals(client, crash, achiev
     assert versioned_game_icon_path(crash) in body
     assert "PS1" in body and "PlayStation" in body
     assert "A bandicoot &lt;b&gt;spins&lt;/b&gt;." in body
-    published_points = VERIFIED_POINTS + 2 * COMMUNITY_POINTS
+    published_points = sum(achievement.points for achievement in achievements.values())
     assert f'text-txt">{len(achievements)}</div>' in body
     assert f'text-gold">{published_points}</div>' in body
 
@@ -200,7 +201,8 @@ def test_drafts_are_shown_only_to_their_author_and_marked(client, crash, achieve
     draft_row = body[body.index(">My draft<") :]
     assert ">draft</span>" in draft_row[: draft_row.index("</div>")]
     # A draft is never worth points, so it stays out of the totals.
-    assert f'text-gold">{VERIFIED_POINTS + 2 * COMMUNITY_POINTS}</div>' in body
+    published_points = sum(achievement.points for achievement in achievements.values())
+    assert f'text-gold">{published_points}</div>' in body
 
     client.force_login(_user("someone-else"))
     assert "My draft" not in _page(client, crash)
@@ -395,9 +397,9 @@ def test_leaderboards_tab_lists_the_games_boards_with_active_entries(
     Leaderboard.objects.create(game=crash, title="Most wumpa", mem_addr="STA:0=1")
     other_game = Game.objects.create(title="Ape Escape", console=playstation)
     Leaderboard.objects.create(game=other_game, title="Other board", mem_addr="STA:0=1")
-    LeaderboardEntry.objects.create(leaderboard=fastest, user=player, score=100)
+    LeaderboardEntry.objects.create(leaderboard=fastest, user=player, score=ENTRY_SCORE)
     LeaderboardEntry.objects.create(
-        leaderboard=fastest, user=User.objects.get(username=SYSTEM_ACCOUNT), score=50
+        leaderboard=fastest, user=User.objects.get(username=SYSTEM_ACCOUNT), score=ENTRY_SCORE
     )
     body = _panel(client, crash, "leaderboards")
     assert body.index("Fastest beach") < body.index("Most wumpa")
@@ -414,14 +416,20 @@ def test_players_tab_lists_active_players_most_recent_first(client, crash, achie
     PlayerGame.objects.create(user=player, game=crash, last_played_at=now - timedelta(days=1))
     PlayerGame.objects.create(user=rival, game=crash, last_played_at=now)
     PlayerGame.objects.create(user=_user("gone", is_active=False), game=crash, last_played_at=now)
-    _unlock(player, achievements["verified"], hardcore=True)
-    _unlock(player, achievements["community"], hardcore=False)
+    hardcore_unlocks = [achievements["verified"]]
+    softcore_unlocks = [achievements["community"]]
+    for achievement in hardcore_unlocks:
+        _unlock(player, achievement, hardcore=True)
+    for achievement in softcore_unlocks:
+        _unlock(player, achievement, hardcore=False)
     _achievement(crash, "Draft", status=Achievement.STATUS_DRAFT, author=player)
+    unlocked = len(hardcore_unlocks) + len(softcore_unlocks)
     body = _panel(client, crash, "players")
     assert body.index(">rival<") < body.index(">teste<")
     assert 'href="/users/teste/"' in body
     assert avatar_path("teste") in body
-    assert f"2/{len(achievements)} achievements (1 hardcore)" in body
+    expected = f"{unlocked}/{len(achievements)} achievements ({len(hardcore_unlocks)} hardcore)"
+    assert expected in body
     assert "gone" not in body
 
 
