@@ -32,7 +32,6 @@ MAX_LIVES = 99
 # invincible for a while.
 AKU_POINTER_ADDRESS = "0xW618cc"
 AKU_LEVEL = "0xH189"
-AKU_TWO_MASKS_LEVEL = 2
 AKU_INVINCIBLE_LEVEL = 3
 # c1 `fruit_count`: the Wumpa count committed when a stage is left (cleared or quit) and handed
 # to the player object when the next one starts.
@@ -92,12 +91,13 @@ def build_lives_mem_addr():
 
 
 def build_aku_mem_addr():
-    """Fires on the frame Aku Aku goes from two masks to three."""
+    """Fires on the frame Aku Aku reaches three masks, from any fewer: two masks can land on one
+    game tick."""
     return (
         f"{in_play()}_"
         f"{AKU_POINTER_ADDRESS}=d{AKU_POINTER_ADDRESS}_"
         f"{aku_value(AKU_LEVEL)}={AKU_INVINCIBLE_LEVEL}_"
-        f"{aku_value(f'd{AKU_LEVEL}')}={AKU_TWO_MASKS_LEVEL}"
+        f"{aku_value(f'd{AKU_LEVEL}')}<{AKU_INVINCIBLE_LEVEL}"
     )
 
 

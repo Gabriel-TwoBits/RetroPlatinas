@@ -536,7 +536,7 @@ def test_collectible_mem_addrs_parse_in_rcheevos():
         (build_lives_mem_addr(), "I:0xW566b4_0xH165=99_I:0xW566b4_d0xH165<99"),
         (
             build_aku_mem_addr(),
-            "0xW618cc=d0xW618cc_I:0xW618cc_0xH189=3_I:0xW618cc_d0xH189=2",
+            "0xW618cc=d0xW618cc_I:0xW618cc_0xH189=3_I:0xW618cc_d0xH189<3",
         ),
     ],
 )

@@ -70,7 +70,7 @@ pointer to both sides of a comparison, so `d` reads the same object's previous v
 | --- | --- | --- |
 | Fruit Into Life | `I:0xW566b4_0xH161<d0xH161` | the Wumpa count went down: it passed 100. Nothing else lowers it |
 | Bandicoot Reserve | `I:0xW566b4_0xH165=99_I:0xW566b4_d0xH165<99` | the lives rose to 99. At the cap an extra life changes nothing, so it cannot fire twice in a row |
-| Mask Stack | `0xW618cc=d0xW618cc_I:0xW618cc_0xH189=3_I:0xW618cc_d0xH189=2` | Aku Aku went from two masks to three, the Aku object unchanged |
+| Mask Stack | `0xW618cc=d0xW618cc_I:0xW618cc_0xH189=3_I:0xW618cc_d0xH189<3` | Aku Aku reached three masks from fewer (two can land on one game tick), the Aku object unchanged |
 
 `Beach Diet` needs no object: the clear commits the player's Wumpa into `0x618f5` on the very frame the game
 state becomes `05`, so comparing the committed count with its previous frame compares the count at the clear
