@@ -130,7 +130,7 @@ def test_profile_shows_points_grouped_in_brazilian_portuguese(client, playstatio
 def test_profile_uses_the_identicon_route_and_member_since(client, player):
     body = _get(client, "/users/teste/").content.decode()
     assert re.search(r'<img src="/UserPic/teste\.png\?v=[0-9a-f]+"', body)
-    assert f"member since {player.date_joined:%B %Y}" in body
+    assert f"member since {timezone.localtime(player.date_joined):%B %Y}" in body
 
 
 @pytest.mark.django_db
