@@ -45,7 +45,8 @@ def edit_profile(request, username):
     if request.method == "POST":
         form = ProfileForm(request.POST, instance=profile_user)
         if form.is_valid():
-            form.save()
+            # Only the bio: a full save would write back stale points and API token.
+            form.save(commit=False).save(update_fields=["bio"])
             return redirect("user_detail", username=profile_user.username)
     else:
         form = ProfileForm(instance=profile_user)

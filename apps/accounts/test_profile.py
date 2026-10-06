@@ -447,6 +447,18 @@ def test_owner_edits_the_bio(client, player):
 
 
 @pytest.mark.django_db
+def test_saving_the_bio_writes_no_other_column(client, player):
+    client.force_login(player)
+    with CaptureQueriesContext(connection) as queries:
+        client.post("/users/teste/edit/", {"bio": "Platinum hunter."})
+    updates = [q["sql"] for q in queries if q["sql"].startswith('UPDATE "accounts_user"')]
+    assert len(updates) == 1
+    assert '"bio"' in updates[0]
+    assert "points" not in updates[0]
+    assert "api_token" not in updates[0]
+
+
+@pytest.mark.django_db
 def test_owner_clears_the_bio(client, player):
     player.bio = "Old bio"
     player.save()
