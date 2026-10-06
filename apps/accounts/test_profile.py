@@ -596,6 +596,16 @@ def test_edit_profile_accepts_a_bio_at_the_limit(client, player):
 
 
 @pytest.mark.django_db
+def test_edit_profile_counts_a_line_break_as_one_character(client, player):
+    client.force_login(player)
+    head = "x" * (BIO_MAX_LENGTH - len("\n\nx"))
+    resp = client.post("/users/teste/edit/", {"bio": f"{head}\r\n\r\nx"})
+    assert resp.status_code == HTTPStatus.FOUND
+    player.refresh_from_db()
+    assert player.bio == f"{head}\n\nx"
+
+
+@pytest.mark.django_db
 def test_edit_profile_rejects_a_bio_over_the_limit(client, player):
     client.force_login(player)
     resp = client.post(

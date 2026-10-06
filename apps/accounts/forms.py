@@ -19,10 +19,19 @@ class RegistrationForm(UserCreationForm):
         return email
 
 
+class MultilineCharField(forms.CharField):
+    """Browsers submit textarea line breaks as CRLF but count them as one character against
+    `maxlength`; normalising to LF keeps the server's length check in step with the browser."""
+
+    def to_python(self, value):
+        return super().to_python(value).replace("\r\n", "\n")
+
+
 class ProfileForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ("bio",)
+        field_classes = {"bio": MultilineCharField}
         widgets = {"bio": forms.Textarea}
 
     def __init__(self, *args, **kwargs):
