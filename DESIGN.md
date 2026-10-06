@@ -114,7 +114,7 @@ Each is a small `{% include ... with ... %}` partial, reused across screens:
 | `site-menu.html` | `nav_class, account_class` | header: desktop row and mobile disclosure |
 | `form-fields.html` | `form` | login, register, password change, edit profile |
 | `logo.html` | `variant` (lockup/selo), `size` | header, footer |
-| `game-card.html` | `initials, title, meta, state, state_label, pct, icons, icons_more` | profile (mobile games panel); future game lists |
+| `game-card.html` | `initials, title, href, meta, state, state_label, pct, icons, icons_more` | profile (mobile games panel); future game lists |
 | `empty-state.html` | `title, body, href, cta` | every data block with nothing to show (home sets and activity, profile sections) |
 | `achievement-badge.html` | `state, size, label` | badge states |
 | `progress-bar-segmented.html` | `not_pct, beaten_pct, plat_pct, height` | console progression (desktop and mobile) |
@@ -206,7 +206,7 @@ unlock's softcore twin is not counted again.
 - **Set card** — a game object, so it is filled (`bg-surface`). One per game with a published
   achievement, by title: the icon through the `/Images/` route, title, console, published
   achievements, points and players (active users with points who unlocked one of them, as the
-  numbers count players); the card links to `/games/<id>/`, which arrives with PR 23.
+  numbers count players); the card links to the game page.
 - **Numbers** — games with a published achievement, published achievements, players (active
   users with points) and unlocks, each counted once.
 - **Playing now** — sessions pinged within `PLAYING_NOW_TTL`: identicon, user, game, rich
@@ -222,6 +222,34 @@ start → numbers → playing now → activity → open source. Below `md` the t
 into one list (`display: contents`) and `order-first` lifts **how to start** and **the
 numbers** to the top, right under the hero. The how-to-start block is the short version and
 links to the full guide.
+
+## Game page
+
+`/games/<id>/` (`templates/games/detail.html`), built by `apps/games/page.py`; an unknown game
+answers 404. Every game title on the home and the profile links here.
+
+- **Header** — a ruled section: the icon through the `/Images/` route (a game object, so it sits
+  on `bg-surface`), title, console tag and name, then the published achievements and their
+  points side by side split by a vertical hairline, and the description (escaped, line breaks
+  kept). Drafts never count.
+- **Tabs** — underline tabs (`.rp-tab`): *Achievements*, *Leaderboards*, *Recent players*.
+  Each loads through HTMX from `/games/<id>/panel/<tab>/`, which answers the tab bar with its
+  tab active plus the panel, swapped into `#game-tabs`; the active state is rendered by the
+  server, no client script.
+- **Achievements** — ruled sections in the order the emulator receives them: *Verified* (the
+  quality seal, `state-platinum` strip), then *Community*, then *Your drafts* (`gold` strip,
+  each row marked *draft*), which only the drafts' author sees. A group with nothing to show is
+  hidden. For a logged-in viewer an unlocked badge has a 2px `state-hardcore` or
+  `state-softcore` border with the mode and local date under the description; a locked one
+  comes from the `_lock` route, faded, with muted text. An anonymous visitor sees the plain
+  badges and no filters.
+- **Filters** — logged-in viewers get *All / Unlocked / Locked* outlined chips over the list,
+  the active one in `brand`; each reloads the achievements panel through the same HTMX route
+  (`?filter=`). Each filter has its own empty state.
+- **Leaderboards** — a row per leaderboard: title, description and its entries by active
+  users. Scores and ranks belong to the leaderboard page.
+- **Recent players** — the 20 active users who played last: identicon, profile link, published
+  achievements unlocked (and how many in hardcore) and when they last played.
 
 ## Getting started page
 
@@ -254,8 +282,7 @@ reader of the doc, not the user; they never ship.
 
 **Known debt:** `/games/`, `/ranking/` and `/feed/` are linked from the header, footer and the
 hero's secondary CTA but have no `urls.py` yet, so they 404 today. They predate this carve-out;
-removing them is a product decision, not a drift fix. The home set cards link to
-`/games/<id>/`, which the roadmap requires and which 404s until PR 23 adds the game page.
+removing them is a product decision, not a drift fix.
 
 ## Identity
 
