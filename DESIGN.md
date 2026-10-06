@@ -247,10 +247,32 @@ answers 404. Every game title on the home and the profile links here.
   the active one in `brand`; each reloads the achievements panel through the same HTMX route
   (`?filter=`). Each filter has its own empty state, except on a game with no achievements the
   viewer can see, where every filter shows the no-achievements one.
-- **Leaderboards** — a row per leaderboard: title, description and its entries by active
-  users. Scores and ranks belong to the leaderboard page.
+- **Leaderboards** — a row per leaderboard: title (linking to its leaderboard page),
+  description and its entries by active users. Scores and ranks belong to the leaderboard page.
 - **Recent players** — the 20 active users who played last: identicon, profile link, published
   achievements unlocked (and how many in hardcore) and when they last played.
+
+## Leaderboard page
+
+`/games/<id>/leaderboards/<lb_id>/` (`templates/leaderboards/detail.html`), built by
+`apps/leaderboards/page.py`; an unknown game or leaderboard, a leaderboard of another game and a
+page the board does not have answer 404.
+
+- **Header** — a ruled section: a link back to the game, the title, the description, then the
+  entry count and whether lower or higher is better.
+- **Your position** — a logged-in viewer whose entry is not on the current page gets it in its
+  own section above the board, with its rank on the whole board.
+- **Ranking** — 100 entries a page, best first, from active users only: rank (ties share it),
+  identicon, profile link, submission date and the score. The viewer's own row carries a 2px
+  `brand` left rule, a `brand` name and a *you* mark (`aria-current`).
+- **Scores** — rendered exactly as rcheevos renders them in the emulator, by the leaderboard's
+  format: `apps/leaderboards/formatting.py` ports `rc_format_value`, exposed to templates as
+  `{{ score|leaderboard_score:format }}` (`{% load leaderboard_scores %}`). TIME/FRAMES is frames
+  at 60 fps (`5000` → `1:23.33`), and grouping uses commas whatever the language, as in the
+  emulator. `scripts/format-score.sh` runs the vendored C so the tests compare against it.
+- **Pages** — *Previous* / *Page N of M* / *Next* under a hairline, only when there is more than
+  one page. Each link is a plain `?page=N` link that HTMX upgrades: it fetches the page, swaps
+  `#leaderboard-board` out of it (`hx-select`) and pushes the URL.
 
 ## Getting started page
 
