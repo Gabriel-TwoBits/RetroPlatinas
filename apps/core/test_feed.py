@@ -27,6 +27,10 @@ FEED_LIST_PATH = "/feed/list/"
 PATHS = [FEED_PATH, FEED_LIST_PATH]
 # The desktop nav, the mobile nav and the footer.
 FEED_LINKS_PER_PAGE = 3
+ACHIEVEMENT_POINTS = 5
+# Unlock ages, also rendered in the relative times asserted below.
+MINUTES_AGO = 3
+HOURS_AGO = 2
 
 
 def _user(username, is_active=True):
@@ -39,7 +43,7 @@ def _achievement(game, title, status=Achievement.STATUS_COMMUNITY):
         author=User.objects.get(username=SYSTEM_ACCOUNT),
         title=title,
         description=f"{title} description",
-        points=5,
+        points=ACHIEVEMENT_POINTS,
         mem_addr="0xH0001=1",
         status=status,
     )
@@ -88,8 +92,8 @@ def test_feed_lists_unlocks_newest_first_once_each(client, crash, player, path):
     now = timezone.now()
     beach = _achievement(crash, "N. Sanity Beach")
     rollers = _achievement(crash, "Jungle Rollers")
-    _unlock(player, beach, hardcore=True, unlocked_at=now - timedelta(hours=2))
-    _unlock(player, rollers, hardcore=False, unlocked_at=now - timedelta(minutes=3))
+    _unlock(player, beach, hardcore=True, unlocked_at=now - timedelta(hours=HOURS_AGO))
+    _unlock(player, rollers, hardcore=False, unlocked_at=now - timedelta(minutes=MINUTES_AGO))
 
     resp = _get(client, path)
 
@@ -101,8 +105,8 @@ def test_feed_lists_unlocks_newest_first_once_each(client, crash, player, path):
     assert body.count(f'href="/games/{crash.pk}/"') == len(resp.context["rows"])
     assert f'src="{avatar_path(player.username)}"' in body
     assert f'src="{badge_path(beach.badge_name)}"' in body
-    assert "3\xa0minutes ago" in body
-    assert "2\xa0hours ago" in body
+    assert f"{MINUTES_AGO}\xa0minutes ago" in body
+    assert f"{HOURS_AGO}\xa0hours ago" in body
     assert body.count(">hardcore<") == 1
 
 
@@ -244,13 +248,15 @@ def test_nav_and_footer_link_the_feed(client, crash):
 @pytest.mark.parametrize("path", PATHS)
 def test_feed_is_translated_to_brazilian_portuguese(client, crash, player, path):
     beach = _achievement(crash, "N. Sanity Beach")
-    _unlock(player, beach, hardcore=True, unlocked_at=timezone.now() - timedelta(minutes=3))
+    _unlock(
+        player, beach, hardcore=True, unlocked_at=timezone.now() - timedelta(minutes=MINUTES_AGO)
+    )
 
     body = _get(client, path, "pt-br").content.decode()
 
     assert "desbloqueou" in body
     assert " em <a" in body
-    assert "3\xa0minutos atrás" in body
+    assert f"{MINUTES_AGO}\xa0minutos atrás" in body
 
 
 @pytest.mark.django_db
