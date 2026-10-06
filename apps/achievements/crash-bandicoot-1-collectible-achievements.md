@@ -72,6 +72,11 @@ pointer to both sides of a comparison, so `d` reads the same object's previous v
 | Bandicoot Reserve | `I:0xW566b4_0xH165=99_I:0xW566b4_d0xH165<99` | the lives rose to 99. At the cap an extra life changes nothing, so it cannot fire twice in a row |
 | Mask Stack | `0xW618cc=d0xW618cc_I:0xW618cc_0xH189=3_I:0xW618cc_d0xH189<3` | Aku Aku reached three masks from fewer (two can land on one game tick), the Aku object unchanged |
 
+TRADEOFF: a 99th life that lands after the guard closes at the end of a stage (a wrap's extra life lands about
+110 frames after the wrap, and the player pointer is freed before Stage Clear) is missed, and the next stage starts
+at 99, so `Bandicoot Reserve` waits for a life lost and earned back. Accepting the committed lives (`0x618ed`)
+rising to 99 as an alternative trigger would cover it, once measured.
+
 `Beach Diet` needs no object: the clear commits the player's Wumpa into `0x618f5` on the very frame the game
 state becomes `05`, so comparing the committed count with its previous frame compares the count at the clear
 with the count the stage started with.

@@ -82,7 +82,11 @@ def build_wumpa_mem_addr():
 
 
 def build_lives_mem_addr():
-    """Fires on the frame the player's lives rise to the cap."""
+    """Fires on the frame the player's lives rise to the cap.
+
+    TRADEOFF: a 99th life landing after the end of a stage closes `in_play()` is missed until a
+    life is lost and earned back; the committed lives (`0x618ed`) could cover it, once measured.
+    """
     return (
         f"{in_play()}_"
         f"{player_value(PLAYER_LIVES)}={MAX_LIVES}_"
