@@ -180,7 +180,7 @@ def test_invalid_filters_answer_400(client, catalog, path, params):
     resp = _get(client, path, params)
 
     assert resp.status_code == HTTPStatus.BAD_REQUEST
-    assert "HX-Push-Url" not in resp.headers
+    assert "HX-Replace-Url" not in resp.headers
 
 
 # --- Ordering ---
@@ -281,19 +281,19 @@ def test_list_form_swaps_the_results_through_htmx_after_300_ms(client, catalog):
 
 
 @pytest.mark.django_db
-def test_results_fragment_is_the_bare_results_and_pushes_the_list_url(client, catalog):
+def test_results_fragment_is_the_bare_results_and_replaces_the_list_url(client, catalog):
     resp = _get(client, RESULTS_PATH, {"q": "crash", "page": 1})
 
     body = resp.content.decode()
     assert body.lstrip().startswith('<div id="games-results"')
     assert "<html" not in body
     assert "<form" not in body
-    assert resp.headers["HX-Push-Url"] == f"{LIST_PATH}?q=crash&page=1"
+    assert resp.headers["HX-Replace-Url"] == f"{LIST_PATH}?q=crash&page=1"
 
 
 @pytest.mark.django_db
-def test_results_fragment_without_a_query_pushes_the_bare_list_url(client, catalog):
-    assert _get(client, RESULTS_PATH).headers["HX-Push-Url"] == LIST_PATH
+def test_results_fragment_without_a_query_replaces_the_bare_list_url(client, catalog):
+    assert _get(client, RESULTS_PATH).headers["HX-Replace-Url"] == LIST_PATH
 
 
 @pytest.mark.django_db

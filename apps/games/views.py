@@ -41,15 +41,19 @@ def games_list(request):
 
 @require_safe
 def games_results(request):
-    """The results of the list for its HTMX swaps, pushing the list's own URL into history."""
+    """The results of the list for its HTMX swaps, with the list's own URL in the address bar.
+
+    Replaced, not pushed: htmx's history snapshot keeps the form's rendered values, not the typed
+    ones, so Back would restore results under stale filters.
+    """
     response = _games_listing(request, "games/partials/results.html")
     if response.status_code != HTTPStatus.OK:
         # htmx swaps nothing on an error, so the address bar keeps the last list shown.
         return response
     elif request.GET:
-        response["HX-Push-Url"] = f"{reverse('games_list')}?{request.GET.urlencode()}"
+        response["HX-Replace-Url"] = f"{reverse('games_list')}?{request.GET.urlencode()}"
     else:
-        response["HX-Push-Url"] = reverse("games_list")
+        response["HX-Replace-Url"] = reverse("games_list")
     return response
 
 

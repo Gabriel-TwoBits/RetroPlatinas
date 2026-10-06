@@ -238,8 +238,10 @@ links to the full guide.
   (unknown console or order, negative or non-numeric minimum, an over-long search) answers 400.
 - **Live search** — HTMX upgrades the form: any input (`input changed delay:300ms`) or a submit
   fetches `/games/results/`, the bare results block (`templates/games/partials/results.html`),
-  and swaps `#games-results`. The fragment answers with `HX-Push-Url` set to the matching
-  `/games/?…` URL, so the address bar always reloads the full list as shown. Without JavaScript
+  and swaps `#games-results`. The fragment answers with `HX-Replace-Url` set to the matching
+  `/games/?…` URL, so the address bar always reloads the full list as shown. It replaces rather
+  than pushes: htmx's history snapshot keeps the form's rendered values, not the typed ones, so
+  a pushed entry would come back on Back with results under stale filters. Without JavaScript
   a submit button (in `<noscript>`) sends the same form to `/games/`.
 - **Cards** — game objects, so filled (`bg-surface`), 24 a page in a 1/2/3-column grid: the
   icon through the `/Images/` route, title, console tag and published achievements; the card
