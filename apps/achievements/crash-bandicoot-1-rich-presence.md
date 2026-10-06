@@ -77,9 +77,10 @@ reach the last life, also fail on `0 lives`. Runs on `PCSX-ReARMed r26 ff81ed1` 
 | `<stage>-clear` | `In N. Sanity Beach · … 20 Wumpa` → `In N. Sanity Beach` (7057) → `On the Stage Clear screen` (7127, the achievement's frame) → `On the island map` → `In Jungle Rollers · 4 lives · 20 Wumpa` → `On the island map` |
 | `papu-papu-quit` | `Fighting Papu Papu` → `Fighting Papu Papu · 4 lives` → `Fighting Papu Papu` from the quit → `On the island map` |
 
-A cold boot that sits through the first demo, then starts a new game, shows `At the title screen` →
-`On the island map` → `In N. Sanity Beach` → `In N. Sanity Beach · 4 lives · 0 Wumpa`: the attract game state
-does not leak into play.
+`attract-then-new-game` sits through the first demo, then starts a new game: `Watching a demo of Jungle
+Rollers` → `At the title screen` (11433) → `On the island map` (11814) → `In N. Sanity Beach` (12561) →
+`In N. Sanity Beach · 4 lives · 0 Wumpa` (12621), never `Watching a demo of N. Sanity Beach`, so the attract
+game state does not leak into play.
 
 ### Still for the in-game check (DuckStation)
 

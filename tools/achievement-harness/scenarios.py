@@ -31,6 +31,7 @@ from probes import (
     GAME_STATE_PLAYING,
     LID_STAGE_CLEAR,
     LID_TITLE,
+    PBAK_STATE,
     RESPAWN_COUNT,
 )
 from session import Session
@@ -40,6 +41,9 @@ COLD_BOOT_FRAMES = 3 * SECONDS_PER_MINUTE * FRAMES_PER_SECOND
 COLD_BOOT_SHOT_FRAMES = 10 * FRAMES_PER_SECOND
 ATTRACT_FRAMES = 15 * SECONDS_PER_MINUTE * FRAMES_PER_SECOND
 ATTRACT_SHOT_FRAMES = 30 * FRAMES_PER_SECOND
+FIRST_DEMO_TIMEOUT_FRAMES = COLD_BOOT_FRAMES
+DEMO_TIMEOUT_FRAMES = 2 * SECONDS_PER_MINUTE * FRAMES_PER_SECOND
+PLAY_AFTER_NEW_GAME_FRAMES = 400  # well past the rich presence counts' 60-frame settle
 LEAVE_SPAWN_ZONE_FRAMES = 150
 STAND_BEFORE_QUIT_FRAMES = 400
 DEATH_TIMEOUT_FRAMES = 4 * SECONDS_PER_MINUTE * FRAMES_PER_SECOND
@@ -157,6 +161,23 @@ def play_attract(s):
     for _ in range(ATTRACT_FRAMES // ATTRACT_SHOT_FRAMES):
         s.step(ATTRACT_SHOT_FRAMES)
         s.shot("periodic")
+
+
+def demo_playing(emu):
+    return emu.s32(PBAK_STATE) != 0 and navigation.level_id(emu) != LID_TITLE
+
+
+def play_attract_then_new_game(s):
+    """Sits through the first attract demo, then starts a new game and enters N. Sanity Beach."""
+    s.wait_until(demo_playing, FIRST_DEMO_TIMEOUT_FRAMES, "first attract demo")
+    s.wait_until(
+        lambda e: navigation.level_id(e) == LID_TITLE, DEMO_TIMEOUT_FRAMES, "title after the demo"
+    )
+    s.note("demo over; NEW GAME")
+    navigation.boot_to_map(s.emu)
+    entered = navigation.enter_stage(s.emu)
+    s.note(f"entered lid {entered:#x}")
+    s.step(PLAY_AFTER_NEW_GAME_FRAMES)
 
 
 def death_route(s, stage):
@@ -293,6 +314,14 @@ SCENARIOS["game-over"] = Scenario(
     "deaths on N. Sanity Beach down to a game over",
     down_to_game_over(STAGES[0]),
     (in_stage(_beach, NEW_GAME_LIVES), in_stage(_beach, "0"), GAME_OVER),
+)
+SCENARIOS["attract-then-new-game"] = Scenario(
+    None,
+    NOTHING_FIRES,
+    "the first attract demo, then a new game into N. Sanity Beach",
+    play_attract_then_new_game,
+    (demo_of(ATTRACT_DEMOS[0]), TITLE_SCREEN, ISLAND_MAP, in_stage(_beach, NEW_GAME_LIVES)),
+    never=(demo_of(_beach), NO_LIVES),
 )
 for _stage in STAGES:
     _name = achievements.level_title(_stage.level_id)

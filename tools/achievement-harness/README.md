@@ -128,15 +128,17 @@ while the others keep their hits, as in a live session.
 | `cold-boot` | cold boot | nothing | Boot-time RAM noise (zeroed RAM reads as "stage 0") |
 | `attract` | cold boot | nothing | 15 minutes of attract-mode demos, which play real stages with no player |
 | `game-over` | `nsanity-beach-start` | nothing | Deaths down to the game over and the title screen it returns to |
+| `attract-then-new-game` | cold boot | nothing | The first attract demo, then a new game into N. Sanity Beach: the attract game state must not leak into play |
 | `<stage>-deaths` | `<stage>-start` | nothing | Three deaths: the first, one re-armed right after the respawn, one after idling where the player respawned; each replays the stage's route first when it has one |
 | `<stage>-quit` | `<stage>-start` | nothing | Pause -> SELECT quits: right after control, after running and standing, after standing |
 | `<stage>-clear` | `<stage>-start` | the stage's achievement, once, on Stage Clear (lid `0x2D`) | Replays the clearing plan (a real completion); after a re-arm, Stage Clear -> map, the next stage and a quit fire nothing |
 | `papu-papu-quit` | `papu-papu-start` | nothing | Standing in the Papu Papu boss fight, then pause -> SELECT |
 
 Every scenario also lists the rich presence strings the game must show on the way (`presence`,
-regular expressions matched in full): the title and demo strings in `cold-boot` and `attract`, the
-stage with a new game's 4 lives and then fewer in `<stage>-deaths`, `Game Over`, the island map,
-the Stage Clear screen and the boss fight. Stage names in the patterns come from the level
+regular expressions matched in full): the title and demo strings in `cold-boot`, `attract` and
+`attract-then-new-game` (never a demo of the stage then played), the stage with a new game's 4
+lives and then fewer in `<stage>-deaths`, `Game Over`, the island map, the Stage Clear screen and
+the boss fight. Stage names in the patterns come from the level
 achievements' titles or are spelled out, never from the script's own lookup. A scenario fails when
 an expected string never shows, or when any string shows `[Unknown macro]` or `an unknown level` or
 matches one of the scenario's `never` patterns (`0 lives` wherever the last life is never reached).
