@@ -44,11 +44,12 @@ The first line whose condition holds is shown, in this order:
 
 Both objects hold leftovers of the previous level for up to about 20 frames after a level loads (`120 lives`,
 `144 Wumpa` were measured), so the counts show only once the level id has held for 60 frames
-(`R:0xH6188d!=d0xH6188d_0xH6188d=0xH6188d.60.`); until then the line is `In <level>` or `Fighting <boss>`. A save
-state load restarts that count too. The player object is freed from a pause → quit, and about 70 frames before
-the Stage Clear screen, until the level changes: its pointer then reads `0` and the lives would come from address
-`0x165` (`0 lives`), so the counts also need `0xW566b4!=0`. The committed copies at `0x618ed` / `0x618f5` are not used: they only
-change on stage entry and exit.
+(`R:0xH6188d!=d0xH6188d_0xH6188d=0xH6188d.60.`); until then the line is `In <level>` or `Fighting <boss>`. The
+count restarts on a game load or a reset; a save state carries the runtime's hit counts, so loading one
+restores them, unless the state was saved under another script. The player object is freed from a pause → quit,
+and about 70 frames before the Stage Clear screen, until the level changes: its pointer then reads `0` and the
+lives would come from address `0x165` (`0 lives`), so the counts also need `0xW566b4!=0`. The committed copies at
+`0x618ed` / `0x618f5` are not used: they only change on stage entry and exit.
 
 The demo's playback flag `0x61a30` clears about 18 frames before a demo hands back to the title level, but the
 game state reads `06` (`GAME_STATE_TITLE`, only ever seen in the attract loop) from before that point, so the
@@ -77,11 +78,7 @@ reach the last life, also fail on `0 lives`. Runs on `PCSX-ReARMed r26 ff81ed1` 
 
 A cold boot that sits through the first demo, then starts a new game, shows `At the title screen` →
 `On the island map` → `In N. Sanity Beach` → `In N. Sanity Beach · 4 lives · 0 Wumpa`: the attract game state
-does not leak into play. Before the 60-frame guard, the harness caught `In The Great Gate · 120 lives` (player
-object) and `In N. Sanity Beach · 144 lives · 144 Wumpa` (HUD objects) on the frames after a level load, and
-`In Jungle Rollers · 4 lives · 14 Wumpa` on a demo's last 18 frames before the game state was added to the
-demo line, and `0 lives` from every quit and before every Stage Clear screen before the pointer guard; none
-shows now.
+does not leak into play.
 
 ### Still for the in-game check (DuckStation)
 
