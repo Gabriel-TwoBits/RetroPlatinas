@@ -66,7 +66,6 @@ def _sets():
             "title": "Crash Bandicoot",
             "tag": "PS1",
             "meta": "38 conquistas · 400 pts · 14 jogadores",
-            "hot": True,
         },
     ]
 
