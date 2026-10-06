@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RetroPlatinas\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-06 15:31-0300\n"
+"POT-Creation-Date: 2026-10-06 15:52-0300\n"
 "PO-Revision-Date: 2026-05-23 18:15-0300\n"
 "Last-Translator: RetroPlatinas\n"
 "Language-Team: English\n"
@@ -16,8 +16,50 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: apps/accounts/forms.py:18 apps/accounts/models.py:27
+#: apps/accounts/forms.py:18 apps/accounts/models.py:29
 msgid "A user with that email already exists."
+msgstr ""
+
+#: apps/accounts/forms.py:30
+#, python-format
+msgid "Shown on your profile, up to %(limit)s characters."
+msgstr ""
+
+#: apps/accounts/models.py:20
+msgid "bio"
+msgstr ""
+
+#: apps/accounts/profile.py:45
+msgid "Platinum"
+msgstr ""
+
+#: apps/accounts/profile.py:46
+msgid "Beaten"
+msgstr ""
+
+#: apps/accounts/profile.py:47
+msgid "In progress"
+msgstr ""
+
+#: apps/accounts/profile.py:83
+#, python-format
+msgid "%(hours)s h"
+msgstr ""
+
+#: apps/accounts/profile.py:85
+#, python-format
+msgid "%(minutes)s min"
+msgstr ""
+
+#: apps/accounts/profile.py:91
+#, python-format
+msgid ""
+"%(console)s · %(unlocked)s/%(total)s achievements (%(hardcore)s hardcore) · "
+"%(points_unlocked)s/%(points)s pts · %(playtime)s played · %(when)s"
+msgstr ""
+
+#: apps/accounts/profile.py:161
+msgid "Total"
 msgstr ""
 
 #: apps/achievements/admin.py:22
@@ -190,6 +232,8 @@ msgid "user"
 msgstr ""
 
 #: apps/achievements/models.py:219 apps/achievements/models.py:230
+#: templates/accounts/partials/identity-header.html:63
+#: templates/accounts/partials/sec-recent-unlocks.html:15
 #: templates/home.html:66
 msgid "hardcore"
 msgstr ""
@@ -206,7 +250,10 @@ msgstr ""
 msgid "user unlocks"
 msgstr ""
 
-#: apps/achievements/models.py:230 templates/home.html:67
+#: apps/achievements/models.py:230
+#: templates/accounts/partials/identity-header.html:63
+#: templates/accounts/partials/sec-recent-unlocks.html:15
+#: templates/home.html:67
 msgid "softcore"
 msgstr ""
 
@@ -524,43 +571,67 @@ msgstr ""
 msgid "Register"
 msgstr ""
 
-#: templates/accounts/partials/identity-header.html:13
-msgid "HARDCORE"
+#: templates/accounts/partials/empty-games.html:4
+#: templates/accounts/partials/empty-games.html:6
+msgid "No games played yet"
 msgstr ""
 
-#: templates/accounts/partials/identity-header.html:18
-#, python-format
-msgid "member since %(member_since)s"
+#: templates/accounts/partials/empty-games.html:4
+msgid ""
+"Your games show up here once you play with RetroPlatinas set as the "
+"achievements server."
 msgstr ""
 
-#: templates/accounts/partials/identity-header.html:19
+#: templates/accounts/partials/empty-games.html:4
+#: templates/accounts/partials/sec-recent-unlocks.html:22
+msgid "How to start →"
+msgstr ""
+
+#: templates/accounts/partials/identity-header.html:12
 #, python-format
-msgid "active %(active_ago)s ago"
+msgid "member since %(date)s"
+msgstr ""
+
+#: templates/accounts/partials/identity-header.html:15
+#: templates/accounts/profile-edit.html:4
+#: templates/accounts/profile-edit.html:8
+msgid "Edit profile"
+msgstr ""
+
+#: templates/accounts/partials/identity-header.html:22
+msgid "Hardcore"
 msgstr ""
 
 #: templates/accounts/partials/identity-header.html:26
-msgid "Total points"
-msgstr ""
-
-#: templates/accounts/partials/identity-header.html:30
-msgid "Global rank"
-msgstr ""
-
-#: templates/accounts/partials/identity-header.html:32
+#: templates/accounts/partials/identity-header.html:37
 #, python-format
-msgid "of %(rank_total)s · Top %(top_pct)s"
+msgid "#%(rank)s of %(players)s"
 msgstr ""
 
-#: templates/accounts/partials/identity-header.html:40
+#: templates/accounts/partials/identity-header.html:28
+#: templates/accounts/partials/identity-header.html:39
+msgid "unranked"
+msgstr ""
+
+#: templates/accounts/partials/identity-header.html:33
+msgid "Softcore"
+msgstr ""
+
+#: templates/accounts/partials/identity-header.html:52
 msgid "Playing now"
 msgstr ""
 
-#: templates/accounts/partials/identity-header.html:46
-msgid "active session"
+#: templates/accounts/partials/identity-header.html:52
+msgid "Last played"
 msgstr ""
 
 #: templates/accounts/partials/panel-awards.html:3
 msgid "Platinums & game awards"
+msgstr ""
+
+#: templates/accounts/partials/panel-awards.html:14
+#: templates/accounts/partials/sec-awards.html:14
+msgid "No platinums or beaten games yet"
 msgstr ""
 
 #: templates/accounts/partials/panel-games.html:3
@@ -577,6 +648,14 @@ msgstr ""
 #: templates/accounts/partials/sec-heat.html:10
 msgid "14d ago"
 msgstr ""
+
+#: templates/accounts/partials/panel-overview.html:14
+#: templates/accounts/partials/sec-heat.html:11
+#, python-format
+msgid "%(shown)s pt"
+msgid_plural "%(shown)s pts"
+msgstr[0] ""
+msgstr[1] ""
 
 #: templates/accounts/partials/panel-overview.html:15
 #: templates/accounts/partials/sec-heat.html:12
@@ -609,7 +688,7 @@ msgid_plural "%(n)s platinum"
 msgstr[0] ""
 msgstr[1] ""
 
-#: templates/accounts/partials/panel-progress.html:29
+#: templates/accounts/partials/panel-progress.html:31
 #: templates/accounts/partials/sec-completion.html:3
 msgid "Completion progress"
 msgstr ""
@@ -634,8 +713,84 @@ msgstr ""
 msgid "Completion"
 msgstr ""
 
+#: templates/accounts/partials/sec-recent-unlocks.html:3
+msgid "Recent unlocks"
+msgstr ""
+
+#: templates/accounts/partials/sec-recent-unlocks.html:14
+#, python-format
+msgid "%(points)s pt"
+msgid_plural "%(points)s pts"
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/accounts/partials/sec-recent-unlocks.html:22
+#: templates/accounts/partials/sec-recent-unlocks.html:24
+#: templates/home.html:143
+msgid "No unlocks yet"
+msgstr ""
+
+#: templates/accounts/partials/sec-recent-unlocks.html:22
+msgid "Play a game with achievements and your unlocks show up here."
+msgstr ""
+
 #: templates/accounts/partials/sec-stats.html:3
 msgid "Player statistics"
+msgstr ""
+
+#: templates/accounts/partials/sec-stats.html:5
+msgid "Hardcore achievements"
+msgstr ""
+
+#: templates/accounts/partials/sec-stats.html:6
+msgid "Softcore achievements"
+msgstr ""
+
+#: templates/accounts/partials/sec-stats.html:6
+msgid "hardcore included"
+msgstr ""
+
+#: templates/accounts/partials/sec-stats.html:7
+msgid "Games played"
+msgstr ""
+
+#: templates/accounts/partials/sec-stats.html:8
+msgid "Games beaten"
+msgstr ""
+
+#: templates/accounts/partials/sec-stats.html:9
+msgid "Platinums"
+msgstr ""
+
+#: templates/accounts/partials/sec-stats.html:11
+#: templates/accounts/partials/sec-stats.html:13
+msgid "Average completion"
+msgstr ""
+
+#: templates/accounts/partials/sec-stats.html:11
+#: templates/accounts/partials/sec-stats.html:13
+msgid "per game"
+msgstr ""
+
+#: templates/accounts/partials/sec-stats.html:15
+msgid "Points (7 days)"
+msgstr ""
+
+#: templates/accounts/partials/sec-stats.html:15
+#: templates/accounts/partials/sec-stats.html:16
+msgid "any mode"
+msgstr ""
+
+#: templates/accounts/partials/sec-stats.html:16
+msgid "Points (30 days)"
+msgstr ""
+
+#: templates/accounts/partials/sec-stats.html:17
+msgid "Average per week"
+msgstr ""
+
+#: templates/accounts/partials/sec-stats.html:17
+msgid "points since joining"
 msgstr ""
 
 #: templates/accounts/password-change-done.html:4
@@ -657,20 +812,28 @@ msgstr ""
 msgid "Change password"
 msgstr ""
 
-#: templates/accounts/profile.html:26
+#: templates/accounts/profile-edit.html:12
+msgid "Save profile"
+msgstr ""
+
+#: templates/accounts/profile-edit.html:15
+msgid "Back to your profile"
+msgstr ""
+
+#: templates/accounts/profile.html:29
 msgid "Overview"
 msgstr ""
 
-#: templates/accounts/profile.html:27
+#: templates/accounts/profile.html:30
 msgid "Awards"
 msgstr ""
 
-#: templates/accounts/profile.html:28 templates/base.html:59
+#: templates/accounts/profile.html:31 templates/base.html:59
 #: templates/components/site-menu.html:8 templates/home.html:7
 msgid "Games"
 msgstr ""
 
-#: templates/accounts/profile.html:29
+#: templates/accounts/profile.html:32
 msgid "Progress"
 msgstr ""
 
@@ -956,26 +1119,22 @@ msgstr ""
 msgid "HC"
 msgstr ""
 
-#: templates/home.html:145
-msgid "No unlocks yet"
-msgstr ""
-
-#: templates/home.html:147
+#: templates/home.html:143
 msgid "As soon as someone plays, unlocks show up here in real time."
 msgstr ""
 
-#: templates/home.html:148
+#: templates/home.html:143
 msgid "Be the first to play →"
 msgstr ""
 
-#: templates/home.html:155
+#: templates/home.html:149
 msgid "Open source"
 msgstr ""
 
-#: templates/home.html:159
+#: templates/home.html:153
 msgid "Codeberg — repository"
 msgstr ""
 
-#: templates/home.html:164
+#: templates/home.html:158
 msgid "Licensed under AGPL-3.0"
 msgstr ""

@@ -114,6 +114,14 @@ def test_profile_shows_points_and_rank_per_mode_without_inactive_accounts(client
 
 
 @pytest.mark.django_db
+def test_profile_shows_points_grouped_in_brazilian_portuguese(client, playstation):
+    _user("teste", softcore_points=1500)
+    body = client.get("/users/teste/", HTTP_ACCEPT_LANGUAGE="pt-br").content.decode()
+    assert "1.500" in body
+    assert "#1 de 1" in body
+
+
+@pytest.mark.django_db
 def test_profile_uses_the_identicon_route_and_member_since(client, player):
     body = _get(client, "/users/teste/").content.decode()
     assert re.search(r'<img src="/UserPic/teste\.png\?v=[0-9a-f]+"', body)
