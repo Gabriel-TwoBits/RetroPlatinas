@@ -399,13 +399,58 @@ def test_points_windows_and_heat_count_each_achievement_once(client, crash, play
 
     resp = _get(client, "/users/teste/panel/overview/")
 
-    assert resp.context["points_short_window"] == 10
-    assert resp.context["points_long_window"] == 22
+    assert resp.context["points_short_window"] == (10, 10)
+    assert resp.context["points_long_window"] == (10, 22)
     assert resp.context["heat_points"] == 15
     heat = resp.context["heat"]
     assert heat[-1]["on"] and heat[-1]["opacity"] == "1.00"
     assert [bar["on"] for bar in heat].count(True) == 2
     assert "15 pts" in resp.content.decode()
+
+
+@pytest.mark.django_db
+def test_points_windows_split_by_mode(client, crash, player):
+    now = timezone.now()
+    upgraded = _achievement(crash, "Upgraded", points=3)
+    # Softcore first, hardcore later: each mode counts the achievement when it reached that mode.
+    _unlock(player, upgraded, hardcore=False, unlocked_at=now - timedelta(days=20))
+    UserUnlock.objects.create(
+        user=player, achievement=upgraded, hardcore=True, unlocked_at=now - timedelta(days=2)
+    )
+    _unlock(player, _achievement(crash, "Hardcore", points=4), True, now - timedelta(days=12))
+    _unlock(player, _achievement(crash, "Softcore", points=5), False, now - timedelta(days=1))
+
+    resp = _get(client, "/users/teste/")
+
+    assert resp.context["points_short_window"] == (3, 5)
+    assert resp.context["points_long_window"] == (7, 12)
+    stats_section = resp.content.decode().split("Player statistics", 1)[1]
+    for label, value in (
+        (f"Hardcore points ({SHORT_WINDOW.days} days)", 3),
+        (f"Softcore points ({SHORT_WINDOW.days} days)", 5),
+        (f"Hardcore points ({LONG_WINDOW.days} days)", 7),
+        (f"Softcore points ({LONG_WINDOW.days} days)", 12),
+    ):
+        assert re.search(rf"{re.escape(label)}</div>.*?>{value}</span>", stats_section, re.S)
+
+
+@pytest.mark.django_db
+def test_points_per_week_split_by_mode(client, playstation):
+    user = _user("teste", hardcore_points=30, softcore_points=90)
+    User.objects.filter(pk=user.pk).update(date_joined=timezone.now() - timedelta(weeks=3))
+
+    resp = _get(client, "/users/teste/")
+
+    assert resp.context["points_per_week"] == (10, 30)
+    body = resp.content.decode()
+    assert re.search(r"Hardcore points per week</div>.*?>10</span>", body, re.S)
+    assert re.search(r"Softcore points per week</div>.*?>30</span>", body, re.S)
+
+
+@pytest.mark.django_db
+def test_new_user_points_per_week_count_at_least_one_week(client, playstation):
+    _user("teste", hardcore_points=4, softcore_points=8)
+    assert _get(client, "/users/teste/").context["points_per_week"] == (4, 8)
 
 
 # --- Playing now ---
@@ -414,7 +459,10 @@ def test_points_windows_and_heat_count_each_achievement_once(client, crash, play
 @pytest.mark.django_db
 @pytest.mark.parametrize(
     ("language", "window_label", "heat_label"),
-    [("en", "Points ({} days)", "{}d ago"), ("pt-br", "Pontos ({} dias)", "há {} dias")],
+    [
+        ("en", "Softcore points ({} days)", "{}d ago"),
+        ("pt-br", "Pontos softcore ({} dias)", "há {} dias"),
+    ],
 )
 @pytest.mark.parametrize("path", ["/users/teste/", "/users/teste/panel/overview/"])
 def test_window_and_heat_labels_follow_their_spans(

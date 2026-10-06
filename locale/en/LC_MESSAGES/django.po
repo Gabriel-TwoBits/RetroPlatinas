@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RetroPlatinas\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-06 18:18-0300\n"
+"POT-Creation-Date: 2026-10-06 18:23-0300\n"
 "PO-Revision-Date: 2026-05-23 18:15-0300\n"
 "Last-Translator: RetroPlatinas\n"
 "Language-Team: English\n"
@@ -953,24 +953,40 @@ msgid "per game"
 msgstr ""
 
 #: templates/accounts/partials/sec-stats.html:15
-#: templates/accounts/partials/sec-stats.html:17
+#: templates/accounts/partials/sec-stats.html:19
 #, python-format
-msgid "Points (%(days)s day)"
-msgid_plural "Points (%(days)s days)"
+msgid "Hardcore points (%(days)s day)"
+msgid_plural "Hardcore points (%(days)s days)"
 msgstr[0] ""
 msgstr[1] ""
 
-#: templates/accounts/partials/sec-stats.html:16
+#: templates/accounts/partials/sec-stats.html:17
+#: templates/accounts/partials/sec-stats.html:21
+#, python-format
+msgid "Softcore points (%(days)s day)"
+msgid_plural "Softcore points (%(days)s days)"
+msgstr[0] ""
+msgstr[1] ""
+
 #: templates/accounts/partials/sec-stats.html:18
-msgid "any mode"
+#: templates/accounts/partials/sec-stats.html:22
+msgid "hardcore points included"
 msgstr ""
 
-#: templates/accounts/partials/sec-stats.html:19
-msgid "Average per week"
+#: templates/accounts/partials/sec-stats.html:23
+msgid "Hardcore points per week"
 msgstr ""
 
-#: templates/accounts/partials/sec-stats.html:19
-msgid "points since joining"
+#: templates/accounts/partials/sec-stats.html:23
+msgid "since joining"
+msgstr ""
+
+#: templates/accounts/partials/sec-stats.html:24
+msgid "Softcore points per week"
+msgstr ""
+
+#: templates/accounts/partials/sec-stats.html:24
+msgid "since joining, hardcore points included"
 msgstr ""
 
 #: templates/accounts/password-change-done.html:4

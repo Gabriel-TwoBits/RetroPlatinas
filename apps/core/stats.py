@@ -143,14 +143,6 @@ def ranked_player_counts():
     return ByMode(hardcore=counts["hardcore"], softcore=counts["softcore"])
 
 
-def first_unlocks(user):
-    """The user's published unlocks, one per achievement, at its first unlock in any mode.
-
-    A hardcore unlock writes its softcore twin, so the softcore rows are exactly these.
-    """
-    return published_unlocks().filter(user=user, hardcore=False)
-
-
 def unlocked_achievement_counts(user):
     """How many distinct published achievements the user unlocked in each mode."""
     counts = (

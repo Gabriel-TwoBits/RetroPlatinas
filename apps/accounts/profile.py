@@ -215,22 +215,36 @@ def _average_completion(games):
 
 def _points_per_week(user, now):
     weeks = max((now - user.date_joined) / ONE_WEEK, 1)
-    return round(user.softcore_points / weeks)
+    return stats.ByMode(
+        hardcore=round(user.hardcore_points / weeks),
+        softcore=round(user.softcore_points / weeks),
+    )
 
 
 def _activity(user, now):
-    """Points earned (first unlocks, any mode) in the short and long windows, and per local
-    day."""
-    recent = stats.first_unlocks(user).filter(unlocked_at__gte=now - LONG_WINDOW)
-    short_window_points = 0
-    long_window_points = 0
+    """Points earned in the short and long windows, each a `ByMode`, and per local day in any
+    mode.
+
+    A hardcore unlock writes its softcore twin, so the softcore rows cover both modes and give
+    the heat each achievement once, at its first unlock.
+    """
+    recent = stats.published_unlocks().filter(user=user, unlocked_at__gte=now - LONG_WINDOW)
+    short_window = {True: 0, False: 0}
+    long_window = {True: 0, False: 0}
     points_by_day = defaultdict(int)
-    for unlocked_at, points in recent.values_list("unlocked_at", "achievement__points"):
-        long_window_points += points
+    for unlocked_at, hardcore, points in recent.values_list(
+        "unlocked_at", "hardcore", "achievement__points"
+    ):
+        long_window[hardcore] += points
         if unlocked_at >= now - SHORT_WINDOW:
-            short_window_points += points
-        points_by_day[timezone.localtime(unlocked_at).date()] += points
-    return short_window_points, long_window_points, points_by_day
+            short_window[hardcore] += points
+        if not hardcore:
+            points_by_day[timezone.localtime(unlocked_at).date()] += points
+    return (
+        stats.ByMode(hardcore=short_window[True], softcore=short_window[False]),
+        stats.ByMode(hardcore=long_window[True], softcore=long_window[False]),
+        points_by_day,
+    )
 
 
 def _current_game(user, games):

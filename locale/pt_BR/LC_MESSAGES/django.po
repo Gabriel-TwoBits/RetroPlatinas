@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RetroPlatinas\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-06 18:18-0300\n"
+"POT-Creation-Date: 2026-10-06 18:23-0300\n"
 "PO-Revision-Date: 2026-05-23 18:15-0300\n"
 "Last-Translator: RetroPlatinas\n"
 "Language-Team: Brazilian Portuguese\n"
@@ -957,25 +957,41 @@ msgid "per game"
 msgstr "por jogo"
 
 #: templates/accounts/partials/sec-stats.html:15
-#: templates/accounts/partials/sec-stats.html:17
+#: templates/accounts/partials/sec-stats.html:19
 #, python-format
-msgid "Points (%(days)s day)"
-msgid_plural "Points (%(days)s days)"
-msgstr[0] "Pontos (%(days)s dia)"
-msgstr[1] "Pontos (%(days)s dias)"
+msgid "Hardcore points (%(days)s day)"
+msgid_plural "Hardcore points (%(days)s days)"
+msgstr[0] "Pontos hardcore (%(days)s dia)"
+msgstr[1] "Pontos hardcore (%(days)s dias)"
 
-#: templates/accounts/partials/sec-stats.html:16
+#: templates/accounts/partials/sec-stats.html:17
+#: templates/accounts/partials/sec-stats.html:21
+#, python-format
+msgid "Softcore points (%(days)s day)"
+msgid_plural "Softcore points (%(days)s days)"
+msgstr[0] "Pontos softcore (%(days)s dia)"
+msgstr[1] "Pontos softcore (%(days)s dias)"
+
 #: templates/accounts/partials/sec-stats.html:18
-msgid "any mode"
-msgstr "qualquer modo"
+#: templates/accounts/partials/sec-stats.html:22
+msgid "hardcore points included"
+msgstr "inclui os pontos hardcore"
 
-#: templates/accounts/partials/sec-stats.html:19
-msgid "Average per week"
-msgstr "Média por semana"
+#: templates/accounts/partials/sec-stats.html:23
+msgid "Hardcore points per week"
+msgstr "Pontos hardcore por semana"
 
-#: templates/accounts/partials/sec-stats.html:19
-msgid "points since joining"
-msgstr "pontos desde o cadastro"
+#: templates/accounts/partials/sec-stats.html:23
+msgid "since joining"
+msgstr "desde o cadastro"
+
+#: templates/accounts/partials/sec-stats.html:24
+msgid "Softcore points per week"
+msgstr "Pontos softcore por semana"
+
+#: templates/accounts/partials/sec-stats.html:24
+msgid "since joining, hardcore points included"
+msgstr "desde o cadastro, inclui os pontos hardcore"
 
 #: templates/accounts/password-change-done.html:4
 msgid "Password changed"
@@ -1516,6 +1532,12 @@ msgstr "Páginas do placar"
 #: templates/leaderboards/partials/entry-row.html:9
 msgid "you"
 msgstr "você"
+
+#~ msgid "any mode"
+#~ msgstr "qualquer modo"
+
+#~ msgid "Average per week"
+#~ msgstr "Média por semana"
 
 #~ msgid "draft"
 #~ msgstr "rascunho"
