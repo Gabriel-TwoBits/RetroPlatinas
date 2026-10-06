@@ -306,17 +306,33 @@ def ranked_entries(entries, lower_is_better, offset, count):
     """
     order = "score" if lower_is_better else "-score"
     board = entries.select_related("user").order_by(order, "submitted_at", "id")
+    return _competition_ranked(
+        board[offset : offset + count],
+        offset,
+        value_of=lambda entry: entry.score,
+        rank_of=lambda score: rank_by_score(entries, lower_is_better, score),
+    )
+
+
+def _competition_ranked(items, offset, value_of, rank_of):
+    """`(index, rank, item)` for `items`, the board positions after the first `offset`, best
+    first.
+
+    The first item takes `rank_of(its value)`, its rank on the whole board; each later one shares
+    the rank of an equal value before it, else takes its 1-based `index`.
+    """
     ranked = []
-    previous_score = None
+    previous_value = None
     previous_rank = None
-    for index, entry in enumerate(board[offset : offset + count], start=offset + 1):
+    for index, item in enumerate(items, start=offset + 1):
+        value = value_of(item)
         if previous_rank is None:
-            rank = rank_by_score(entries, lower_is_better, entry.score)
-        elif entry.score == previous_score:
+            rank = rank_of(value)
+        elif value == previous_value:
             rank = previous_rank
         else:
             rank = index
-        ranked.append((index, rank, entry))
-        previous_score = entry.score
+        ranked.append((index, rank, item))
+        previous_value = value
         previous_rank = rank
     return ranked
