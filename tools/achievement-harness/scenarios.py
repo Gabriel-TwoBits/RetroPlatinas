@@ -302,7 +302,7 @@ def poke_lives(s, lives):
     without counting up and the run keeps the timing its plan was searched on).
 
     The harness's one write that sets a game value: the cap is far out of a searched run's reach.
-    The life that then reaches the cap is still a real one, earned by the replayed plan.
+    The lives that then reach the cap are still real ones, earned by the replayed plan.
     """
     player = s.emu.u24(PLAYER_POINTER)
     hud = s.emu.u24(LIFE_HUD_POINTER)
@@ -432,7 +432,7 @@ for _stage in STAGES:
             _wumpa_start,
             {**_wumpa_lid, _collectibles.LIVES_TITLE: _stage.level_id},
             "SECONDARY EVIDENCE (RAM poke): lives set one below the cap, then the Wumpa route's "
-            "real extra life",
+            "real extra lives",
             goal_event(_stage, "wumpa", start_lives=_collectibles.MAX_LIVES - 1),
             (in_stage(_name, str(_collectibles.MAX_LIVES)),),
             never=(NO_LIVES,),
@@ -441,7 +441,7 @@ for _stage in STAGES:
             _wumpa_start,
             _wumpa_lid,
             "SECONDARY EVIDENCE (RAM poke): lives set at the cap, then the Wumpa route's extra "
-            "life, which the cap swallows",
+            "lives, which the cap swallows",
             goal_event(_stage, "wumpa", start_lives=_collectibles.MAX_LIVES),
             (in_stage(_name, str(_collectibles.MAX_LIVES)),),
             never=(NO_LIVES,),
