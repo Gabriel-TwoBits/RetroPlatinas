@@ -274,6 +274,29 @@ page the board does not have answer 404.
   one page. Each link is a plain `?page=N` link that HTMX upgrades: it fetches the page, swaps
   `#leaderboard-board` out of it (`hx-select`) and pushes the URL.
 
+## Ranking page
+
+`/ranking/` (`templates/accounts/ranking.html`), built by `apps/accounts/ranking.py` from the
+shared `apps/core/stats.py` queries; linked from the nav and the footer as *Ranking*.
+
+- **Header** — a ruled section: the title and one line saying what ranks players and how often
+  the board refreshes.
+- **Modes** — *Hardcore* (the default) and *Softcore* outlined chips, the active one in `brand`
+  (`aria-current`). Each is a plain `?mode=` link that HTMX upgrades: it fetches the page, swaps
+  `#ranking-board` out of it (`hx-select`) and pushes the URL. An unknown mode answers 400.
+- **Board** — a section headed *Hardcore points* (`state-hardcore` strip) or *Softcore points*
+  (`state-softcore`), the count of ranked players, then 100 rows a page: rank (competition
+  ranking, ties share it, as on the profile), identicon, profile link, the published
+  achievements unlocked in the mode (each once), the platinums (games with every published
+  achievement unlocked in hardcore, in both modes) and the mode's points. Only active users with
+  points in the mode are ranked.
+- **Pages** — as on the leaderboard page, each link carrying the mode; a page the ranking does
+  not have answers 404.
+- **Cache** — the board (`templates/accounts/partials/ranking-board.html`) is rendered without
+  the request and cached for `BOARD_CACHE_MINUTES` per mode, page and language, so every viewer
+  shares it; the header around it, which shows the logged-in user, is rendered per request. The
+  board must never read the request or the user.
+
 ## Getting started page
 
 `/docs/getting-started/` (`templates/docs/getting-started.html`), linked from the nav as
@@ -303,7 +326,7 @@ The design docs also carry their own annotations — the numbered section header
 cards, and the trailing `↳ …` notes explaining mobile-vs-desktop decisions. Those address the
 reader of the doc, not the user; they never ship.
 
-**Known debt:** `/games/`, `/ranking/` and `/feed/` are linked from the header, footer and the
+**Known debt:** `/games/` and `/feed/` are linked from the header, footer and the
 hero's secondary CTA but have no `urls.py` yet, so they 404 today. They predate this carve-out;
 removing them is a product decision, not a drift fix.
 
