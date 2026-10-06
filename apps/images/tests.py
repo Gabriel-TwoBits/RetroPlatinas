@@ -513,7 +513,9 @@ def restores_latest_schema():
 def test_badge_migration_keeps_each_uploaded_badge_under_its_old_name(restores_latest_schema):
     executor = MigrationExecutor(connection)
     executor.migrate(BEFORE_BADGES)
-    old_apps = executor.loader.project_state(BEFORE_BADGES).apps
+    # Apps the target does not depend on stay migrated, so their models must match their tables.
+    applied = MigrationExecutor(connection).loader.applied_migrations
+    old_apps = executor.loader.project_state(list(applied)).apps
     author = old_apps.get_model("accounts", "User").objects.create(username="author")
     console = old_apps.get_model("games", "Console").objects.create(
         ra_id=12, name="PlayStation", short_name="PS1"
