@@ -1,0 +1,18 @@
+{% load i18n humanize %}
+<div>
+  {% for leaderboard in leaderboards %}
+    <div class="flex items-start gap-3 border-t border-line py-3 first:border-t-0">
+      <div class="min-w-0 flex-1">
+        <div class="break-words text-sm font-semibold text-txt">{{ leaderboard.title }}</div>
+        {% if leaderboard.description %}
+          <div class="mt-1 break-words text-xs leading-snug text-txt-muted">{{ leaderboard.description }}</div>
+        {% endif %}
+      </div>
+      <div class="shrink-0 font-mono text-xs text-txt-faint">
+        {% blocktrans count entries=leaderboard.entry_count with shown=leaderboard.entry_count|intcomma %}{{ shown }} entry{% plural %}{{ shown }} entries{% endblocktrans %}
+      </div>
+    </div>
+  {% empty %}
+    {% include "components/empty-state.html" with title=_("No leaderboards yet") %}
+  {% endfor %}
+</div>

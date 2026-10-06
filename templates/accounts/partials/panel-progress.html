@@ -34,7 +34,7 @@
           <div class="rp-hatch flex h-8 w-8 shrink-0 items-center justify-center rounded-tile border border-line2 font-display text-xs font-bold text-brand">{{ g.initials }}</div>
           <div class="min-w-0 flex-1">
             <div class="flex justify-between gap-2">
-              <span class="truncate text-sm font-semibold text-txt">{{ g.game.title }}</span>
+              <a href="{% url 'game_detail' g.game.pk %}" class="truncate text-sm font-semibold text-txt hover:text-brand-hi">{{ g.game.title }}</a>
               <span class="shrink-0 font-mono text-xs text-state-{{ g.state }}">{{ g.unlocked.softcore }}/{{ g.achievements }}</span>
             </div>
             <div class="mt-1 flex items-center gap-2">

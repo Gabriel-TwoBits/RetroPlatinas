@@ -51,7 +51,7 @@
           <div class="font-mono text-xs uppercase tracking-wide text-txt-faint">
             {% if current_game.live %}{% trans "Playing now" %}{% else %}{% trans "Last played" %}{% endif %}
           </div>
-          <div class="truncate font-display text-base font-semibold text-txt">{{ played.game.title }}
+          <div class="truncate font-display text-base font-semibold text-txt"><a href="{% url 'game_detail' played.game.pk %}" class="text-txt hover:text-brand-hi">{{ played.game.title }}</a>
             <span class="font-mono text-xs font-normal text-txt-faint">· {{ played.game.console.short_name }}</span>
           </div>
           {% if current_game.live and played.last_rich_presence %}

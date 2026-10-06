@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RetroPlatinas\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-06 16:16-0300\n"
+"POT-Creation-Date: 2026-10-06 16:33-0300\n"
 "PO-Revision-Date: 2026-05-23 18:15-0300\n"
 "Last-Translator: RetroPlatinas\n"
 "Language-Team: English\n"
@@ -70,7 +70,7 @@ msgstr ""
 msgid "Badge"
 msgstr ""
 
-#: apps/achievements/admin.py:71 apps/achievements/models.py:179
+#: apps/achievements/admin.py:71 apps/achievements/models.py:190
 msgid "status"
 msgstr ""
 
@@ -107,7 +107,7 @@ msgid_plural "%(count)d achievements moved to %(status)s."
 msgstr[0] ""
 msgstr[1] ""
 
-#: apps/achievements/admin.py:141 apps/achievements/models.py:172
+#: apps/achievements/admin.py:141 apps/achievements/models.py:183
 msgid "badge name"
 msgstr ""
 
@@ -134,7 +134,7 @@ msgstr ""
 msgid "uploaded by"
 msgstr ""
 
-#: apps/achievements/models.py:108 apps/achievements/models.py:188
+#: apps/achievements/models.py:108 apps/achievements/models.py:199
 #: apps/anticheat/models.py:28 apps/games/models.py:59
 #: apps/leaderboards/models.py:54
 msgid "created at"
@@ -144,132 +144,134 @@ msgstr ""
 msgid "badges"
 msgstr ""
 
-#: apps/achievements/models.py:134
+#: apps/achievements/models.py:145
 msgid "Draft"
 msgstr ""
 
-#: apps/achievements/models.py:135 templates/home.html:50
+#: apps/achievements/models.py:146 apps/games/page.py:44 templates/home.html:52
 msgid "Community"
 msgstr ""
 
-#: apps/achievements/models.py:136
+#: apps/achievements/models.py:147 apps/games/page.py:43
 msgid "Verified"
 msgstr ""
 
-#: apps/achievements/models.py:148
+#: apps/achievements/models.py:159
 msgid "None"
 msgstr ""
 
-#: apps/achievements/models.py:149
+#: apps/achievements/models.py:160
 msgid "Progression"
 msgstr ""
 
-#: apps/achievements/models.py:150
+#: apps/achievements/models.py:161
 msgid "Win condition"
 msgstr ""
 
-#: apps/achievements/models.py:151
+#: apps/achievements/models.py:162
 msgid "Missable"
 msgstr ""
 
-#: apps/achievements/models.py:158 apps/achievements/models.py:239
+#: apps/achievements/models.py:169 apps/achievements/models.py:252
 #: apps/games/models.py:62 apps/games/models.py:75 apps/games/models.py:128
 #: apps/leaderboards/models.py:37
 msgid "game"
 msgstr ""
 
-#: apps/achievements/models.py:163 apps/achievements/models.py:244
+#: apps/achievements/models.py:174 apps/achievements/models.py:257
 #: apps/leaderboards/models.py:52
 msgid "author"
 msgstr ""
 
-#: apps/achievements/models.py:165 apps/games/models.py:49
+#: apps/achievements/models.py:176 apps/games/models.py:49
 #: apps/leaderboards/models.py:39
 msgid "title"
 msgstr ""
 
-#: apps/achievements/models.py:166 apps/games/models.py:57
+#: apps/achievements/models.py:177 apps/games/models.py:57
 #: apps/leaderboards/models.py:40
 msgid "description"
 msgstr ""
 
-#: apps/achievements/models.py:167
+#: apps/achievements/models.py:178
 msgid "points"
 msgstr ""
 
-#: apps/achievements/models.py:168 apps/leaderboards/models.py:41
+#: apps/achievements/models.py:179 apps/leaderboards/models.py:41
 msgid "memory address expression"
 msgstr ""
 
-#: apps/achievements/models.py:173
+#: apps/achievements/models.py:184
 msgid "The number of an uploaded badge, or 00000 for the placeholder."
 msgstr ""
 
-#: apps/achievements/models.py:186
+#: apps/achievements/models.py:197
 msgid "type"
 msgstr ""
 
-#: apps/achievements/models.py:189 apps/achievements/models.py:248
+#: apps/achievements/models.py:200 apps/achievements/models.py:261
 #: apps/leaderboards/models.py:55
 msgid "updated at"
 msgstr ""
 
-#: apps/achievements/models.py:192 apps/achievements/models.py:217
+#: apps/achievements/models.py:205 apps/achievements/models.py:230
 msgid "achievement"
 msgstr ""
 
-#: apps/achievements/models.py:193
+#: apps/achievements/models.py:206
 msgid "achievements"
 msgstr ""
 
-#: apps/achievements/models.py:203
+#: apps/achievements/models.py:216
 msgid "No badge has this name; upload the badge first."
 msgstr ""
 
-#: apps/achievements/models.py:212 apps/anticheat/models.py:24
+#: apps/achievements/models.py:225 apps/anticheat/models.py:24
 #: apps/games/models.py:122 apps/leaderboards/models.py:93
 msgid "user"
 msgstr ""
 
-#: apps/achievements/models.py:219 apps/achievements/models.py:230
+#: apps/achievements/models.py:232 apps/achievements/models.py:243
 #: templates/accounts/partials/identity-header.html:63
 #: templates/accounts/partials/sec-recent-unlocks.html:15
-#: templates/home.html:67 templates/home.html:138
+#: templates/games/partials/panel-achievements.html:29 templates/home.html:69
+#: templates/home.html:141
 msgid "hardcore"
 msgstr ""
 
-#: apps/achievements/models.py:221
+#: apps/achievements/models.py:234
 msgid "unlocked at"
 msgstr ""
 
-#: apps/achievements/models.py:225
+#: apps/achievements/models.py:238
 msgid "user unlock"
 msgstr ""
 
-#: apps/achievements/models.py:226
+#: apps/achievements/models.py:239
 msgid "user unlocks"
 msgstr ""
 
-#: apps/achievements/models.py:230
+#: apps/achievements/models.py:243
 #: templates/accounts/partials/identity-header.html:63
 #: templates/accounts/partials/sec-recent-unlocks.html:15
-#: templates/home.html:68 templates/home.html:138
+#: templates/games/partials/panel-achievements.html:29 templates/home.html:70
+#: templates/home.html:141
 msgid "softcore"
 msgstr ""
 
-#: apps/achievements/models.py:246
+#: apps/achievements/models.py:259
 msgid "address"
 msgstr ""
 
-#: apps/achievements/models.py:247
+#: apps/achievements/models.py:260
 msgid "note"
 msgstr ""
 
-#: apps/achievements/models.py:251
+#: apps/achievements/models.py:264
 msgid "code note"
 msgstr ""
 
-#: apps/achievements/models.py:252
+#: apps/achievements/models.py:265
 msgid "code notes"
 msgstr ""
 
@@ -445,6 +447,47 @@ msgstr ""
 msgid "player games"
 msgstr ""
 
+#: apps/games/page.py:14 templates/accounts/partials/sec-completion.html:7
+#: templates/games/detail.html:19 templates/home.html:8
+msgid "Achievements"
+msgstr ""
+
+#: apps/games/page.py:15
+msgid "Leaderboards"
+msgstr ""
+
+#: apps/games/page.py:16
+msgid "Recent players"
+msgstr ""
+
+#: apps/games/page.py:24
+msgid "All"
+msgstr ""
+
+#: apps/games/page.py:25
+msgid "Unlocked"
+msgstr ""
+
+#: apps/games/page.py:26
+msgid "Locked"
+msgstr ""
+
+#: apps/games/page.py:30
+msgid "No published achievements yet"
+msgstr ""
+
+#: apps/games/page.py:31
+msgid "No achievements unlocked yet"
+msgstr ""
+
+#: apps/games/page.py:32
+msgid "Every achievement unlocked"
+msgstr ""
+
+#: apps/games/page.py:45
+msgid "Your drafts"
+msgstr ""
+
 #: apps/leaderboards/models.py:12
 msgid "Score (000000)"
 msgstr ""
@@ -617,7 +660,7 @@ msgstr ""
 msgid "Softcore"
 msgstr ""
 
-#: templates/accounts/partials/identity-header.html:52 templates/home.html:125
+#: templates/accounts/partials/identity-header.html:52 templates/home.html:127
 msgid "Playing now"
 msgstr ""
 
@@ -653,7 +696,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: templates/accounts/partials/panel-overview.html:14
-#: templates/accounts/partials/sec-heat.html:11 templates/home.html:72
+#: templates/accounts/partials/sec-heat.html:11 templates/home.html:74
 #, python-format
 msgid "%(shown)s pt"
 msgid_plural "%(shown)s pts"
@@ -708,10 +751,6 @@ msgstr ""
 msgid "Console"
 msgstr ""
 
-#: templates/accounts/partials/sec-completion.html:7 templates/home.html:8
-msgid "Achievements"
-msgstr ""
-
 #: templates/accounts/partials/sec-completion.html:8
 msgid "Completion"
 msgstr ""
@@ -721,6 +760,7 @@ msgid "Recent unlocks"
 msgstr ""
 
 #: templates/accounts/partials/sec-recent-unlocks.html:14
+#: templates/games/partials/panel-achievements.html:35
 #, python-format
 msgid "%(points)s pt"
 msgid_plural "%(points)s pts"
@@ -729,7 +769,7 @@ msgstr[1] ""
 
 #: templates/accounts/partials/sec-recent-unlocks.html:22
 #: templates/accounts/partials/sec-recent-unlocks.html:24
-#: templates/home.html:167
+#: templates/home.html:170
 msgid "No unlocks yet"
 msgstr ""
 
@@ -893,7 +933,7 @@ msgid "Change language"
 msgstr ""
 
 #: templates/docs/getting-started.html:4 templates/docs/getting-started.html:8
-#: templates/home.html:103
+#: templates/home.html:105
 msgid "How to start playing"
 msgstr ""
 
@@ -922,7 +962,7 @@ msgstr ""
 msgid "You're already logged in as %(username)s."
 msgstr ""
 
-#: templates/docs/getting-started.html:20 templates/home.html:89
+#: templates/docs/getting-started.html:20 templates/home.html:91
 msgid "Create account →"
 msgstr ""
 
@@ -986,6 +1026,42 @@ msgid ""
 "shown apart from softcore ones; they are worth the same points."
 msgstr ""
 
+#: templates/games/detail.html:23
+msgid "Points"
+msgstr ""
+
+#: templates/games/partials/panel-achievements.html:3
+msgid "Filter achievements"
+msgstr ""
+
+#: templates/games/partials/panel-achievements.html:24
+msgid "draft"
+msgstr ""
+
+#: templates/games/partials/panel-leaderboards.html:12
+#, python-format
+msgid "%(shown)s entry"
+msgid_plural "%(shown)s entries"
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/games/partials/panel-leaderboards.html:16
+msgid "No leaderboards yet"
+msgstr ""
+
+#: templates/games/partials/panel-players.html:10
+#, python-format
+msgid "%(unlocked)s/%(total)s achievements (%(hardcore)s hardcore)"
+msgstr ""
+
+#: templates/games/partials/panel-players.html:17
+msgid "Nobody has played it yet"
+msgstr ""
+
+#: templates/games/partials/tabs.html:2
+msgid "Game sections"
+msgstr ""
+
 #: templates/home.html:4
 msgid "Home"
 msgstr ""
@@ -1024,147 +1100,147 @@ msgstr ""
 msgid "What's new"
 msgstr ""
 
-#: templates/home.html:40
+#: templates/home.html:41
 msgid "New set"
 msgstr ""
 
-#: templates/home.html:41
+#: templates/home.html:42
 msgid "First set: Crash Bandicoot (PS1)"
 msgstr ""
 
-#: templates/home.html:42
+#: templates/home.html:43
 msgid "Our first set, with hardcore and softcore seals."
 msgstr ""
 
-#: templates/home.html:45
+#: templates/home.html:47
 msgid "Platform"
 msgstr ""
 
-#: templates/home.html:46
+#: templates/home.html:48
 msgid "Hardcore & softcore"
 msgstr ""
 
-#: templates/home.html:47
+#: templates/home.html:49
 msgid ""
 "Unlocks without save states get the hardcore seal, shown apart from softcore "
 "ones."
 msgstr ""
 
-#: templates/home.html:51
+#: templates/home.html:53
 msgid "Open source on Codeberg"
 msgstr ""
 
-#: templates/home.html:52
+#: templates/home.html:54
 msgid "RetroPlatinas is AGPL-3.0. Issues and roadmap are public."
 msgstr ""
 
-#: templates/home.html:58
+#: templates/home.html:60
 msgid "Available sets"
 msgstr ""
 
-#: templates/home.html:71
+#: templates/home.html:73
 #, python-format
 msgid "%(shown)s achievement"
 msgid_plural "%(shown)s achievements"
 msgstr[0] ""
 msgstr[1] ""
 
-#: templates/home.html:73
+#: templates/home.html:75
 #, python-format
 msgid "%(shown)s player"
 msgid_plural "%(shown)s players"
 msgstr[0] ""
 msgstr[1] ""
 
-#: templates/home.html:78
+#: templates/home.html:80
 msgid "No sets published yet"
 msgstr ""
 
-#: templates/home.html:78
+#: templates/home.html:80
 msgid "A game shows up here as soon as its first achievement is published."
 msgstr ""
 
-#: templates/home.html:84
+#: templates/home.html:86
 msgid "How to contribute"
 msgstr ""
 
-#: templates/home.html:87
+#: templates/home.html:89
 msgid "Create achievement sets"
 msgstr ""
 
-#: templates/home.html:88
+#: templates/home.html:90
 msgid "Pick a game, design the achievements and publish a set. No gatekeeping."
 msgstr ""
 
-#: templates/home.html:92
+#: templates/home.html:94
 msgid "Contribute code"
 msgstr ""
 
-#: templates/home.html:93
+#: templates/home.html:95
 msgid "AGPL-3.0 on Codeberg. Bugs, features and roadmap are open."
 msgstr ""
 
-#: templates/home.html:94
+#: templates/home.html:96
 msgid "See the repository →"
 msgstr ""
 
-#: templates/home.html:105
+#: templates/home.html:107
 msgid "Get a compatible emulator (DuckStation)"
 msgstr ""
 
-#: templates/home.html:106
+#: templates/home.html:108
 msgid "Create your account and sign in from the emulator"
 msgstr ""
 
-#: templates/home.html:107
+#: templates/home.html:109
 msgid "Load the game and start unlocking"
 msgstr ""
 
-#: templates/home.html:109
+#: templates/home.html:111
 msgid "Today: PlayStation (PS1). More consoles as sets arrive."
 msgstr ""
 
-#: templates/home.html:110
+#: templates/home.html:112
 msgid "Step-by-step guide →"
 msgstr ""
 
-#: templates/home.html:114
+#: templates/home.html:116
 msgid "The project in numbers"
 msgstr ""
 
-#: templates/home.html:145
+#: templates/home.html:148
 #, python-format
 msgid "%(total)s playing in all"
 msgstr ""
 
-#: templates/home.html:153
+#: templates/home.html:156
 msgid "Recent activity"
 msgstr ""
 
-#: templates/home.html:160
+#: templates/home.html:163
 msgid "unlocked"
 msgstr ""
 
-#: templates/home.html:163
+#: templates/home.html:166
 msgid "HC"
 msgstr ""
 
-#: templates/home.html:167
+#: templates/home.html:170
 msgid "As soon as someone plays, their unlocks show up here."
 msgstr ""
 
-#: templates/home.html:167
+#: templates/home.html:170
 msgid "Be the first to play →"
 msgstr ""
 
-#: templates/home.html:173
+#: templates/home.html:176
 msgid "Open source"
 msgstr ""
 
-#: templates/home.html:177
+#: templates/home.html:180
 msgid "Codeberg — repository"
 msgstr ""
 
-#: templates/home.html:182
+#: templates/home.html:185
 msgid "Licensed under AGPL-3.0"
 msgstr ""

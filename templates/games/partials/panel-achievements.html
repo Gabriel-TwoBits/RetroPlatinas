@@ -1,0 +1,45 @@
+{% load i18n %}
+{% if viewer_tracked %}
+  <div role="group" aria-label="{% trans 'Filter achievements' %}" class="mb-4 flex flex-wrap gap-2">
+    {% for slug, label in filters %}
+      <button type="button" aria-pressed="{% if slug == achievement_filter %}true{% else %}false{% endif %}"
+              class="rounded-chip border px-3 py-1 font-mono text-xs {% if slug == achievement_filter %}border-brand text-brand{% else %}border-line2 text-txt-muted hover:text-brand-hi{% endif %}"
+              hx-get="{% url 'game_panel' game.pk 'achievements' %}?filter={{ slug }}" hx-target="#game-tabs">{{ label }}</button>
+    {% endfor %}
+  </div>
+{% endif %}
+<div class="flex flex-col gap-8">
+  {% for group in groups %}
+    <section>
+      {% include "components/section-heading.html" with title=group.title accent=group.accent %}
+      <div>
+        {% for row in group.rows %}
+          {% with achievement=row.achievement %}
+            <div class="flex items-start gap-3 border-t border-line py-3 first:border-t-0">
+              <img src="{{ row.badge_url }}" alt="" width="48" height="48"
+                   class="h-12 w-12 shrink-0 rounded-tile {% if row.state == 'hardcore' %}border-2 border-state-hardcore{% elif row.state == 'softcore' %}border-2 border-state-softcore{% elif row.state == 'locked' %}border border-line opacity-60{% else %}border border-line2{% endif %}">
+              <div class="min-w-0 flex-1">
+                <div class="flex flex-wrap items-baseline gap-x-2 text-sm font-semibold {% if row.state == 'locked' %}text-txt-muted{% else %}text-txt{% endif %}">
+                  <span class="break-words">{{ achievement.title }}</span>
+                  {% if row.is_draft %}<span class="font-mono text-xs font-normal text-gold">{% trans "draft" %}</span>{% endif %}
+                </div>
+                <div class="mt-1 break-words text-xs leading-snug {% if row.state == 'locked' %}text-txt-faint{% else %}text-txt-muted{% endif %}">{{ achievement.description }}</div>
+                {% if row.unlocked_at %}
+                  <div class="mt-1 font-mono text-xs text-state-{{ row.state }}">
+                    {% if row.state == "hardcore" %}{% trans "hardcore" %}{% else %}{% trans "softcore" %}{% endif %}
+                    · <time datetime="{{ row.unlocked_at|date:'c' }}">{{ row.unlocked_at|date:"SHORT_DATETIME_FORMAT" }}</time>
+                  </div>
+                {% endif %}
+              </div>
+              <div class="shrink-0 font-mono text-xs {% if row.state == 'locked' %}text-txt-faint{% else %}text-gold{% endif %}">
+                {% blocktrans count points=achievement.points %}{{ points }} pt{% plural %}{{ points }} pts{% endblocktrans %}
+              </div>
+            </div>
+          {% endwith %}
+        {% endfor %}
+      </div>
+    </section>
+  {% empty %}
+    {% include "components/empty-state.html" with title=empty_title %}
+  {% endfor %}
+</div>

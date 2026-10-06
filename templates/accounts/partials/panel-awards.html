@@ -4,7 +4,7 @@
   {% if awards %}
     <div class="mt-3 flex gap-2 overflow-x-auto pb-2">
       {% for a in awards %}
-        <div title="{{ a.game.title }} · {{ a.state_label }}" class="text-{{ a.tone }} rp-hatch flex h-14 w-14 shrink-0 items-center justify-center rounded-tile border-2 border-current font-display text-xs font-bold">{{ a.initials }}</div>
+        <a href="{% url 'game_detail' a.game.pk %}" title="{{ a.game.title }} · {{ a.state_label }}" class="text-{{ a.tone }} rp-hatch flex h-14 w-14 shrink-0 items-center justify-center rounded-tile border-2 border-current font-display text-xs font-bold">{{ a.initials }}</a>
       {% endfor %}
       {% if awards_more %}
         <div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-tile border border-dashed border-line2 font-mono text-xs text-txt-muted">+{{ awards_more }}</div>

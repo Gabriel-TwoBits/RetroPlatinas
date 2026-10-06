@@ -60,7 +60,7 @@
         {% include "components/section-heading.html" with title=_("Available sets") %}
         <div class="mt-3 flex flex-col gap-3">
           {% for s in sets %}
-            <a href="/games/{{ s.game.pk }}/" class="group flex gap-3 rounded-tile bg-surface p-3 text-txt no-underline hover:text-txt hover:no-underline">
+            <a href="{% url 'game_detail' s.game.pk %}" class="group flex gap-3 rounded-tile bg-surface p-3 text-txt no-underline hover:text-txt hover:no-underline">
               <img src="{{ s.icon_url }}" alt="" width="56" height="56" class="h-14 w-14 shrink-0 rounded-tile border border-line2">
               <div class="min-w-0 flex-1">
                 <div class="font-display text-base font-semibold text-txt group-hover:text-brand-hi">{{ s.game.title }}</div>
@@ -132,7 +132,7 @@
                   <img src="{{ p.avatar_url }}" alt="" width="32" height="32" class="h-8 w-8 shrink-0 rounded-card border border-line2">
                   <div class="min-w-0 flex-1">
                     <a href="{% url 'user_detail' played.user.username %}" class="block truncate font-display text-xs font-semibold leading-tight text-txt">{{ played.user.username }}</a>
-                    <div class="mt-1 truncate font-mono text-xs text-txt-faint">{{ played.game.title }} · {{ played.game.console.short_name }}</div>
+                    <div class="mt-1 truncate font-mono text-xs text-txt-faint"><a href="{% url 'game_detail' played.game.pk %}" class="text-txt-faint hover:text-brand-hi">{{ played.game.title }}</a> · {{ played.game.console.short_name }}</div>
                     {% if played.last_rich_presence %}
                       <div class="mt-1 truncate text-xs text-txt-muted">{{ played.last_rich_presence }}</div>
                     {% endif %}
@@ -161,7 +161,7 @@
                 <img src="{{ a.badge_url }}" alt="" width="32" height="32" class="h-8 w-8 shrink-0 rounded-card border {% if unlock.hardcore %}border-state-hardcore{% else %}border-line2{% endif %}">
                 <div class="min-w-0 flex-1">
                   <div class="text-xs leading-tight text-txt"><a href="{% url 'user_detail' unlock.user.username %}" class="font-display font-semibold text-txt">{{ unlock.user.username }}</a> {% trans "unlocked" %} <span class="text-gold">“{{ achievement.title }}”</span></div>
-                  <div class="mt-1 font-mono text-xs text-txt-faint">{{ achievement.game.title }} · {{ achievement.game.console.short_name }} · <time datetime="{{ unlock.unlocked_at|date:'c' }}">{{ unlock.unlocked_at|naturaltime }}</time></div>
+                  <div class="mt-1 font-mono text-xs text-txt-faint"><a href="{% url 'game_detail' achievement.game.pk %}" class="text-txt-faint hover:text-brand-hi">{{ achievement.game.title }}</a> · {{ achievement.game.console.short_name }} · <time datetime="{{ unlock.unlocked_at|date:'c' }}">{{ unlock.unlocked_at|naturaltime }}</time></div>
                 </div>
                 {% if unlock.hardcore %}<span class="shrink-0 font-mono text-xs text-state-hardcore">{% trans "HC" %}</span>{% endif %}
               </div>

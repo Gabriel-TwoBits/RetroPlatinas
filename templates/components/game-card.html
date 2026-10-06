@@ -1,6 +1,7 @@
 {% comment %}
   Game card — a game object, so it keeps the surface fill. Args:
     initials, title, meta (e.g. "SNES · 34/48 · 420/620 pts · 21h")
+    href        : optional link of the title (the game page)
     state       : colour key — beaten | platinum | progress | softcore
     state_label : state text (e.g. "BEATEN")
     pct         : completion percent (integer)
@@ -12,7 +13,11 @@
     <div class="rp-hatch flex h-12 w-12 shrink-0 items-center justify-center rounded-tile border border-line2 font-display font-bold text-brand">{{ initials }}</div>
     <div class="min-w-0 flex-1">
       <div class="flex items-start justify-between gap-2">
-        <div class="font-display text-sm font-semibold text-txt">{{ title }}</div>
+        {% if href %}
+          <a href="{{ href }}" class="font-display text-sm font-semibold text-txt hover:text-brand-hi">{{ title }}</a>
+        {% else %}
+          <div class="font-display text-sm font-semibold text-txt">{{ title }}</div>
+        {% endif %}
         <span class="whitespace-nowrap font-mono text-xs text-state-{{ state }}">{{ state_label }}</span>
       </div>
       <div class="mb-2 mt-1 font-mono text-xs text-txt-faint">{{ meta }}</div>

@@ -1,0 +1,11 @@
+{% load i18n %}
+<div role="tablist" aria-label="{% trans 'Game sections' %}" class="flex overflow-x-auto overflow-y-hidden border-b border-line">
+  {% for slug, label in tabs %}
+    <button type="button" role="tab" aria-selected="{% if slug == tab %}true{% else %}false{% endif %}"
+            class="rp-tab sm:flex-none sm:px-4{% if slug == tab %} is-active{% endif %}"
+            hx-get="{% url 'game_panel' game.pk slug %}" hx-target="#game-tabs">{{ label }}</button>
+  {% endfor %}
+</div>
+<div role="tabpanel" class="pt-4">
+  {% include panel_template %}
+</div>

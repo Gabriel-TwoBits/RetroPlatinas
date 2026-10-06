@@ -1,0 +1,19 @@
+{% load i18n humanize %}
+<div>
+  {% for p in players %}
+    {% with played=p.played %}
+      <div class="flex items-center gap-3 border-t border-line py-3 first:border-t-0">
+        <img src="{{ p.avatar_url }}" alt="" width="32" height="32" class="h-8 w-8 shrink-0 rounded-card border border-line2">
+        <div class="min-w-0 flex-1">
+          <a href="{% url 'user_detail' played.user.username %}" class="block truncate font-display text-sm font-semibold text-txt">{{ played.user.username }}</a>
+          <div class="mt-1 font-mono text-xs text-txt-faint">
+            {% blocktrans with unlocked=played.softcore_unlocked total=published_achievements hardcore=played.hardcore_unlocked %}{{ unlocked }}/{{ total }} achievements ({{ hardcore }} hardcore){% endblocktrans %}
+          </div>
+        </div>
+        <time datetime="{{ played.last_played_at|date:'c' }}" class="shrink-0 font-mono text-xs text-txt-faint">{{ played.last_played_at|naturaltime }}</time>
+      </div>
+    {% endwith %}
+  {% empty %}
+    {% include "components/empty-state.html" with title=_("Nobody has played it yet") %}
+  {% endfor %}
+</div>
