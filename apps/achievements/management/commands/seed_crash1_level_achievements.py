@@ -1,8 +1,7 @@
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 from django.db import transaction
 
-from apps.achievements.management.crash1 import seed_crash1_game
-from apps.achievements.models import Achievement
+from apps.achievements.management.crash1 import seed_crash1_game, upsert_achievements
 
 ACHIEVEMENT_POINTS = 5
 # c1 `cur_lid_ro`: byte 1 of GOOL global 0 (`lid << 8`, set by `GoolInitLid`), the loaded level.
@@ -48,34 +47,11 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         game, author = seed_crash1_game()
 
-        created = updated = 0
-        for title, level_id in LEVEL_ACHIEVEMENTS:
-            fields = {"mem_addr": build_mem_addr(level_id), "description": build_description(title)}
-            rows = list(Achievement.objects.filter(game=game, title=title))
-            if not rows:
-                Achievement.objects.create(
-                    game=game,
-                    author=author,
-                    title=title,
-                    points=ACHIEVEMENT_POINTS,
-                    status=Achievement.STATUS_COMMUNITY,
-                    **fields,
-                )
-                created += 1
-            elif len(rows) == 1:
-                row = rows[0]
-                if any(getattr(row, name) != value for name, value in fields.items()):
-                    for name, value in fields.items():
-                        setattr(row, name, value)
-                    row.save(update_fields=[*fields, "updated_at"])
-                    updated += 1
-                else:
-                    pass  # Already current.
-            else:
-                raise CommandError(
-                    f"{len(rows)} achievements of {game} are titled {title!r}; "
-                    "cannot tell which one to update"
-                )
+        rows = [
+            (title, build_description(title), build_mem_addr(level_id), ACHIEVEMENT_POINTS)
+            for title, level_id in LEVEL_ACHIEVEMENTS
+        ]
+        created, updated = upsert_achievements(game, author, rows)
         self.stdout.write(
             self.style.SUCCESS(
                 f"Seeded {len(LEVEL_ACHIEVEMENTS)} level achievements: "

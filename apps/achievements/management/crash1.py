@@ -4,6 +4,7 @@ from django.contrib.auth import get_user_model
 from django.core.management.base import CommandError
 from django.db import transaction
 
+from apps.achievements.models import Achievement
 from apps.games.models import Console, Game, GameHash
 
 GAME_TITLE = "Crash Bandicoot"
@@ -37,3 +38,42 @@ def seed_crash1_game():
         username=IMPORT_AUTHOR, defaults={"is_active": False}
     )
     return game, author
+
+
+def upsert_achievements(game, author, rows):
+    """Create or update the seeded achievements of `game`; returns `(created, updated)`.
+
+    `rows` holds `(title, description, mem_addr, points)`. A missing title is created as
+    `community`; an existing one, matched by title, gets the current condition and description
+    while its status, points, author and unlocks are left alone. Raises `CommandError` on two
+    achievements with one title: the caller's transaction then writes nothing.
+    """
+    created = updated = 0
+    for title, description, mem_addr, points in rows:
+        fields = {"mem_addr": mem_addr, "description": description}
+        matches = list(Achievement.objects.filter(game=game, title=title))
+        if not matches:
+            Achievement.objects.create(
+                game=game,
+                author=author,
+                title=title,
+                points=points,
+                status=Achievement.STATUS_COMMUNITY,
+                **fields,
+            )
+            created += 1
+        elif len(matches) == 1:
+            row = matches[0]
+            if any(getattr(row, name) != value for name, value in fields.items()):
+                for name, value in fields.items():
+                    setattr(row, name, value)
+                row.save(update_fields=[*fields, "updated_at"])
+                updated += 1
+            else:
+                pass  # Already current.
+        else:
+            raise CommandError(
+                f"{len(matches)} achievements of {game} are titled {title!r}; "
+                "cannot tell which one to update"
+            )
+    return created, updated
