@@ -19,7 +19,8 @@ The first six "finish the level" achievements, 5 points each, published as `comm
   alone;
 - two achievements with the same title make the command fail without writing anything.
 
-Every Crash seed command (this one and `seed_crash1_code_notes`) first gets or creates the game with the hash
+Every Crash seed command (this one, `seed_crash1_collectible_achievements`, `seed_crash1_code_notes` and
+`seed_crash1_rich_presence`) first gets or creates the game with the hash
 of its only supported disc, so `gameid` recognises it on a fresh database:
 
 | MD5 (rcheevos PlayStation hash) | Label |
