@@ -30,6 +30,8 @@ TWO_HOURS_SECONDS = int(timedelta(hours=2).total_seconds())
 # More unlocks than the profile lists, so the cut is visible.
 EXTRA_UNLOCKS = 5
 EXTRA_AWARDS = 2
+# One locked achievement out of this many is 99.5% unlocked, which `round` would show as 100%.
+LARGE_SET_SIZE = 200
 
 
 def _user(username, hardcore_points=0, softcore_points=0, is_active=True):
@@ -238,11 +240,26 @@ def test_completion_counts_distinct_published_achievements_per_mode(client, cras
     [game] = resp.context["completion"]
     assert game["achievements"] == 3
     assert game["unlocked"] == (1, 2)
-    assert game["pct"] == 67
+    assert game["pct"] == 66
     assert game["state"] == "progress"
     body = resp.content.decode()
     assert "PS1 · 2/3 achievements (1 hardcore) · 15/40 pts · 2 h played · now" in body
     assert "2 / 3" in body
+
+
+@pytest.mark.django_db
+def test_completion_reaches_100_percent_only_when_every_achievement_is_unlocked(
+    client, crash, player
+):
+    achievements = [_achievement(crash, f"A{index}") for index in range(LARGE_SET_SIZE)]
+    for achievement in achievements[1:]:
+        _unlock(player, achievement, hardcore=False)
+    _play(player, crash)
+
+    [game] = _get(client, "/users/teste/").context["completion"]
+
+    assert game["pct"] == 99
+    assert game["state"] == "progress"
 
 
 @pytest.mark.django_db
@@ -277,8 +294,8 @@ def test_game_states_platinum_beaten_and_in_progress(client, playstation, player
     assert resp.context["games_beaten"] == 2
     assert resp.context["platinums"] == 1
     # Mastered, Beaten, Softcore only and Started; "No set" has no achievements to complete.
-    completions = [100, 67, 100, 0]
-    assert resp.context["average_completion"] == round(sum(completions) / len(completions))
+    completions = [100, 66, 100, 0]
+    assert resp.context["average_completion"] == sum(completions) // len(completions)
 
 
 @pytest.mark.django_db

@@ -54,10 +54,11 @@ def _initials(title):
 
 
 def _percent(part, whole):
+    """Floored, so 100% means every achievement and never a rounded-up 99.5%."""
     if whole == 0:
         return 0
     else:
-        return round(part / whole * _PERCENT)
+        return part * _PERCENT // whole
 
 
 def _css_percent(part, whole):
@@ -209,7 +210,7 @@ def _average_completion(games):
     if not with_achievements:
         return None
     else:
-        return round(sum(with_achievements) / len(with_achievements))
+        return sum(with_achievements) // len(with_achievements)
 
 
 def _points_per_week(user, now):
