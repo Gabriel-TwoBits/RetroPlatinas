@@ -3,7 +3,7 @@
 # TRADEOFF: no value reflects the user's real progress; replace with UserUnlock/PlayerGame
 # aggregation and delete this module.
 
-VALID_TABS = ["overview", "games", "progress", "awards", "wall"]
+VALID_TABS = ["overview", "awards", "games", "progress"]
 
 _HEAT_VALUES = [0, 0, 40, 120, 0, 260, 80, 0, 0, 190, 340, 60, 0, 220]
 _HEAT_MAX = 340
@@ -177,6 +177,7 @@ _PLATINUM_EVERY_NTH_AWARD = 3
 
 
 def _game_awards():
+    """Award tiles, platinums first."""
     inis = ["SQ", "KR", "MK", "AR", "TC", "ZL", "BM", "FZ"]
     awards = []
     for i in range(_GAME_AWARDS_SHOWN):
@@ -187,6 +188,7 @@ def _game_awards():
                 "tone": "state-platinum" if plat else "gold",
             }
         )
+    awards.sort(key=lambda award: award["tone"] != "state-platinum")
     return awards
 
 
@@ -196,68 +198,29 @@ def fake_profile_context(user):
     return {
         "profile_user": user,
         "bio": "Platinum hunter since the cartridge days. RPGs and 16-bit platformers.",
-        "bio_link": "retroplatinas.log/ph",
         "member_since": "mar/2019",
         "active_ago": "6s",
         "is_hardcore": True,
         "points_total": "138.420",
-        "points_weighted": "94.010",
         "rank": "#6.270",
         "rank_total": "152.813",
         "top_pct": "4,10%",
         "last_played": {"initials": "SQ", "title": "Slime Quest VII", "tag": "SNES"},
         "stats": [
             {"label": "Achievements", "value": "4.812", "sub": "unlocked"},
-            {"label": "Games beaten", "value": "134", "sub": "98 retail"},
-            {"label": "RetroRatio", "value": "1,58", "sub": "weighted/base"},
+            {"label": "Games beaten", "value": "134", "sub": ""},
             {"label": "Started → beaten", "value": "41%", "sub": "rate"},
             {"label": "Points (7d)", "value": "1.240", "sub": "last 7 days"},
             {"label": "Points (30d)", "value": "5.980", "sub": "last 30 days"},
             {"label": "Avg / week", "value": "890", "sub": "pts/week"},
             {"label": "Avg completion", "value": "47%", "sub": "per game"},
-            {"label": "Forum posts", "value": "212", "sub": "social"},
-            {"label": "Sets requested", "value": "7", "sub": "social"},
         ],
         "heat": _heat_bars(),
         "heat_rate": "1.240 pts / week",
         "recent_games": _recent_games(),
         "consoles": _consoles(),
         "completion": completion,
-        "completion_count": _COMPLETION_TOTAL,
         "completion_more": _COMPLETION_TOTAL - len(completion),
-        "event_awards": [
-            {
-                "ini": "AoM",
-                "name": "Achievement of the Month",
-                "when": "jun/2025",
-                "tone": "gold",
-            },
-            {"ini": "M16", "name": "16-bit Marathon", "when": "mar/2025", "tone": "brand"},
-            {"ini": "DC", "name": "Devlog Challenge", "when": "nov/2024", "tone": "state-platinum"},
-        ],
         "game_awards": game_awards,
         "game_awards_more": _GAME_AWARDS_TOTAL - len(game_awards),
-        "wall": [
-            {
-                "ini": "MK",
-                "name": "MetroKnight",
-                "when": "3h ago",
-                "text": "Congrats on the Kart Rumble platinum! That final cup was brutal.",
-                "owner": False,
-            },
-            {
-                "ini": "PH",
-                "name": "PlatinaHunter",
-                "when": "2h ago",
-                "text": "Thanks! The trick is the stage-3 shortcut. I'll send you the replay.",
-                "owner": True,
-            },
-            {
-                "ini": "RS",
-                "name": "RetroSofia",
-                "when": "1d ago",
-                "text": "Your Metro Knights set is saving my life. Really well documented.",
-                "owner": False,
-            },
-        ],
     }

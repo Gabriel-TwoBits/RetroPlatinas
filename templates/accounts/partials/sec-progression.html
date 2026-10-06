@@ -1,25 +1,20 @@
 {% load i18n %}
-<div>
-  <div class="mb-3 flex flex-wrap items-baseline justify-between gap-2">
-    <h3 class="font-display text-[17px] font-semibold text-txt">{% trans "Progress by console" %}</h3>
-    <div class="flex gap-4 font-mono text-[10px]">
-      <span class="text-txt-muted"><span class="mr-1.5 inline-block h-2 w-2 rounded-sm bg-state-locked align-middle"></span>{% trans "Not finished" %}</span>
-      <span class="text-state-beaten"><span class="mr-1.5 inline-block h-2 w-2 rounded-sm bg-state-beaten align-middle"></span>{% trans "Beaten" %}</span>
-      <span class="text-state-platinum"><span class="mr-1.5 inline-block h-2 w-2 rounded-sm bg-state-platinum align-middle"></span>{% trans "Platinum" %}</span>
-    </div>
-  </div>
-  <div class="rounded-card border border-line px-4 py-1">
+<section>
+  {% include "components/section-heading.html" with title=_("Progress by console") %}
+  <div>
     {% for c in consoles %}
-      <div class="flex flex-col gap-2 border-t border-line py-2.5 sm:grid sm:grid-cols-[190px_1fr_150px] sm:items-center sm:gap-4">
-        <div class="flex min-w-0 items-center gap-2.5">
+      <div class="flex flex-col gap-2 border-t border-line py-3 first:border-t-0 sm:flex-row sm:items-center sm:gap-4">
+        <div class="flex min-w-0 items-center gap-3 sm:w-48 sm:shrink-0">
           {% include "components/console-tag.html" with label=c.tag variant="table" %}
-          <span class="truncate font-display text-[13px] font-medium text-txt">{{ c.name }}</span>
+          <span class="truncate font-display text-sm font-medium text-txt">{{ c.name }}</span>
         </div>
-        {% include "components/progress-bar-segmented.html" with not_pct=c.not_pct beaten_pct=c.beaten_pct plat_pct=c.plat_pct height="h-3" %}
-        <div class="text-right font-mono text-[10.5px] text-txt-faint">
+        <div class="sm:flex-1">
+          {% include "components/progress-bar-segmented.html" with not_pct=c.not_pct beaten_pct=c.beaten_pct plat_pct=c.plat_pct height="h-3" %}
+        </div>
+        <div class="text-right font-mono text-xs text-txt-faint sm:w-36 sm:shrink-0">
           <span class="text-state-beaten">{{ c.beaten }}</span> · <span class="text-state-platinum">{{ c.plat }}</span> / {{ c.total }}
         </div>
       </div>
     {% endfor %}
   </div>
-</div>
+</section>

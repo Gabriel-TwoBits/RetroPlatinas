@@ -1,14 +1,14 @@
 {% load i18n %}
-<div class="rounded-card border border-line p-4">
-  <div class="mb-3.5 font-display text-sm font-semibold text-txt">{% trans "Recent progress" %}</div>
-  <div class="flex h-24 items-end gap-1.5">
+<section>
+  {% include "components/section-heading.html" with title=_("Recent progress") %}
+  <div class="mt-4 flex h-24 items-end gap-1.5">
     {% for b in heat %}
       <div class="flex-1 rounded-sm {% if b.on %}bg-brand{% else %}bg-elevated{% endif %}" style="height:{{ b.height }}px;opacity:{{ b.opacity }}"></div>
     {% endfor %}
   </div>
-  <div class="mt-2 flex justify-between font-mono text-[9.5px] text-txt-faint">
+  <div class="mt-2 flex justify-between font-mono text-xs text-txt-faint">
     <span>14d</span>
     <span class="text-brand">{{ heat_rate }}</span>
     <span>{% trans "today" %}</span>
   </div>
-</div>
+</section>
