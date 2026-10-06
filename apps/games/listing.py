@@ -1,6 +1,7 @@
 """What the games list shows: the games matching its filters, a page at a time."""
 
 from django.core.paginator import Paginator
+from django.db.models import Q
 
 from apps.core import stats
 from apps.games.forms import (
@@ -28,12 +29,13 @@ def _ordering(order):
 
 def matching_games(filters):
     """The games matching a valid `GameFilterForm`'s cleaned data, in its order."""
-    games = stats.catalog_games().filter(published_achievements__gte=filters["min_achievements"])
-    if filters["q"]:
-        games = games.filter(title__icontains=filters["q"])
-    if filters["console"] is not None:
-        games = games.filter(console=filters["console"])
-    return games.order_by(*_ordering(filters["order"]))
+    title_match = Q(title__icontains=filters["q"]) if filters["q"] else Q()
+    console_match = Q(console=filters["console"]) if filters["console"] is not None else Q()
+    return (
+        stats.catalog_games()
+        .filter(title_match, console_match, published_achievements__gte=filters["min_achievements"])
+        .order_by(*_ordering(filters["order"]))
+    )
 
 
 def _is_filtered(filters):
