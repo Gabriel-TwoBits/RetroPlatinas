@@ -1,4 +1,5 @@
 {% load i18n %}
+{% if completion %}
 <div class="flex flex-col gap-8">
   <section>
     {% include "components/section-heading.html" with title=_("Progress by console") %}
@@ -21,8 +22,6 @@
             <span class="text-state-platinum">{% blocktrans count n=c.plat %}{{ n }} platinum{% plural %}{{ n }} platinum{% endblocktrans %}</span>
           </div>
         </div>
-      {% empty %}
-        {% include "accounts/partials/empty-games.html" %}
       {% endfor %}
     </div>
   </section>
@@ -46,9 +45,10 @@
             </div>
           </div>
         </div>
-      {% empty %}
-        {% include "accounts/partials/empty-games.html" %}
       {% endfor %}
     </div>
   </section>
 </div>
+{% else %}
+  {% include "accounts/partials/empty-games.html" %}
+{% endif %}

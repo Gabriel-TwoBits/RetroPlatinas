@@ -161,6 +161,14 @@ def test_new_user_sees_empty_states_with_a_way_to_start(client, player, path):
 
 
 @pytest.mark.django_db
+def test_new_user_progress_panel_shows_the_empty_state_once(client, player):
+    client.force_login(player)
+    body = _get(client, "/users/teste/panel/progress/").content.decode()
+    assert body.count("No games played yet") == 1
+    assert "Progress by console" not in body
+
+
+@pytest.mark.django_db
 def test_new_user_profile_has_no_points_rank_or_activity(client, player):
     resp = _get(client, "/users/teste/")
     body = resp.content.decode()
@@ -542,7 +550,7 @@ def test_profile_panel_rejects_an_unknown_tab(client, player, tab):
         ("overview", "Recent progress", "Progresso recente"),
         ("awards", "game awards", "prêmios de jogo"),
         ("games", "Recently played", "Jogados recentemente"),
-        ("progress", "Progress by console", "Progresso por console"),
+        ("progress", "No games played yet", "Nenhum jogo jogado ainda"),
     ],
 )
 @pytest.mark.parametrize("language", ["en", "pt-br"])
