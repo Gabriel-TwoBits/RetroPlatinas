@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RetroPlatinas\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-06 18:09-0300\n"
+"POT-Creation-Date: 2026-10-06 18:18-0300\n"
 "PO-Revision-Date: 2026-05-23 18:15-0300\n"
 "Last-Translator: RetroPlatinas\n"
 "Language-Team: Brazilian Portuguese\n"
@@ -164,11 +164,11 @@ msgstr "emblemas"
 msgid "Draft"
 msgstr "Rascunho"
 
-#: apps/achievements/models.py:146 apps/games/page.py:71 templates/home.html:52
+#: apps/achievements/models.py:146 apps/games/page.py:76 templates/home.html:52
 msgid "Community"
 msgstr "Comunidade"
 
-#: apps/achievements/models.py:147 apps/games/page.py:70
+#: apps/achievements/models.py:147
 msgid "Verified"
 msgstr "Verificado"
 
@@ -496,72 +496,77 @@ msgstr "jogo do jogador"
 msgid "player games"
 msgstr "jogos dos jogadores"
 
-#: apps/games/page.py:14 templates/accounts/partials/sec-completion.html:7
+#: apps/games/page.py:15 templates/accounts/partials/sec-completion.html:7
 #: templates/games/detail.html:19 templates/home.html:8
 msgid "Achievements"
 msgstr "Conquistas"
 
-#: apps/games/page.py:15
+#: apps/games/page.py:16
 msgid "Leaderboards"
 msgstr "Placares"
 
-#: apps/games/page.py:16
+#: apps/games/page.py:17
 msgid "Recent players"
 msgstr "Jogadores recentes"
 
-#: apps/games/page.py:24
+#: apps/games/page.py:25
 msgid "All"
 msgstr "Todas"
 
-#: apps/games/page.py:25
+#: apps/games/page.py:26
 msgid "Unlocked"
 msgstr "Desbloqueadas"
 
-#: apps/games/page.py:26
+#: apps/games/page.py:27
 msgid "Locked"
 msgstr "Bloqueadas"
 
-#: apps/games/page.py:35
+#: apps/games/page.py:36
 msgid "Verified only"
 msgstr "Somente verificadas"
 
-#: apps/games/page.py:36
+#: apps/games/page.py:37
 msgid "Verified + Community"
 msgstr "Verificadas + comunidade"
 
-#: apps/games/page.py:37
+#: apps/games/page.py:38
 msgid "All incl. my drafts"
 msgstr "Todas, com meus rascunhos"
 
-#: apps/games/page.py:48
+#: apps/games/page.py:49
 msgid "No verified achievements yet"
 msgstr "Nenhuma conquista verificada ainda"
 
-#: apps/games/page.py:49
+#: apps/games/page.py:50
 msgid "No published achievements yet"
 msgstr "Nenhuma conquista publicada ainda"
 
-#: apps/games/page.py:50
+#: apps/games/page.py:51
 msgid "No published achievements or drafts yet"
 msgstr "Nenhuma conquista publicada ou rascunho ainda"
 
-#: apps/games/page.py:54
+#: apps/games/page.py:55
 msgid "No verified achievements unlocked yet"
 msgstr "Nenhuma conquista verificada desbloqueada ainda"
 
-#: apps/games/page.py:55
+#: apps/games/page.py:56
 msgid "Every verified achievement unlocked"
 msgstr "Todas as conquistas verificadas desbloqueadas"
 
-#: apps/games/page.py:56 apps/games/page.py:58
+#: apps/games/page.py:57 apps/games/page.py:59
 msgid "No achievements unlocked yet"
 msgstr "Nenhuma conquista desbloqueada ainda"
 
-#: apps/games/page.py:57 apps/games/page.py:59
+#: apps/games/page.py:58 apps/games/page.py:60
 msgid "Every achievement unlocked"
 msgstr "Todas as conquistas desbloqueadas"
 
-#: apps/games/page.py:72
+#: apps/games/page.py:73
+msgctxt "achievement section"
+msgid "Verified"
+msgstr "Verificadas"
+
+#: apps/games/page.py:77
 msgid "Your drafts"
 msgstr "Seus rascunhos"
 

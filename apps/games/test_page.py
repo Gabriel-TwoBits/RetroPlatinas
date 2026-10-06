@@ -1,6 +1,7 @@
 """The public game page and its HTMX tabs, over real achievements, unlocks, leaderboards and
 sessions."""
 
+import re
 from datetime import timedelta
 from http import HTTPStatus
 
@@ -381,6 +382,15 @@ def test_status_badges_follow_the_viewer_language(client, crash, achievements):
     body = client.get(f"/games/{crash.pk}/", HTTP_ACCEPT_LANGUAGE="pt-br").content.decode()
     assert ">Verificado</span>" in _status_badge(body, "Verified one")
     assert "Somente verificadas" in body
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(("language", "title"), [("en", "Verified"), ("pt-br", "Verificadas")])
+def test_verified_section_title_follows_the_viewer_language(
+    client, crash, achievements, language, title
+):
+    body = client.get(f"/games/{crash.pk}/", HTTP_ACCEPT_LANGUAGE=language).content.decode()
+    assert re.search(rf'bg-state-platinum"></span>{title}\s*</h2>', body)
 
 
 @pytest.mark.django_db

@@ -267,7 +267,8 @@ answers 404. Every game title on the home, the profile and the games list links 
   tab active plus the panel, swapped into `#game-tabs`; the active state is rendered by the
   server, no client script.
 - **Achievements** — ruled sections in the order the emulator receives them: *Verified* (the
-  quality seal, `state-platinum` strip), then *Community*, then *Your drafts* (`gold` strip),
+  quality seal, `state-platinum` strip; pt-BR *Verificadas*, under the `achievement section`
+  context so the status chip keeps the model's *Verificado*), then *Community*, then *Your drafts* (`gold` strip),
   which only the drafts' author sees. A group with nothing to show is hidden. Every row carries
   an outlined status chip after its title: *Verified* in `state-platinum` with a check seal,
   *Community* in `brand`, *Draft* in `gold`. For a logged-in viewer an unlocked badge has a 2px

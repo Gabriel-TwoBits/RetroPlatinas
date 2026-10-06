@@ -2,6 +2,7 @@
 leaderboards and sessions."""
 
 from django.utils.translation import gettext_lazy as _
+from django.utils.translation import pgettext_lazy
 
 from apps.achievements.models import Achievement, UserUnlock
 from apps.core import stats
@@ -67,7 +68,11 @@ UNLOCKED_STATES = (STATE_HARDCORE, STATE_SOFTCORE)
 
 # Verified first, as the quality seal, then community; drafts reach only their author.
 GROUPS = [
-    (Achievement.STATUS_VERIFIED, _("Verified"), "state-platinum"),
+    (
+        Achievement.STATUS_VERIFIED,
+        pgettext_lazy("achievement section", "Verified"),
+        "state-platinum",
+    ),
     (Achievement.STATUS_COMMUNITY, _("Community"), "brand"),
     (Achievement.STATUS_DRAFT, _("Your drafts"), "gold"),
 ]
