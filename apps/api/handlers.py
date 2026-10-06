@@ -21,7 +21,12 @@ from apps.anticheat.detection import (
     signature_matches,
 )
 from apps.api.auth import is_expired_token, user_from_token
-from apps.core.stats import rank_by_score, ranked_entries
+from apps.core.stats import (
+    published_achievement_count,
+    published_unlocks,
+    rank_by_score,
+    ranked_entries,
+)
 from apps.games.models import RICH_PRESENCE_MAX_LENGTH, Console, Game, GameHash, PlayerGame
 from apps.images.catalog import (
     avatar_path,
@@ -463,13 +468,10 @@ def handle_startsession(request):
 
 
 def _remaining_in_set(user, game, hardcore):
-    total = game.achievements.filter(status__in=Achievement.PUBLISHED_STATUSES).count()
-    unlocked = UserUnlock.objects.filter(
-        user=user,
-        hardcore=hardcore,
-        achievement__game=game,
-        achievement__status__in=Achievement.PUBLISHED_STATUSES,
-    ).count()
+    total = published_achievement_count(game)
+    unlocked = (
+        published_unlocks().filter(user=user, hardcore=hardcore, achievement__game=game).count()
+    )
     return max(total - unlocked, 0)
 
 
