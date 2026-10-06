@@ -30,6 +30,10 @@ EXTRA_GAMES = 1
 UNKNOWN_CONSOLE_ID = 999_999
 SPYRO_ACHIEVEMENTS = 3
 CRASH_ACHIEVEMENTS = 2
+# Crash, Spyro and Mario: the `catalog` game with only a draft is not listed.
+PUBLISHED_CATALOG_GAMES = 3
+# `many_games` fills one page and spills onto a second.
+LAST_PAGE = 2
 
 
 def _user(username, is_active=True):
@@ -102,7 +106,7 @@ def test_list_shows_games_with_a_published_set_by_title(client, catalog, path):
     assert f'src="{versioned_game_icon_path(crash)}"' in body
     assert f"{CRASH_ACHIEVEMENTS} achievements" in body
     assert ">PS1<" in body
-    assert "3 games" in body
+    assert f"{PUBLISHED_CATALOG_GAMES} games" in body
     assert "Ape Escape" not in body
 
 
@@ -225,11 +229,11 @@ def many_games(playstation):
 @pytest.mark.django_db
 def test_list_pages_by_the_page_size(client, many_games):
     first = _get(client, LIST_PATH)
-    second = _get(client, LIST_PATH, {"page": 2})
+    second = _get(client, LIST_PATH, {"page": LAST_PAGE})
 
     assert len(first.context["cards"]) == GAMES_PER_PAGE
     assert _titles(second) == [f"Game {GAMES_PER_PAGE:02d}"]
-    assert "Page 2 of 2" in second.content.decode()
+    assert f"Page {LAST_PAGE} of {LAST_PAGE}" in second.content.decode()
 
 
 @pytest.mark.django_db
@@ -239,13 +243,13 @@ def test_page_links_keep_the_search_and_filters(client, many_games, playstation,
 
     body = _get(client, path, params).content.decode()
 
-    query = f"q=game&amp;console={playstation.pk}&amp;order=achievements&amp;page=2"
+    query = f"q=game&amp;console={playstation.pk}&amp;order=achievements&amp;page={LAST_PAGE}"
     assert f'href="{LIST_PATH}?{query}"' in body
     assert f'hx-get="{RESULTS_PATH}?{query}"' in body
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize("page", ["3", "0", "last-one"])
+@pytest.mark.parametrize("page", [str(LAST_PAGE + 1), "0", "last-one"])
 @pytest.mark.parametrize("path", PATHS)
 def test_unknown_page_answers_404(client, many_games, path, page):
     assert _get(client, path, {"page": page}).status_code == HTTPStatus.NOT_FOUND
@@ -319,7 +323,7 @@ def test_nav_footer_and_home_link_the_games_list(client, catalog):
 def test_list_is_translated_to_brazilian_portuguese(client, catalog):
     body = _get(client, LIST_PATH, language="pt-br").content.decode()
 
-    assert "3 jogos" in body
+    assert f"{PUBLISHED_CATALOG_GAMES} jogos" in body
     assert f"{CRASH_ACHIEVEMENTS} conquistas" in body
     assert "Mínimo de conquistas" in body
     assert "Ordem alfabética" in body
