@@ -53,7 +53,11 @@ class Stage:
 
     @property
     def plan_path(self):
-        return PLANS_DIR / f"{self.clear}.json"
+        return self.goal_plan_path("clear")
+
+    def goal_plan_path(self, goal):
+        """`plans/<stage>-<goal>.json`: a searched route to the goal (explore.GOALS)."""
+        return PLANS_DIR / f"{self.name}-{goal}.json"
 
     @property
     def deepest_plan_path(self):
