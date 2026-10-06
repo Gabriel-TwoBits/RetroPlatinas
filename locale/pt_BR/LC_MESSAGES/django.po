@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RetroPlatinas\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-06 17:44-0300\n"
+"POT-Creation-Date: 2026-10-06 17:55-0300\n"
 "PO-Revision-Date: 2026-05-23 18:15-0300\n"
 "Last-Translator: RetroPlatinas\n"
 "Language-Team: Brazilian Portuguese\n"
@@ -541,7 +541,7 @@ msgstr "Seus rascunhos"
 msgid "Invalid games filter"
 msgstr "Filtro de jogos inválido"
 
-#: apps/games/views.py:68
+#: apps/games/views.py:73
 msgid "Unknown achievement filter"
 msgstr "Filtro de conquistas desconhecido"
 
@@ -1222,11 +1222,13 @@ msgstr "Pontos"
 
 #: templates/games/list.html:10
 msgid ""
-"Games with a published achievement set. Search by title, or narrow the list "
-"by console and set size."
+"By default, games with a published achievement set; a minimum of 0 "
+"achievements lists every game. Search by title, or narrow the list by "
+"console and set size."
 msgstr ""
-"Jogos com um set de conquistas publicado. Busque pelo título ou filtre a "
-"lista por console e tamanho do set."
+"Por padrão, jogos com um set de conquistas publicado; um mínimo de 0 "
+"conquistas lista todos os jogos. Busque pelo título ou filtre a lista por "
+"console e tamanho do set."
 
 #: templates/games/list.html:19
 msgid "Search by title"

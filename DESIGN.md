@@ -229,7 +229,8 @@ links to the full guide.
 `apps/core/stats.py` queries; linked from the nav and the footer as *Games*, from the nav as
 *Search* (to the search field, `#game-search`) and from the home hero's *See the games*.
 
-- **Header** — a ruled section: the title and one line saying what is listed.
+- **Header** — a ruled section: the title and one line saying what is listed by default and
+  how to list every game.
 - **Filters** — a plain GET form inside `.rp-form`: title search (case-insensitive substring),
   console select, minimum published achievements (a number field, default `1`) and order
   (*Alphabetical*, the default; *Most achievements*; *Most players*, the active users with a
