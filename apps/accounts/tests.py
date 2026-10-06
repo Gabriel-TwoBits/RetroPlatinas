@@ -1,3 +1,5 @@
+import re
+
 import pytest
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
@@ -258,6 +260,40 @@ def test_profile_panel_returns_fragment(client):
     body = resp.content.decode()
     assert "<!DOCTYPE" not in body  # HTMX fragment, not the full page
     assert "PlayStation 2" in body  # progression section rendered
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("tab", ["wall"])
+def test_profile_panel_for_a_hidden_section_is_gone(client, tab):
+    User.objects.create_user(username="teste", password="pw-secret-123")
+    resp = client.get(f"/users/teste/panel/{tab}/")
+    assert resp.status_code == 404
+
+
+@pytest.mark.django_db
+def test_profile_hides_sections_without_a_concept(client):
+    User.objects.create_user(username="teste", password="pw-secret-123")
+    body = client.get("/users/teste/", HTTP_ACCEPT_LANGUAGE="en").content.decode()
+    for hidden in ["Event awards", "User wall", "RetroRatio", "Forum posts", "weighted"]:
+        assert hidden not in body
+
+
+@pytest.mark.django_db
+def test_mobile_profile_tabs_put_awards_right_after_overview(client):
+    User.objects.create_user(username="teste", password="pw-secret-123")
+    body = client.get("/users/teste/").content.decode()
+    tabs = re.findall(r"/users/teste/panel/(\w+)/", body)
+    assert tabs == ["overview", "awards", "games", "progress"]
+
+
+@pytest.mark.django_db
+def test_awards_panel_lists_platinums_first(client):
+    User.objects.create_user(username="teste", password="pw-secret-123")
+    body = client.get("/users/teste/panel/awards/").content.decode()
+    tones = re.findall(r'class="text-(state-platinum|gold) rp-hatch', body)
+    first_gold = tones.index("gold")
+    assert "state-platinum" in tones
+    assert "state-platinum" not in tones[first_gold:]
 
 
 @pytest.mark.django_db
