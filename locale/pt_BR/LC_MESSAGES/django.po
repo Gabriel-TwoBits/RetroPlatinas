@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RetroPlatinas\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-06 15:19-0300\n"
+"POT-Creation-Date: 2026-10-06 15:30-0300\n"
 "PO-Revision-Date: 2026-05-23 18:15-0300\n"
 "Last-Translator: RetroPlatinas\n"
 "Language-Team: Brazilian Portuguese\n"
@@ -106,7 +106,7 @@ msgstr "emblemas"
 msgid "Draft"
 msgstr "Rascunho"
 
-#: apps/achievements/models.py:135 templates/home.html:51
+#: apps/achievements/models.py:135 templates/home.html:49
 msgid "Community"
 msgstr "Comunidade"
 
@@ -190,6 +190,7 @@ msgid "user"
 msgstr "usuário"
 
 #: apps/achievements/models.py:219 apps/achievements/models.py:230
+#: templates/home.html:66
 msgid "hardcore"
 msgstr "hardcore"
 
@@ -205,7 +206,7 @@ msgstr "desbloqueio de usuário"
 msgid "user unlocks"
 msgstr "desbloqueios de usuário"
 
-#: apps/achievements/models.py:230
+#: apps/achievements/models.py:230 templates/home.html:67
 msgid "softcore"
 msgstr "softcore"
 
@@ -577,6 +578,7 @@ msgid "Recent progress"
 msgstr "Progresso recente"
 
 #: templates/accounts/partials/panel-overview.html:13
+#: templates/accounts/partials/sec-heat.html:10
 msgid "14d ago"
 msgstr "há 14 dias"
 
@@ -739,7 +741,7 @@ msgid "Change language"
 msgstr "Mudar idioma"
 
 #: templates/docs/getting-started.html:4 templates/docs/getting-started.html:8
-#: templates/home.html:98
+#: templates/home.html:96
 msgid "How to start playing"
 msgstr "Como começar a jogar"
 
@@ -747,7 +749,9 @@ msgstr "Como começar a jogar"
 msgid ""
 "RetroPlatinas works with an unmodified DuckStation: point it at this site, "
 "log in and play."
-msgstr "O RetroPlatinas funciona com o DuckStation sem modificações: aponte-o para este site, entre e jogue."
+msgstr ""
+"O RetroPlatinas funciona com o DuckStation sem modificações: aponte-o para "
+"este site, entre e jogue."
 
 #: templates/docs/getting-started.html:12
 msgid "Step by step"
@@ -761,14 +765,16 @@ msgstr "Crie uma conta"
 msgid ""
 "Pick a username and a password. They are the same ones you will type into "
 "the emulator."
-msgstr "Escolha um nome de usuário e uma senha. São os mesmos que você vai digitar no emulador."
+msgstr ""
+"Escolha um nome de usuário e uma senha. São os mesmos que você vai digitar "
+"no emulador."
 
 #: templates/docs/getting-started.html:18
 #, python-format
 msgid "You're already logged in as %(username)s."
 msgstr "Você já está conectado como %(username)s."
 
-#: templates/docs/getting-started.html:20 templates/home.html:84
+#: templates/docs/getting-started.html:20 templates/home.html:82
 msgid "Create account →"
 msgstr "Criar conta →"
 
@@ -781,7 +787,10 @@ msgid ""
 "Download DuckStation for your system from its official site and open it "
 "once, so it creates its settings file. Today it is the only emulator we "
 "test, for PlayStation (PS1) games."
-msgstr "Baixe o DuckStation para o seu sistema no site oficial e abra-o uma vez, para que ele crie o arquivo de configurações. Hoje é o único emulador que testamos, para jogos de PlayStation (PS1)."
+msgstr ""
+"Baixe o DuckStation para o seu sistema no site oficial e abra-o uma vez, "
+"para que ele crie o arquivo de configurações. Hoje é o único emulador que "
+"testamos, para jogos de PlayStation (PS1)."
 
 #: templates/docs/getting-started.html:29
 msgid "Point DuckStation at RetroPlatinas"
@@ -791,14 +800,19 @@ msgstr "Aponte o DuckStation para o RetroPlatinas"
 msgid ""
 "Close DuckStation, open its settings.ini in a text editor and set the server "
 "address in the [Cheevos] section (add the section if it isn't there):"
-msgstr "Feche o DuckStation, abra o settings.ini dele em um editor de texto e defina o endereço do servidor na seção [Cheevos] (crie a seção se ela não existir):"
+msgstr ""
+"Feche o DuckStation, abra o settings.ini dele em um editor de texto e defina "
+"o endereço do servidor na seção [Cheevos] (crie a seção se ela não existir):"
 
 #: templates/docs/getting-started.html:33
 msgid ""
 "settings.ini lives in DuckStation's user folder: Documents\\DuckStation on "
 "Windows, ~/.local/share/duckstation on Linux, ~/Library/Application Support/"
 "DuckStation on macOS."
-msgstr "O settings.ini fica na pasta de usuário do DuckStation: Documentos\\DuckStation no Windows, ~/.local/share/duckstation no Linux, ~/Library/Application Support/DuckStation no macOS."
+msgstr ""
+"O settings.ini fica na pasta de usuário do DuckStation: "
+"Documentos\\DuckStation no Windows, ~/.local/share/duckstation no Linux, ~/"
+"Library/Application Support/DuckStation no macOS."
 
 #: templates/docs/getting-started.html:36
 msgid "Log in from the emulator"
@@ -809,7 +823,10 @@ msgid ""
 "Open DuckStation, go to Settings → Achievements, enable achievements and log "
 "in with your RetroPlatinas username and password. DuckStation remembers the "
 "login, so you only do this once."
-msgstr "Abra o DuckStation, vá em Configurações → Conquistas, ative as conquistas e entre com o seu usuário e senha do RetroPlatinas. O DuckStation lembra o login, então você só faz isso uma vez."
+msgstr ""
+"Abra o DuckStation, vá em Configurações → Conquistas, ative as conquistas e "
+"entre com o seu usuário e senha do RetroPlatinas. O DuckStation lembra o "
+"login, então você só faz isso uma vez."
 
 #: templates/docs/getting-started.html:40
 msgid "Play"
@@ -819,7 +836,10 @@ msgstr "Jogue"
 msgid ""
 "Load a game that has a set — today, Crash Bandicoot (PS1). Achievements pop "
 "up as you unlock them and show up on your profile."
-msgstr "Carregue um jogo que tenha um set — hoje, Crash Bandicoot (PS1). As conquistas aparecem na tela quando você as desbloqueia e vão para o seu perfil."
+msgstr ""
+"Carregue um jogo que tenha um set — hoje, Crash Bandicoot (PS1). As "
+"conquistas aparecem na tela quando você as desbloqueia e vão para o seu "
+"perfil."
 
 #: templates/docs/getting-started.html:47
 msgid "Hardcore mode"
@@ -830,7 +850,10 @@ msgid ""
 "Hardcore Mode, in the same Achievements settings, turns off save states, "
 "cheats and rewind. Unlocks earned that way carry the hardcore seal and are "
 "shown apart from softcore ones; they are worth the same points."
-msgstr "O Modo Hardcore, nas mesmas configurações de Conquistas, desativa save states, cheats e rewind. Os desbloqueios feitos assim levam o selo hardcore e aparecem à parte dos softcore; eles valem os mesmos pontos."
+msgstr ""
+"O Modo Hardcore, nas mesmas configurações de Conquistas, desativa save "
+"states, cheats e rewind. Os desbloqueios feitos assim levam o selo hardcore "
+"e aparecem à parte dos softcore; eles valem os mesmos pontos."
 
 #: templates/home.html:4
 msgid "Home"
@@ -860,137 +883,143 @@ msgstr ""
 msgid "New project · under construction"
 msgstr "Projeto novo · em construção"
 
-#: templates/home.html:25
-msgid "See the games"
-msgstr "Ver os jogos"
-
-#: templates/home.html:27
+#: templates/home.html:21
 msgid "We're new: 1 game, few players. We'd rather show that than fake scale."
 msgstr ""
 "Somos novos: 1 jogo, poucos jogadores. Preferimos mostrar isso a fingir que "
 "somos grandes."
 
-#: templates/home.html:38
+#: templates/home.html:25
+msgid "See the games"
+msgstr "Ver os jogos"
+
+#: templates/home.html:36
 msgid "What's new"
 msgstr "Novidades"
 
-#: templates/home.html:41
+#: templates/home.html:39
 msgid "New set"
 msgstr "Novo set"
 
-#: templates/home.html:42
+#: templates/home.html:40
 msgid "First set: Crash Bandicoot (PS1)"
 msgstr "Primeiro set: Crash Bandicoot (PS1)"
 
-#: templates/home.html:43
+#: templates/home.html:41
 msgid "Our first set, with hardcore and softcore seals."
 msgstr "Nosso primeiro set, com selos hardcore e softcore."
 
-#: templates/home.html:46
+#: templates/home.html:44
 msgid "Platform"
 msgstr "Plataforma"
 
-#: templates/home.html:47
+#: templates/home.html:45
 msgid "Hardcore & softcore"
 msgstr "Hardcore & softcore"
 
-#: templates/home.html:48
+#: templates/home.html:46
 msgid ""
 "Unlocks without save states get the hardcore seal, shown apart from softcore "
 "ones."
-msgstr "Desbloqueios sem save state ganham o selo hardcore, exibidos à parte dos softcore."
+msgstr ""
+"Desbloqueios sem save state ganham o selo hardcore, exibidos à parte dos "
+"softcore."
 
-#: templates/home.html:52
+#: templates/home.html:50
 msgid "Open source on Codeberg"
 msgstr "Código aberto no Codeberg"
 
-#: templates/home.html:53
+#: templates/home.html:51
 msgid "RetroPlatinas is AGPL-3.0. Issues and roadmap are public."
 msgstr "O RetroPlatinas é AGPL-3.0. Issues e roadmap são públicos."
 
-#: templates/home.html:59
+#: templates/home.html:57
 msgid "Available sets"
 msgstr "Sets disponíveis"
 
-#: templates/home.html:79
+#: templates/home.html:77
 msgid "How to contribute"
 msgstr "Como contribuir"
 
-#: templates/home.html:82
+#: templates/home.html:80
 msgid "Create achievement sets"
 msgstr "Criar sets de conquistas"
 
-#: templates/home.html:83
+#: templates/home.html:81
 msgid "Pick a game, design the achievements and publish a set. No gatekeeping."
 msgstr ""
 "Escolha um jogo, planeje as conquistas e publique um set. Sem burocracia."
 
-#: templates/home.html:87
+#: templates/home.html:85
 msgid "Contribute code"
 msgstr "Contribuir com código"
 
-#: templates/home.html:88
+#: templates/home.html:86
 msgid "AGPL-3.0 on Codeberg. Bugs, features and roadmap are open."
 msgstr "AGPL-3.0 no Codeberg. Bugs, features e roadmap são abertos."
 
-#: templates/home.html:89
+#: templates/home.html:87
 msgid "See the repository →"
 msgstr "Ver o repositório →"
 
-#: templates/home.html:100
+#: templates/home.html:98
 msgid "Get a compatible emulator (DuckStation)"
 msgstr "Baixe um emulador compatível (DuckStation)"
 
-#: templates/home.html:101
+#: templates/home.html:99
 msgid "Create your account and sign in from the emulator"
 msgstr "Crie sua conta e entre pelo emulador"
 
-#: templates/home.html:102
+#: templates/home.html:100
 msgid "Load the game and start unlocking"
 msgstr "Carregue o jogo e comece a desbloquear"
 
-#: templates/home.html:104
+#: templates/home.html:102
 msgid "Today: PlayStation (PS1). More consoles as sets arrive."
 msgstr ""
 "Por enquanto: PlayStation (PS1). Mais consoles conforme os sets chegarem."
 
-#: templates/home.html:105
+#: templates/home.html:103
 msgid "Step-by-step guide →"
 msgstr "Guia passo a passo →"
 
-#: templates/home.html:109
+#: templates/home.html:107
 msgid "The project in numbers"
 msgstr "O projeto em números"
 
-#: templates/home.html:117
+#: templates/home.html:115
 msgid "Online now"
 msgstr "Online agora"
 
-#: templates/home.html:129
+#: templates/home.html:127
 msgid "Recent activity"
 msgstr "Atividade recente"
 
-#: templates/home.html:147
+#: templates/home.html:140
+msgid "HC"
+msgstr "HC"
+
+#: templates/home.html:145
 msgid "No unlocks yet"
 msgstr "Nenhum desbloqueio ainda"
 
-#: templates/home.html:149
+#: templates/home.html:147
 msgid "As soon as someone plays, unlocks show up here in real time."
 msgstr "Assim que alguém jogar, os desbloqueios aparecem aqui em tempo real."
 
-#: templates/home.html:150
+#: templates/home.html:148
 msgid "Be the first to play →"
 msgstr "Seja o primeiro a jogar →"
 
-#: templates/home.html:157
+#: templates/home.html:155
 msgid "Open source"
 msgstr "Código aberto"
 
-#: templates/home.html:161
+#: templates/home.html:159
 msgid "Codeberg — repository"
 msgstr "Codeberg — repositório"
 
-#: templates/home.html:166
+#: templates/home.html:164
 msgid "Licensed under AGPL-3.0"
 msgstr "Licenciado sob a AGPL-3.0"
 

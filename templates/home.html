@@ -63,8 +63,8 @@
                 <div class="font-display text-base font-semibold text-txt">{{ s.title }}</div>
                 <div class="my-2 flex flex-wrap items-center gap-2 font-mono text-xs">
                   {% include "components/console-tag.html" with label=s.tag %}
-                  <span class="text-state-hardcore">hardcore</span>
-                  <span class="text-state-softcore">softcore</span>
+                  <span class="text-state-hardcore">{% trans "hardcore" %}</span>
+                  <span class="text-state-softcore">{% trans "softcore" %}</span>
                 </div>
                 <div class="font-mono text-xs text-txt-faint">{{ s.meta }}</div>
               </div>
@@ -137,7 +137,7 @@
                 <div class="text-xs leading-tight text-txt"><strong class="font-display text-txt">{{ a.who }}</strong> {{ a.verb }} {% if a.ach %}<span class="text-gold">“{{ a.ach }}”</span>{% else %}<span class="text-brand">{{ a.game }}</span>{% endif %}</div>
                 <div class="mt-1 font-mono text-xs text-txt-faint">{% if a.ach %}{{ a.game }} · {% endif %}{{ a.tag }} · {{ a.when }}</div>
               </div>
-              {% if a.hardcore %}<span class="shrink-0 font-mono text-xs text-state-hardcore">HC</span>{% endif %}
+              {% if a.hardcore %}<span class="shrink-0 font-mono text-xs text-state-hardcore">{% trans "HC" %}</span>{% endif %}
             </div>
           {% empty %}
             <div class="py-4">
