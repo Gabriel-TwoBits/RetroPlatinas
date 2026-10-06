@@ -66,7 +66,8 @@ indigo/orange) and *Violeta Troféu* — and archives both. Neither ships.
 | `rounded-chip` | `0.375rem` (6px) | console tags, achievement cells, segmented bars |
 
 `rounded-full` stays on dots and the hardcore pill; `rounded-sm` (2px) on heat bars and
-section accent strips. The 80px identity avatar uses `rounded-2xl`.
+section accent strips. The 80px identity avatar (the identicon from `/UserPic/<username>.png`)
+uses `rounded-2xl`.
 
 ## Typography
 
@@ -91,15 +92,15 @@ Each state has its own colour (`state-*` tokens) reused across the whole product
 | hardcore | `state-hardcore` `#e0552f` | red border over gold; no save states |
 | softcore | `state-softcore` `#7e93b1` | blue border; valid unlock, same points |
 | progress | `state-progress` `#d8922f` | amber; set started, not beaten |
-| beaten | `state-beaten` `#5cc48c` | green; core set conditions met |
-| platinum | `state-platinum` `#c2c9d8` | steel-platinum; 100% hardcore |
+| beaten | `state-beaten` `#5cc48c` | green; every published progression and win-condition achievement unlocked, any mode |
+| platinum | `state-platinum` `#c2c9d8` | steel-platinum; every published achievement unlocked in hardcore |
 
 `state-*` utilities are **safelisted** in `tailwind.config.js` because they're composed from
 data (`state='beaten'` → `text-state-beaten`) and can't be found by scanning the markup. The
 same applies to `text-`/`bg-` on `brand` and `gold`, which award, bar and heading-strip tones
 compose.
 
-**Tones are token names, never hex.** Placeholder data ships a `tone`/`bar_tone` key holding a
+**Tones are token names, never hex.** View data ships a `tone`/`state` key holding a
 token name; the template sets one colour class and the border keys off `currentColor`. Inline
 `style="color:#…"` must not come back: it silently survives a retheme.
 
@@ -111,9 +112,10 @@ Each is a small `{% include ... with ... %}` partial, reused across screens:
 | --- | --- | --- |
 | `section-heading.html` | `title, accent` | every section |
 | `site-menu.html` | `nav_class, account_class` | header: desktop row and mobile disclosure |
-| `form-fields.html` | `form` | login, register, password change |
+| `form-fields.html` | `form` | login, register, password change, edit profile |
 | `logo.html` | `variant` (lockup/selo), `size` | header, footer |
 | `game-card.html` | `initials, title, meta, state, state_label, pct, icons, icons_more` | profile (mobile games panel); future game lists |
+| `empty-state.html` | `title, body, href, cta` | every data block with nothing to show (home activity, profile sections) |
 | `achievement-badge.html` | `state, size, label` | badge states |
 | `progress-bar-segmented.html` | `not_pct, beaten_pct, plat_pct, height` | console progression (desktop and mobile) |
 | `console-tag.html` | `label, variant` (table/default), `tone` | console progression, home sets |
@@ -143,31 +145,53 @@ The desktop recent-game card is a genuinely different structure from `game-card.
 
 ## Profile screen
 
+`/users/<username>/`, built by `apps/accounts/profile.py` from the shared `apps/core/stats.py`
+queries: only published achievements count, a hardcore unlock (which also writes its softcore
+twin) counts once per mode, and inactive accounts hold no rank.
+
 - **Desktop** — main column (`flex-1`) plus a 320px rail (`w-80`) **on the right**, main column
-  first in source order. Main: recently played → progress by console → completion. Rail:
-  platinums & awards → statistics → recent progress (heat).
+  first in source order. Main: recently played → recent unlocks → progress by console →
+  completion (the last two only once the user has played a game). Rail: platinums & awards →
+  statistics → recent progress (heat).
 - **Surfaces** — every block is a ruled section on `bg`. Only the recent-game cards are filled;
-  award tiles use the hatch placeholder with a 2px `currentColor` border, platinums first.
-- **Identity banner** — flat, a hairline under it. Points and rank sit side by side split by a
-  vertical hairline; "playing now" is a ruled row.
-- **Heat** — intensity is encoded as **bar opacity** (`0.35 + v/max·0.65`), not just height.
-  Opacity is formatted to a string in Python: Django localises floats, and a pt-BR `0,74`
-  would silently break the inline style.
+  award tiles use the hatch placeholder with a 2px `currentColor` border, platinums first, then
+  beaten games.
+- **Identity banner** — flat, a hairline under it. Identicon, name, bio (escaped, line breaks
+  kept) and member since; the owner gets an *Edit profile* link. Hardcore and softcore points
+  sit side by side split by a vertical hairline, each with its global rank (`#N of M`, M being
+  the active users with points in that mode) or *unranked*. Under a hairline, *playing now*
+  (a session pinged within `PLAYING_NOW_TTL`, with its rich presence and mode) or, without
+  one, the game played last.
+- **Recent unlocks** — the last 20, newest first: badge through the `/Badge/` route with a
+  hardcore or softcore border, title, game, local date and points.
+- **Statistics** — achievements per mode (softcore includes hardcore), games played, beaten,
+  platinums, average completion, points earned in the last 7 and 30 days and per week since
+  joining.
+- **Heat** — 14 days of points earned, today last. Intensity is encoded as **bar opacity**
+  (`0.35 + v/max·0.65`), not just height. Opacity is formatted to a string in Python: Django
+  localises floats, and a pt-BR `0,74` would silently break the inline style.
+- **Empty states** — every list falls back to `empty-state.html`; the owner's version links to
+  the getting-started guide.
+
+Completion lists every played game unpaginated, so there is no "load more".
 
 ### Mobile profile
 
 Sticky underline tabs, one HTMX route per tab (`/users/<username>/panel/<tab>/`) — no client
 state beyond the active underline. Order: **overview → awards → games → progress**.
 
-- **overview** — the statistics rows (the desktop section, reused), then a 64px heat strip.
-- **awards** — platinums first, then the other game awards, as a horizontal tile carousel.
+- **overview** — the statistics rows (the desktop section, reused), a 64px heat strip, then
+  the recent unlocks.
+- **awards** — platinums first, then beaten games, as a horizontal tile carousel.
 - **games** — game cards carrying a 7-column achievement strip (14 cells) + a `+N` count.
 - **progress** — console rows with the Total row emphasised and its tag in brand, then the
   completion rows.
 
-Nothing here is wired: the page renders placeholder data from `apps/accounts/fake_profile.py`,
-so it ships no "load more" pagination and no *Edit profile* link until those routes exist.
-Delete that module when real aggregation lands.
+### Edit profile
+
+`/users/<username>/edit/`, the owner only (another user gets 403, an anonymous visitor the
+login page). It edits the bio (`BIO_MAX_LENGTH` characters) in the auth-page shape below and
+returns to the profile on save.
 
 ## Home landing page
 
@@ -200,9 +224,9 @@ then a short hardcore section. Every string is translatable.
 
 ## Auth pages
 
-Login, register and password change share one shape: a `max-w-sm` column, the title over a
-`border-line2` rule, `form-fields.html` inside `.rp-form`, a full-width brand button, and the
-alternate action under a hairline.
+Login, register, password change and edit profile share one shape: a `max-w-sm` column, the
+title over a `border-line2` rule, `form-fields.html` inside `.rp-form`, a full-width brand
+button, and the alternate action under a hairline.
 
 ## Honesty carve-out
 
