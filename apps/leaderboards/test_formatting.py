@@ -93,8 +93,8 @@ CASES = [
     # Not a format rcheevos knows: VALUE.
     ("BOGUS", 1234, "1,234"),
     ("", 1234, "1,234"),
-    # A score outside int32 reaches rcheevos wrapped.
-    (Format.VALUE, 2**31, "-2,147,483,648"),
+    # Outside int32 (never stored: submitlbentry rejects it) a score wraps as `int32_t` does.
+    (Format.VALUE, INT32_MAX + 1, "-2,147,483,648"),
     (Format.UNSIGNED, UINT32_MAX + 1, "0"),
 ]
 
