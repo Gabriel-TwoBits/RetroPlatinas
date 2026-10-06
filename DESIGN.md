@@ -339,7 +339,7 @@ claims are not:
 - **Changelog dates** ("há 2 dias") — we don't publish a history we didn't have.
 - **Emulators** — the docs list DuckStation, PCSX-ReDux and RetroArch. Only DuckStation is
   tested, so only DuckStation is listed.
-- **Links to routes that don't exist** — "ver todo o feed", "histórico completo", "see all",
+- **Links to routes that don't exist** — "histórico completo", "see all",
   Fórum, Discord. A link that 404s is worse than an absent one.
 
 The design docs also carry their own annotations — the numbered section headers, the principle
@@ -347,8 +347,8 @@ cards, and the trailing `↳ …` notes explaining mobile-vs-desktop decisions. 
 reader of the doc, not the user; they never ship.
 
 **Known debt:** `/games/` is linked from the header, footer and the hero's secondary CTA but
-has no `urls.py` yet, so it 404s today. They predate this carve-out;
-removing them is a product decision, not a drift fix.
+has no `urls.py` yet, so it 404s today. It predates this carve-out;
+removing it is a product decision, not a drift fix.
 
 ## Identity
 
