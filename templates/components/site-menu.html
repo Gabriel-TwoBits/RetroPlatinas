@@ -1,0 +1,39 @@
+{% load i18n %}
+{% comment %}
+  Site navigation, account links and language switch. base.html renders it twice: inline in the
+  desktop header and stacked inside the mobile disclosure. Args:
+    nav_class, account_class : layout utilities for the navigation and the account group
+{% endcomment %}
+<nav class="{{ nav_class }} font-display font-semibold" aria-label="{% trans 'Main navigation' %}">
+  <a class="text-txt-muted no-underline hover:text-brand-hi hover:no-underline" href="/games/">{% trans "Games" %}</a>
+  <a class="text-txt-muted no-underline hover:text-brand-hi hover:no-underline" href="/ranking/">{% trans "Ranking" %}</a>
+  <a class="text-txt-muted no-underline hover:text-brand-hi hover:no-underline" href="/feed/">{% trans "Feed" %}</a>
+  <a class="text-txt-muted no-underline hover:text-brand-hi hover:no-underline" href="/games/">{% trans "Search" %}</a>
+  <a class="text-txt-muted no-underline hover:text-brand-hi hover:no-underline" href="{% url 'getting_started' %}">{% trans "How to start" %}</a>
+</nav>
+
+<div class="{{ account_class }} font-mono">
+  {% if user.is_authenticated %}
+    <a class="text-txt no-underline hover:text-brand-hi" href="{% url 'user_detail' user.username %}">{{ user.username }}</a>
+    <a class="text-txt-muted no-underline hover:text-brand-hi" href="{% url 'password_change' %}">{% trans "Change password" %}</a>
+    <form method="post" action="{% url 'logout' %}">
+      {% csrf_token %}
+      <button class="text-txt-muted hover:text-brand-hi" type="submit">{% trans "Logout" %}</button>
+    </form>
+  {% else %}
+    <a class="text-txt-muted no-underline hover:text-brand-hi" href="{% url 'login' %}">{% trans "Login" %}</a>
+    <a class="rounded-card border border-brand-dim px-3 py-1.5 text-brand no-underline hover:border-brand hover:no-underline" href="{% url 'register' %}">{% trans "Register" %}</a>
+  {% endif %}
+  <form action="{% url 'set_language' %}" method="post">
+    {% csrf_token %}
+    <input name="next" type="hidden" value="{{ request.get_full_path }}">
+    {% get_current_language as CURRENT_LANGUAGE %}
+    <select name="language" onchange="this.form.submit()" aria-label="{% trans 'Language' %}"
+            class="rounded-card border border-line2 bg-bg px-2 py-1 text-txt-muted">
+      {% for code, name in LANGUAGES %}
+        <option value="{{ code }}"{% if code == CURRENT_LANGUAGE %} selected{% endif %}>{{ code|upper }}</option>
+      {% endfor %}
+    </select>
+    <noscript><button type="submit">{% trans "Change language" %}</button></noscript>
+  </form>
+</div>

@@ -29,45 +29,23 @@
     <div class="mx-auto flex max-w-6xl items-center gap-6 px-4 py-3">
       <a href="/" class="no-underline hover:no-underline">{% include "components/logo.html" %}</a>
 
-      <nav class="hidden flex-1 items-center gap-5 font-display text-sm font-semibold text-txt-muted md:flex">
-        <a class="text-txt-muted no-underline hover:text-brand-hi hover:no-underline" href="/games/">{% trans "Games" %}</a>
-        <a class="text-txt-muted no-underline hover:text-brand-hi hover:no-underline" href="/ranking/">{% trans "Ranking" %}</a>
-        <a class="text-txt-muted no-underline hover:text-brand-hi hover:no-underline" href="/feed/">{% trans "Feed" %}</a>
-        <a class="text-txt-muted no-underline hover:text-brand-hi hover:no-underline" href="/games/">{% trans "Search" %}</a>
-      </nav>
-
-      <div class="ml-auto flex items-center gap-3 font-mono text-xs md:ml-0">
-        {% if user.is_authenticated %}
-          <a class="text-txt no-underline hover:text-brand-hi" href="{% url 'user_detail' user.username %}">{{ user.username }}</a>
-          <a class="text-txt-muted no-underline hover:text-brand-hi" href="{% url 'password_change' %}">{% trans "Change password" %}</a>
-          <form method="post" action="{% url 'logout' %}" class="inline">
-            {% csrf_token %}
-            <button class="text-txt-muted hover:text-brand-hi" type="submit">{% trans "Logout" %}</button>
-          </form>
-        {% else %}
-          <a class="text-txt-muted no-underline hover:text-brand-hi" href="{% url 'login' %}">{% trans "Login" %}</a>
-          <a class="rounded-card border border-brand-dim bg-brand/10 px-3 py-1.5 text-brand no-underline hover:no-underline" href="{% url 'register' %}">{% trans "Register" %}</a>
-        {% endif %}
-        <form action="{% url 'set_language' %}" method="post" class="inline">
-          {% csrf_token %}
-          <input name="next" type="hidden" value="{{ request.get_full_path }}">
-          {% get_current_language as CURRENT_LANGUAGE %}
-          <select name="language" onchange="this.form.submit()"
-                  class="rounded-card border border-line2 bg-surface px-1.5 py-1 text-txt-muted">
-            {% for code, name in LANGUAGES %}
-              <option value="{{ code }}"{% if code == CURRENT_LANGUAGE %} selected{% endif %}>{{ code|upper }}</option>
-            {% endfor %}
-          </select>
-          <noscript><button type="submit">{% trans "Change language" %}</button></noscript>
-        </form>
+      <div class="hidden flex-1 items-center gap-6 lg:flex">
+        {% include "components/site-menu.html" with nav_class="flex flex-1 items-center gap-5 text-sm" account_class="flex items-center gap-3 text-xs" %}
       </div>
+
+      <details id="site-menu" class="ml-auto lg:hidden">
+        <summary class="rp-summary rounded-card border border-line2 px-3 py-1 font-display text-sm font-semibold text-txt-muted">{% trans "Menu" %}</summary>
+        <div class="absolute inset-x-0 top-full border-b border-line bg-bg px-4 py-4">
+          {% include "components/site-menu.html" with nav_class="flex flex-col items-start gap-3 text-base" account_class="mt-4 flex flex-wrap items-center gap-4 border-t border-line pt-4 text-sm" %}
+        </div>
+      </details>
     </div>
   </header>
 
   {% if messages %}
     <div class="mx-auto w-full max-w-6xl px-4 pt-4">
       {% for message in messages %}
-        <div class="mb-2 rounded-card border border-line bg-surface px-4 py-2 text-sm text-txt-muted">{{ message }}</div>
+        <div class="mb-2 border-l-2 border-brand-dim py-1 pl-3 text-sm text-txt-muted">{{ message }}</div>
       {% endfor %}
     </div>
   {% endif %}
@@ -81,6 +59,7 @@
       <a class="text-txt-faint no-underline hover:text-brand-hi" href="/games/">{% trans "Games" %}</a>
       <a class="text-txt-faint no-underline hover:text-brand-hi" href="/ranking/">{% trans "Ranking" %}</a>
       <a class="text-txt-faint no-underline hover:text-brand-hi" href="/feed/">{% trans "Feed" %}</a>
+      <a class="text-txt-faint no-underline hover:text-brand-hi" href="{% url 'getting_started' %}">{% trans "How to start" %}</a>
     </div>
   </footer>
 
