@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RetroPlatinas\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-06 16:33-0300\n"
+"POT-Creation-Date: 2026-10-06 16:55-0300\n"
 "PO-Revision-Date: 2026-05-23 18:15-0300\n"
 "Last-Translator: RetroPlatinas\n"
 "Language-Team: English\n"
@@ -572,7 +572,7 @@ msgstr ""
 msgid "format"
 msgstr ""
 
-#: apps/leaderboards/models.py:45
+#: apps/leaderboards/models.py:45 templates/leaderboards/detail.html:16
 msgid "lower is better"
 msgstr ""
 
@@ -893,6 +893,7 @@ msgid "Menu"
 msgstr ""
 
 #: templates/base.html:60 templates/components/site-menu.html:9
+#: templates/leaderboards/detail.html:31
 msgid "Ranking"
 msgstr ""
 
@@ -1039,6 +1040,7 @@ msgid "draft"
 msgstr ""
 
 #: templates/games/partials/panel-leaderboards.html:12
+#: templates/leaderboards/detail.html:15
 #, python-format
 msgid "%(shown)s entry"
 msgid_plural "%(shown)s entries"
@@ -1243,4 +1245,37 @@ msgstr ""
 
 #: templates/home.html:185
 msgid "Licensed under AGPL-3.0"
+msgstr ""
+
+#: templates/leaderboards/detail.html:16
+msgid "higher is better"
+msgstr ""
+
+#: templates/leaderboards/detail.html:23
+msgid "Your position"
+msgstr ""
+
+#: templates/leaderboards/detail.html:36
+msgid "No entries yet"
+msgstr ""
+
+#: templates/leaderboards/detail.html:42
+msgid "Leaderboard pages"
+msgstr ""
+
+#: templates/leaderboards/detail.html:45
+msgid "Previous"
+msgstr ""
+
+#: templates/leaderboards/detail.html:49
+#, python-format
+msgid "Page %(number)s of %(total)s"
+msgstr ""
+
+#: templates/leaderboards/detail.html:52
+msgid "Next"
+msgstr ""
+
+#: templates/leaderboards/partials/entry-row.html:9
+msgid "you"
 msgstr ""

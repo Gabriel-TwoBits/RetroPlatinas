@@ -286,7 +286,7 @@ def test_another_users_entry_is_not_highlighted(client, most, player):
     assert VIEWER_MARK not in _page(client, most)
 
 
-# --- Links ---
+# --- Links and languages ---
 
 
 @pytest.mark.django_db
@@ -295,3 +295,14 @@ def test_game_leaderboards_tab_links_each_board_to_its_page(client, crash, faste
     assert f'href="{_url(fastest)}"' in body
     assert f'href="{_url(most)}"' in body
 
+
+@pytest.mark.django_db
+def test_page_renders_in_brazilian_portuguese(client, most, player):
+    _full_board(most)
+    _entry(most, player, 0)
+    client.force_login(player)
+    body = client.get(_url(most), HTTP_ACCEPT_LANGUAGE="pt-br").content.decode()
+    assert "Sua posição" in body
+    assert "Página 1 de 2" in body
+    assert "Próxima" in body
+    assert "maior é melhor" in body
