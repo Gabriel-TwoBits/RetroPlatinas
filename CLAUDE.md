@@ -153,7 +153,8 @@ the game: **the user's check in DuckStation remains the final gate** before a co
   that is true on the results screen will not re-fire after a save-state load. Re-test from a
   state saved *before* the trigger.
 - **Debug memory with Rich Presence.** Put a dump in `Game.rich_presence_patch` and read the
-  values off the emulator overlay; clear it afterwards:
+  values off the emulator overlay; restore the seeded script afterwards (for Crash,
+  `manage.py seed_crash1_rich_presence`):
   ```
   Format:Val
   FormatType=VALUE
