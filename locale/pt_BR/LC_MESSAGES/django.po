@@ -811,8 +811,9 @@ msgid ""
 "DuckStation on macOS."
 msgstr ""
 "O settings.ini fica na pasta de usuário do DuckStation: "
-"Documentos\\DuckStation no Windows, ~/.local/share/duckstation no Linux, ~/"
-"Library/Application Support/DuckStation no macOS."
+"Documents\\DuckStation no Windows (a pasta Documentos no Explorer), ~/.local/"
+"share/duckstation no Linux, ~/Library/Application Support/DuckStation no "
+"macOS."
 
 #: templates/docs/getting-started.html:36
 msgid "Log in from the emulator"
