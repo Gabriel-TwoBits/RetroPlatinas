@@ -17,6 +17,14 @@ class UserAdmin(DjangoUserAdmin):
     fieldsets = DjangoUserAdmin.fieldsets + (
         (
             "RetroPlatinas",
-            {"fields": ("softcore_points", "hardcore_points", "api_token", "api_token_expires_at")},
+            {
+                "fields": (
+                    "bio",
+                    "softcore_points",
+                    "hardcore_points",
+                    "api_token",
+                    "api_token_expires_at",
+                )
+            },
         ),
     )

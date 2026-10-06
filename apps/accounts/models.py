@@ -6,6 +6,7 @@ from django.utils.translation import gettext_lazy as _
 API_TOKEN_BYTES = 32
 HEX_DIGITS_PER_BYTE = 2
 API_TOKEN_HEX_LENGTH = API_TOKEN_BYTES * HEX_DIGITS_PER_BYTE
+BIO_MAX_LENGTH = 500
 
 
 class User(AbstractUser):
@@ -16,6 +17,7 @@ class User(AbstractUser):
     softcore_points = models.IntegerField(default=0)
     hardcore_points = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
+    bio = models.CharField(max_length=BIO_MAX_LENGTH, blank=True, verbose_name=_("bio"))
 
     class Meta(AbstractUser.Meta):
         constraints = [
