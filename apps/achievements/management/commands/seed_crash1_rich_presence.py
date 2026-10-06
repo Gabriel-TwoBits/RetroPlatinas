@@ -40,8 +40,11 @@ LIVES_VALUE = f"I:{PLAYER_POINTER_ADDRESS}_M:0xH165"
 # The player object is freed from a pause -> quit, and about 70 frames before Stage Clear, until
 # the level changes; a null pointer would read the lives from address 0x165.
 PLAYER_LOADED = f"{PLAYER_POINTER_ADDRESS}!=0"
-# The Wumpa HUD object: pointer, +0x6c, +0xe4, and the count at +0x0c.
-WUMPA_VALUE = "I:0xW618a4_I:0xW6c_I:0xWe4_M:0xHc"
+# The Wumpa HUD object: pointer, +0x6c, +0xe4, and the count at +0x0c. The pointer reads 0 until
+# the first stage after power-on loads; a null pointer would read low RAM.
+WUMPA_HUD_POINTER_ADDRESS = "0xW618a4"
+WUMPA_VALUE = f"I:{WUMPA_HUD_POINTER_ADDRESS}_I:0xW6c_I:0xWe4_M:0xHc"
+WUMPA_HUD_LOADED = f"{WUMPA_HUD_POINTER_ADDRESS}!=0"
 # Both objects hold leftovers of the previous level for up to about 20 frames after a level loads
 # (120 lives, 144 Wumpa...), so the counts show only once the level id has held this long.
 LEVEL_SETTLE_FRAMES = 60
@@ -139,7 +142,7 @@ def build_rich_presence():
         f"?{GAME_STATE_ADDRESS}={GAME_STATE_GAME_OVER}?Game Over",
         f"?{COUNTS_VALID}{any_level_of(BOSSES)}?Fighting {level}{SEPARATOR}{lives}",
         f"?{any_level_of(BOSSES)}?Fighting {level}",
-        f"?{COUNTS_VALID}?In {level}{SEPARATOR}{lives}{SEPARATOR}{wumpa}",
+        f"?{COUNTS_VALID}_{WUMPA_HUD_LOADED}?In {level}{SEPARATOR}{lives}{SEPARATOR}{wumpa}",
         f"In {level}",
     ]
     return "\n\n".join(lookups) + "\n\n" + "\n".join(display) + "\n"

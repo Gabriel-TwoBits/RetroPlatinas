@@ -48,8 +48,9 @@ Both objects hold leftovers of the previous level for up to about 20 frames afte
 count restarts on a game load or a reset; a save state carries the runtime's hit counts, so loading one
 restores them, unless the state was saved under another script. The player object is freed from a pause → quit,
 and about 70 frames before the Stage Clear screen, until the level changes: its pointer then reads `0` and the
-lives would come from address `0x165` (`0 lives`), so the counts also need `0xW566b4!=0`. The committed copies at
-`0x618ed` / `0x618f5` are not used: they only change on stage entry and exit.
+lives would come from address `0x165` (`0 lives`), so the counts also need `0xW566b4!=0`. The Wumpa HUD pointer
+reads `0` until the first stage after power-on loads, so the Wumpa line also needs `0xW618a4!=0`. The committed
+copies at `0x618ed` / `0x618f5` are not used: they only change on stage entry and exit.
 
 The demo's playback flag `0x61a30` clears about 18 frames before a demo hands back to the title level, but the
 game state reads `06` (`GAME_STATE_TITLE`, only ever seen in the attract loop) from before that point, so the
@@ -91,3 +92,5 @@ does not leak into play.
   ending (`39`), never reached.
 - **Loading a memory card save or a password** (title screens `0d`/`0e`) and the options screen: never opened.
 - **Lives above 9 and Wumpa rolling over at 100**: never reached.
+- **The Wumpa chain's inner hops** (`+0x6c`, `+0xe4`): only the HUD pointer itself is guarded; no trace showed
+  the counts with a null inner hop.

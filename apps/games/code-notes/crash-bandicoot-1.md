@@ -80,7 +80,7 @@ observed, not a full validation of the address.
 | `0x6197c` | 8-bit | Current bonus stage id (Tawna/Brio/Cortex) | Bonus-round identity, not token count |
 | `0x61974` | 8-bit | Game progress — **updates only while the progress screen is shown** | Laggy; not a live counter |
 | `0x61a10` | 8-bit | Gems total — **updates only while the progress screen is shown** | Laggy aggregate |
-| `0x618a4` | 24-bit ptr | Wumpa fruit count (deref `+0x6c → +0xe4 → +0x0c`) | In-stage Wumpa, live (harness); holds leftovers of the previous level for up to about 20 frames after a level loads (harness) |
+| `0x618a4` | 24-bit ptr | Wumpa fruit count (deref `+0x6c → +0xe4 → +0x0c`) | In-stage Wumpa, live (harness); holds leftovers of the previous level for up to about 20 frames after a level loads (harness); the pointer reads `0` until the first stage after power-on loads, then keeps the last stage's HUD on the map (harness) |
 | `0x618a8` | 24-bit ptr | Lives counter (deref `+0x6c → +0xe4 → +0x0c`) | The note's `+0x06` first hop always reads 2 (harness); `+0x6c` reads the lives |
 | `0x618ed` / `0x618f1` / `0x618f5` | 8-bit | Lives / Aku Aku / Wumpas — committed copies, synced only on stage entry and exit (harness) | Map-side mirror |
 | `0x60ddc` | 24-bit ptr | Boss health (Papu/Ripper/Pinstripe/Cortex/Brio via offsets) | Hit-counter semantics, see raw dump |
