@@ -1,8 +1,8 @@
 """Recorded scenarios: scripted play from a derivable state, judged against the repo's achievements
 and rich presence.
 
-Each scenario states which level achievements must trigger and the level (lid) the game must show
-when they do (usually none: a death, a quit or the attract demo must never unlock anything), and
+Each scenario states which achievements must trigger and the level (lid) the game must show when
+they do (usually none: a death, a quit or the attract demo must never unlock anything), and
 exits non-zero when a trigger is missing, repeated, unexpected or fires on another level. It also
 lists the rich presence strings the game must show on the way (regular expressions), and fails
 when one never shows or when a string names an unknown macro or level.
@@ -29,10 +29,15 @@ from probes import (
     GAME_STATE,
     GAME_STATE_GAME_OVER,
     GAME_STATE_PLAYING,
+    HUD_COUNT_OFFSET,
     LID_STAGE_CLEAR,
     LID_TITLE,
+    LIFE_HUD_POINTER,
     PBAK_STATE,
+    PLAYER_LIVES_OFFSET,
+    PLAYER_POINTER,
     RESPAWN_COUNT,
+    hud_count_address,
 )
 from session import Session
 from states import BOSS_FIGHTS, STAGES
@@ -58,6 +63,8 @@ STAGE_CLEAR_SHOTS = 5
 STAGE_CLEAR_SHOT_FRAMES = 60
 DEATH_SEED = 1
 PLAN_PREFIX_DIVISOR = 2  # deaths start halfway through a stage's clearing plan
+# After a collectible event: the extra life of a Wumpa wrap lands about 110 frames later.
+AFTER_EVENT_FRAMES = 300
 
 HEADING_BUTTONS = {"up": Btn.UP, "down": Btn.DOWN, "right": Btn.RIGHT}
 
@@ -101,7 +108,7 @@ def fighting(name, lives=ANY_COUNT):
 @dataclass(frozen=True)
 class Scenario:
     start: str | None  # a states.RECIPES name; None boots the disc
-    expected: dict  # stage level id -> the lid the game shows when its achievement must trigger
+    expected: dict  # achievement title -> the lid the game shows when it must trigger
     about: str
     play: Callable
     presence: tuple  # patterns each matched in full by at least one rich presence string shown
@@ -267,13 +274,13 @@ def boss_quit(s):
     s.step(AFTER_LAST_QUIT_FRAMES)
 
 
-def clear(stage):
+def clear(stage, plan_path):
     def play(s):
-        plan = plans.load(stage.plan_path)
-        s.note(f"replaying {stage.plan_path.name}: {plan.frames} frames")
+        plan = plans.load(plan_path)
+        s.note(f"replaying {plan_path.name}: {plan.frames} frames")
         plans.replay(s.emu, plan)
         s.note("plan finished")
-        navigation.wait_for_stage_clear(s.emu, stage.plan_path.name)
+        navigation.wait_for_stage_clear(s.emu, plan_path.name)
         for _ in range(STAGE_CLEAR_SHOTS):
             s.step(STAGE_CLEAR_SHOT_FRAMES)
             s.shot("stage-clear")
@@ -283,6 +290,56 @@ def clear(stage):
         entered = navigation.enter_stage(s.emu)
         s.note(f"entered lid {entered:#x}; run, pause, SELECT")
         s.step(LEAVE_SPAWN_ZONE_FRAMES, [Btn.UP])
+        s.step(STAND_BEFORE_QUIT_FRAMES)
+        navigation.pause_and_quit(s.emu)
+        s.step(AFTER_LAST_QUIT_FRAMES)
+
+    return play
+
+
+def poke_lives(s, lives):
+    """SECONDARY EVIDENCE ONLY: sets the player's lives (and the lives HUD, so it shows them
+    without counting up and the run keeps the timing its plan was searched on).
+
+    The harness's one write that sets a game value: the cap is far out of a searched run's reach.
+    The life that then reaches the cap is still a real one, earned by the replayed plan.
+    """
+    player = s.emu.u24(PLAYER_POINTER)
+    hud = s.emu.u24(LIFE_HUD_POINTER)
+    display = hud_count_address(s.emu, LIFE_HUD_POINTER)
+    if not player or not hud or display is None:
+        raise RuntimeError("no player or lives HUD to poke: not in a stage")
+    fixed_lives = lives << FIXED_POINT_SHIFT
+    s.emu.write_u32(player + PLAYER_LIVES_OFFSET, fixed_lives)
+    s.emu.write_u32(hud + HUD_COUNT_OFFSET, fixed_lives)
+    s.emu.write_u32(display, lives)
+    s.note(f"POKED the player's lives to {lives} (secondary evidence, not a played state)")
+
+
+def goal_event(stage, goal, start_lives=None):
+    """Replays the stage's searched route to `goal` (explore.GOALS), whose last segment holds the
+    event; then a state saved after it is loaded back, and the stage is quit, re-entered and quit.
+
+    `start_lives`, when given, is poked in first (see poke_lives).
+    """
+    plan_path = stage.goal_plan_path(goal)
+
+    def play(s):
+        if start_lives is not None:
+            poke_lives(s, start_lives)
+        plan = plans.load(plan_path)
+        s.note(f"replaying {plan_path.name}: {plan.frames} frames, the event in the last segment")
+        plans.replay(s.emu, plan)
+        s.step(AFTER_EVENT_FRAMES)
+        s.note("save a state after the event and load it: every trigger back to WAITING")
+        after_event = s.emu.snapshot()
+        s.emu.restore(after_event)
+        s.note("state loaded (the frame count restarts at 0)")
+        s.step(AFTER_EVENT_FRAMES)
+        s.rearm("quit, re-enter the stage with the counts the quit committed, stand, quit")
+        navigation.pause_and_quit(s.emu)
+        entered = navigation.enter_stage(s.emu)
+        s.note(f"entered lid {entered:#x}")
         s.step(STAND_BEFORE_QUIT_FRAMES)
         navigation.pause_and_quit(s.emu)
         s.step(AFTER_LAST_QUIT_FRAMES)
@@ -344,14 +401,65 @@ for _stage in STAGES:
     if _stage.plan_path.is_file():
         SCENARIOS[f"{_stage.name}-clear"] = Scenario(
             _stage.start,
-            {_stage.level_id: LID_STAGE_CLEAR},
+            {_name: LID_STAGE_CLEAR},
             f"{_stage.name} cleared by its plan, then the next stage quit (pcsx_rearmed only)",
-            clear(_stage),
+            clear(_stage, _stage.plan_path),
             (in_stage(_name), STAGE_CLEAR, ISLAND_MAP),
             never=(NO_LIVES,),
         )
     else:
         pass  # No clearing plan committed: the clear stays for the in-game check.
+_collectibles = achievements.collectible_seed()
+_GOAL_TITLES = (("wumpa", _collectibles.WUMPA_TITLE), ("aku", _collectibles.AKU_TITLE))
+for _stage in STAGES:
+    _name = achievements.level_title(_stage.level_id)
+    for _goal, _title in _GOAL_TITLES:
+        if _stage.goal_plan_path(_goal).is_file():
+            SCENARIOS[f"{_stage.name}-{_goal}"] = Scenario(
+                plans.load(_stage.goal_plan_path(_goal)).start,
+                {_title: _stage.level_id},
+                f"{_stage.name}: the searched route to {_title!r}, a state load after it, a quit",
+                goal_event(_stage, _goal),
+                (in_stage(_name), ISLAND_MAP),
+                never=(NO_LIVES,),
+            )
+        else:
+            pass  # No searched route to this event in this stage.
+    if _stage.goal_plan_path("wumpa").is_file():
+        _wumpa_lid = {_collectibles.WUMPA_TITLE: _stage.level_id}
+        _wumpa_start = plans.load(_stage.goal_plan_path("wumpa")).start
+        SCENARIOS[f"{_stage.name}-lives-poked"] = Scenario(
+            _wumpa_start,
+            {**_wumpa_lid, _collectibles.LIVES_TITLE: _stage.level_id},
+            "SECONDARY EVIDENCE (RAM poke): lives set one below the cap, then the Wumpa route's "
+            "real extra life",
+            goal_event(_stage, "wumpa", start_lives=_collectibles.MAX_LIVES - 1),
+            (in_stage(_name, str(_collectibles.MAX_LIVES)),),
+            never=(NO_LIVES,),
+        )
+        SCENARIOS[f"{_stage.name}-lives-cap-poked"] = Scenario(
+            _wumpa_start,
+            _wumpa_lid,
+            "SECONDARY EVIDENCE (RAM poke): lives set at the cap, then the Wumpa route's extra "
+            "life, which the cap swallows",
+            goal_event(_stage, "wumpa", start_lives=_collectibles.MAX_LIVES),
+            (in_stage(_name, str(_collectibles.MAX_LIVES)),),
+            never=(NO_LIVES,),
+        )
+    else:
+        pass  # The poked lives scenarios ride on the Wumpa route.
+    _no_wumpa_plan = _stage.goal_plan_path("no-wumpa")
+    if _name == _collectibles.NO_WUMPA_STAGE and _no_wumpa_plan.is_file():
+        SCENARIOS[f"{_stage.name}-no-wumpa"] = Scenario(
+            _stage.start,
+            {_name: LID_STAGE_CLEAR, _collectibles.NO_WUMPA_TITLE: _stage.level_id},
+            f"{_stage.name} cleared without a Wumpa by its plan, then the next stage quit",
+            clear(_stage, _no_wumpa_plan),
+            (in_stage(_name), STAGE_CLEAR, ISLAND_MAP),
+            never=(NO_LIVES,),
+        )
+    else:
+        pass  # Only the seeded stage has a no-Wumpa achievement to judge.
 SCENARIOS["papu-papu-quit"] = Scenario(
     BOSS_FIGHTS[0].start,
     NOTHING_FIRES,
@@ -400,7 +508,7 @@ def run(name, core):
     session.note(scenario.about)
     scenario.play(session)
     triggers = session.close()
-    expected = {achievements.level_title(stage): lid for stage, lid in scenario.expected.items()}
+    expected = scenario.expected
     off_level = [trigger for trigger in triggers if not on_expected_level(trigger, expected)]
     on_level = sorted(trigger.title for trigger in triggers if on_expected_level(trigger, expected))
     missing, broken = presence_problems(scenario, session.presence)
