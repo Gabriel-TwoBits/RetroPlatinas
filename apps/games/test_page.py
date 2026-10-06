@@ -388,7 +388,9 @@ def test_show_and_filter_combine_and_keep_each_other(client, crash, achievements
     _unlock(player, achievements["verified"], hardcore=True)
     client.force_login(player)
     body = _panel(client, crash, "achievements", show="verified", filter="locked")
-    assert "Every achievement unlocked" in body
+    # Community achievements are still locked, so only the verified set is complete.
+    assert "Every verified achievement unlocked" in body
+    assert "Every achievement unlocked" not in body
     assert _pressed(body, SHOW_GROUP).endswith("?show=verified&amp;filter=locked")
     assert _pressed(body, FILTERS_GROUP).endswith("?show=verified&amp;filter=locked")
     assert "?show=published&amp;filter=locked" in body
@@ -396,6 +398,17 @@ def test_show_and_filter_combine_and_keep_each_other(client, crash, achievements
 
     body = _panel(client, crash, "achievements", show="published", filter="locked")
     assert ">Community one<" in body and ">Verified one<" not in body
+
+
+@pytest.mark.django_db
+def test_verified_only_with_only_community_unlocked_names_the_verified_set(
+    client, crash, achievements, player
+):
+    _unlock(player, achievements["community"], hardcore=False)
+    client.force_login(player)
+    body = _panel(client, crash, "achievements", show="verified", filter="unlocked")
+    assert "No verified achievements unlocked yet" in body
+    assert "No achievements unlocked yet" not in body
 
 
 @pytest.mark.django_db

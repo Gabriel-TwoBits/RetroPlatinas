@@ -281,7 +281,8 @@ answers 404. Every game title on the home, the profile and the games list links 
   its own empty state under every filter.
 - **Filters** — logged-in viewers get *All / Unlocked / Locked* outlined chips under the status
   choice; each reloads the panel through the same route (`?filter=`), keeping the status choice,
-  as the status chips keep the filter. Each filter has its own empty state.
+  as the status chips keep the filter. Each filter has its own empty state, which under
+  *Verified only* names the verified set.
 - **Leaderboards** — a row per leaderboard: title (linking to its leaderboard page),
   description and its entries by active users. Scores and ranks belong to the leaderboard page.
 - **Recent players** — the 20 active users who played last: identicon, profile link, published

@@ -26,10 +26,6 @@ FILTERS = [
     (FILTER_LOCKED, _("Locked")),
 ]
 VALID_FILTERS = [slug for slug, _label in FILTERS]
-EMPTY_TITLES = {
-    FILTER_UNLOCKED: _("No achievements unlocked yet"),
-    FILTER_LOCKED: _("Every achievement unlocked"),
-}
 
 # Which statuses the list shows; drafts are only ever the viewer's own.
 SHOW_VERIFIED = "verified"
@@ -52,6 +48,15 @@ SHOW_EMPTY_TITLES = {
     SHOW_VERIFIED: _("No verified achievements yet"),
     SHOW_PUBLISHED: _("No published achievements yet"),
     SHOW_ALL: _("No published achievements or drafts yet"),
+}
+# Under "verified only" the other statuses may still hold unlocks, so the title names the set.
+EMPTY_TITLES = {
+    (SHOW_VERIFIED, FILTER_UNLOCKED): _("No verified achievements unlocked yet"),
+    (SHOW_VERIFIED, FILTER_LOCKED): _("Every verified achievement unlocked"),
+    (SHOW_PUBLISHED, FILTER_UNLOCKED): _("No achievements unlocked yet"),
+    (SHOW_PUBLISHED, FILTER_LOCKED): _("Every achievement unlocked"),
+    (SHOW_ALL, FILTER_UNLOCKED): _("No achievements unlocked yet"),
+    (SHOW_ALL, FILTER_LOCKED): _("Every achievement unlocked"),
 }
 
 # The viewer's state on an achievement; an anonymous visitor's rows carry none.
@@ -146,7 +151,7 @@ def _achievements_panel(rows, viewer, show, achievement_filter):
     if not in_status or achievement_filter == FILTER_ALL:
         empty_title = SHOW_EMPTY_TITLES[show]
     else:
-        empty_title = EMPTY_TITLES[achievement_filter]
+        empty_title = EMPTY_TITLES[show, achievement_filter]
     return {
         "show": show,
         "show_options": show_options,
