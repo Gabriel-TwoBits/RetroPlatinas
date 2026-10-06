@@ -28,6 +28,7 @@ EXTRA_USERS = 2
 # Enough users that a per-row query would show in the count.
 LARGE_SITE_USERS = 1_050
 UNLOCKING_USERS = 300
+LARGE_SITE_ACHIEVEMENTS = 3
 # An uncached board: page count, the page's users, the first row's rank, unlock tallies and
 # the published achievement counts of their games.
 BOARD_QUERIES = 5
@@ -291,7 +292,9 @@ def _large_site(console):
     """`LARGE_SITE_USERS` ranked users, `user-<n>` holding n + 1 points; the top
     `UNLOCKING_USERS` hold every achievement of a new game in hardcore."""
     game = Game.objects.create(title="Crash 2", console=console)
-    achievements = [_achievement(game, f"Achievement {index}") for index in range(3)]
+    achievements = [
+        _achievement(game, f"Achievement {index}") for index in range(LARGE_SITE_ACHIEVEMENTS)
+    ]
     users = User.objects.bulk_create(
         User(username=f"user-{index:05d}", hardcore_points=index + 1, softcore_points=index + 1)
         for index in range(LARGE_SITE_USERS)
@@ -321,7 +324,7 @@ def test_uncached_board_takes_the_same_queries_on_a_small_and_a_large_site(
         _body(client, mode=mode, page=2)
     top = f"user-{LARGE_SITE_USERS - 1:05d}"
     assert _ranking(first_page)[0] == (1, top)
-    assert "3 achievements ·" in _row_of(first_page, top)
+    assert f"{LARGE_SITE_ACHIEVEMENTS} achievements ·" in _row_of(first_page, top)
     assert "1 platinum</span>" in _row_of(first_page, top)
 
 
