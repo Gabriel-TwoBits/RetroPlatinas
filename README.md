@@ -68,6 +68,7 @@ The official DuckStation build works as is: it sends its achievement requests to
 
    ```bash
    podman-compose exec web python manage.py seed_crash1_level_achievements
+   podman-compose exec web python manage.py seed_crash1_collectible_achievements
    podman-compose exec web python manage.py seed_crash1_rich_presence
    ```
 

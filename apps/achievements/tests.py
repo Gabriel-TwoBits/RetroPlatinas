@@ -12,6 +12,20 @@ from django.utils import timezone
 from apps.accounts.models import User
 from apps.achievements.management.commands import seed_crash1_code_notes as seed_code_notes
 from apps.achievements.management.commands.seed_crash1_code_notes import load_code_notes
+from apps.achievements.management.commands.seed_crash1_collectible_achievements import (
+    AKU_TITLE,
+    CHALLENGE_POINTS,
+    LIVES_TITLE,
+    NO_WUMPA_TITLE,
+    WUMPA_POINTS,
+    WUMPA_TITLE,
+    build_aku_mem_addr,
+    build_lives_mem_addr,
+    build_no_wumpa_mem_addr,
+    build_wumpa_mem_addr,
+    collectible_achievements,
+    in_play,
+)
 from apps.achievements.management.commands.seed_crash1_level_achievements import (
     ACHIEVEMENT_POINTS,
     LEVEL_ACHIEVEMENTS,
@@ -37,8 +51,17 @@ EDITED_POINTS = 10
 SEED_COMMANDS = (
     "seed_crash1_code_notes",
     "seed_crash1_level_achievements",
+    "seed_crash1_collectible_achievements",
     "seed_crash1_rich_presence",
 )
+COLLECTIBLE_COUNT = len(collectible_achievements())
+COLLECTIBLE_POINTS = {
+    WUMPA_TITLE: WUMPA_POINTS,
+    AKU_TITLE: CHALLENGE_POINTS,
+    LIVES_TITLE: CHALLENGE_POINTS,
+    NO_WUMPA_TITLE: CHALLENGE_POINTS,
+}
+NSANITY_BEACH_LEVEL_ID = dict(LEVEL_ACHIEVEMENTS)["N. Sanity Beach"]
 MAX_RICH_PRESENCE_SCRIPT_BYTES = 65535  # the RetroAchievements limit on a script
 MEM_ADDR_CHECKER = Path(__file__).resolve().parents[2] / "scripts" / "check-mem-addr.sh"
 
@@ -480,3 +503,157 @@ def test_patch_serves_the_seeded_rich_presence(client, player_token):
 
     assert data["Success"] is True
     assert data["PatchData"]["RichPresencePatch"] == build_rich_presence()
+
+
+@pytest.fixture
+def collectibles_game(db):
+    call_command("seed_crash1_collectible_achievements", verbosity=0)
+    return Game.objects.get(title=GAME_TITLE)
+
+
+@pytest.mark.django_db
+def test_seed_collectible_achievements_creates_community_set(collectibles_game):
+    achievements = collectibles_game.achievements.all()
+
+    assert {a.title: a.points for a in achievements} == COLLECTIBLE_POINTS
+    for achievement in achievements:
+        assert achievement.status == Achievement.STATUS_COMMUNITY
+        assert achievement.author.username == IMPORT_AUTHOR
+        assert achievement.description
+
+
+def test_collectible_mem_addrs_parse_in_rcheevos():
+    result = run_mem_addr_checker(*(mem_addr for _, _, mem_addr, _ in collectible_achievements()))
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert result.stdout.count("VALID    ") == COLLECTIBLE_COUNT
+
+
+@pytest.mark.parametrize(
+    ("mem_addr", "event"),
+    [
+        (build_wumpa_mem_addr(), "I:0xW566b4_0xH161<d0xH161"),
+        (build_lives_mem_addr(), "I:0xW566b4_0xH165=99_I:0xW566b4_d0xH165<99"),
+        (
+            build_aku_mem_addr(),
+            "0xW618cc=d0xW618cc_I:0xW618cc_0xH189=3_I:0xW618cc_d0xH189=2",
+        ),
+    ],
+)
+def test_in_stage_collectibles_fire_on_an_edge_while_the_player_is_in_control(mem_addr, event):
+    assert mem_addr == f"{in_play()}_{event}"
+
+
+def test_in_play_guard_excludes_demos_menus_stage_clear_and_level_loads():
+    guard = in_play().split("_")
+
+    assert guard[:4] == ["0xH618d1=1", "0xH61a30=0", "0xH6188d!=h19", "0xH6188d!=h2d"]
+    assert "0xW566b4!=0" in guard
+    assert "0xW566b4=d0xW566b4" in guard
+    assert "R:0xH6188d!=d0xH6188d" in guard
+    assert "0xH6188d=0xH6188d.60." in guard
+
+
+def test_no_wumpa_mem_addr_compares_the_committed_count_on_the_clear_frame():
+    assert build_no_wumpa_mem_addr(NSANITY_BEACH_LEVEL_ID) == (
+        "0xH61a30=0_0xH6188d=h09_d0xH618d1=1_0xH618d1=5_0xH618f5=d0xH618f5"
+    )
+
+
+@pytest.mark.django_db
+def test_seed_collectible_achievements_is_idempotent(collectibles_game):
+    fields = ("pk", "mem_addr", "description", "updated_at")
+    seeded = list(collectibles_game.achievements.values_list(*fields))
+    output = StringIO()
+
+    call_command("seed_crash1_collectible_achievements", stdout=output)
+
+    assert list(collectibles_game.achievements.values_list(*fields)) == seeded
+    assert "0 created, 0 updated" in output.getvalue()
+
+
+@pytest.mark.django_db
+def test_seed_collectible_achievements_updates_an_existing_condition_by_title(player_token):
+    user, _ = player_token
+    call_command("seed_crash1_collectible_achievements", verbosity=0)
+    stale = Achievement.objects.get(title=AKU_TITLE)
+    stale.mem_addr = "0xH000189=3"
+    stale.description = "old"
+    stale.points = EDITED_POINTS + WUMPA_POINTS
+    stale.status = Achievement.STATUS_VERIFIED
+    stale.save()
+    UserUnlock.objects.create(user=user, achievement=stale, hardcore=False)
+
+    call_command("seed_crash1_collectible_achievements", verbosity=0)
+
+    updated = Achievement.objects.get(pk=stale.pk)
+    seeded = {
+        title: (description, mem_addr)
+        for title, description, mem_addr, _ in (collectible_achievements())
+    }
+    assert (updated.description, updated.mem_addr) == seeded[AKU_TITLE]
+    assert (updated.points, updated.status) == (
+        EDITED_POINTS + WUMPA_POINTS,
+        Achievement.STATUS_VERIFIED,
+    )
+    assert UserUnlock.objects.filter(achievement=updated).count() == 1
+
+
+@pytest.mark.django_db
+def test_seed_collectible_achievements_refuses_two_rows_with_one_title(collectibles_game):
+    original = collectibles_game.achievements.get(title=WUMPA_TITLE)
+    Achievement.objects.create(
+        game=collectibles_game,
+        author=original.author,
+        title=WUMPA_TITLE,
+        description="old",
+        points=WUMPA_POINTS,
+        mem_addr="0xH000161=0",
+        status=Achievement.STATUS_COMMUNITY,
+    )
+
+    with pytest.raises(CommandError, match=f"2 achievements .* are titled '{WUMPA_TITLE}'"):
+        call_command("seed_crash1_collectible_achievements", verbosity=0)
+
+
+@pytest.mark.django_db
+def test_level_and_collectible_seeds_share_the_game_without_clashing():
+    call_command("seed_crash1_level_achievements", verbosity=0)
+    call_command("seed_crash1_collectible_achievements", verbosity=0)
+
+    titles = list(
+        Achievement.objects.filter(game__title=GAME_TITLE).values_list("title", flat=True)
+    )
+    assert len(titles) == LEVEL_COUNT + COLLECTIBLE_COUNT
+    assert len(set(titles)) == len(titles)
+
+
+@pytest.mark.django_db
+def test_patch_exposes_seeded_collectible_achievements(client, collectibles_game, player_token):
+    _, token = player_token
+
+    data = client.post(
+        "/dorequest.php", {"r": "patch", "t": token, "g": collectibles_game.pk}
+    ).json()
+
+    assert data["Success"] is True
+    served = {a["Title"]: (a["MemAddr"], a["Points"]) for a in data["PatchData"]["Achievements"]}
+    assert served == {
+        title: (mem_addr, points) for title, _, mem_addr, points in collectible_achievements()
+    }
+
+
+@pytest.mark.django_db
+def test_awardachievement_scores_a_seeded_collectible(client, collectibles_game, player_token):
+    user, token = player_token
+    achievement = collectibles_game.achievements.get(title=LIVES_TITLE)
+
+    data = client.post(
+        "/dorequest.php",
+        {"r": "awardachievement", "t": token, "a": achievement.pk, "h": "1"},
+    ).json()
+
+    assert data["Success"] is True
+    assert data["AchievementsRemaining"] == COLLECTIBLE_COUNT - 1
+    user.refresh_from_db()
+    assert (user.softcore_points, user.hardcore_points) == (CHALLENGE_POINTS, CHALLENGE_POINTS)
