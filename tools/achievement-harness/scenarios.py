@@ -328,6 +328,8 @@ def goal_event(stage, goal, start_lives=None):
     def play(s):
         if start_lives is not None:
             poke_lives(s, start_lives)
+        else:
+            pass  # The lives the plan was searched with.
         plan = plans.load(plan_path)
         s.note(f"replaying {plan_path.name}: {plan.frames} frames, the event in the last segment")
         plans.replay(s.emu, plan)

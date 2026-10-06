@@ -206,7 +206,8 @@ class Runner:
             outcome = self.outcome()
             if outcome in (CLEARED, DEAD, ELSEWHERE):
                 return outcome
-            # The goal's own checks do not count on the way to a respawn.
+            else:
+                pass  # The goal's own checks do not count on the way to a respawn.
         return DEAD
 
     def won(self, outcome):
@@ -314,6 +315,8 @@ class Explorer:
             else:
                 if self.rng.random() > REPEAT_PROBABILITY:
                     macro = self.rng.randrange(len(self.macro_names))
+                else:
+                    pass  # The previous macro plays again.
                 plan.append(macro)
                 outcome = self.runner.run_macro(plans.MACROS[self.macro_names[macro]])
             if outcome == DEAD:
