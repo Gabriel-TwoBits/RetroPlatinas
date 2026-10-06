@@ -271,13 +271,13 @@ answers 404. Every game title on the home, the profile and the games list links 
   server, no client script.
 - **Achievements** — ruled sections in the order the emulator receives them: *Verified* (the
   quality seal, `state-platinum` strip; pt-BR *Verificadas*, under the `achievement section`
-  context so the status chip keeps the model's *Verificado*), then *Community*, then *Your drafts* (`gold` strip),
-  which only the drafts' author sees. A group with nothing to show is hidden. Every row carries
-  an outlined status chip after its title: *Verified* in `state-platinum` with a check seal,
-  *Community* in `brand`, *Draft* in `gold`. For a logged-in viewer an unlocked badge has a 2px
-  `state-hardcore` or `state-softcore` border with the mode and local date under the
-  description; a locked one comes from the `_lock` route, faded, with muted text. An anonymous
-  visitor sees the plain badges and no unlock filters.
+  context so the status chip keeps the model's *Verificado*), then *Community*, then *Your
+  drafts* (`gold` strip), which only the drafts' author sees. A group with nothing to show is
+  hidden. Every row carries an outlined status chip after its title: *Verified* in
+  `state-platinum` with a check seal, *Community* in `brand`, *Draft* in `gold`. For a logged-in
+  viewer an unlocked badge has a 2px `state-hardcore` or `state-softcore` border with the mode
+  and local date under the description; a locked one comes from the `_lock` route, faded, with
+  muted text. An anonymous visitor sees the plain badges and no unlock filters.
 - **Status choice** — outlined chips over the list, the active one in `brand`: *Verified only*,
   *Verified + Community* (the default) and, for a logged-in viewer, *All incl. my drafts*. Each
   reloads the achievements panel through the same HTMX route (`?show=verified|published|all`);
