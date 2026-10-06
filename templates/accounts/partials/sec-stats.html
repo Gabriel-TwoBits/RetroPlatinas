@@ -15,11 +15,11 @@
     {% blocktrans count days=short_window_days asvar hardcore_short_window_label %}Hardcore points ({{ days }} day){% plural %}Hardcore points ({{ days }} days){% endblocktrans %}
     {% include "components/stat-line.html" with label=hardcore_short_window_label value=points_short_window.hardcore|intcomma %}
     {% blocktrans count days=short_window_days asvar softcore_short_window_label %}Softcore points ({{ days }} day){% plural %}Softcore points ({{ days }} days){% endblocktrans %}
-    {% include "components/stat-line.html" with label=softcore_short_window_label sub=_("hardcore points included") value=points_short_window.softcore|intcomma %}
+    {% include "components/stat-line.html" with label=softcore_short_window_label sub=_("first unlocks in any mode") value=points_short_window.softcore|intcomma %}
     {% blocktrans count days=long_window_days asvar hardcore_long_window_label %}Hardcore points ({{ days }} day){% plural %}Hardcore points ({{ days }} days){% endblocktrans %}
     {% include "components/stat-line.html" with label=hardcore_long_window_label value=points_long_window.hardcore|intcomma %}
     {% blocktrans count days=long_window_days asvar softcore_long_window_label %}Softcore points ({{ days }} day){% plural %}Softcore points ({{ days }} days){% endblocktrans %}
-    {% include "components/stat-line.html" with label=softcore_long_window_label sub=_("hardcore points included") value=points_long_window.softcore|intcomma %}
+    {% include "components/stat-line.html" with label=softcore_long_window_label sub=_("first unlocks in any mode") value=points_long_window.softcore|intcomma %}
     {% include "components/stat-line.html" with label=_("Hardcore points per week") sub=_("since joining") value=points_per_week.hardcore|intcomma %}
     {% include "components/stat-line.html" with label=_("Softcore points per week") sub=_("since joining, hardcore points included") value=points_per_week.softcore|intcomma %}
   </div>

@@ -425,6 +425,7 @@ def test_points_windows_split_by_mode(client, crash, player):
     assert resp.context["points_short_window"] == (3, 5)
     assert resp.context["points_long_window"] == (7, 12)
     stats_section = resp.content.decode().split("Player statistics", 1)[1]
+    assert "first unlocks in any mode" in stats_section
     for label, value in (
         (f"Hardcore points ({SHORT_WINDOW.days} days)", 3),
         (f"Softcore points ({SHORT_WINDOW.days} days)", 5),

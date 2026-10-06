@@ -165,8 +165,10 @@ twin) counts once per mode, and inactive accounts hold no rank.
 - **Recent unlocks** — the last 20, newest first: badge through the `/Badge/` route with a
   hardcore or softcore border, title, game, local date and points.
 - **Statistics** — achievements per mode (softcore includes hardcore), games played, beaten,
-  platinums, average completion, then hardcore and softcore points (softcore includes hardcore)
-  earned in the last 7 days, in the last 30 days and per week since joining.
+  platinums, average completion, then hardcore and softcore points earned in the last 7 days
+  and in the last 30 days (a mode counts an achievement when it reaches that mode, so softcore
+  counts first unlocks in any mode and leaves out a later hardcore upgrade) and per week since
+  joining (softcore includes hardcore).
 - **Heat** — 14 days of points earned, today last. Intensity is encoded as **bar opacity**
   (`0.35 + v/max·0.65`), not just height. Opacity is formatted to a string in Python: Django
   localises floats, and a pt-BR `0,74` would silently break the inline style.

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RetroPlatinas\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-06 18:23-0300\n"
+"POT-Creation-Date: 2026-10-06 18:29-0300\n"
 "PO-Revision-Date: 2026-05-23 18:15-0300\n"
 "Last-Translator: RetroPlatinas\n"
 "Language-Team: Brazilian Portuguese\n"
@@ -20,7 +20,7 @@ msgstr ""
 msgid "A user with that email already exists."
 msgstr "Já existe um usuário com esse email."
 
-#: apps/accounts/forms.py:30
+#: apps/accounts/forms.py:39
 #, python-format
 msgid "Shown on your profile, up to %(limit)s characters."
 msgstr "Aparece no seu perfil, com até %(limit)s caracteres."
@@ -974,8 +974,8 @@ msgstr[1] "Pontos softcore (%(days)s dias)"
 
 #: templates/accounts/partials/sec-stats.html:18
 #: templates/accounts/partials/sec-stats.html:22
-msgid "hardcore points included"
-msgstr "inclui os pontos hardcore"
+msgid "first unlocks in any mode"
+msgstr "primeiros desbloqueios em qualquer modo"
 
 #: templates/accounts/partials/sec-stats.html:23
 msgid "Hardcore points per week"
@@ -1532,6 +1532,9 @@ msgstr "Páginas do placar"
 #: templates/leaderboards/partials/entry-row.html:9
 msgid "you"
 msgstr "você"
+
+#~ msgid "hardcore points included"
+#~ msgstr "inclui os pontos hardcore"
 
 #~ msgid "any mode"
 #~ msgstr "qualquer modo"
