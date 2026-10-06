@@ -27,7 +27,8 @@ The one layout rule every screen follows:
 4. **Fill only on game objects** — game cards, covers and award tiles keep `bg-surface`
    (or the `.rp-hatch` artwork placeholder). Everything else sits on `bg`.
 5. **Flat** — no glows (`shadow-[…]`), radial fills, gradients or tinted washes. One flat
-   token colour plus at most a 1px border.
+   token colour plus at most a 1px border. The only exception is identity art: the logo SVG
+   and the wordmark gradient (`wordmark-hi` → `wordmark-lo`), see *Identity*.
 6. **No top-right descriptions** — a section heading carries no caption, count or legend to
    its right. Only an actionable link that goes somewhere real may sit there.
 7. **No sections without a concept** — a block ships only when the roadmap defines what it
@@ -231,7 +232,7 @@ The **"Medalha RP"** logo is a struck platinum medal: serrated crown, dotted rin
   Selo mark + the horizontal wordmark lockup.
 - **Wordmark** — the UI renders **"RetroPlatinas"** (plural, matching the repo). The source
   design's singular "RetroPlatina" wordmark is adapted to the plural. "Platinas" uses the
-  platinum gradient. (The identity doc's prose says the lockup is Tahoma Bold; its markup
+  platinum gradient (`from-wordmark-hi to-wordmark-lo`), the one gradient outside the logo SVG. (The identity doc's prose says the lockup is Tahoma Bold; its markup
   renders `font-display` — the markup wins.)
 - **Minimum sizes** — emblem 40px, selo 20px, lockup 130px. Clear space = the disc radius.
 - **Favicon** (`static/img/favicon.svg`) — Selo at larger sizes; at 16px it degrades to an

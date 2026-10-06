@@ -34,6 +34,11 @@ module.exports = {
           DEFAULT: "#f2b84b",
           dim: "#8a6a2c",
         },
+        // Wordmark gradient stops: identity art, the one gradient the UI keeps.
+        wordmark: {
+          hi: "#f2f5fa",
+          lo: "#aab8cd",
+        },
         state: {
           locked: "#313b49",
           beaten: "#5cc48c",
