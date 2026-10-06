@@ -190,8 +190,9 @@ state beyond the active underline. Order: **overview → awards → games → pr
 ### Edit profile
 
 `/users/<username>/edit/`, the owner only (another user gets 403, an anonymous visitor the
-login page). It edits the bio (`BIO_MAX_LENGTH` characters) in the auth-page shape below and
-returns to the profile on save.
+login page). It edits the bio (at most `BIO_MAX_LENGTH`, 100 characters, which the help text
+states and the textarea's `maxlength` enforces) in the auth-page shape below and returns to the
+profile on save.
 
 ## Home landing page
 

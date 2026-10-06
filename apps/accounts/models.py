@@ -6,7 +6,7 @@ from django.utils.translation import gettext_lazy as _
 API_TOKEN_BYTES = 32
 HEX_DIGITS_PER_BYTE = 2
 API_TOKEN_HEX_LENGTH = API_TOKEN_BYTES * HEX_DIGITS_PER_BYTE
-BIO_MAX_LENGTH = 500
+BIO_MAX_LENGTH = 100
 
 
 class User(AbstractUser):

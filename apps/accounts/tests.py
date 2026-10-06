@@ -5,11 +5,16 @@ from django.db import IntegrityError, connection, transaction
 from django.db.migrations.executor import MigrationExecutor
 
 from apps.accounts.forms import RegistrationForm
+from apps.accounts.models import BIO_MAX_LENGTH
 
 User = get_user_model()
 
 BEFORE_EMAIL_CONSTRAINT = [("accounts", "0001_initial")]
 WITH_EMAIL_CONSTRAINT = [("accounts", "0002_user_email_case_insensitive_unique")]
+BEFORE_BIO_LIMIT = [("accounts", "0003_user_bio")]
+AFTER_BIO_LIMIT = [("accounts", "0004_user_bio_max_length")]
+# Under the 500 characters `0003_user_bio` allowed.
+LONG_BIO_LENGTH = 300
 
 
 @pytest.mark.django_db
@@ -92,6 +97,24 @@ def test_email_constraint_migration_names_accounts_differing_only_in_case():
         old_user.objects.all().delete()
         executor.loader.build_graph()
         executor.migrate(WITH_EMAIL_CONSTRAINT)
+
+
+@pytest.mark.django_db(transaction=True)
+def test_bio_limit_migration_truncates_longer_bios():
+    executor = MigrationExecutor(connection)
+    executor.migrate(BEFORE_BIO_LIMIT)
+    old_user = executor.loader.project_state(BEFORE_BIO_LIMIT).apps.get_model("accounts", "User")
+    long_bio = "é" * LONG_BIO_LENGTH
+    old_user.objects.create(username="long", bio=long_bio)
+    old_user.objects.create(username="short", bio="Platinum hunter.")
+    try:
+        executor.loader.build_graph()
+        executor.migrate(AFTER_BIO_LIMIT)
+        bios = dict(User.objects.values_list("username", "bio"))
+        assert bios == {"long": long_bio[:BIO_MAX_LENGTH], "short": "Platinum hunter."}
+    finally:
+        executor.loader.build_graph()
+        executor.migrate(executor.loader.graph.leaf_nodes())
 
 
 @pytest.mark.django_db

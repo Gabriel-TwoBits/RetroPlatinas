@@ -524,6 +524,30 @@ def test_owner_clears_the_bio(client, player):
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize(
+    ("language", "help_text"),
+    [
+        ("en", "up to {} characters"),
+        ("pt-br", "com até {} caracteres"),
+    ],
+)
+def test_edit_profile_states_and_enforces_the_bio_limit(client, player, language, help_text):
+    client.force_login(player)
+    body = client.get("/users/teste/edit/", HTTP_ACCEPT_LANGUAGE=language).content.decode()
+    assert help_text.format(BIO_MAX_LENGTH) in body
+    assert f'maxlength="{BIO_MAX_LENGTH}"' in body
+
+
+@pytest.mark.django_db
+def test_edit_profile_accepts_a_bio_at_the_limit(client, player):
+    client.force_login(player)
+    resp = client.post("/users/teste/edit/", {"bio": "x" * BIO_MAX_LENGTH})
+    assert resp.status_code == HTTPStatus.FOUND
+    player.refresh_from_db()
+    assert player.bio == "x" * BIO_MAX_LENGTH
+
+
+@pytest.mark.django_db
 def test_edit_profile_rejects_a_bio_over_the_limit(client, player):
     client.force_login(player)
     resp = client.post(
