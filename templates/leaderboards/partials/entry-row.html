@@ -1,0 +1,15 @@
+{% load i18n leaderboard_scores %}
+{% with entry=row.entry %}
+  <div class="flex items-center gap-3 border-t border-line py-3 first:border-t-0{% if row.is_viewer %} border-l-2 border-l-brand pl-3{% endif %}"{% if row.is_viewer %} aria-current="true"{% endif %}>
+    <div class="w-10 shrink-0 text-right font-mono text-sm font-bold {% if row.is_viewer %}text-brand{% else %}text-txt-muted{% endif %}">{{ row.rank }}</div>
+    <img src="{{ row.avatar_url }}" alt="" width="32" height="32" class="h-8 w-8 shrink-0 rounded-card border border-line2">
+    <div class="min-w-0 flex-1">
+      <div class="flex items-baseline gap-2">
+        <a href="{% url 'user_detail' entry.user.username %}" class="truncate font-display text-sm font-semibold {% if row.is_viewer %}text-brand{% else %}text-txt{% endif %}">{{ entry.user.username }}</a>
+        {% if row.is_viewer %}<span class="shrink-0 font-mono text-xs text-brand">{% trans "you" %}</span>{% endif %}
+      </div>
+      <time datetime="{{ entry.submitted_at|date:'c' }}" class="mt-1 block font-mono text-xs text-txt-faint">{{ entry.submitted_at|date:"SHORT_DATE_FORMAT" }}</time>
+    </div>
+    <div class="shrink-0 font-mono text-sm font-bold text-txt">{{ entry.score|leaderboard_score:leaderboard.format }}</div>
+  </div>
+{% endwith %}

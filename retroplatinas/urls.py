@@ -9,6 +9,7 @@ urlpatterns = [
     path("", include("apps.accounts.urls")),
     path("", include("apps.core.urls")),
     path("", include("apps.games.urls")),
+    path("", include("apps.leaderboards.urls")),
     path("", include("apps.api.urls")),
     path("", include("apps.images.urls")),
     # Uploads under MEDIA_URL, served in DEBUG only; clients fetch images through apps.images.
