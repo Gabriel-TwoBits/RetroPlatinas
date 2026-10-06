@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RetroPlatinas\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-26 21:45-0300\n"
+"POT-Creation-Date: 2026-10-06 15:19-0300\n"
 "PO-Revision-Date: 2026-05-23 18:15-0300\n"
 "Last-Translator: RetroPlatinas\n"
 "Language-Team: English\n"
@@ -106,7 +106,7 @@ msgstr ""
 msgid "Draft"
 msgstr ""
 
-#: apps/achievements/models.py:135 templates/home.html:78
+#: apps/achievements/models.py:135 templates/home.html:51
 msgid "Community"
 msgstr ""
 
@@ -509,127 +509,102 @@ msgstr ""
 msgid "leaderboard entries"
 msgstr ""
 
-#: templates/accounts/login.html:4 templates/accounts/login.html:7
-#: templates/accounts/login.html:11 templates/accounts/register.html:13
+#: templates/accounts/login.html:4 templates/accounts/login.html:8
+#: templates/accounts/login.html:12 templates/accounts/register.html:14
 msgid "Log in"
 msgstr ""
 
-#: templates/accounts/login.html:13
+#: templates/accounts/login.html:14
 msgid "No account yet?"
 msgstr ""
 
-#: templates/accounts/login.html:13 templates/accounts/register.html:4
-#: templates/accounts/register.html:11 templates/base.html:49
+#: templates/accounts/login.html:14 templates/accounts/register.html:4
+#: templates/accounts/register.html:12 templates/components/site-menu.html:25
 msgid "Register"
 msgstr ""
 
-#: templates/accounts/partials/identity-header.html:14
+#: templates/accounts/partials/identity-header.html:13
 msgid "HARDCORE"
 msgstr ""
 
-#: templates/accounts/partials/identity-header.html:21
+#: templates/accounts/partials/identity-header.html:18
 #, python-format
 msgid "member since %(member_since)s"
 msgstr ""
 
-#: templates/accounts/partials/identity-header.html:22
+#: templates/accounts/partials/identity-header.html:19
 #, python-format
 msgid "active %(active_ago)s ago"
 msgstr ""
 
-#: templates/accounts/partials/identity-header.html:29
+#: templates/accounts/partials/identity-header.html:26
 msgid "Total points"
 msgstr ""
 
-#: templates/accounts/partials/identity-header.html:31
-#, python-format
-msgid "%(points_weighted)s weighted"
-msgstr ""
-
-#: templates/accounts/partials/identity-header.html:34
+#: templates/accounts/partials/identity-header.html:30
 msgid "Global rank"
 msgstr ""
 
-#: templates/accounts/partials/identity-header.html:36
+#: templates/accounts/partials/identity-header.html:32
 #, python-format
 msgid "of %(rank_total)s · Top %(top_pct)s"
 msgstr ""
 
-#: templates/accounts/partials/identity-header.html:44
+#: templates/accounts/partials/identity-header.html:40
 msgid "Playing now"
 msgstr ""
 
-#: templates/accounts/partials/identity-header.html:50
+#: templates/accounts/partials/identity-header.html:46
 msgid "active session"
 msgstr ""
 
-#: templates/accounts/partials/identity-header.html:56
+#: templates/accounts/partials/identity-header.html:52
 msgid "Edit profile"
 msgstr ""
 
 #: templates/accounts/partials/panel-awards.html:3
-#: templates/accounts/partials/sec-awards.html:11
-msgid "Event awards"
-msgstr ""
-
-#: templates/accounts/partials/panel-awards.html:16
 msgid "Platinums & game awards"
 msgstr ""
 
 #: templates/accounts/partials/panel-games.html:3
-#: templates/accounts/partials/sec-recent-games.html:4
+#: templates/accounts/partials/sec-recent-games.html:3
 msgid "Recently played"
 msgstr ""
 
-#: templates/accounts/partials/panel-overview.html:3
-msgid "Statistics"
-msgstr ""
-
-#: templates/accounts/partials/panel-overview.html:13
-msgid "+ more statistics (social, averages)"
-msgstr ""
-
-#: templates/accounts/partials/panel-overview.html:26
+#: templates/accounts/partials/panel-overview.html:6
 #: templates/accounts/partials/sec-heat.html:3
 msgid "Recent progress"
 msgstr ""
 
-#: templates/accounts/partials/panel-overview.html:34
+#: templates/accounts/partials/panel-overview.html:13
 msgid "14d ago"
 msgstr ""
 
-#: templates/accounts/partials/panel-overview.html:36
+#: templates/accounts/partials/panel-overview.html:15
 #: templates/accounts/partials/sec-heat.html:12
 msgid "today"
 msgstr ""
 
-#: templates/accounts/partials/panel-progress.html:3
-#: templates/accounts/partials/sec-progression.html:4
+#: templates/accounts/partials/panel-progress.html:4
+#: templates/accounts/partials/sec-progression.html:3
 msgid "Progress by console"
 msgstr ""
 
-#: templates/accounts/partials/panel-progress.html:16
-#, python-format
-msgid "%(n)s game"
-msgid_plural "%(n)s games"
-msgstr[0] ""
-msgstr[1] ""
-
-#: templates/accounts/partials/panel-progress.html:20
+#: templates/accounts/partials/panel-progress.html:19
 #, python-format
 msgid "%(n)s open"
 msgid_plural "%(n)s open"
 msgstr[0] ""
 msgstr[1] ""
 
-#: templates/accounts/partials/panel-progress.html:21
+#: templates/accounts/partials/panel-progress.html:20
 #, python-format
 msgid "%(n)s beaten"
 msgid_plural "%(n)s beaten"
 msgstr[0] ""
 msgstr[1] ""
 
-#: templates/accounts/partials/panel-progress.html:22
+#: templates/accounts/partials/panel-progress.html:21
 #, python-format
 msgid "%(n)s platinum"
 msgid_plural "%(n)s platinum"
@@ -637,20 +612,11 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: templates/accounts/partials/panel-progress.html:29
-#: templates/accounts/partials/sec-completion.html:4
+#: templates/accounts/partials/sec-completion.html:3
 msgid "Completion progress"
 msgstr ""
 
-#: templates/accounts/partials/panel-progress.html:30
-msgid "hide completed"
-msgstr ""
-
-#: templates/accounts/partials/panel-progress.html:34
-#, python-format
-msgid "Search across %(completion_count)s games…"
-msgstr ""
-
-#: templates/accounts/partials/panel-progress.html:55
+#: templates/accounts/partials/panel-progress.html:49
 #, python-format
 msgid "Show %(completion_more)s more games"
 msgstr ""
@@ -660,92 +626,59 @@ msgid "Platinums & awards"
 msgstr ""
 
 #: templates/accounts/partials/sec-completion.html:5
-#, python-format
-msgid "%(completion_count)s games"
-msgstr ""
-
-#: templates/accounts/partials/sec-completion.html:9
 msgid "Game"
 msgstr ""
 
-#: templates/accounts/partials/sec-completion.html:10
+#: templates/accounts/partials/sec-completion.html:6
 msgid "Console"
 msgstr ""
 
-#: templates/accounts/partials/sec-completion.html:11 templates/home.html:8
+#: templates/accounts/partials/sec-completion.html:7 templates/home.html:8
 msgid "Achievements"
 msgstr ""
 
-#: templates/accounts/partials/sec-completion.html:12
+#: templates/accounts/partials/sec-completion.html:8
 msgid "Completion"
 msgstr ""
 
-#: templates/accounts/partials/sec-completion.html:30
+#: templates/accounts/partials/sec-completion.html:26
 #, python-format
 msgid "Load more %(completion_more)s games"
-msgstr ""
-
-#: templates/accounts/partials/sec-progression.html:6
-msgid "Not finished"
-msgstr ""
-
-#: templates/accounts/partials/sec-progression.html:7
-msgid "Beaten"
-msgstr ""
-
-#: templates/accounts/partials/sec-progression.html:8
-msgid "Platinum"
-msgstr ""
-
-#: templates/accounts/partials/sec-recent-games.html:5
-msgid "see all →"
 msgstr ""
 
 #: templates/accounts/partials/sec-stats.html:3
 msgid "Player statistics"
 msgstr ""
 
-#: templates/accounts/partials/sec-wall.html:3
-msgid "User wall"
-msgstr ""
-
-#: templates/accounts/partials/sec-wall.html:5
-msgid "you"
-msgstr ""
-
-#: templates/accounts/partials/sec-wall.html:6
-#, python-format
-msgid "Leave a comment on %(username)s's wall…"
-msgstr ""
-
-#: templates/accounts/partials/sec-wall.html:14
-msgid "owner"
-msgstr ""
-
 #: templates/accounts/password-change-done.html:4
 msgid "Password changed"
 msgstr ""
 
-#: templates/accounts/password-change-done.html:7
+#: templates/accounts/password-change-done.html:8
 msgid "Password changed successfully"
 msgstr ""
 
-#: templates/accounts/password-change-done.html:8
+#: templates/accounts/password-change-done.html:9
 msgid "Back to home"
 msgstr ""
 
 #: templates/accounts/password-change-form.html:4
-#: templates/accounts/password-change-form.html:7
-#: templates/accounts/password-change-form.html:11 templates/base.html:42
+#: templates/accounts/password-change-form.html:8
+#: templates/accounts/password-change-form.html:12
+#: templates/components/site-menu.html:18
 msgid "Change password"
 msgstr ""
 
-#: templates/accounts/profile.html:27
+#: templates/accounts/profile.html:26
 msgid "Overview"
 msgstr ""
 
-#: templates/accounts/profile.html:28 templates/base.html:33
-#: templates/base.html:81 templates/home.html:7
+#: templates/accounts/profile.html:27
+msgid "Awards"
+msgstr ""
+
+#: templates/accounts/profile.html:28 templates/base.html:59
+#: templates/components/site-menu.html:8 templates/home.html:7
 msgid "Games"
 msgstr ""
 
@@ -753,48 +686,150 @@ msgstr ""
 msgid "Progress"
 msgstr ""
 
-#: templates/accounts/profile.html:30
-msgid "Awards"
-msgstr ""
-
-#: templates/accounts/profile.html:31
-msgid "Wall"
-msgstr ""
-
-#: templates/accounts/register.html:7 templates/home.html:28
+#: templates/accounts/register.html:8 templates/home.html:24
 msgid "Create account"
 msgstr ""
 
-#: templates/accounts/register.html:13
+#: templates/accounts/register.html:14
 msgid "Already have an account?"
 msgstr ""
 
-#: templates/base.html:34 templates/base.html:82
+#: templates/base.html:37
+msgid "Menu"
+msgstr ""
+
+#: templates/base.html:60 templates/components/site-menu.html:9
 msgid "Ranking"
 msgstr ""
 
-#: templates/base.html:35 templates/base.html:83
+#: templates/base.html:61 templates/components/site-menu.html:10
 msgid "Feed"
 msgstr ""
 
-#: templates/base.html:36
-msgid "Search"
-msgstr ""
-
-#: templates/base.html:45
-msgid "Logout"
-msgstr ""
-
-#: templates/base.html:48
-msgid "Login"
-msgstr ""
-
-#: templates/base.html:61
-msgid "Change language"
+#: templates/base.html:62 templates/components/site-menu.html:12
+msgid "How to start"
 msgstr ""
 
 #: templates/components/logo.html:10
 msgid "RetroPlatinas"
+msgstr ""
+
+#: templates/components/site-menu.html:7
+msgid "Main navigation"
+msgstr ""
+
+#: templates/components/site-menu.html:11
+msgid "Search"
+msgstr ""
+
+#: templates/components/site-menu.html:21
+msgid "Logout"
+msgstr ""
+
+#: templates/components/site-menu.html:24
+msgid "Login"
+msgstr ""
+
+#: templates/components/site-menu.html:31
+msgid "Language"
+msgstr ""
+
+#: templates/components/site-menu.html:37
+msgid "Change language"
+msgstr ""
+
+#: templates/docs/getting-started.html:4 templates/docs/getting-started.html:8
+#: templates/home.html:98
+msgid "How to start playing"
+msgstr ""
+
+#: templates/docs/getting-started.html:9
+msgid ""
+"RetroPlatinas works with an unmodified DuckStation: point it at this site, "
+"log in and play."
+msgstr ""
+
+#: templates/docs/getting-started.html:12
+msgid "Step by step"
+msgstr ""
+
+#: templates/docs/getting-started.html:15
+msgid "Create an account"
+msgstr ""
+
+#: templates/docs/getting-started.html:16
+msgid ""
+"Pick a username and a password. They are the same ones you will type into "
+"the emulator."
+msgstr ""
+
+#: templates/docs/getting-started.html:18
+#, python-format
+msgid "You're already logged in as %(username)s."
+msgstr ""
+
+#: templates/docs/getting-started.html:20 templates/home.html:84
+msgid "Create account →"
+msgstr ""
+
+#: templates/docs/getting-started.html:24
+msgid "Get DuckStation"
+msgstr ""
+
+#: templates/docs/getting-started.html:25
+msgid ""
+"Download DuckStation for your system from its official site and open it "
+"once, so it creates its settings file. Today it is the only emulator we "
+"test, for PlayStation (PS1) games."
+msgstr ""
+
+#: templates/docs/getting-started.html:29
+msgid "Point DuckStation at RetroPlatinas"
+msgstr ""
+
+#: templates/docs/getting-started.html:30
+msgid ""
+"Close DuckStation, open its settings.ini in a text editor and set the server "
+"address in the [Cheevos] section (add the section if it isn't there):"
+msgstr ""
+
+#: templates/docs/getting-started.html:33
+msgid ""
+"settings.ini lives in DuckStation's user folder: Documents\\DuckStation on "
+"Windows, ~/.local/share/duckstation on Linux, ~/Library/Application Support/"
+"DuckStation on macOS."
+msgstr ""
+
+#: templates/docs/getting-started.html:36
+msgid "Log in from the emulator"
+msgstr ""
+
+#: templates/docs/getting-started.html:37
+msgid ""
+"Open DuckStation, go to Settings → Achievements, enable achievements and log "
+"in with your RetroPlatinas username and password. DuckStation remembers the "
+"login, so you only do this once."
+msgstr ""
+
+#: templates/docs/getting-started.html:40
+msgid "Play"
+msgstr ""
+
+#: templates/docs/getting-started.html:41
+msgid ""
+"Load a game that has a set — today, Crash Bandicoot (PS1). Achievements pop "
+"up as you unlock them and show up on your profile."
+msgstr ""
+
+#: templates/docs/getting-started.html:47
+msgid "Hardcore mode"
+msgstr ""
+
+#: templates/docs/getting-started.html:48
+msgid ""
+"Hardcore Mode, in the same Achievements settings, turns off save states, "
+"cheats and rewind. Unlocks earned that way carry the hardcore seal and are "
+"shown apart from softcore ones; they are worth the same points."
 msgstr ""
 
 #: templates/home.html:4
@@ -819,166 +854,136 @@ msgid ""
 "unlock and show up on the board."
 msgstr ""
 
-#: templates/home.html:21
+#: templates/home.html:20
 msgid "New project · under construction"
 msgstr ""
 
-#: templates/home.html:29
+#: templates/home.html:25
 msgid "See the games"
 msgstr ""
 
-#: templates/home.html:31
+#: templates/home.html:27
 msgid "We're new: 1 game, few players. We'd rather show that than fake scale."
 msgstr ""
 
-#: templates/home.html:37 templates/home.html:172
-msgid "The project in numbers"
-msgstr ""
-
-#: templates/home.html:64
+#: templates/home.html:38
 msgid "What's new"
 msgstr ""
 
-#: templates/home.html:68
+#: templates/home.html:41
 msgid "New set"
 msgstr ""
 
-#: templates/home.html:69
+#: templates/home.html:42
 msgid "First set: Crash Bandicoot (PS1)"
 msgstr ""
 
-#: templates/home.html:70
+#: templates/home.html:43
 msgid "Our first set, with hardcore and softcore seals."
 msgstr ""
 
-#: templates/home.html:73
+#: templates/home.html:46
 msgid "Platform"
 msgstr ""
 
-#: templates/home.html:74
+#: templates/home.html:47
 msgid "Hardcore & softcore"
 msgstr ""
 
-#: templates/home.html:75
-msgid "Unlocks without save-states get the hardcore seal and are worth more."
+#: templates/home.html:48
+msgid ""
+"Unlocks without save states get the hardcore seal, shown apart from softcore "
+"ones."
 msgstr ""
 
-#: templates/home.html:79
+#: templates/home.html:52
 msgid "Open source on Codeberg"
 msgstr ""
 
-#: templates/home.html:80
+#: templates/home.html:53
 msgid "RetroPlatinas is AGPL-3.0. Issues and roadmap are public."
 msgstr ""
 
-#: templates/home.html:87
+#: templates/home.html:59
 msgid "Available sets"
 msgstr ""
 
-#: templates/home.html:96
-msgid "NEW"
-msgstr ""
-
-#: templates/home.html:110
-msgid "Suggest the next game"
-msgstr ""
-
-#: templates/home.html:111
-msgid "the set queue is open — propose a classic"
-msgstr ""
-
-#: templates/home.html:119
+#: templates/home.html:79
 msgid "How to contribute"
 msgstr ""
 
-#: templates/home.html:120
-msgid "open to everyone"
-msgstr ""
-
-#: templates/home.html:126
+#: templates/home.html:82
 msgid "Create achievement sets"
 msgstr ""
 
-#: templates/home.html:127
+#: templates/home.html:83
 msgid "Pick a game, design the achievements and publish a set. No gatekeeping."
 msgstr ""
 
-#: templates/home.html:128
-msgid "Create account →"
-msgstr ""
-
-#: templates/home.html:134
+#: templates/home.html:87
 msgid "Contribute code"
 msgstr ""
 
-#: templates/home.html:135
+#: templates/home.html:88
 msgid "AGPL-3.0 on Codeberg. Bugs, features and roadmap are open."
 msgstr ""
 
-#: templates/home.html:136
+#: templates/home.html:89
 msgid "See the repository →"
 msgstr ""
 
-#: templates/home.html:146
-msgid "How to start playing"
-msgstr ""
-
-#: templates/home.html:151
+#: templates/home.html:100
 msgid "Get a compatible emulator (DuckStation)"
 msgstr ""
 
-#: templates/home.html:155
+#: templates/home.html:101
 msgid "Create your account and sign in from the emulator"
 msgstr ""
 
-#: templates/home.html:159
+#: templates/home.html:102
 msgid "Load the game and start unlocking"
 msgstr ""
 
-#: templates/home.html:162
-msgid "Compatible emulators"
-msgstr ""
-
-#: templates/home.html:166
+#: templates/home.html:104
 msgid "Today: PlayStation (PS1). More consoles as sets arrive."
 msgstr ""
 
-#: templates/home.html:173
-msgid "first weeks"
+#: templates/home.html:105
+msgid "Step-by-step guide →"
 msgstr ""
 
-#: templates/home.html:182
+#: templates/home.html:109
+msgid "The project in numbers"
+msgstr ""
+
+#: templates/home.html:117
 msgid "Online now"
 msgstr ""
 
-#: templates/home.html:195
+#: templates/home.html:129
 msgid "Recent activity"
 msgstr ""
 
-#: templates/home.html:196
-msgid "real time"
-msgstr ""
-
-#: templates/home.html:217
+#: templates/home.html:147
 msgid "No unlocks yet"
 msgstr ""
 
-#: templates/home.html:218
+#: templates/home.html:149
 msgid "As soon as someone plays, unlocks show up here in real time."
 msgstr ""
 
-#: templates/home.html:219
+#: templates/home.html:150
 msgid "Be the first to play →"
 msgstr ""
 
-#: templates/home.html:226
+#: templates/home.html:157
 msgid "Open source"
 msgstr ""
 
-#: templates/home.html:230
+#: templates/home.html:161
 msgid "Codeberg — repository"
 msgstr ""
 
-#: templates/home.html:235
+#: templates/home.html:166
 msgid "Licensed under AGPL-3.0"
 msgstr ""
