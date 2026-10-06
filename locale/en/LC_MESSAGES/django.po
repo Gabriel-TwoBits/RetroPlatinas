@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RetroPlatinas\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-06 16:08-0300\n"
+"POT-Creation-Date: 2026-10-06 16:16-0300\n"
 "PO-Revision-Date: 2026-05-23 18:15-0300\n"
 "Last-Translator: RetroPlatinas\n"
 "Language-Team: English\n"
@@ -148,7 +148,7 @@ msgstr ""
 msgid "Draft"
 msgstr ""
 
-#: apps/achievements/models.py:135 templates/home.html:49
+#: apps/achievements/models.py:135 templates/home.html:50
 msgid "Community"
 msgstr ""
 
@@ -234,7 +234,7 @@ msgstr ""
 #: apps/achievements/models.py:219 apps/achievements/models.py:230
 #: templates/accounts/partials/identity-header.html:63
 #: templates/accounts/partials/sec-recent-unlocks.html:15
-#: templates/home.html:66
+#: templates/home.html:67 templates/home.html:138
 msgid "hardcore"
 msgstr ""
 
@@ -253,7 +253,7 @@ msgstr ""
 #: apps/achievements/models.py:230
 #: templates/accounts/partials/identity-header.html:63
 #: templates/accounts/partials/sec-recent-unlocks.html:15
-#: templates/home.html:67
+#: templates/home.html:68 templates/home.html:138
 msgid "softcore"
 msgstr ""
 
@@ -617,7 +617,7 @@ msgstr ""
 msgid "Softcore"
 msgstr ""
 
-#: templates/accounts/partials/identity-header.html:52
+#: templates/accounts/partials/identity-header.html:52 templates/home.html:125
 msgid "Playing now"
 msgstr ""
 
@@ -653,7 +653,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: templates/accounts/partials/panel-overview.html:14
-#: templates/accounts/partials/sec-heat.html:11
+#: templates/accounts/partials/sec-heat.html:11 templates/home.html:72
 #, python-format
 msgid "%(shown)s pt"
 msgid_plural "%(shown)s pts"
@@ -665,33 +665,33 @@ msgstr[1] ""
 msgid "today"
 msgstr ""
 
-#: templates/accounts/partials/panel-progress.html:4
+#: templates/accounts/partials/panel-progress.html:5
 #: templates/accounts/partials/sec-progression.html:3
 msgid "Progress by console"
 msgstr ""
 
-#: templates/accounts/partials/panel-progress.html:19
+#: templates/accounts/partials/panel-progress.html:20
 #, python-format
 msgid "%(n)s open"
 msgid_plural "%(n)s open"
 msgstr[0] ""
 msgstr[1] ""
 
-#: templates/accounts/partials/panel-progress.html:20
+#: templates/accounts/partials/panel-progress.html:21
 #, python-format
 msgid "%(n)s beaten"
 msgid_plural "%(n)s beaten"
 msgstr[0] ""
 msgstr[1] ""
 
-#: templates/accounts/partials/panel-progress.html:21
+#: templates/accounts/partials/panel-progress.html:22
 #, python-format
 msgid "%(n)s platinum"
 msgid_plural "%(n)s platinum"
 msgstr[0] ""
 msgstr[1] ""
 
-#: templates/accounts/partials/panel-progress.html:31
+#: templates/accounts/partials/panel-progress.html:30
 #: templates/accounts/partials/sec-completion.html:3
 msgid "Completion progress"
 msgstr ""
@@ -729,7 +729,7 @@ msgstr[1] ""
 
 #: templates/accounts/partials/sec-recent-unlocks.html:22
 #: templates/accounts/partials/sec-recent-unlocks.html:24
-#: templates/home.html:143
+#: templates/home.html:167
 msgid "No unlocks yet"
 msgstr ""
 
@@ -840,7 +840,7 @@ msgstr ""
 msgid "Progress"
 msgstr ""
 
-#: templates/accounts/register.html:8 templates/home.html:24
+#: templates/accounts/register.html:8 templates/home.html:25
 msgid "Create account"
 msgstr ""
 
@@ -893,7 +893,7 @@ msgid "Change language"
 msgstr ""
 
 #: templates/docs/getting-started.html:4 templates/docs/getting-started.html:8
-#: templates/home.html:96
+#: templates/home.html:103
 msgid "How to start playing"
 msgstr ""
 
@@ -922,7 +922,7 @@ msgstr ""
 msgid "You're already logged in as %(username)s."
 msgstr ""
 
-#: templates/docs/getting-started.html:20 templates/home.html:82
+#: templates/docs/getting-started.html:20 templates/home.html:89
 msgid "Create account →"
 msgstr ""
 
@@ -998,146 +998,173 @@ msgstr ""
 msgid "Unlocks"
 msgstr ""
 
-#: templates/home.html:18
+#: templates/home.html:19
 msgid "Achievements for retro games, truly open."
 msgstr ""
 
-#: templates/home.html:19
+#: templates/home.html:20
 msgid ""
 "RetroPlatinas adds achievements to classics running on an emulator. Play, "
 "unlock and show up on the board."
 msgstr ""
 
-#: templates/home.html:20
+#: templates/home.html:21
 msgid "New project · under construction"
 msgstr ""
 
-#: templates/home.html:21
-msgid "We're new: 1 game, few players. We'd rather show that than fake scale."
+#: templates/home.html:22
+msgid "We're new: every number on this page is real, however small."
 msgstr ""
 
-#: templates/home.html:25
+#: templates/home.html:26
 msgid "See the games"
 msgstr ""
 
-#: templates/home.html:36
+#: templates/home.html:37
 msgid "What's new"
 msgstr ""
 
-#: templates/home.html:39
+#: templates/home.html:40
 msgid "New set"
 msgstr ""
 
-#: templates/home.html:40
+#: templates/home.html:41
 msgid "First set: Crash Bandicoot (PS1)"
 msgstr ""
 
-#: templates/home.html:41
+#: templates/home.html:42
 msgid "Our first set, with hardcore and softcore seals."
 msgstr ""
 
-#: templates/home.html:44
+#: templates/home.html:45
 msgid "Platform"
 msgstr ""
 
-#: templates/home.html:45
+#: templates/home.html:46
 msgid "Hardcore & softcore"
 msgstr ""
 
-#: templates/home.html:46
+#: templates/home.html:47
 msgid ""
 "Unlocks without save states get the hardcore seal, shown apart from softcore "
 "ones."
 msgstr ""
 
-#: templates/home.html:50
+#: templates/home.html:51
 msgid "Open source on Codeberg"
 msgstr ""
 
-#: templates/home.html:51
+#: templates/home.html:52
 msgid "RetroPlatinas is AGPL-3.0. Issues and roadmap are public."
 msgstr ""
 
-#: templates/home.html:57
+#: templates/home.html:58
 msgid "Available sets"
 msgstr ""
 
-#: templates/home.html:77
+#: templates/home.html:71
+#, python-format
+msgid "%(shown)s achievement"
+msgid_plural "%(shown)s achievements"
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/home.html:73
+#, python-format
+msgid "%(shown)s player"
+msgid_plural "%(shown)s players"
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/home.html:78
+msgid "No sets published yet"
+msgstr ""
+
+#: templates/home.html:78
+msgid "A game shows up here as soon as its first achievement is published."
+msgstr ""
+
+#: templates/home.html:84
 msgid "How to contribute"
 msgstr ""
 
-#: templates/home.html:80
+#: templates/home.html:87
 msgid "Create achievement sets"
 msgstr ""
 
-#: templates/home.html:81
+#: templates/home.html:88
 msgid "Pick a game, design the achievements and publish a set. No gatekeeping."
 msgstr ""
 
-#: templates/home.html:85
+#: templates/home.html:92
 msgid "Contribute code"
 msgstr ""
 
-#: templates/home.html:86
+#: templates/home.html:93
 msgid "AGPL-3.0 on Codeberg. Bugs, features and roadmap are open."
 msgstr ""
 
-#: templates/home.html:87
+#: templates/home.html:94
 msgid "See the repository →"
 msgstr ""
 
-#: templates/home.html:98
+#: templates/home.html:105
 msgid "Get a compatible emulator (DuckStation)"
 msgstr ""
 
-#: templates/home.html:99
+#: templates/home.html:106
 msgid "Create your account and sign in from the emulator"
 msgstr ""
 
-#: templates/home.html:100
+#: templates/home.html:107
 msgid "Load the game and start unlocking"
 msgstr ""
 
-#: templates/home.html:102
+#: templates/home.html:109
 msgid "Today: PlayStation (PS1). More consoles as sets arrive."
 msgstr ""
 
-#: templates/home.html:103
+#: templates/home.html:110
 msgid "Step-by-step guide →"
 msgstr ""
 
-#: templates/home.html:107
+#: templates/home.html:114
 msgid "The project in numbers"
 msgstr ""
 
-#: templates/home.html:115
-msgid "Online now"
-msgstr ""
-
-#: templates/home.html:127
-msgid "Recent activity"
-msgstr ""
-
-#: templates/home.html:140
-msgid "HC"
-msgstr ""
-
-#: templates/home.html:143
-msgid "As soon as someone plays, unlocks show up here in real time."
-msgstr ""
-
-#: templates/home.html:143
-msgid "Be the first to play →"
-msgstr ""
-
-#: templates/home.html:149
-msgid "Open source"
+#: templates/home.html:145
+#, python-format
+msgid "%(total)s playing in all"
 msgstr ""
 
 #: templates/home.html:153
+msgid "Recent activity"
+msgstr ""
+
+#: templates/home.html:160
+msgid "unlocked"
+msgstr ""
+
+#: templates/home.html:163
+msgid "HC"
+msgstr ""
+
+#: templates/home.html:167
+msgid "As soon as someone plays, their unlocks show up here."
+msgstr ""
+
+#: templates/home.html:167
+msgid "Be the first to play →"
+msgstr ""
+
+#: templates/home.html:173
+msgid "Open source"
+msgstr ""
+
+#: templates/home.html:177
 msgid "Codeberg — repository"
 msgstr ""
 
-#: templates/home.html:158
+#: templates/home.html:182
 msgid "Licensed under AGPL-3.0"
 msgstr ""
