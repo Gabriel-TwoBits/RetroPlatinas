@@ -1,0 +1,65 @@
+{% load i18n humanize %}
+{% comment %}
+  The ranking board, cached rendered and shared by every viewer: it must not use the request or
+  the user. Mode links and pages are plain links that HTMX upgrades to swap this board.
+{% endcomment %}
+<div id="ranking-board" class="flex flex-col gap-6">
+  <nav aria-label="{% trans 'Ranking mode' %}" class="flex flex-wrap gap-2">
+    {% for slug, label in modes %}
+      <a href="{% url 'ranking' %}?mode={{ slug }}"{% if slug == mode %} aria-current="page"{% endif %}
+         class="rounded-chip border px-3 py-1 font-mono text-xs no-underline hover:no-underline {% if slug == mode %}border-brand text-brand{% else %}border-line2 text-txt-muted hover:text-brand-hi{% endif %}"
+         hx-get="{% url 'ranking' %}?mode={{ slug }}" hx-target="#ranking-board" hx-select="#ranking-board" hx-swap="outerHTML" hx-push-url="true">{{ label }}</a>
+    {% endfor %}
+  </nav>
+
+  <section>
+    {% if hardcore %}
+      {% include "components/section-heading.html" with title=_("Hardcore points") accent="state-hardcore" %}
+    {% else %}
+      {% include "components/section-heading.html" with title=_("Softcore points") accent="state-softcore" %}
+    {% endif %}
+    {% if rows %}
+      <div class="pt-2 font-mono text-xs text-txt-faint">
+        {% blocktrans count players=page.paginator.count with shown=page.paginator.count|intcomma %}{{ shown }} ranked player{% plural %}{{ shown }} ranked players{% endblocktrans %}
+      </div>
+    {% endif %}
+    <ol id="ranking-rows" class="mt-2">
+      {% for row in rows %}
+        <li class="flex items-center gap-3 border-t border-line py-3 first:border-t-0">
+          <div class="w-10 shrink-0 text-right font-mono text-sm font-bold text-txt-muted">{{ row.rank }}</div>
+          <img src="{{ row.avatar_url }}" alt="" width="32" height="32" class="h-8 w-8 shrink-0 rounded-card border border-line2">
+          <div class="min-w-0 flex-1">
+            <a href="{% url 'user_detail' row.user.username %}" class="block truncate font-display text-sm font-semibold text-txt">{{ row.user.username }}</a>
+            <div class="mt-1 font-mono text-xs text-txt-faint">
+              {% blocktrans count n=row.unlocked with shown=row.unlocked|intcomma %}{{ shown }} achievement{% plural %}{{ shown }} achievements{% endblocktrans %}
+              · <span class="text-state-platinum">{% blocktrans count n=row.platinums %}{{ n }} platinum{% plural %}{{ n }} platinum{% endblocktrans %}</span>
+            </div>
+          </div>
+          <div class="shrink-0 font-mono text-sm font-bold text-txt">
+            {% blocktrans count points=row.points with shown=row.points|intcomma %}{{ shown }} pt{% plural %}{{ shown }} pts{% endblocktrans %}
+          </div>
+        </li>
+      {% empty %}
+        <li>{% include "components/empty-state.html" with title=_("Nobody has points in this mode yet") %}</li>
+      {% endfor %}
+    </ol>
+  </section>
+
+  {% if page.has_other_pages %}
+    <nav aria-label="{% trans 'Ranking pages' %}" class="flex items-center justify-between gap-3 border-t border-line2 pt-4 font-mono text-xs">
+      {% if page.has_previous %}
+        <a href="{% url 'ranking' %}?mode={{ mode }}&amp;page={{ page.previous_page_number }}" class="text-brand hover:text-brand-hi"
+           hx-get="{% url 'ranking' %}?mode={{ mode }}&amp;page={{ page.previous_page_number }}" hx-target="#ranking-board" hx-select="#ranking-board" hx-swap="outerHTML show:top" hx-push-url="true">← {% trans "Previous" %}</a>
+      {% else %}
+        <span></span>
+      {% endif %}
+      <span class="text-txt-faint">{% blocktrans with number=page.number total=page.paginator.num_pages %}Page {{ number }} of {{ total }}{% endblocktrans %}</span>
+      {% if page.has_next %}
+        <a href="{% url 'ranking' %}?mode={{ mode }}&amp;page={{ page.next_page_number }}" class="text-brand hover:text-brand-hi"
+           hx-get="{% url 'ranking' %}?mode={{ mode }}&amp;page={{ page.next_page_number }}" hx-target="#ranking-board" hx-select="#ranking-board" hx-swap="outerHTML show:top" hx-push-url="true">{% trans "Next" %} →</a>
+      {% else %}
+        <span></span>
+      {% endif %}
+    </nav>
+  {% endif %}
+</div>

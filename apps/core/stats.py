@@ -1,6 +1,6 @@
 """Rankings, point totals, completion and site-wide activity for the stats API, the
-`dorequest.php` leaderboard handlers, the profile page, the home page, the game page and the
-leaderboard page.
+`dorequest.php` leaderboard handlers, the profile page, the home page, the game page, the
+leaderboard page and the ranking page.
 
 Only published achievements count. Inactive accounts (system accounts such as `ra-import`,
 deactivated users) hold no rank and are left out of player lists and `leaderboard_entries`; the
@@ -56,6 +56,82 @@ def global_ranks(user):
         hardcore=_global_rank(user, user.hardcore_points, with_more_points["hardcore"]),
         softcore=_global_rank(user, user.softcore_points, with_more_points["softcore"]),
     )
+
+
+def _points_field(hardcore):
+    if hardcore:
+        return "hardcore_points"
+    else:
+        return "softcore_points"
+
+
+def ranking(hardcore):
+    """The users holding a rank in the mode (active, with points in it), most points first."""
+    points = _points_field(hardcore)
+    # TRADEOFF: no index on the points columns, so each uncached page sorts every user; index
+    # (is_active, <mode>_points) once the user count makes that sort show.
+    return ranked_users().filter(**{f"{points}__gt": 0}).order_by(f"-{points}", "username")
+
+
+def rank_by_points(hardcore, points):
+    """Competition rank ("1224") of `points` in the mode, as `global_ranks` gives it."""
+    return ranked_users().filter(**{f"{_points_field(hardcore)}__gt": points}).count() + 1
+
+
+def ranked_users_page(hardcore, offset, count):
+    """`(index, rank, user)` for `count` users of the mode's `ranking` after the first `offset`;
+    tied points share the competition rank `rank_by_points` gives them."""
+    points = _points_field(hardcore)
+    return _competition_ranked(
+        ranking(hardcore)[offset : offset + count],
+        offset,
+        value_of=lambda user: getattr(user, points),
+        rank_of=lambda user_points: rank_by_points(hardcore, user_points),
+    )
+
+
+class RankingTally(NamedTuple):
+    unlocked: int
+    platinums: int
+
+
+def ranking_tallies(user_ids, hardcore):
+    """`{user_id: RankingTally}` for each of `user_ids`: the distinct published achievements
+    unlocked in the mode and the platinums (games with every published achievement unlocked in
+    hardcore), whatever the mode."""
+    per_game = list(
+        published_unlocks()
+        .filter(user_id__in=user_ids)
+        .order_by()
+        .values("user", "achievement__game")
+        .annotate(
+            unlocked=Count("achievement", filter=Q(hardcore=hardcore), distinct=True),
+            hardcore_unlocked=Count("achievement", filter=Q(hardcore=True), distinct=True),
+        )
+        .values_list("user", "achievement__game", "unlocked", "hardcore_unlocked")
+    )
+    published_per_game = dict(
+        Achievement.objects.filter(
+            game_id__in={game_id for _, game_id, _, _ in per_game},
+            status__in=Achievement.PUBLISHED_STATUSES,
+        )
+        .order_by()
+        .values("game")
+        .annotate(count=Count("id"))
+        .values_list("game", "count")
+    )
+    unlocked = dict.fromkeys(user_ids, 0)
+    platinums = dict.fromkeys(user_ids, 0)
+    for user_id, game_id, game_unlocked, hardcore_unlocked in per_game:
+        unlocked[user_id] += game_unlocked
+        # Unlocks are of the game's published achievements, so reaching its count is all of them;
+        # a game unpublished between the two queries has no count and no platinum.
+        if hardcore_unlocked == published_per_game.get(game_id):
+            platinums[user_id] += 1
+    return {
+        user_id: RankingTally(unlocked=unlocked[user_id], platinums=platinums[user_id])
+        for user_id in user_ids
+    }
 
 
 def ranked_player_counts():

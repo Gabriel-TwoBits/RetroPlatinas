@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RetroPlatinas\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-06 16:55-0300\n"
+"POT-Creation-Date: 2026-10-06 17:16-0300\n"
 "PO-Revision-Date: 2026-05-23 18:15-0300\n"
 "Last-Translator: RetroPlatinas\n"
 "Language-Team: Brazilian Portuguese\n"
@@ -63,6 +63,16 @@ msgstr ""
 #: apps/accounts/profile.py:162
 msgid "Total"
 msgstr "Total"
+
+#: apps/accounts/ranking.py:19
+#: templates/accounts/partials/identity-header.html:22
+msgid "Hardcore"
+msgstr "Hardcore"
+
+#: apps/accounts/ranking.py:20
+#: templates/accounts/partials/identity-header.html:33
+msgid "Softcore"
+msgstr "Softcore"
 
 #: apps/achievements/admin.py:22
 msgid "Locked badge"
@@ -645,10 +655,6 @@ msgstr "membro desde %(date)s"
 msgid "Edit profile"
 msgstr "Editar perfil"
 
-#: templates/accounts/partials/identity-header.html:22
-msgid "Hardcore"
-msgstr "Hardcore"
-
 #: templates/accounts/partials/identity-header.html:26
 #: templates/accounts/partials/identity-header.html:37
 #, python-format
@@ -659,10 +665,6 @@ msgstr "#%(rank)s de %(players)s"
 #: templates/accounts/partials/identity-header.html:39
 msgid "unranked"
 msgstr "sem ranking"
-
-#: templates/accounts/partials/identity-header.html:33
-msgid "Softcore"
-msgstr "Softcore"
 
 #: templates/accounts/partials/identity-header.html:52 templates/home.html:127
 msgid "Playing now"
@@ -700,6 +702,7 @@ msgstr[0] "há %(days)s dia"
 msgstr[1] "há %(days)s dias"
 
 #: templates/accounts/partials/panel-overview.html:14
+#: templates/accounts/partials/ranking-board.html:39
 #: templates/accounts/partials/sec-heat.html:11 templates/home.html:74
 #, python-format
 msgid "%(shown)s pt"
@@ -732,6 +735,7 @@ msgstr[0] "%(n)s zerado"
 msgstr[1] "%(n)s zerados"
 
 #: templates/accounts/partials/panel-progress.html:22
+#: templates/accounts/partials/ranking-board.html:35
 #, python-format
 msgid "%(n)s platinum"
 msgid_plural "%(n)s platinum"
@@ -742,6 +746,56 @@ msgstr[1] "%(n)s platinados"
 #: templates/accounts/partials/sec-completion.html:3
 msgid "Completion progress"
 msgstr "Progresso de conclusão"
+
+#: templates/accounts/partials/ranking-board.html:7
+msgid "Ranking mode"
+msgstr "Modo do ranking"
+
+#: templates/accounts/partials/ranking-board.html:17
+msgid "Hardcore points"
+msgstr "Pontos hardcore"
+
+#: templates/accounts/partials/ranking-board.html:19
+msgid "Softcore points"
+msgstr "Pontos softcore"
+
+#: templates/accounts/partials/ranking-board.html:23
+#, python-format
+msgid "%(shown)s ranked player"
+msgid_plural "%(shown)s ranked players"
+msgstr[0] "%(shown)s jogador no ranking"
+msgstr[1] "%(shown)s jogadores no ranking"
+
+#: templates/accounts/partials/ranking-board.html:34 templates/home.html:73
+#, python-format
+msgid "%(shown)s achievement"
+msgid_plural "%(shown)s achievements"
+msgstr[0] "%(shown)s conquista"
+msgstr[1] "%(shown)s conquistas"
+
+#: templates/accounts/partials/ranking-board.html:43
+msgid "Nobody has points in this mode yet"
+msgstr "Ninguém tem pontos neste modo ainda"
+
+#: templates/accounts/partials/ranking-board.html:49
+msgid "Ranking pages"
+msgstr "Páginas do ranking"
+
+#: templates/accounts/partials/ranking-board.html:52
+#: templates/leaderboards/detail.html:45
+msgid "Previous"
+msgstr "Anterior"
+
+#: templates/accounts/partials/ranking-board.html:56
+#: templates/leaderboards/detail.html:49
+#, python-format
+msgid "Page %(number)s of %(total)s"
+msgstr "Página %(number)s de %(total)s"
+
+#: templates/accounts/partials/ranking-board.html:59
+#: templates/leaderboards/detail.html:52
+msgid "Next"
+msgstr "Próxima"
 
 #: templates/accounts/partials/sec-awards.html:3
 msgid "Platinums & awards"
@@ -884,6 +938,21 @@ msgstr "Jogos"
 msgid "Progress"
 msgstr "Progresso"
 
+#: templates/accounts/ranking.html:4 templates/accounts/ranking.html:9
+#: templates/base.html:60 templates/components/site-menu.html:9
+#: templates/leaderboards/detail.html:31
+msgid "Ranking"
+msgstr "Ranking"
+
+#: templates/accounts/ranking.html:11
+#, python-format
+msgid "Players by points from published achievements, refreshed every minute."
+msgid_plural ""
+"Players by points from published achievements, refreshed every %(minutes)s "
+"minutes."
+msgstr[0] "Jogadores ordenados pelos pontos das conquistas publicadas. Atualiza a cada minuto."
+msgstr[1] "Jogadores ordenados pelos pontos das conquistas publicadas. Atualiza a cada %(minutes)s minutos."
+
 #: templates/accounts/register.html:8 templates/home.html:25
 msgid "Create account"
 msgstr "Criar conta"
@@ -895,11 +964,6 @@ msgstr "Já tem uma conta?"
 #: templates/base.html:37
 msgid "Menu"
 msgstr "Menu"
-
-#: templates/base.html:60 templates/components/site-menu.html:9
-#: templates/leaderboards/detail.html:31
-msgid "Ranking"
-msgstr "Ranking"
 
 #: templates/base.html:61 templates/components/site-menu.html:10
 msgid "Feed"
@@ -1170,13 +1234,6 @@ msgstr "O RetroPlatinas é AGPL-3.0. Issues e roadmap são públicos."
 msgid "Available sets"
 msgstr "Sets disponíveis"
 
-#: templates/home.html:73
-#, python-format
-msgid "%(shown)s achievement"
-msgid_plural "%(shown)s achievements"
-msgstr[0] "%(shown)s conquista"
-msgstr[1] "%(shown)s conquistas"
-
 #: templates/home.html:75
 #, python-format
 msgid "%(shown)s player"
@@ -1294,19 +1351,6 @@ msgstr "Nenhuma entrada ainda"
 #: templates/leaderboards/detail.html:42
 msgid "Leaderboard pages"
 msgstr "Páginas do placar"
-
-#: templates/leaderboards/detail.html:45
-msgid "Previous"
-msgstr "Anterior"
-
-#: templates/leaderboards/detail.html:49
-#, python-format
-msgid "Page %(number)s of %(total)s"
-msgstr "Página %(number)s de %(total)s"
-
-#: templates/leaderboards/detail.html:52
-msgid "Next"
-msgstr "Próxima"
 
 #: templates/leaderboards/partials/entry-row.html:9
 msgid "you"
