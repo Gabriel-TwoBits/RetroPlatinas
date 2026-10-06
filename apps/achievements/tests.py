@@ -11,6 +11,16 @@ from django.utils import timezone
 
 from apps.accounts.models import User
 from apps.achievements.management.commands import seed_crash1_code_notes as seed_code_notes
+from apps.achievements.management.commands.seed_crash1_advanced_achievements import (
+    BOSS_POINTS,
+    BOSS_TITLE,
+    GEM_ACHIEVEMENTS,
+    PAPU_PAPU_LEVEL_ID,
+    advanced_achievements,
+    build_boss_mem_addr,
+    build_gem_mem_addr,
+    gem_bit,
+)
 from apps.achievements.management.commands.seed_crash1_code_notes import load_code_notes
 from apps.achievements.management.commands.seed_crash1_collectible_achievements import (
     AKU_TITLE,
@@ -52,6 +62,7 @@ SEED_COMMANDS = (
     "seed_crash1_code_notes",
     "seed_crash1_level_achievements",
     "seed_crash1_collectible_achievements",
+    "seed_crash1_advanced_achievements",
     "seed_crash1_rich_presence",
 )
 COLLECTIBLE_COUNT = len(collectible_achievements())
@@ -62,6 +73,14 @@ COLLECTIBLE_POINTS = {
     NO_WUMPA_TITLE: CHALLENGE_POINTS,
 }
 EDITED_COLLECTIBLE_POINTS = 15  # no collectible achievement is seeded with this value
+ADVANCED_COUNT = len(advanced_achievements())
+ADVANCED_POINTS = {
+    **{title: points for title, _stage, _map_index, points in GEM_ACHIEVEMENTS},
+    BOSS_TITLE: BOSS_POINTS,
+}
+EDITED_ADVANCED_POINTS = 50  # no advanced achievement is seeded with this value
+# Map cursor `0x619c5` of the first stage whose gem bit sits in the second byte (bit 8).
+HOG_WILD_MAP_INDEX = 0x07
 NSANITY_BEACH_LEVEL_ID = dict(LEVEL_ACHIEVEMENTS)["N. Sanity Beach"]
 MAX_RICH_PRESENCE_SCRIPT_BYTES = 65535  # the RetroAchievements limit on a script
 MEM_ADDR_CHECKER = Path(__file__).resolve().parents[2] / "scripts" / "check-mem-addr.sh"
@@ -618,14 +637,15 @@ def test_seed_collectible_achievements_refuses_two_rows_with_one_title(collectib
 
 
 @pytest.mark.django_db
-def test_level_and_collectible_seeds_share_the_game_without_clashing():
+def test_achievement_seeds_share_the_game_without_clashing():
     call_command("seed_crash1_level_achievements", verbosity=0)
     call_command("seed_crash1_collectible_achievements", verbosity=0)
+    call_command("seed_crash1_advanced_achievements", verbosity=0)
 
     titles = list(
         Achievement.objects.filter(game__title=GAME_TITLE).values_list("title", flat=True)
     )
-    assert len(titles) == LEVEL_COUNT + COLLECTIBLE_COUNT
+    assert len(titles) == LEVEL_COUNT + COLLECTIBLE_COUNT + ADVANCED_COUNT
     assert len(set(titles)) == len(titles)
 
 
@@ -658,3 +678,112 @@ def test_awardachievement_scores_a_seeded_collectible(client, collectibles_game,
     assert data["AchievementsRemaining"] == COLLECTIBLE_COUNT - 1
     user.refresh_from_db()
     assert (user.softcore_points, user.hardcore_points) == (CHALLENGE_POINTS, CHALLENGE_POINTS)
+
+
+@pytest.fixture
+def advanced_game(db):
+    call_command("seed_crash1_advanced_achievements", verbosity=0)
+    return Game.objects.get(title=GAME_TITLE)
+
+
+@pytest.mark.django_db
+def test_seed_advanced_achievements_creates_community_set(advanced_game):
+    achievements = advanced_game.achievements.all()
+
+    assert {a.title: a.points for a in achievements} == ADVANCED_POINTS
+    for achievement in achievements:
+        assert achievement.status == Achievement.STATUS_COMMUNITY
+        assert achievement.author.username == IMPORT_AUTHOR
+        assert achievement.description
+
+
+def test_advanced_mem_addrs_parse_in_rcheevos():
+    result = run_mem_addr_checker(*(mem_addr for _, _, mem_addr, _ in advanced_achievements()))
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert result.stdout.count("VALID    ") == ADVANCED_COUNT
+
+
+@pytest.mark.parametrize(
+    ("map_index", "bit"),
+    [(0x00, "0xN61988"), (0x04, "0xR61988"), (HOG_WILD_MAP_INDEX, "0xM61989")],
+)
+def test_gem_bit_of_map_stage_n_is_bit_n_plus_one_from_the_gem_bitfield(map_index, bit):
+    assert gem_bit(map_index) == bit
+
+
+def test_gem_mem_addr_fires_when_the_stage_clear_screen_sets_the_gem_bit():
+    assert build_gem_mem_addr(0x00) == "0xH6188d=h2d_d0xH6188d=h2d_0xN61988=1_d0xN61988=0"
+
+
+def test_boss_mem_addr_fires_on_the_last_hit_of_the_same_boss_object():
+    assert build_boss_mem_addr(PAPU_PAPU_LEVEL_ID) == (
+        f"{in_play()}_0xH6188d=h0a_0xW60ddc!=0_0xW60ddc=d0xW60ddc_"
+        "I:0xW60ddc_0xH105=0_I:0xW60ddc_d0xH105=1"
+    )
+
+
+@pytest.mark.django_db
+def test_seed_advanced_achievements_is_idempotent(advanced_game):
+    fields = ("pk", "mem_addr", "description", "updated_at")
+    seeded = list(advanced_game.achievements.values_list(*fields))
+    output = StringIO()
+
+    call_command("seed_crash1_advanced_achievements", stdout=output)
+
+    assert list(advanced_game.achievements.values_list(*fields)) == seeded
+    assert "0 created, 0 updated" in output.getvalue()
+
+
+@pytest.mark.django_db
+def test_seed_advanced_achievements_updates_an_existing_condition_by_title(player_token):
+    user, _ = player_token
+    call_command("seed_crash1_advanced_achievements", verbosity=0)
+    stale = Achievement.objects.get(title=BOSS_TITLE)
+    stale.mem_addr = "0xH000105=0"
+    stale.description = "old"
+    stale.points = EDITED_ADVANCED_POINTS
+    stale.status = Achievement.STATUS_VERIFIED
+    stale.save()
+    UserUnlock.objects.create(user=user, achievement=stale, hardcore=False)
+
+    call_command("seed_crash1_advanced_achievements", verbosity=0)
+
+    updated = Achievement.objects.get(pk=stale.pk)
+    seeded = {
+        title: (description, mem_addr)
+        for title, description, mem_addr, _ in advanced_achievements()
+    }
+    assert (updated.description, updated.mem_addr) == seeded[BOSS_TITLE]
+    assert (updated.points, updated.status) == (EDITED_ADVANCED_POINTS, Achievement.STATUS_VERIFIED)
+    assert UserUnlock.objects.filter(achievement=updated).count() == 1
+
+
+@pytest.mark.django_db
+def test_seed_advanced_achievements_refuses_two_rows_with_one_title(advanced_game):
+    original = advanced_game.achievements.get(title=BOSS_TITLE)
+    Achievement.objects.create(
+        game=advanced_game,
+        author=original.author,
+        title=BOSS_TITLE,
+        description="old",
+        points=BOSS_POINTS,
+        mem_addr="0xH000105=0",
+        status=Achievement.STATUS_COMMUNITY,
+    )
+
+    with pytest.raises(CommandError, match=f"2 achievements .* are titled '{BOSS_TITLE}'"):
+        call_command("seed_crash1_advanced_achievements", verbosity=0)
+
+
+@pytest.mark.django_db
+def test_patch_exposes_seeded_advanced_achievements(client, advanced_game, player_token):
+    _, token = player_token
+
+    data = client.post("/dorequest.php", {"r": "patch", "t": token, "g": advanced_game.pk}).json()
+
+    assert data["Success"] is True
+    served = {a["Title"]: (a["MemAddr"], a["Points"]) for a in data["PatchData"]["Achievements"]}
+    assert served == {
+        title: (mem_addr, points) for title, _, mem_addr, points in advanced_achievements()
+    }

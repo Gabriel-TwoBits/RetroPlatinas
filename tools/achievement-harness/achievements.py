@@ -49,6 +49,14 @@ def collectible_seed():
     return seed_crash1_collectible_achievements
 
 
+def advanced_seed():
+    """`seed_crash1_advanced_achievements`, whose titles and gem stages the scenarios expect."""
+    _setup_django()
+    from apps.achievements.management.commands import seed_crash1_advanced_achievements
+
+    return seed_crash1_advanced_achievements
+
+
 def rich_presence():
     """The Crash Bandicoot rich presence script, as `seed_crash1_rich_presence` stores it."""
     _setup_django()
@@ -66,8 +74,8 @@ def level_title(level_id):
 
 
 def definitions():
-    """Every seeded achievement, numbered from FIRST_RUNTIME_ID: the level achievements, then the
-    collectible ones, each in seed order."""
+    """Every seeded achievement, numbered from FIRST_RUNTIME_ID: the level achievements, the
+    collectible ones, then the advanced ones, each in seed order."""
     level_seed = _level_seed()
     seeded = [
         (title, level_seed.build_mem_addr(level_id))
@@ -76,6 +84,10 @@ def definitions():
     seeded += [
         (title, mem_addr)
         for title, _description, mem_addr, _points in collectible_seed().collectible_achievements()
+    ]
+    seeded += [
+        (title, mem_addr)
+        for title, _description, mem_addr, _points in advanced_seed().advanced_achievements()
     ]
     return [
         Definition(FIRST_RUNTIME_ID + index, title, mem_addr)
