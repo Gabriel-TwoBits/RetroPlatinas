@@ -267,16 +267,21 @@ answers 404. Every game title on the home, the profile and the games list links 
   tab active plus the panel, swapped into `#game-tabs`; the active state is rendered by the
   server, no client script.
 - **Achievements** — ruled sections in the order the emulator receives them: *Verified* (the
-  quality seal, `state-platinum` strip), then *Community*, then *Your drafts* (`gold` strip,
-  each row marked *draft*), which only the drafts' author sees. A group with nothing to show is
-  hidden. For a logged-in viewer an unlocked badge has a 2px `state-hardcore` or
-  `state-softcore` border with the mode and local date under the description; a locked one
-  comes from the `_lock` route, faded, with muted text. An anonymous visitor sees the plain
-  badges and no filters.
-- **Filters** — logged-in viewers get *All / Unlocked / Locked* outlined chips over the list,
-  the active one in `brand`; each reloads the achievements panel through the same HTMX route
-  (`?filter=`). Each filter has its own empty state, except on a game with no achievements the
-  viewer can see, where every filter shows the no-achievements one.
+  quality seal, `state-platinum` strip), then *Community*, then *Your drafts* (`gold` strip),
+  which only the drafts' author sees. A group with nothing to show is hidden. Every row carries
+  an outlined status chip after its title: *Verified* in `state-platinum` with a check seal,
+  *Community* in `brand`, *Draft* in `gold`. For a logged-in viewer an unlocked badge has a 2px
+  `state-hardcore` or `state-softcore` border with the mode and local date under the
+  description; a locked one comes from the `_lock` route, faded, with muted text. An anonymous
+  visitor sees the plain badges and no unlock filters.
+- **Status choice** — outlined chips over the list, the active one in `brand`: *Verified only*,
+  *Verified + Community* (the default) and, for a logged-in viewer, *All incl. my drafts*. Each
+  reloads the achievements panel through the same HTMX route (`?show=verified|published|all`);
+  another user's draft is never listed, whatever the choice. A choice with nothing to show has
+  its own empty state under every filter.
+- **Filters** — logged-in viewers get *All / Unlocked / Locked* outlined chips under the status
+  choice; each reloads the panel through the same route (`?filter=`), keeping the status choice,
+  as the status chips keep the filter. Each filter has its own empty state.
 - **Leaderboards** — a row per leaderboard: title (linking to its leaderboard page),
   description and its entries by active users. Scores and ranks belong to the leaderboard page.
 - **Recent players** — the 20 active users who played last: identicon, profile link, published
