@@ -115,7 +115,7 @@ Each is a small `{% include ... with ... %}` partial, reused across screens:
 | `form-fields.html` | `form` | login, register, password change, edit profile |
 | `logo.html` | `variant` (lockup/selo), `size` | header, footer |
 | `game-card.html` | `initials, title, meta, state, state_label, pct, icons, icons_more` | profile (mobile games panel); future game lists |
-| `empty-state.html` | `title, body, href, cta` | every data block with nothing to show (home activity, profile sections) |
+| `empty-state.html` | `title, body, href, cta` | every data block with nothing to show (home sets and activity, profile sections) |
 | `achievement-badge.html` | `state, size, label` | badge states |
 | `progress-bar-segmented.html` | `not_pct, beaten_pct, plat_pct, height` | console progression (desktop and mobile) |
 | `console-tag.html` | `label, variant` (table/default), `tone` | console progression, home sets |
@@ -195,24 +195,32 @@ returns to the profile on save.
 
 ## Home landing page
 
-`templates/home.html`:
+`templates/home.html`, built by `apps/core/home.py` from the shared `apps/core/stats.py`
+queries: only published achievements count, inactive accounts are left out, and a hardcore
+unlock's softcore twin is not counted again.
 
 - **Hero strip** — headline, sub, a mono status line and the dual CTA, over a `border-line2`
   rule. One strip, never a full-height hero.
 - **Changelog entry** — a mono category label in its colour + title + body, as a ruled row.
-- **Set card** — a game object, so it is filled (`bg-surface`).
-- **Empty state** — a pulsing `animate-rp-pulse` dot + honest line + CTA, no box. The fallback
-  for any data block with nothing to show; keeps "new", never "dead".
+- **Set card** — a game object, so it is filled (`bg-surface`). One per game with a published
+  achievement, by title: the icon through the `/Images/` route, title, console, published
+  achievements, points and players (active users who played it); the card links to
+  `/games/<id>/`.
+- **Numbers** — games with a published achievement, published achievements, players (active
+  users with points) and unlocks, each counted once.
+- **Playing now** — sessions pinged within `PLAYING_NOW_TTL`: identicon, user, game, rich
+  presence and mode, the first 10 listed and the total under them. Hidden while nobody plays.
+- **Recent activity** — the last 8 unlocks site-wide, newest first: badge with a hardcore
+  border when earned in hardcore, user, achievement, game, console and relative time.
+- **Empty state** — a pulsing `animate-rp-pulse` dot + honest line + optional CTA, no box. The
+  fallback for sets and activity with nothing to show; keeps "new", never "dead".
 - **How to start / How to contribute** — procedural lists behind the left rule.
 
 Column order: main is what's new → available sets → how to contribute; the sidebar is how to
-start → numbers → activity → open source. Below `md` the two columns dissolve into one list
-(`display: contents`) and `order-first` lifts **how to start** and **the numbers** to the top,
-right under the hero. The how-to-start block is the short version and links to the full
-guide. "Online now" shows a pulsing brand dot when anyone is on and a faint dash when nobody
-is, so the template branches on data rather than on a pre-baked `"—"`.
-
-Placeholder data lives in `apps/core/fake_home.py`; delete it when real aggregation lands.
+start → numbers → playing now → activity → open source. Below `md` the two columns dissolve
+into one list (`display: contents`) and `order-first` lifts **how to start** and **the
+numbers** to the top, right under the hero. The how-to-start block is the short version and
+links to the full guide.
 
 ## Getting started page
 

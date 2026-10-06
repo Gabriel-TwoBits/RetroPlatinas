@@ -109,7 +109,7 @@ answers 404 whenever `DEBUG` is off.
 
 Read-only JSON for the public site, outside `dorequest.php` (`GET` only; an unknown user, game or
 leaderboard answers 404 with `{"Error": …}`). The queries behind it live in `apps/core/stats.py`,
-shared with the `dorequest.php` leaderboard handlers and the profile page.
+shared with the `dorequest.php` leaderboard handlers, the profile page and the home page.
 
 | Path | Returns |
 | --- | --- |
