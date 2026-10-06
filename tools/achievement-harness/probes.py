@@ -52,10 +52,15 @@ PAUSED = 0x56400
 PLAYER_POINTER = 0x566B4
 
 AKU_LEVEL_OFFSET = 0x189
+# The player object's counters, 24.8: Wumpa (wraps at 100 into an extra life), then lives (capped
+# at 99). The Wumpa HUD only animates towards the player's count, a few frames behind.
+PLAYER_FRUIT_OFFSET = 0x160
 PLAYER_LIVES_OFFSET = 0x164
 PLAYER_POSITION_OFFSETS = (0x80, 0x84, 0x88)
 # The code notes give +0x06 as the first hop of the lives chain; only +0x6C reads the lives.
 HUD_COUNT_CHAIN = (0x6C, 0xE4, 0x0C)
+# A HUD object's own 24.8 copy of the count it shows, stepping with the digits.
+HUD_COUNT_OFFSET = 0x160
 
 # Level ids (c1 `LID_*`, src/common.h).
 LID_TITLE = 0x19  # title screen, menus and the island map
@@ -109,18 +114,40 @@ def in_a_stage(emu):
     return emu.u8(LEVEL_ID) not in NON_STAGE_LIDS
 
 
-def player_lives(emu):
-    """None outside a stage, where the player pointer names another object."""
-    if not in_a_stage(emu):
-        return None
-    value = emu.deref(PLAYER_POINTER, PLAYER_LIVES_OFFSET, size=FIXED_POINT_BYTES)
-    if value is None:
-        return None
-    return value >> FIXED_POINT_SHIFT
+def player_counter(offset):
+    """A 24.8 counter of the player object; None outside a stage, where the player pointer names
+    another object, and while the pointer is null."""
+
+    def read(emu):
+        if not in_a_stage(emu):
+            return None
+        value = emu.deref(PLAYER_POINTER, offset, size=FIXED_POINT_BYTES)
+        if value is None:
+            return None
+        return value >> FIXED_POINT_SHIFT
+
+    return read
+
+
+player_lives = player_counter(PLAYER_LIVES_OFFSET)
+player_fruit = player_counter(PLAYER_FRUIT_OFFSET)
 
 
 def hud_count(pointer):
     return lambda emu: emu.deref(pointer, *HUD_COUNT_CHAIN)
+
+
+def hud_count_address(emu, pointer):
+    """RA address of the count a HUD object shows (HUD_COUNT_CHAIN's last hop); None on a null
+    hop."""
+    address = emu.u24(pointer)
+    for offset in HUD_COUNT_CHAIN[:-1]:
+        if address == 0:
+            return None
+        address = emu.u24(address + offset)
+    if address == 0:
+        return None
+    return address + HUD_COUNT_CHAIN[-1]
 
 
 CONDITION_READS = [
@@ -169,6 +196,7 @@ OBJECTS = [
     ("life_hud", hud_count(LIFE_HUD_POINTER)),
     ("player_ptr", u24(PLAYER_POINTER)),
     ("player_lives", player_lives),
+    ("player_fruit", player_fruit),
 ]
 
 ALL = CONDITION_READS + CODE_NOTE_READS + GLOBALS + OBJECTS
@@ -188,6 +216,9 @@ SUMMARY_KEYS = [
     "g_life_count",
     "g_fruit_count",
     "g_box_count",
+    "player_fruit",
+    "player_lives",
+    "aku_level",
     "paused",
 ]
 
