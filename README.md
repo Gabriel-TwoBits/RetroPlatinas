@@ -122,7 +122,8 @@ page, the leaderboard page, the ranking page, the feed page and the games list.
 Only published achievements count. A hardcore unlock also counts as a softcore one, as in the point
 totals. Ranks are competition ranks (ties share a rank); a user with no points in a mode has no rank
 in it. Inactive accounts (deactivated users and system accounts such as `ra-import`) hold no rank
-and are left out of leaderboards and player lists.
+and are left out of leaderboards and player lists, including the `submitlbentry` and `lbinfo`
+leaderboards `dorequest.php` serves the emulator.
 
 ## Anti-cheat
 

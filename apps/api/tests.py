@@ -2023,6 +2023,29 @@ def test_submitlbentry_top_entries_rank_ties_like_rank_info(
 
 
 @pytest.mark.django_db
+def test_submitlbentry_leaves_inactive_accounts_off_the_board(
+    client, authed_user, game_with_leaderboards
+):
+    _, token = authed_user
+    _, lb = game_with_leaderboards
+    banned = _make_user("banned", "b" * API_TOKEN_HEX_LENGTH)
+    banned.is_active = False
+    banned.save(update_fields=["is_active"])
+    LeaderboardEntry.objects.create(leaderboard=lb, user=banned, score=100)
+    rival = _make_user("rival", "r" * API_TOKEN_HEX_LENGTH)
+    LeaderboardEntry.objects.create(leaderboard=lb, user=rival, score=300)
+
+    resp = client.post("/dorequest.php", _lbentry_params(token, lb.id, 800)).json()["Response"]
+
+    # lower_is_better: the inactive 100 would rank first.
+    assert resp["RankInfo"] == {"Rank": 2, "NumEntries": 2}
+    assert [(e["User"], e["Rank"]) for e in resp["TopEntries"]] == [
+        ("rival", 1),
+        (PLAYER_USERNAME, 2),
+    ]
+
+
+@pytest.mark.django_db
 def test_submitlbentry_unknown_leaderboard(client, authed_user):
     _, token = authed_user
     response = client.post("/dorequest.php", _lbentry_params(token, 999, 1))
@@ -2238,6 +2261,30 @@ def test_lbinfo_user_without_entry_gets_the_offset_page(
     entries = _info(client, "lbinfo", i=lb.id, u=username, o=4, c=2)["LeaderboardData"]["Entries"]
 
     assert [e["Index"] for e in entries] == [5, 6]
+
+
+@pytest.mark.django_db
+def test_lbinfo_leaves_inactive_accounts_off_the_board(client, game_with_leaderboards):
+    _, lb = game_with_leaderboards
+    _board_with_scores(lb, [300, 100, 200, 100])
+    User.objects.filter(username__in=["p1", "p3"]).update(is_active=False)
+
+    board = _info(client, "lbinfo", i=lb.id)["LeaderboardData"]
+
+    assert board["TotalEntries"] == 2
+    ranked = [(e["User"], e["Rank"], e["Index"]) for e in board["Entries"]]
+    assert ranked == [("p2", 1, 1), ("p0", 2, 2)]
+
+
+@pytest.mark.django_db
+def test_lbinfo_inactive_user_gets_the_offset_page(client, game_with_leaderboards):
+    _, lb = game_with_leaderboards
+    _board_with_scores(lb, range(10))
+    User.objects.filter(username="p9").update(is_active=False)
+
+    entries = _info(client, "lbinfo", i=lb.id, u="p9", o=0, c=2)["LeaderboardData"]["Entries"]
+
+    assert [e["User"] for e in entries] == ["p0", "p1"]
 
 
 @pytest.mark.django_db

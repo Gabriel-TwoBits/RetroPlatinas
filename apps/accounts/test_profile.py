@@ -119,6 +119,17 @@ def test_profile_shows_points_and_rank_per_mode_without_inactive_accounts(client
 
 
 @pytest.mark.django_db
+def test_inactive_profile_answers_without_rank(client, playstation):
+    _user("banned", hardcore_points=999, softcore_points=9999, is_active=False)
+
+    resp = _get(client, "/users/banned/")
+
+    assert resp.status_code == HTTPStatus.OK
+    assert resp.context["ranks"] == (None, None)
+    assert "unranked" in resp.content.decode()
+
+
+@pytest.mark.django_db
 def test_profile_shows_points_grouped_in_brazilian_portuguese(client, playstation):
     _user("teste", softcore_points=1500)
     body = client.get("/users/teste/", HTTP_ACCEPT_LANGUAGE="pt-br").content.decode()

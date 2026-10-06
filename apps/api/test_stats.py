@@ -134,9 +134,10 @@ def test_user_summary_leaves_users_without_points_unranked(client, crash):
 
 @pytest.mark.django_db
 def test_user_summary_leaves_inactive_users_unranked(client, crash):
-    data = client.get(f"/api/users/{SYSTEM_ACCOUNT}/").json()
+    response = client.get(f"/api/users/{SYSTEM_ACCOUNT}/")
 
-    assert data["Rank"] == {"Hardcore": None, "Softcore": None}
+    assert response.status_code == HTTPStatus.OK
+    assert response.json()["Rank"] == {"Hardcore": None, "Softcore": None}
 
 
 @pytest.mark.django_db

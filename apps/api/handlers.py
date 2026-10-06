@@ -22,6 +22,7 @@ from apps.anticheat.detection import (
 )
 from apps.api.auth import is_expired_token, user_from_token
 from apps.core.stats import (
+    leaderboard_entries,
     published_achievement_count,
     published_unlocks,
     rank_by_score,
@@ -595,11 +596,13 @@ TOP_ENTRIES_LIMIT = 10
 
 
 def _rank_of(leaderboard, score):
-    return rank_by_score(leaderboard.entries.all(), leaderboard.lower_is_better, score)
+    return rank_by_score(leaderboard_entries(leaderboard), leaderboard.lower_is_better, score)
 
 
 def _ranked_entries(leaderboard, offset, count):
-    return ranked_entries(leaderboard.entries.all(), leaderboard.lower_is_better, offset, count)
+    return ranked_entries(
+        leaderboard_entries(leaderboard), leaderboard.lower_is_better, offset, count
+    )
 
 
 def _top_entries(leaderboard):
@@ -668,7 +671,7 @@ def handle_submitlbentry(request):
             "BestScore": entry.score,
             "RankInfo": {
                 "Rank": _rank_of(leaderboard, entry.score),
-                "NumEntries": leaderboard.entries.count(),
+                "NumEntries": leaderboard_entries(leaderboard).count(),
             },
             "TopEntries": _top_entries(leaderboard),
         },
@@ -688,7 +691,8 @@ def _rcheevos_datetime(moment):
 def _position_of(leaderboard, entry):
     """1-based index of `entry` on the board: its rank plus the ties submitted before it."""
     earlier_ties = (
-        leaderboard.entries.filter(score=entry.score)
+        leaderboard_entries(leaderboard)
+        .filter(score=entry.score)
         .filter(
             Q(submitted_at__lt=entry.submitted_at)
             | Q(submitted_at=entry.submitted_at, id__lt=entry.id)
@@ -726,10 +730,14 @@ def handle_lbinfo(request):
     if leaderboard is None:
         return _not_found("leaderboard")
 
-    total = leaderboard.entries.count()
+    total = leaderboard_entries(leaderboard).count()
     username = request.POST.get("u", "")
     # An unknown user, or one without an entry, gets the page `o` names, as on RA.
-    user_entry = leaderboard.entries.filter(user__username=username).first() if username else None
+    user_entry = (
+        leaderboard_entries(leaderboard).filter(user__username=username).first()
+        if username
+        else None
+    )
     if user_entry is not None:
         offset = _offset_around(_position_of(leaderboard, user_entry), count, total)
 
