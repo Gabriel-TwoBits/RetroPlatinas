@@ -1,7 +1,9 @@
-"""Rankings, point totals and completion, shared by the API and the site pages.
+"""Rankings, point totals and completion for the stats API, the `dorequest.php` leaderboard
+handlers and, later, the site pages.
 
 Only published achievements count. Inactive accounts (system accounts such as `ra-import`,
-deactivated users) hold no rank and are left out of player lists and leaderboards.
+deactivated users) hold no rank and are left out of player lists and `leaderboard_entries`; the
+leaderboard rank helpers rank whichever entries they are given.
 """
 
 from typing import NamedTuple
