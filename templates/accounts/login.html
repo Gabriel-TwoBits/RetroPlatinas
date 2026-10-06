@@ -4,11 +4,13 @@
 {% block title %}{% trans "Log in" %} — RetroPlatinas{% endblock %}
 
 {% block content %}
-<h1>{% trans "Log in" %}</h1>
-<form method="post">
-  {% csrf_token %}
-  {{ form.as_p }}
-  <button type="submit">{% trans "Log in" %}</button>
-</form>
-<p>{% trans "No account yet?" %} <a href="{% url 'register' %}">{% trans "Register" %}</a></p>
+<div class="mx-auto max-w-sm px-4 py-10">
+  <h1 class="border-b border-line2 pb-3 font-display text-2xl font-bold text-txt">{% trans "Log in" %}</h1>
+  <form method="post" class="rp-form mt-6">
+    {% csrf_token %}
+    {% include "components/form-fields.html" %}
+    <button type="submit" class="mt-2 w-full rounded-tile bg-brand px-4 py-2.5 font-display text-sm font-bold text-brand-ink">{% trans "Log in" %}</button>
+  </form>
+  <p class="mt-6 border-t border-line pt-4 text-sm text-txt-muted">{% trans "No account yet?" %} <a href="{% url 'register' %}" class="text-brand">{% trans "Register" %}</a></p>
+</div>
 {% endblock %}
