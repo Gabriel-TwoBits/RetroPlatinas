@@ -247,16 +247,9 @@ def _game_from_request(request):
         return None
 
 
-def _achievements_visible_to(user):
-    return Achievement.objects.filter(
-        Q(status__in=Achievement.PUBLISHED_STATUSES)
-        | Q(status=Achievement.STATUS_DRAFT, author=user)
-    )
-
-
 def _served_achievements(user, game):
     return (
-        _achievements_visible_to(user)
+        Achievement.objects.visible_to(user)
         .filter(game=game)
         .select_related("author")
         .annotate(
@@ -518,7 +511,10 @@ def handle_awardachievement(request):
 
     # Another user's draft answers as unknown, so drafts stay invisible to everyone but the author.
     achievement = (
-        _achievements_visible_to(user).select_related("game").filter(pk=achievement_id).first()
+        Achievement.objects.visible_to(user)
+        .select_related("game")
+        .filter(pk=achievement_id)
+        .first()
     )
     if achievement is None:
         return _ACHIEVEMENT_NOT_FOUND
@@ -897,7 +893,10 @@ def handle_achievementwondata(request):
     count = min(count, ACHIEVEMENTWONDATA_MAX_COUNT)
 
     achievement = (
-        _achievements_visible_to(user).select_related("game").filter(pk=achievement_id).first()
+        Achievement.objects.visible_to(user)
+        .select_related("game")
+        .filter(pk=achievement_id)
+        .first()
     )
     if achievement is None:
         return _ACHIEVEMENT_NOT_FOUND

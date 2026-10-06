@@ -27,7 +27,6 @@ from apps.api.handlers import (
     _MISSING_PARAMETER,
     ACHIEVEMENT_FLAGS_CORE,
     ACHIEVEMENT_FLAGS_UNOFFICIAL,
-    _achievements_visible_to,
     _authenticate,
     _flag_param,
     _invalid_parameter,
@@ -367,7 +366,7 @@ def _update_achievement(user, achievement_id, game_id, fields):
     if user.is_staff:
         editable = Achievement.objects.all()
     else:
-        editable = _achievements_visible_to(user)
+        editable = Achievement.objects.visible_to(user)
     with transaction.atomic():
         achievement = editable.filter(pk=achievement_id).first()
         if achievement is None:

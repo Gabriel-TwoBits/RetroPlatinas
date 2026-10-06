@@ -126,6 +126,17 @@ def is_known_badge_name(name):
     return name == PLACEHOLDER_BADGE_NAME or Badge.objects.named(name) is not None
 
 
+class AchievementQuerySet(models.QuerySet):
+    def visible_to(self, user):
+        """The published achievements, plus `user`'s own drafts: another user's draft (and every
+        draft, for an anonymous visitor) does not exist outside the admin."""
+        published = models.Q(status__in=Achievement.PUBLISHED_STATUSES)
+        if user.is_authenticated:
+            return self.filter(published | models.Q(status=Achievement.STATUS_DRAFT, author=user))
+        else:
+            return self.filter(published)
+
+
 class Achievement(models.Model):
     STATUS_DRAFT = "draft"
     STATUS_COMMUNITY = "community"
@@ -187,6 +198,8 @@ class Achievement(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("created at"))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=_("updated at"))
+
+    objects = AchievementQuerySet.as_manager()
 
     class Meta:
         verbose_name = _("achievement")
