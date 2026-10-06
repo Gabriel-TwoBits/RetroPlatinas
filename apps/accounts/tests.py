@@ -271,11 +271,48 @@ def test_profile_panel_for_a_hidden_section_is_gone(client, tab):
 
 
 @pytest.mark.django_db
-def test_profile_hides_sections_without_a_concept(client):
+@pytest.mark.parametrize(
+    "path",
+    [
+        "/users/teste/",
+        *(f"/users/teste/panel/{tab}/" for tab in ["overview", "awards", "games", "progress"]),
+    ],
+)
+def test_profile_hides_sections_without_a_concept(client, path):
     User.objects.create_user(username="teste", password="pw-secret-123")
-    body = client.get("/users/teste/", HTTP_ACCEPT_LANGUAGE="en").content.decode()
-    for hidden in ["Event awards", "User wall", "RetroRatio", "Forum posts", "weighted"]:
+    body = client.get(path, HTTP_ACCEPT_LANGUAGE="en").content.decode()
+    for hidden in [
+        "Event awards",
+        "User wall",
+        "RetroRatio",
+        "Forum posts",
+        "weighted",
+        "Sets requested",
+        "retail",
+    ]:
         assert hidden not in body
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    ("tab", "english", "portuguese"),
+    [
+        ("overview", "Recent progress", "Progresso recente"),
+        ("awards", "game awards", "prêmios de jogo"),
+        ("games", "Recently played", "Jogados recentemente"),
+        ("progress", "Progress by console", "Progresso por console"),
+    ],
+)
+@pytest.mark.parametrize("language", ["en", "pt-br"])
+def test_profile_panels_render_in_each_language(client, tab, english, portuguese, language):
+    User.objects.create_user(username="teste", password="pw-secret-123")
+    resp = client.get(f"/users/teste/panel/{tab}/", HTTP_ACCEPT_LANGUAGE=language)
+    assert resp.status_code == 200
+    assert resp.headers["Content-Language"] == language
+    if language == "en":
+        assert english in resp.content.decode()
+    else:
+        assert portuguese in resp.content.decode()
 
 
 @pytest.mark.django_db
@@ -309,7 +346,9 @@ def test_profile_ships_no_dead_actions(client):
     client.login(username="teste", password="pw-secret-123")
 
     page = client.get("/users/teste/", HTTP_ACCEPT_LANGUAGE="en").content.decode()
-    progress = client.get("/users/teste/panel/progress/", HTTP_ACCEPT_LANGUAGE="en").content.decode()
+    progress = client.get(
+        "/users/teste/panel/progress/", HTTP_ACCEPT_LANGUAGE="en"
+    ).content.decode()
 
     for html in (page, progress):
         assert 'href="#"' not in html
