@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Edit profile" %} — RetroPlatinas{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-sm px-4 py-10">
+  <h1 class="border-b border-line2 pb-3 font-display text-2xl font-bold text-txt">{% trans "Edit profile" %}</h1>
+  <form method="post" class="rp-form mt-6">
+    {% csrf_token %}
+    {% include "components/form-fields.html" %}
+    <button type="submit" class="mt-2 w-full rounded-tile bg-brand px-4 py-2.5 font-display text-sm font-bold text-brand-ink">{% trans "Save profile" %}</button>
+  </form>
+  <div class="mt-6 border-t border-line pt-4 text-sm text-txt-muted">
+    <a href="{% url 'user_detail' profile_user.username %}" class="text-brand">{% trans "Back to your profile" %}</a>
+  </div>
+</div>
+{% endblock %}

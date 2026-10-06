@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.utils.translation import gettext_lazy as _
 
-from apps.accounts.models import User
+from apps.accounts.models import BIO_MAX_LENGTH, User
 
 
 class RegistrationForm(UserCreationForm):
@@ -17,3 +17,16 @@ class RegistrationForm(UserCreationForm):
         if User.objects.filter(email__iexact=email).exists():
             raise forms.ValidationError(_("A user with that email already exists."))
         return email
+
+
+class ProfileForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ("bio",)
+        widgets = {"bio": forms.Textarea}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["bio"].help_text = _("Shown on your profile, up to %(limit)s characters.") % {
+            "limit": BIO_MAX_LENGTH
+        }

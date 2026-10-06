@@ -1,4 +1,4 @@
-"""The profile page and its mobile panels, over real unlocks and sessions."""
+"""The profile page, its mobile panels and the edit-profile page, over real unlocks and sessions."""
 
 import re
 from datetime import timedelta
@@ -10,6 +10,7 @@ from django.db import connection
 from django.test.utils import CaptureQueriesContext
 from django.utils import timezone
 
+from apps.accounts.models import BIO_MAX_LENGTH
 from apps.accounts.profile import (
     AWARDS_SHOWN,
     RECENT_GAMES_SHOWN,
@@ -385,6 +386,78 @@ def test_stale_session_shows_last_played_without_rich_presence(client, crash, pl
     assert "Playing now" not in body
     assert "Last played" in body
     assert "Level 3" not in body
+
+
+# --- Owner vs visitor, edit profile ---
+
+
+@pytest.mark.django_db
+def test_edit_profile_button_only_for_the_owner(client, player):
+    other = _user("other")
+    assert "Edit profile" not in _get(client, "/users/teste/").content.decode()
+    client.force_login(other)
+    assert "Edit profile" not in _get(client, "/users/teste/").content.decode()
+    client.force_login(player)
+    assert 'href="/users/teste/edit/"' in _get(client, "/users/teste/").content.decode()
+
+
+@pytest.mark.django_db
+def test_edit_profile_redirects_an_anonymous_user_to_login(client, player):
+    for resp in (client.get("/users/teste/edit/"), client.post("/users/teste/edit/", {})):
+        assert resp.status_code == HTTPStatus.FOUND
+        assert resp.url == "/login/?next=/users/teste/edit/"
+
+
+@pytest.mark.django_db
+def test_edit_profile_forbids_another_user(client, player):
+    client.force_login(_user("other"))
+    assert client.get("/users/teste/edit/").status_code == HTTPStatus.FORBIDDEN
+    resp = client.post("/users/teste/edit/", {"bio": "hijacked"})
+    assert resp.status_code == HTTPStatus.FORBIDDEN
+    player.refresh_from_db()
+    assert player.bio == ""
+
+
+@pytest.mark.django_db
+def test_edit_profile_404_for_missing_user(client, player):
+    client.force_login(player)
+    assert client.get("/users/ghost/edit/").status_code == HTTPStatus.NOT_FOUND
+
+
+@pytest.mark.django_db
+def test_owner_edits_the_bio(client, player):
+    client.force_login(player)
+    assert "Edit profile" in _get(client, "/users/teste/edit/").content.decode()
+
+    resp = client.post("/users/teste/edit/", {"bio": "Platinum hunter."})
+
+    assert resp.status_code == HTTPStatus.FOUND
+    assert resp.url == "/users/teste/"
+    player.refresh_from_db()
+    assert player.bio == "Platinum hunter."
+    assert "Platinum hunter." in _get(client, "/users/teste/").content.decode()
+
+
+@pytest.mark.django_db
+def test_owner_clears_the_bio(client, player):
+    player.bio = "Old bio"
+    player.save()
+    client.force_login(player)
+    client.post("/users/teste/edit/", {"bio": ""})
+    player.refresh_from_db()
+    assert player.bio == ""
+
+
+@pytest.mark.django_db
+def test_edit_profile_rejects_a_bio_over_the_limit(client, player):
+    client.force_login(player)
+    resp = client.post(
+        "/users/teste/edit/", {"bio": "x" * (BIO_MAX_LENGTH + 1)}, HTTP_ACCEPT_LANGUAGE="en"
+    )
+    assert resp.status_code == HTTPStatus.OK
+    assert "Ensure this value has at most" in resp.content.decode()
+    player.refresh_from_db()
+    assert player.bio == ""
 
 
 # --- Panels and page structure ---
