@@ -12,8 +12,10 @@
     {% else %}
       {% include "components/stat-line.html" with label=_("Average completion") sub=_("per game") value=average_completion|stringformat:"d%%" %}
     {% endif %}
-    {% include "components/stat-line.html" with label=_("Points (7 days)") sub=_("any mode") value=points_short_window|intcomma %}
-    {% include "components/stat-line.html" with label=_("Points (30 days)") sub=_("any mode") value=points_long_window|intcomma %}
+    {% blocktrans count days=short_window_days asvar short_window_label %}Points ({{ days }} day){% plural %}Points ({{ days }} days){% endblocktrans %}
+    {% include "components/stat-line.html" with label=short_window_label sub=_("any mode") value=points_short_window|intcomma %}
+    {% blocktrans count days=long_window_days asvar long_window_label %}Points ({{ days }} day){% plural %}Points ({{ days }} days){% endblocktrans %}
+    {% include "components/stat-line.html" with label=long_window_label sub=_("any mode") value=points_long_window|intcomma %}
     {% include "components/stat-line.html" with label=_("Average per week") sub=_("points since joining") value=points_per_week|intcomma %}
   </div>
 </section>

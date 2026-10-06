@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RetroPlatinas\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-06 15:52-0300\n"
+"POT-Creation-Date: 2026-10-06 16:08-0300\n"
 "PO-Revision-Date: 2026-05-23 18:15-0300\n"
 "Last-Translator: RetroPlatinas\n"
 "Language-Team: Brazilian Portuguese\n"
@@ -41,17 +41,17 @@ msgstr "Zerado"
 msgid "In progress"
 msgstr "Em andamento"
 
-#: apps/accounts/profile.py:83
+#: apps/accounts/profile.py:84
 #, python-format
 msgid "%(hours)s h"
 msgstr "%(hours)s h"
 
-#: apps/accounts/profile.py:85
+#: apps/accounts/profile.py:86
 #, python-format
 msgid "%(minutes)s min"
 msgstr "%(minutes)s min"
 
-#: apps/accounts/profile.py:91
+#: apps/accounts/profile.py:92
 #, python-format
 msgid ""
 "%(console)s · %(unlocked)s/%(total)s achievements (%(hardcore)s hardcore) · "
@@ -60,7 +60,7 @@ msgstr ""
 "%(console)s · %(unlocked)s/%(total)s conquistas (%(hardcore)s hardcore) · "
 "%(points_unlocked)s/%(points)s pts · %(playtime)s de jogo · %(when)s"
 
-#: apps/accounts/profile.py:161
+#: apps/accounts/profile.py:162
 msgid "Total"
 msgstr "Total"
 
@@ -650,8 +650,11 @@ msgstr "Progresso recente"
 
 #: templates/accounts/partials/panel-overview.html:13
 #: templates/accounts/partials/sec-heat.html:10
-msgid "14d ago"
-msgstr "há 14 dias"
+#, python-format
+msgid "%(days)sd ago"
+msgid_plural "%(days)sd ago"
+msgstr[0] "há %(days)s dia"
+msgstr[1] "há %(days)s dias"
 
 #: templates/accounts/partials/panel-overview.html:14
 #: templates/accounts/partials/sec-heat.html:11
@@ -777,23 +780,23 @@ msgid "per game"
 msgstr "por jogo"
 
 #: templates/accounts/partials/sec-stats.html:15
-msgid "Points (7 days)"
-msgstr "Pontos (7 dias)"
+#: templates/accounts/partials/sec-stats.html:17
+#, python-format
+msgid "Points (%(days)s day)"
+msgid_plural "Points (%(days)s days)"
+msgstr[0] "Pontos (%(days)s dia)"
+msgstr[1] "Pontos (%(days)s dias)"
 
-#: templates/accounts/partials/sec-stats.html:15
 #: templates/accounts/partials/sec-stats.html:16
+#: templates/accounts/partials/sec-stats.html:18
 msgid "any mode"
 msgstr "qualquer modo"
 
-#: templates/accounts/partials/sec-stats.html:16
-msgid "Points (30 days)"
-msgstr "Pontos (30 dias)"
-
-#: templates/accounts/partials/sec-stats.html:17
+#: templates/accounts/partials/sec-stats.html:19
 msgid "Average per week"
 msgstr "Média por semana"
 
-#: templates/accounts/partials/sec-stats.html:17
+#: templates/accounts/partials/sec-stats.html:19
 msgid "points since joining"
 msgstr "pontos desde o cadastro"
 
@@ -1172,6 +1175,12 @@ msgstr "Codeberg — repositório"
 #: templates/home.html:158
 msgid "Licensed under AGPL-3.0"
 msgstr "Licenciado sob a AGPL-3.0"
+
+#~ msgid "14d ago"
+#~ msgstr "há 14 dias"
+
+#~ msgid "Points (30 days)"
+#~ msgstr "Pontos (30 dias)"
 
 #~ msgid "HARDCORE"
 #~ msgstr "HARDCORE"

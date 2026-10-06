@@ -13,8 +13,11 @@ from django.utils import timezone
 from apps.accounts.models import BIO_MAX_LENGTH
 from apps.accounts.profile import (
     AWARDS_SHOWN,
+    HEAT_DAYS,
+    LONG_WINDOW,
     RECENT_GAMES_SHOWN,
     RECENT_UNLOCKS_SHOWN,
+    SHORT_WINDOW,
     VALID_TABS,
 )
 from apps.achievements.models import Achievement, UserUnlock
@@ -387,6 +390,22 @@ def test_points_windows_and_heat_count_each_achievement_once(client, crash, play
 
 
 # --- Playing now ---
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    ("language", "window_label", "heat_label"),
+    [("en", "Points ({} days)", "{}d ago"), ("pt-br", "Pontos ({} dias)", "há {} dias")],
+)
+@pytest.mark.parametrize("path", ["/users/teste/", "/users/teste/panel/overview/"])
+def test_window_and_heat_labels_follow_their_spans(
+    client, player, path, language, window_label, heat_label
+):
+    body = client.get(path, HTTP_ACCEPT_LANGUAGE=language).content.decode()
+    assert window_label.format(SHORT_WINDOW.days) in body
+    assert window_label.format(LONG_WINDOW.days) in body
+    # The oldest bar is `HEAT_DAYS - 1` days before today's.
+    assert heat_label.format(HEAT_DAYS - 1) in body
 
 
 @pytest.mark.django_db
