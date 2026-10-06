@@ -61,6 +61,7 @@ COLLECTIBLE_POINTS = {
     LIVES_TITLE: CHALLENGE_POINTS,
     NO_WUMPA_TITLE: CHALLENGE_POINTS,
 }
+EDITED_COLLECTIBLE_POINTS = 15  # no collectible achievement is seeded with this value
 NSANITY_BEACH_LEVEL_ID = dict(LEVEL_ACHIEVEMENTS)["N. Sanity Beach"]
 MAX_RICH_PRESENCE_SCRIPT_BYTES = 65535  # the RetroAchievements limit on a script
 MEM_ADDR_CHECKER = Path(__file__).resolve().parents[2] / "scripts" / "check-mem-addr.sh"
@@ -579,7 +580,7 @@ def test_seed_collectible_achievements_updates_an_existing_condition_by_title(pl
     stale = Achievement.objects.get(title=AKU_TITLE)
     stale.mem_addr = "0xH000189=3"
     stale.description = "old"
-    stale.points = EDITED_POINTS + WUMPA_POINTS
+    stale.points = EDITED_COLLECTIBLE_POINTS
     stale.status = Achievement.STATUS_VERIFIED
     stale.save()
     UserUnlock.objects.create(user=user, achievement=stale, hardcore=False)
@@ -593,7 +594,7 @@ def test_seed_collectible_achievements_updates_an_existing_condition_by_title(pl
     }
     assert (updated.description, updated.mem_addr) == seeded[AKU_TITLE]
     assert (updated.points, updated.status) == (
-        EDITED_POINTS + WUMPA_POINTS,
+        EDITED_COLLECTIBLE_POINTS,
         Achievement.STATUS_VERIFIED,
     )
     assert UserUnlock.objects.filter(achievement=updated).count() == 1
