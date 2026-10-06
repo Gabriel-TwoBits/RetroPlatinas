@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RetroPlatinas\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-06 17:55-0300\n"
+"POT-Creation-Date: 2026-10-06 18:01-0300\n"
 "PO-Revision-Date: 2026-05-23 18:15-0300\n"
 "Last-Translator: RetroPlatinas\n"
 "Language-Team: English\n"
@@ -162,11 +162,11 @@ msgstr ""
 msgid "Draft"
 msgstr ""
 
-#: apps/achievements/models.py:146 apps/games/page.py:44 templates/home.html:52
+#: apps/achievements/models.py:146 apps/games/page.py:67 templates/home.html:52
 msgid "Community"
 msgstr ""
 
-#: apps/achievements/models.py:147 apps/games/page.py:43
+#: apps/achievements/models.py:147 apps/games/page.py:66
 msgid "Verified"
 msgstr ""
 
@@ -249,7 +249,7 @@ msgstr ""
 #: templates/accounts/partials/identity-header.html:63
 #: templates/accounts/partials/sec-recent-unlocks.html:15
 #: templates/feed/partials/feed-list.html:14
-#: templates/games/partials/panel-achievements.html:29 templates/home.html:69
+#: templates/games/partials/panel-achievements.html:50 templates/home.html:69
 #: templates/home.html:141
 msgid "hardcore"
 msgstr ""
@@ -269,7 +269,7 @@ msgstr ""
 #: apps/achievements/models.py:243
 #: templates/accounts/partials/identity-header.html:63
 #: templates/accounts/partials/sec-recent-unlocks.html:15
-#: templates/games/partials/panel-achievements.html:29 templates/home.html:70
+#: templates/games/partials/panel-achievements.html:50 templates/home.html:70
 #: templates/home.html:141
 msgid "softcore"
 msgstr ""
@@ -520,18 +520,38 @@ msgid "Locked"
 msgstr ""
 
 #: apps/games/page.py:30
-msgid "No published achievements yet"
-msgstr ""
-
-#: apps/games/page.py:31
 msgid "No achievements unlocked yet"
 msgstr ""
 
-#: apps/games/page.py:32
+#: apps/games/page.py:31
 msgid "Every achievement unlocked"
 msgstr ""
 
-#: apps/games/page.py:45
+#: apps/games/page.py:39
+msgid "Verified only"
+msgstr ""
+
+#: apps/games/page.py:40
+msgid "Verified + Community"
+msgstr ""
+
+#: apps/games/page.py:41
+msgid "All incl. my drafts"
+msgstr ""
+
+#: apps/games/page.py:53
+msgid "No verified achievements yet"
+msgstr ""
+
+#: apps/games/page.py:54
+msgid "No published achievements yet"
+msgstr ""
+
+#: apps/games/page.py:55
+msgid "No published achievements or drafts yet"
+msgstr ""
+
+#: apps/games/page.py:68
 msgid "Your drafts"
 msgstr ""
 
@@ -539,7 +559,11 @@ msgstr ""
 msgid "Invalid games filter"
 msgstr ""
 
-#: apps/games/views.py:73
+#: apps/games/views.py:74
+msgid "Unknown achievement status choice"
+msgstr ""
+
+#: apps/games/views.py:76
 msgid "Unknown achievement filter"
 msgstr ""
 
@@ -860,7 +884,7 @@ msgid "Recent unlocks"
 msgstr ""
 
 #: templates/accounts/partials/sec-recent-unlocks.html:14
-#: templates/games/partials/panel-achievements.html:35
+#: templates/games/partials/panel-achievements.html:56
 #, python-format
 msgid "%(points)s pt"
 msgid_plural "%(points)s pts"
@@ -1203,11 +1227,11 @@ msgid "Apply filters"
 msgstr ""
 
 #: templates/games/partials/panel-achievements.html:3
-msgid "Filter achievements"
+msgid "Show achievements by status"
 msgstr ""
 
-#: templates/games/partials/panel-achievements.html:24
-msgid "draft"
+#: templates/games/partials/panel-achievements.html:11
+msgid "Filter achievements"
 msgstr ""
 
 #: templates/games/partials/panel-leaderboards.html:12

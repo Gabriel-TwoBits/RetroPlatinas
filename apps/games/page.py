@@ -27,9 +27,31 @@ FILTERS = [
 ]
 VALID_FILTERS = [slug for slug, _label in FILTERS]
 EMPTY_TITLES = {
-    FILTER_ALL: _("No published achievements yet"),
     FILTER_UNLOCKED: _("No achievements unlocked yet"),
     FILTER_LOCKED: _("Every achievement unlocked"),
+}
+
+# Which statuses the list shows; drafts are only ever the viewer's own.
+SHOW_VERIFIED = "verified"
+SHOW_PUBLISHED = "published"
+SHOW_ALL = "all"
+SHOW_OPTIONS = [
+    (SHOW_VERIFIED, _("Verified only")),
+    (SHOW_PUBLISHED, _("Verified + Community")),
+    (SHOW_ALL, _("All incl. my drafts")),
+]
+VALID_SHOW_OPTIONS = [slug for slug, _label in SHOW_OPTIONS]
+ANONYMOUS_SHOW_OPTIONS = [(slug, label) for slug, label in SHOW_OPTIONS if slug != SHOW_ALL]
+SHOWN_STATUSES = {
+    SHOW_VERIFIED: (Achievement.STATUS_VERIFIED,),
+    SHOW_PUBLISHED: Achievement.PUBLISHED_STATUSES,
+    SHOW_ALL: (*Achievement.PUBLISHED_STATUSES, Achievement.STATUS_DRAFT),
+}
+# A game with nothing to show under a status choice is empty under every unlock filter.
+SHOW_EMPTY_TITLES = {
+    SHOW_VERIFIED: _("No verified achievements yet"),
+    SHOW_PUBLISHED: _("No published achievements yet"),
+    SHOW_ALL: _("No published achievements or drafts yet"),
 }
 
 # The viewer's state on an achievement; an anonymous visitor's rows carry none.
@@ -77,7 +99,6 @@ def _row(achievement, unlocks, tracked):
         "achievement": achievement,
         "state": state,
         "unlocked_at": unlocks.get(state),
-        "is_draft": achievement.status == Achievement.STATUS_DRAFT,
         "badge_url": badge_path(achievement.badge_name, locked=state == STATE_LOCKED),
     }
 
@@ -104,8 +125,16 @@ def _matches(row, achievement_filter):
         raise ValueError(f"Unknown achievement filter: {achievement_filter}")
 
 
-def _achievements_panel(rows, achievement_filter):
-    shown = [row for row in rows if _matches(row, achievement_filter)]
+def _achievements_panel(rows, viewer, show, achievement_filter):
+    if viewer.is_authenticated:
+        show_options = SHOW_OPTIONS
+    elif show == SHOW_ALL:
+        # An anonymous visitor has no drafts, so including them is the published set.
+        show_options, show = ANONYMOUS_SHOW_OPTIONS, SHOW_PUBLISHED
+    else:
+        show_options = ANONYMOUS_SHOW_OPTIONS
+    in_status = [row for row in rows if row["achievement"].status in SHOWN_STATUSES[show]]
+    shown = [row for row in in_status if _matches(row, achievement_filter)]
     groups = [
         {
             "title": title,
@@ -114,13 +143,17 @@ def _achievements_panel(rows, achievement_filter):
         }
         for status, title, accent in GROUPS
     ]
-    # With nothing to filter, every filter is empty for the same reason: the game has no set.
-    empty_filter = achievement_filter if rows else FILTER_ALL
+    if not in_status or achievement_filter == FILTER_ALL:
+        empty_title = SHOW_EMPTY_TITLES[show]
+    else:
+        empty_title = EMPTY_TITLES[achievement_filter]
     return {
+        "show": show,
+        "show_options": show_options,
         "achievement_filter": achievement_filter,
         "filters": FILTERS,
         "groups": [group for group in groups if group["rows"]],
-        "empty_title": EMPTY_TITLES[empty_filter],
+        "empty_title": empty_title,
     }
 
 
@@ -148,10 +181,12 @@ def _frame(game, viewer, tab):
     }
 
 
-def panel_context(game, viewer, tab, achievement_filter):
-    """One tab of the page, for its HTMX swap; `achievement_filter` applies to achievements."""
+def panel_context(game, viewer, tab, show, achievement_filter):
+    """One tab of the page, for its HTMX swap; `show` and `achievement_filter` apply to
+    achievements."""
     if tab == TAB_ACHIEVEMENTS:
-        panel = _achievements_panel(_achievement_rows(game, viewer), achievement_filter)
+        rows = _achievement_rows(game, viewer)
+        panel = _achievements_panel(rows, viewer, show, achievement_filter)
     elif tab == TAB_LEADERBOARDS:
         panel = _leaderboards_panel(game)
     elif tab == TAB_PLAYERS:
@@ -162,7 +197,7 @@ def panel_context(game, viewer, tab, achievement_filter):
 
 
 def game_context(game, viewer):
-    """The full page: the game's header and its achievements tab, unfiltered."""
+    """The full page: the game's header and its achievements tab, published and unfiltered."""
     rows = _achievement_rows(game, viewer)
     published = [
         row["achievement"]
@@ -171,7 +206,7 @@ def game_context(game, viewer):
     ]
     return {
         **_frame(game, viewer, TAB_ACHIEVEMENTS),
-        **_achievements_panel(rows, FILTER_ALL),
+        **_achievements_panel(rows, viewer, SHOW_PUBLISHED, FILTER_ALL),
         "icon_url": versioned_game_icon_path(game),
         "published_achievements": len(published),
         "published_points": sum(achievement.points for achievement in published),

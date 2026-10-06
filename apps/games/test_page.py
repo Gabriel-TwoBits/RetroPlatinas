@@ -10,9 +10,11 @@ from django.db import connection
 from django.test.utils import CaptureQueriesContext
 from django.utils import timezone
 
+from apps.accounts.models import API_TOKEN_HEX_LENGTH
 from apps.achievements.models import Achievement, UserUnlock
+from apps.api.handlers import ACHIEVEMENT_FLAGS_CORE, API_TOKEN_LIFETIME
 from apps.games.models import Console, Game, PlayerGame
-from apps.games.page import RECENT_PLAYERS_SHOWN, VALID_FILTERS, VALID_TABS
+from apps.games.page import RECENT_PLAYERS_SHOWN, VALID_FILTERS, VALID_SHOW_OPTIONS, VALID_TABS
 from apps.images.catalog import avatar_path, badge_path, versioned_game_icon_path
 from apps.leaderboards.models import Leaderboard, LeaderboardEntry
 
@@ -28,6 +30,9 @@ COMMUNITY_POINTS = 5
 DRAFT_POINTS = 25
 LARGE_POINTS = 1500
 ENTRY_SCORE = 100
+RIVAL_TOKEN = "f" * API_TOKEN_HEX_LENGTH
+SHOW_GROUP = "Show achievements by status"
+FILTERS_GROUP = "Filter achievements"
 # More rows than the page lists, so the cut is visible.
 EXTRA_ROWS = 2
 
@@ -74,6 +79,16 @@ def _panel(client, game, tab, **params):
     response = _get(client, f"/games/{game.pk}/panel/{tab}/", **params)
     assert response.status_code == HTTPStatus.OK
     return response.content.decode()
+
+
+def _pressed(body, group):
+    """The `hx-get` URL of the one pressed chip in the chip group labelled `group`."""
+    start = body.index(f'aria-label="{group}"')
+    chips = body[start : body.index("</div>", start)]
+    assert chips.count('aria-pressed="true"') == 1
+    pressed = chips.index('aria-pressed="true"')
+    url_start = chips.index('hx-get="', pressed) + len('hx-get="')
+    return chips[url_start : chips.index('"', url_start)]
 
 
 def _row(body, title):
@@ -187,25 +202,230 @@ def test_anonymous_visitor_sees_no_drafts_filters_or_unlock_state(client, crash,
     body = _page(client, crash)
     assert "Hidden draft" not in body
     assert "Your drafts" not in body
-    assert "?filter=" not in body
+    assert "Filter achievements" not in body
+    assert "&amp;filter=unlocked" not in body
     assert badge_path(achievements["community"].badge_name) in body
     assert "_lock.png" not in body
 
 
 @pytest.mark.django_db
-def test_drafts_are_shown_only_to_their_author_and_marked(client, crash, achievements, player):
+def test_authors_drafts_are_listed_last_marked_and_out_of_the_totals(
+    client, crash, achievements, player
+):
     _achievement(crash, "My draft", DRAFT_POINTS, status=Achievement.STATUS_DRAFT, author=player)
     client.force_login(player)
-    body = _page(client, crash)
+    body = _panel(client, crash, "achievements", show="all")
     assert body.index(">Community two<") < body.index("Your drafts") < body.index(">My draft<")
-    draft_row = body[body.index(">My draft<") :]
-    assert ">draft</span>" in draft_row[: draft_row.index("</div>")]
+    assert ">Draft</span>" in _status_badge(body, "My draft")
+
+    page = _page(client, crash)
+    assert "My draft" not in page
     # A draft is never worth points, so it stays out of the totals.
     published_points = sum(achievement.points for achievement in achievements.values())
-    assert f'text-gold">{published_points}</div>' in body
+    assert f'text-gold">{published_points}</div>' in page
 
-    client.force_login(_user("someone-else"))
-    assert "My draft" not in _page(client, crash)
+
+# --- Achievements: status visibility ---
+
+AUTHOR = "author"
+OTHER_USER = "other"
+ANONYMOUS = "anonymous"
+VIEWERS = [AUTHOR, OTHER_USER, ANONYMOUS]
+DRAFT_TITLE = "Author draft"
+
+
+@pytest.fixture
+def author(db):
+    return _user("draft-author")
+
+
+@pytest.fixture
+def authors_draft(crash, author):
+    return _achievement(crash, DRAFT_TITLE, status=Achievement.STATUS_DRAFT, author=author)
+
+
+@pytest.fixture
+def rival(db):
+    rival = _user("someone-else")
+    rival.api_token = RIVAL_TOKEN
+    rival.api_token_expires_at = timezone.now() + API_TOKEN_LIFETIME
+    rival.save(update_fields=["api_token", "api_token_expires_at"])
+    return rival
+
+
+@pytest.fixture
+def view_as(client, author, rival):
+    """Logs `client` in as one of `VIEWERS`."""
+
+    def log_in(viewer):
+        if viewer == AUTHOR:
+            client.force_login(author)
+        elif viewer == OTHER_USER:
+            client.force_login(rival)
+        elif viewer == ANONYMOUS:
+            client.logout()
+        else:
+            raise ValueError(f"Unknown viewer: {viewer}")
+
+    return log_in
+
+
+def _status_badge(body, title):
+    """The markup of the row titled `title` after its title: its status badge."""
+    row = body[body.index(f">{title}<") :]
+    return row[: row.index("</div>")]
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("viewer", VIEWERS)
+@pytest.mark.parametrize(
+    ("show", "shown", "hidden"),
+    [
+        ("verified", ["Verified one"], ["Community one", "Community two"]),
+        ("published", ["Verified one", "Community one", "Community two"], []),
+        ("all", ["Verified one", "Community one", "Community two"], []),
+    ],
+)
+def test_show_lists_the_chosen_statuses_and_drafts_only_to_their_author(
+    client, crash, achievements, authors_draft, view_as, viewer, show, shown, hidden
+):
+    view_as(viewer)
+    body = _panel(client, crash, "achievements", show=show)
+    for title in shown:
+        assert f">{title}<" in body
+    for title in hidden:
+        assert f">{title}<" not in body
+    if viewer == AUTHOR and show == "all":
+        assert f">{DRAFT_TITLE}<" in body
+    else:
+        assert DRAFT_TITLE not in body
+    if viewer == ANONYMOUS and show == "all":
+        # Without drafts of their own, an anonymous visitor's "all" is the published set.
+        pressed = "published"
+    else:
+        pressed = show
+    assert f"/games/{crash.pk}/panel/achievements/?show={pressed}&" in _pressed(body, SHOW_GROUP)
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("viewer", VIEWERS)
+def test_page_opens_on_verified_and_community(
+    client, crash, achievements, authors_draft, view_as, viewer
+):
+    view_as(viewer)
+    body = _page(client, crash)
+    assert _pressed(body, SHOW_GROUP).endswith("?show=published&amp;filter=all")
+    assert ">Verified one<" in body and ">Community one<" in body
+    assert DRAFT_TITLE not in body
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    ("viewer", "offered"),
+    [(AUTHOR, ["verified", "published", "all"]), (ANONYMOUS, ["verified", "published"])],
+)
+def test_only_a_logged_in_viewer_is_offered_their_drafts(
+    client, crash, achievements, view_as, viewer, offered
+):
+    view_as(viewer)
+    body = _page(client, crash)
+    group = body[body.index(f'aria-label="{SHOW_GROUP}"') :]
+    group = group[: group.index("</div>")]
+    assert group.count("<button") == len(offered)
+    for slug in offered:
+        assert f"?show={slug}&amp;filter=all" in group
+    assert ("All incl. my drafts" in group) == ("all" in offered)
+
+
+@pytest.mark.django_db
+def test_published_draft_is_visible_to_everyone_and_served_as_official(
+    client, admin_client, crash, authors_draft, rival, view_as
+):
+    for viewer in (OTHER_USER, ANONYMOUS):
+        view_as(viewer)
+        for show in VALID_SHOW_OPTIONS:
+            assert DRAFT_TITLE not in _panel(client, crash, "achievements", show=show)
+
+    admin_client.post(
+        "/admin/achievements/achievement/",
+        {"action": "publish_as_community", "_selected_action": [authors_draft.pk]},
+    )
+
+    for viewer in VIEWERS:
+        view_as(viewer)
+        assert ">Community</span>" in _status_badge(_page(client, crash), DRAFT_TITLE)
+    data = client.post(
+        "/dorequest.php",
+        {"r": "achievementsets", "u": rival.username, "t": RIVAL_TOKEN, "g": crash.pk},
+    ).json()
+    served = {a["Title"]: a["Flags"] for a in data["Sets"][0]["Achievements"]}
+    assert served == {DRAFT_TITLE: ACHIEVEMENT_FLAGS_CORE}
+
+
+@pytest.mark.django_db
+def test_every_achievement_carries_its_status_badge(client, crash, achievements, author):
+    _achievement(crash, "My draft", status=Achievement.STATUS_DRAFT, author=author)
+    client.force_login(author)
+    body = _panel(client, crash, "achievements", show="all")
+    verified = _status_badge(body, "Verified one")
+    assert (
+        "text-state-platinum" in verified and "<svg" in verified and ">Verified</span>" in verified
+    )
+    for title in ("Community one", "Community two"):
+        assert 'text-brand">Community</span>' in _status_badge(body, title)
+    assert 'text-gold">Draft</span>' in _status_badge(body, "My draft")
+
+
+@pytest.mark.django_db
+def test_status_badges_follow_the_viewer_language(client, crash, achievements):
+    body = client.get(f"/games/{crash.pk}/", HTTP_ACCEPT_LANGUAGE="pt-br").content.decode()
+    assert ">Verificado</span>" in _status_badge(body, "Verified one")
+    assert "Somente verificadas" in body
+
+
+@pytest.mark.django_db
+def test_show_and_filter_combine_and_keep_each_other(client, crash, achievements, player):
+    _unlock(player, achievements["verified"], hardcore=True)
+    client.force_login(player)
+    body = _panel(client, crash, "achievements", show="verified", filter="locked")
+    assert "Every achievement unlocked" in body
+    assert _pressed(body, SHOW_GROUP).endswith("?show=verified&amp;filter=locked")
+    assert _pressed(body, FILTERS_GROUP).endswith("?show=verified&amp;filter=locked")
+    assert "?show=published&amp;filter=locked" in body
+    assert "?show=verified&amp;filter=unlocked" in body
+
+    body = _panel(client, crash, "achievements", show="published", filter="locked")
+    assert ">Community one<" in body and ">Verified one<" not in body
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    ("show", "empty_title"),
+    [
+        ("verified", "No verified achievements yet"),
+        ("published", "No published achievements yet"),
+        ("all", "No published achievements or drafts yet"),
+    ],
+)
+@pytest.mark.parametrize("achievement_filter", VALID_FILTERS)
+def test_a_status_choice_with_nothing_to_show_says_so_under_every_filter(
+    client, crash, author, show, empty_title, achievement_filter
+):
+    if show == "verified":
+        _achievement(crash, "Community only")
+    client.force_login(author)
+    body = _panel(client, crash, "achievements", show=show, filter=achievement_filter)
+    assert empty_title in body
+    assert "Every achievement unlocked" not in body
+
+
+@pytest.mark.django_db
+def test_unknown_status_choice_answers_400_in_the_viewer_language(client, crash):
+    response = client.get(
+        f"/games/{crash.pk}/panel/achievements/", {"show": "drafts"}, HTTP_ACCEPT_LANGUAGE="pt-br"
+    )
+    assert response.status_code == HTTPStatus.BAD_REQUEST
+    assert response.content.decode() == "Escolha de status de conquista desconhecida"
 
 
 # --- Achievements: the viewer's unlocks ---
@@ -266,10 +486,8 @@ def test_logged_in_user_gets_the_filters_with_all_active(client, crash, achievem
     client.force_login(player)
     body = _page(client, crash)
     for slug in VALID_FILTERS:
-        assert f'hx-get="/games/{crash.pk}/panel/achievements/?filter={slug}"' in body
-    assert body.count('aria-pressed="true"') == 1
-    pressed = body.index('aria-pressed="true"')
-    assert "?filter=all" in body[pressed : body.index("</button>", pressed)]
+        assert f'"/games/{crash.pk}/panel/achievements/?show=published&amp;filter={slug}"' in body
+    assert _pressed(body, FILTERS_GROUP).endswith("filter=all")
 
 
 @pytest.mark.django_db
@@ -294,16 +512,15 @@ def test_filter_returns_a_fragment_with_the_matching_achievements(
         assert f">{title}<" in body
     for title in hidden:
         assert f">{title}<" not in body
-    pressed = body.index('aria-pressed="true"')
-    assert f"?filter={achievement_filter}" in body[pressed : body.index("</button>", pressed)]
+    assert _pressed(body, FILTERS_GROUP).endswith(f"filter={achievement_filter}")
 
 
 @pytest.mark.django_db
 def test_filter_applies_to_the_authors_drafts(client, crash, player):
     _achievement(crash, "My draft", status=Achievement.STATUS_DRAFT, author=player)
     client.force_login(player)
-    assert ">My draft<" in _panel(client, crash, "achievements", filter="locked")
-    assert ">My draft<" not in _panel(client, crash, "achievements", filter="unlocked")
+    assert ">My draft<" in _panel(client, crash, "achievements", show="all", filter="locked")
+    assert ">My draft<" not in _panel(client, crash, "achievements", show="all", filter="unlocked")
 
 
 @pytest.mark.django_db

@@ -1,13 +1,22 @@
 {% load i18n %}
-{% if viewer_tracked %}
-  <div role="group" aria-label="{% trans 'Filter achievements' %}" class="mb-4 flex flex-wrap gap-2">
-    {% for slug, label in filters %}
-      <button type="button" aria-pressed="{% if slug == achievement_filter %}true{% else %}false{% endif %}"
-              class="rounded-chip border px-3 py-1 font-mono text-xs {% if slug == achievement_filter %}border-brand text-brand{% else %}border-line2 text-txt-muted hover:text-brand-hi{% endif %}"
-              hx-get="{% url 'game_panel' game.pk 'achievements' %}?filter={{ slug }}" hx-target="#game-tabs">{{ label }}</button>
+<div class="mb-4 flex flex-col gap-2">
+  <div role="group" aria-label="{% trans 'Show achievements by status' %}" class="flex flex-wrap gap-2">
+    {% for slug, label in show_options %}
+      <button type="button" aria-pressed="{% if slug == show %}true{% else %}false{% endif %}"
+              class="rounded-chip border px-3 py-1 font-mono text-xs {% if slug == show %}border-brand text-brand{% else %}border-line2 text-txt-muted hover:text-brand-hi{% endif %}"
+              hx-get="{% url 'game_panel' game.pk 'achievements' %}?show={{ slug }}&amp;filter={{ achievement_filter }}" hx-target="#game-tabs">{{ label }}</button>
     {% endfor %}
   </div>
-{% endif %}
+  {% if viewer_tracked %}
+    <div role="group" aria-label="{% trans 'Filter achievements' %}" class="flex flex-wrap gap-2">
+      {% for slug, label in filters %}
+        <button type="button" aria-pressed="{% if slug == achievement_filter %}true{% else %}false{% endif %}"
+                class="rounded-chip border px-3 py-1 font-mono text-xs {% if slug == achievement_filter %}border-brand text-brand{% else %}border-line2 text-txt-muted hover:text-brand-hi{% endif %}"
+                hx-get="{% url 'game_panel' game.pk 'achievements' %}?show={{ show }}&amp;filter={{ slug }}" hx-target="#game-tabs">{{ label }}</button>
+      {% endfor %}
+    </div>
+  {% endif %}
+</div>
 <div class="flex flex-col gap-8">
   {% for group in groups %}
     <section>
@@ -21,7 +30,19 @@
               <div class="min-w-0 flex-1">
                 <div class="flex flex-wrap items-baseline gap-x-2 text-sm font-semibold {% if row.state == 'locked' %}text-txt-muted{% else %}text-txt{% endif %}">
                   <span class="break-words">{{ achievement.title }}</span>
-                  {% if row.is_draft %}<span class="font-mono text-xs font-normal text-gold">{% trans "draft" %}</span>{% endif %}
+                  {% if achievement.status == "verified" %}
+                    <span class="inline-flex items-center gap-1 rounded-chip border border-state-platinum px-1.5 font-mono text-xs font-normal text-state-platinum">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                        <path d="M7 12.5 L10.5 16 L17 9" stroke="currentColor" stroke-width="2" fill="none"/>
+                      </svg>{{ achievement.get_status_display }}</span>
+                  {% elif achievement.status == "community" %}
+                    <span class="rounded-chip border border-brand-dim px-1.5 font-mono text-xs font-normal text-brand">{{ achievement.get_status_display }}</span>
+                  {% elif achievement.status == "draft" %}
+                    <span class="rounded-chip border border-gold-dim px-1.5 font-mono text-xs font-normal text-gold">{{ achievement.get_status_display }}</span>
+                  {% else %}
+                    <span class="rounded-chip border border-line2 px-1.5 font-mono text-xs font-normal text-txt-muted">{{ achievement.get_status_display }}</span>
+                  {% endif %}
                 </div>
                 <div class="mt-1 break-words text-xs leading-snug {% if row.state == 'locked' %}text-txt-faint{% else %}text-txt-muted{% endif %}">{{ achievement.description }}</div>
                 {% if row.unlocked_at %}
