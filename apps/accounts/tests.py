@@ -304,20 +304,17 @@ def test_profile_panel_rejects_unknown_tab(client):
 
 
 @pytest.mark.django_db
-def test_edit_button_only_for_owner(client):
-    User.objects.create_user(username="teste", email="teste@example.com", password="pw-secret-123")
-    User.objects.create_user(username="other", email="other@example.com", password="pw-secret-123")
-
-    resp = client.get("/users/teste/", HTTP_ACCEPT_LANGUAGE="en")
-    assert "Edit profile" not in resp.content.decode()
-
-    client.login(username="other", password="pw-secret-123")
-    resp = client.get("/users/teste/", HTTP_ACCEPT_LANGUAGE="en")
-    assert "Edit profile" not in resp.content.decode()
-
+def test_profile_ships_no_dead_actions(client):
+    User.objects.create_user(username="teste", password="pw-secret-123")
     client.login(username="teste", password="pw-secret-123")
-    resp = client.get("/users/teste/", HTTP_ACCEPT_LANGUAGE="en")
-    assert "Edit profile" in resp.content.decode()
+
+    page = client.get("/users/teste/", HTTP_ACCEPT_LANGUAGE="en").content.decode()
+    progress = client.get("/users/teste/panel/progress/", HTTP_ACCEPT_LANGUAGE="en").content.decode()
+
+    for html in (page, progress):
+        assert 'href="#"' not in html
+        assert "Edit profile" not in html
+        assert "more games" not in html
 
 
 @pytest.mark.django_db

@@ -22,9 +22,7 @@ def register(request):
 
 def user_detail(request, username):
     profile_user = get_object_or_404(User, username=username)
-    context = fake_profile_context(profile_user)
-    context["is_owner"] = request.user.is_authenticated and request.user == profile_user
-    return render(request, "accounts/profile.html", context)
+    return render(request, "accounts/profile.html", fake_profile_context(profile_user))
 
 
 def user_panel(request, username, tab):

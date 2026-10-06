@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RetroPlatinas\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-06 15:30-0300\n"
+"POT-Creation-Date: 2026-10-06 15:31-0300\n"
 "PO-Revision-Date: 2026-05-23 18:15-0300\n"
 "Last-Translator: RetroPlatinas\n"
 "Language-Team: Brazilian Portuguese\n"
@@ -559,10 +559,6 @@ msgstr "Jogando agora"
 msgid "active session"
 msgstr "sessão ativa"
 
-#: templates/accounts/partials/identity-header.html:52
-msgid "Edit profile"
-msgstr "Editar perfil"
-
 #: templates/accounts/partials/panel-awards.html:3
 msgid "Platinums & game awards"
 msgstr "Platinas & prêmios de jogo"
@@ -618,11 +614,6 @@ msgstr[1] "%(n)s platinados"
 msgid "Completion progress"
 msgstr "Progresso de conclusão"
 
-#: templates/accounts/partials/panel-progress.html:49
-#, python-format
-msgid "Show %(completion_more)s more games"
-msgstr "Ver mais %(completion_more)s jogos"
-
 #: templates/accounts/partials/sec-awards.html:3
 msgid "Platinums & awards"
 msgstr "Platinas & prêmios"
@@ -642,11 +633,6 @@ msgstr "Conquistas"
 #: templates/accounts/partials/sec-completion.html:8
 msgid "Completion"
 msgstr "Conclusão"
-
-#: templates/accounts/partials/sec-completion.html:26
-#, python-format
-msgid "Load more %(completion_more)s games"
-msgstr "Carregar mais %(completion_more)s jogos"
 
 #: templates/accounts/partials/sec-stats.html:3
 msgid "Player statistics"
@@ -1023,6 +1009,17 @@ msgstr "Codeberg — repositório"
 #: templates/home.html:164
 msgid "Licensed under AGPL-3.0"
 msgstr "Licenciado sob a AGPL-3.0"
+
+#~ msgid "Edit profile"
+#~ msgstr "Editar perfil"
+
+#, python-format
+#~ msgid "Show %(completion_more)s more games"
+#~ msgstr "Ver mais %(completion_more)s jogos"
+
+#, python-format
+#~ msgid "Load more %(completion_more)s games"
+#~ msgstr "Carregar mais %(completion_more)s jogos"
 
 #, python-format
 #~ msgid "%(points_weighted)s weighted"

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RetroPlatinas\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-06 15:30-0300\n"
+"POT-Creation-Date: 2026-10-06 15:31-0300\n"
 "PO-Revision-Date: 2026-05-23 18:15-0300\n"
 "Last-Translator: RetroPlatinas\n"
 "Language-Team: English\n"
@@ -559,10 +559,6 @@ msgstr ""
 msgid "active session"
 msgstr ""
 
-#: templates/accounts/partials/identity-header.html:52
-msgid "Edit profile"
-msgstr ""
-
 #: templates/accounts/partials/panel-awards.html:3
 msgid "Platinums & game awards"
 msgstr ""
@@ -618,11 +614,6 @@ msgstr[1] ""
 msgid "Completion progress"
 msgstr ""
 
-#: templates/accounts/partials/panel-progress.html:49
-#, python-format
-msgid "Show %(completion_more)s more games"
-msgstr ""
-
 #: templates/accounts/partials/sec-awards.html:3
 msgid "Platinums & awards"
 msgstr ""
@@ -641,11 +632,6 @@ msgstr ""
 
 #: templates/accounts/partials/sec-completion.html:8
 msgid "Completion"
-msgstr ""
-
-#: templates/accounts/partials/sec-completion.html:26
-#, python-format
-msgid "Load more %(completion_more)s games"
 msgstr ""
 
 #: templates/accounts/partials/sec-stats.html:3

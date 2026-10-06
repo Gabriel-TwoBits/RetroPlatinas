@@ -150,9 +150,6 @@ def _recent_games():
     return raw
 
 
-_COMPLETION_TOTAL = 74
-
-
 def _completion():
     raw = [
         {"initials": "SQ", "title": "Slime Quest VII", "tag": "SNES", "a": 34, "t": 48},
@@ -220,7 +217,6 @@ def fake_profile_context(user):
         "recent_games": _recent_games(),
         "consoles": _consoles(),
         "completion": completion,
-        "completion_more": _COMPLETION_TOTAL - len(completion),
         "game_awards": game_awards,
         "game_awards_more": _GAME_AWARDS_TOTAL - len(game_awards),
     }

@@ -166,7 +166,8 @@ state beyond the active underline. Order: **overview → awards → games → pr
   completion rows.
 
 Nothing here is wired: the page renders placeholder data from `apps/accounts/fake_profile.py`,
-so "load more" and *Edit profile* are static. Delete that module when real aggregation lands.
+so it ships no "load more" pagination and no *Edit profile* link until those routes exist.
+Delete that module when real aggregation lands.
 
 ## Home landing page
 
