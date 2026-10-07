@@ -140,7 +140,7 @@ def box_score(runner):
 
 def gem_awarded(runner):
     """Plays on from the clear, without input, until the Stage Clear screen hands out the gem of
-    the stage under the map cursor (the game's own verdict on every box and no death), or not."""
+    the stage under the map cursor (the game's own verdict on every box in one run), or not."""
     map_index = runner.emu.u8(STAGE_ID)
     for _ in range(GEM_AWARD_TIMEOUT_FRAMES):
         if has_gem(runner.emu, map_index):
@@ -177,7 +177,7 @@ GOALS = {
         "hold three Aku Aku masks", aku_score, aku_invincible, clear_wins=False, farms=True
     ),
     "gem": Goal(
-        "clear the stage with the gem: every box, no death",
+        "clear the stage with the gem: every box in one run",
         box_score,
         nothing_to_check,
         clear_wins=True,

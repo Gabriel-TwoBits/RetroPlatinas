@@ -21,10 +21,12 @@ Six achievements for completionist play, published as `community`. Titles and de
 | Chief Toppled | 10 | Papu Papu takes his last hit |
 
 **One achievement per stage, not two.** The roadmap asked for an "all boxes in one pass" achievement and a
-"gem: all boxes without dying" one. On the USA disc they are the same event: a death restarts the box count,
-and after a death past a checkpoint the game skips the Stage Clear screen altogether (see **The mechanics**),
-so every box has to go in one life, and the game hands out the gem exactly then. The gem bit is the game's own
-verdict on that run.
+"gem: all boxes without dying" one. Each stage gets one, on the game's own gem, which is the "one pass" rule:
+after a death past a checkpoint the game skips the Stage Clear screen altogether, so no gem; a death before any
+checkpoint restarts the stage with every box back and the count at 0, and the game still hands out the gem
+for a full clear after it (see **The mechanics**). A stricter "no death at all" achievement cannot ride on the
+gem bit: once the game hands out a gem after an early death, the bit never rises again on that save, so the
+achievement would be locked out for good. The descriptions say "without dying past a checkpoint".
 
 ## Seeding
 

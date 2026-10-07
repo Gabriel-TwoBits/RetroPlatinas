@@ -11,7 +11,8 @@ from apps.achievements.management.crash1 import seed_crash1_game, upsert_achieve
 
 # c1 `item_pool1`: the clear gems, one bit per map stage (`0x619c5`), stage n at bit n + 1
 # counted from this byte. The Stage Clear screen sets the bit when the box count reached the
-# stage's boxes; a death sets the count back to 0, so the boxes must all go in one life.
+# stage's boxes. A death past a checkpoint skips Stage Clear; one before any checkpoint restarts
+# the stage with every box back and the count at 0. So the boxes must all go in one run.
 GEM_BITS_ADDRESS = 0x61988
 BITS_PER_BYTE = 8
 # rcheevos single-bit reads, bit 0 to bit 7 of a byte.
@@ -73,7 +74,7 @@ def build_gem_mem_addr(map_index):
 
 
 def build_gem_description(stage):
-    return f"Break every box in {stage} without losing a life and win its clear gem."
+    return f"Break every box in {stage} without dying past a checkpoint and win its clear gem."
 
 
 def boss_value(offset):
