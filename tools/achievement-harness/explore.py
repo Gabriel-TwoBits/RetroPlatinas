@@ -33,10 +33,8 @@ import plan as plans
 import states
 from harness import SECONDS_PER_MINUTE, Emu, mask_of
 from probes import (
-    BOX_COUNT,
     CHECKPOINT_ID,
     DISPLAY_FLAGS_NORMAL,
-    FIXED_POINT_SHIFT,
     GAME_STATE,
     GAME_STATE_LEVEL_WON,
     GAME_STATE_STAGE_CLEARED,
@@ -50,6 +48,7 @@ from probes import (
     STAGE_ID,
     aku_level,
     boss_health,
+    box_count,
     has_gem,
     player_fruit,
 )
@@ -136,7 +135,7 @@ def aku_invincible(runner):
 
 
 def box_score(runner):
-    return runner.emu.s32(BOX_COUNT) >> FIXED_POINT_SHIFT
+    return box_count(runner.emu)
 
 
 def gem_awarded(runner):

@@ -41,6 +41,7 @@ from probes import (
     PLAYER_POINTER,
     RESPAWN_COUNT,
     boss_health,
+    box_count,
     has_gem,
     hud_count_address,
 )
@@ -337,10 +338,6 @@ def boss_quit(s):
     s.step(QUIT_AFTER_CONTROL_FRAMES)
     navigation.pause_and_quit(s.emu)
     s.step(AFTER_LAST_QUIT_FRAMES)
-
-
-def box_count(emu):
-    return emu.s32(BOX_COUNT) >> FIXED_POINT_SHIFT
 
 
 def poke_boxes(s, boxes):

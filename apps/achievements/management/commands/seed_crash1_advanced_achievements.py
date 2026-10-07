@@ -42,11 +42,16 @@ BOSS_TITLE = "Chief Toppled"
 BOSS_NAME = "Papu Papu"
 
 
+def gem_bit_position(map_index):
+    """`(address, bit)` of the clear gem of map stage `map_index`, bit 0 the lowest."""
+    bit = map_index + 1
+    return GEM_BITS_ADDRESS + bit // BITS_PER_BYTE, bit % BITS_PER_BYTE
+
+
 def gem_bit(map_index):
     """The rcheevos bit read of the clear gem of map stage `map_index`."""
-    bit = map_index + 1
-    address = GEM_BITS_ADDRESS + bit // BITS_PER_BYTE
-    return f"{BIT_SIZES[bit % BITS_PER_BYTE]}{address:x}"
+    address, bit = gem_bit_position(map_index)
+    return f"{BIT_SIZES[bit]}{address:x}"
 
 
 def build_gem_mem_addr(map_index):

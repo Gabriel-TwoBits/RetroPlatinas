@@ -9,6 +9,8 @@ Probe names: `rXXXXX` / `wXXXXX` are the raw 8-bit / 24-bit reads the repo's con
 (`0xHXXXXX` / `0xWXXXXX`); `g_*` are GOOL globals under their c1 names.
 """
 
+import achievements
+
 FIXED_POINT_SHIFT = 8
 FIXED_POINT_BYTES = 4
 DECIMAL_DIGIT_MAX = 9  # values up to 9 read the same in hex and decimal
@@ -55,7 +57,6 @@ BOSS_POINTER = 0x60DDC  # the boss object of a boss fight; reallocated on every 
 AKU_LEVEL_OFFSET = 0x189
 # Integer byte of the boss's 24.8 health: Papu Papu starts at 3.
 BOSS_HEALTH_OFFSET = 0x105
-BITS_PER_BYTE = 8
 # The player object's counters, 24.8: Wumpa (wraps at 100 into an extra life), then lives (capped
 # at 99). The Wumpa HUD only animates towards the player's count, a few frames behind.
 PLAYER_FRUIT_OFFSET = 0x160
@@ -121,15 +122,11 @@ def boss_health(emu):
     return emu.deref(BOSS_POINTER, BOSS_HEALTH_OFFSET)
 
 
-def gem_bit(map_index):
-    """`(address, mask)` of the clear gem bit of the map stage `map_index` (`0x619C5`)."""
-    bit = map_index + 1
-    return ITEM_POOL1 + bit // BITS_PER_BYTE, 1 << (bit % BITS_PER_BYTE)
-
-
 def has_gem(emu, map_index):
-    address, mask = gem_bit(map_index)
-    return bool(emu.u8(address) & mask)
+    """Whether the clear gem of map stage `map_index` (`0x619C5`) is won, at the bit the gem
+    achievements read."""
+    address, bit = achievements.advanced_seed().gem_bit_position(map_index)
+    return bool(emu.u8(address) >> bit & 1)
 
 
 def in_a_stage(emu):
@@ -152,6 +149,7 @@ def player_counter(offset):
     return read
 
 
+box_count = fixed(BOX_COUNT)
 player_lives = player_counter(PLAYER_LIVES_OFFSET)
 player_fruit = player_counter(PLAYER_FRUIT_OFFSET)
 
@@ -195,7 +193,7 @@ GLOBALS = [
     ("g_life_count", fixed(LIFE_COUNT)),
     ("g_health", fixed(AKU_HEALTH)),
     ("g_fruit_count", fixed(FRUIT_COUNT)),
-    ("g_box_count", fixed(BOX_COUNT)),
+    ("g_box_count", box_count),
     ("g_tawna_count", fixed(TAWNA_TOKENS)),
     ("g_bonus_round", s32(BONUS_ROUND_ID)),
     ("g_pause_obj", u32(PAUSE_OBJECT)),
