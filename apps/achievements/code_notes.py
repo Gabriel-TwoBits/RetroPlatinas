@@ -46,7 +46,7 @@ def code_notes_by_address(game):
     A note whose address does not parse is left out rather than failing the whole game.
     """
     # TRADEOFF: parsed in Python because `address` is text; an integer column makes it a query.
-    notes = CodeNote.objects.filter(game=game).select_related("author").order_by("id")
+    notes = CodeNote.objects.filter(game=game).select_related("author", "updated_by").order_by("id")
     by_address = {}
     for note in notes:
         address = parsed_address(note)
@@ -55,6 +55,13 @@ def code_notes_by_address(game):
         else:
             continue
     return by_address
+
+
+def rewrite_code_note(note, editor, text):
+    """Replaces the note's text as `editor` writes it; the note stays its author's."""
+    note.note = text
+    note.updated_by = editor
+    note.save(update_fields=["note", "updated_by", "updated_at"])
 
 
 def save_code_notes(user, game, notes):
@@ -84,9 +91,6 @@ def save_code_notes(user, game, notes):
                 note.delete()
                 successful.append(address)
             else:
-                # As on RA, a note is credited to whoever wrote its current text.
-                note.author = user
-                note.note = text
-                note.save(update_fields=["author", "note", "updated_at"])
+                rewrite_code_note(note, user, text)
                 successful.append(address)
     return successful, denied

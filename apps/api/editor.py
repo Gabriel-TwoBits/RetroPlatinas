@@ -105,7 +105,11 @@ def handle_codenotes2(request):
     return {
         "Success": True,
         "CodeNotes": [
-            {"User": note.author.username, "Address": served_address(address), "Note": note.note}
+            {
+                "User": note.last_writer.username,
+                "Address": served_address(address),
+                "Note": note.note,
+            }
             # rcheevos reads an empty note as a deleted one.
             for address, note in notes
             if note.note

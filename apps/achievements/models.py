@@ -260,6 +260,15 @@ class CodeNote(models.Model):
     )
     address = models.CharField(max_length=16, verbose_name=_("address"))
     note = models.TextField(verbose_name=_("note"))
+    # Who last changed the text; `None` while it is the text its author created it with.
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="+",
+        verbose_name=_("updated by"),
+    )
     updated_at = models.DateTimeField(auto_now=True, verbose_name=_("updated at"))
 
     class Meta:
@@ -269,3 +278,8 @@ class CodeNote(models.Model):
 
     def __str__(self):
         return f"{self.address} ({self.game})"
+
+    @property
+    def last_writer(self):
+        """Who wrote the current text, whom RAIntegration credits the note to."""
+        return self.updated_by or self.author

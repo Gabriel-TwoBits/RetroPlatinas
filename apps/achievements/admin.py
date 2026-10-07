@@ -190,7 +190,7 @@ class UserUnlockAdmin(admin.ModelAdmin):
 
 @admin.register(CodeNote)
 class CodeNoteAdmin(admin.ModelAdmin):
-    list_display = ("game", "address", "author", "updated_at")
+    list_display = ("game", "address", "author", "updated_by", "updated_at")
     list_filter = ("game",)
     search_fields = ("address", "note")
-    autocomplete_fields = ("author", "game")
+    autocomplete_fields = ("author", "updated_by", "game")

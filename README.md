@@ -178,7 +178,7 @@ A refusal answers `access_denied` with `Status` 403, as RetroAchievements does.
 | Action | Allowed to | Behaviour |
 | --- | --- | --- |
 | `codenotes2` | anyone | the game's notes, `Address` as `0x%06x` |
-| `submitcodenote`, `submitcodenotes` | any user adds; only the note's author or staff changes or deletes it | an empty note deletes; the last writer becomes the note's author; `submitcodenotes` lists the refused addresses in `AccessDeniedAddresses` |
+| `submitcodenote`, `submitcodenotes` | any user adds; only the note's author or staff changes or deletes it | an empty note deletes; a change keeps the note's author and is served as the last writer's (`User`); `submitcodenotes` lists the refused addresses in `AccessDeniedAddresses` |
 | `uploadachievement` | any user creates; only the author or staff changes | a new achievement is always a **draft**, whatever `f` says, and `f` never changes a status: publish on the site (the achievement editor or the admin). `b` must be an uploaded badge or `00000`; `x` is the type |
 | `uploadleaderboard` | staff creates; only the author or staff changes | stored as `STA:…::CAN:…::SUB:…::VAL:…`; format aliases (`TIME`, `POINTS`, …) are stored by their canonical name. Leaderboards have no draft state: a new one is live for every player, hence staff only |
 | `submitrichpresence` | staff | replaces the game's rich presence script |
