@@ -92,9 +92,9 @@ def _delete_url(comment):
     return f"/comments/{comment.pk}/delete/"
 
 
-def _post(client, url, data=None, htmx=True):
+def _post(client, url, data=None, htmx=True, **extra):
     headers = HTMX if htmx else {}
-    return client.post(url, data or {}, HTTP_ACCEPT_LANGUAGE="en", **headers)
+    return client.post(url, data or {}, HTTP_ACCEPT_LANGUAGE="en", **headers, **extra)
 
 
 def _comment(author, target_game=None, target_achievement=None, content="First!"):
@@ -242,6 +242,19 @@ def test_adding_a_comment_requires_login(client, game):
     assert response.status_code == HTTPStatus.FOUND
     assert response["Location"].startswith("/login/")
     assert not Comment.objects.exists()
+
+
+@pytest.mark.django_db
+def test_an_htmx_post_with_an_expired_session_redirects_to_log_in_and_back(client, author, game):
+    """The XHR would follow a 302 and swap the login page into the comments section."""
+    comment = _comment(author, target_game=game)
+    page = f"http://testserver/games/{game.pk}/"
+    for url in (_game_add_url(game), _delete_url(comment)):
+        response = _post(client, url, {"content": "Expired"}, HTTP_HX_CURRENT_URL=page)
+        assert response.status_code == HTTPStatus.OK
+        assert response["HX-Redirect"] == f"/login/?next=/games/{game.pk}/%23comments"
+        assert response.content == b""
+    assert list(Comment.objects.all()) == [comment]
 
 
 @pytest.mark.django_db

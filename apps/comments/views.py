@@ -1,6 +1,10 @@
-from django.contrib.auth.decorators import login_required
+from functools import wraps
+from urllib.parse import urlsplit
+
+from django.contrib.auth.views import redirect_to_login
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
@@ -23,6 +27,25 @@ def _answer(request, target, form=None):
         return redirect(f"{page_url(target)}#comments")
 
 
+def _login_required(view):
+    """`login_required` that, for htmx, sends the browser to log in and back to the page's
+    comments: the XHR would follow a 302 and swap the whole login page into the section."""
+
+    @wraps(view)
+    def wrapper(request, *args, **kwargs):
+        page = urlsplit(request.headers.get("HX-Current-URL", "")).path
+        if request.user.is_authenticated:
+            return view(request, *args, **kwargs)
+        elif request.headers.get("HX-Request") == "true" and page:
+            response = HttpResponse()
+            response["HX-Redirect"] = redirect_to_login(f"{page}#comments")["Location"]
+            return response
+        else:
+            return redirect_to_login(request.get_full_path())
+
+    return wrapper
+
+
 def _add(request, target):
     form = CommentForm(request.POST)
     if form.is_valid():
@@ -34,13 +57,13 @@ def _add(request, target):
         return _answer(request, target, form)
 
 
-@login_required
+@_login_required
 @require_POST
 def add_game_comment(request, game_id):
     return _add(request, get_object_or_404(Game, pk=game_id))
 
 
-@login_required
+@_login_required
 @require_POST
 def add_achievement_comment(request, game_id, achievement_id):
     # Another user's draft does not exist, so neither does its comments section.
@@ -50,7 +73,7 @@ def add_achievement_comment(request, game_id, achievement_id):
     return _add(request, achievement)
 
 
-@login_required
+@_login_required
 @require_POST
 def delete_comment(request, comment_id):
     """Only its author or staff delete a comment; one on a page the viewer cannot see is 404."""
