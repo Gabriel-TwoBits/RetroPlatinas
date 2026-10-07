@@ -280,7 +280,8 @@ answers 404. Every game title on the home, the profile and the games list links 
   and local date under the description; a locked one comes from the `_lock` route, faded, with
   muted text. An anonymous visitor sees the plain badges and no unlock filters. Under the points,
   an *Edit* link in `brand` leads to the achievement editor on the rows the viewer may edit (their
-  own, or every row for staff).
+  own, or every row for staff), and a *History* link in `brand` on every row leads to the
+  achievement's history.
 - **Status choice** — outlined chips over the list, the active one in `brand`: *Verified only*,
   *Verified + Community* (the default) and, for a logged-in viewer, *All incl. my drafts*. Each
   reloads the achievements panel through the same HTMX route (`?show=verified|published|all`);
@@ -303,7 +304,29 @@ title over a `border-line2` rule with the game linked under it. Editing shows th
 and last-updated times as hairline-split mono rows, then the current badge unlocked and locked
 (game objects, on `bg-surface`), then the form: title, description, points, type, a new badge
 upload, the condition (`mem_addr`, checked by the rcheevos parser) and the status. Saving returns
-to the edit page with the message *Achievement saved.*; *Back to the game* sits under a hairline.
+to the edit page with the message *Achievement saved.*; *Back to the game* sits under a hairline,
+followed, once the achievement exists, by *History*.
+
+## Achievement history
+
+`/games/<id>/achievements/<aid>/history/` (`templates/achievements/history.html`), built by
+`apps/achievements/revisions.py`, in a `max-w-3xl` column; visible to whoever may see the
+achievement, another user's draft answering 404.
+
+- **Header** — a ruled section: a link back to the game, the title, one muted line on what the
+  page lists and, for its author or staff, an outlined *Edit achievement* button.
+- **Revisions** — a section headed by the revision count, newest first, rows split by hairlines.
+  Each row's mono line carries the number (`#N`, bold `txt`), the local timestamp, the editor's
+  profile link in `brand` (or *unknown editor*) and, on the latest revision when the achievement
+  still holds it, a `gold` *current* mark. Under it, each changed field's label (uppercase
+  `font-display`) over a mono line diff against the revision before: removed lines in `danger`
+  prefixed `-`, added ones in `state-beaten` prefixed `+`, kept ones in `txt-faint`. `mem_addr`
+  is split one condition per line, alt groups starting a new one; status and type show their
+  labels. A row that changed nothing says so.
+- **Revert** — a small outlined *Revert to this revision* button (`rounded-tile`) at the right
+  of the mono line, POSTing to `…/history/<rid>/revert/`, only on rows the viewer may revert to:
+  their author or staff, a status and points they may set in the editor, values other than the
+  current ones. Reverting adds a revision and returns to the page with *Achievement reverted.*
 
 ## Leaderboard page
 
