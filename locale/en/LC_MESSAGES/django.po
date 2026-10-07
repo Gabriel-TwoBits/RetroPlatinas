@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RetroPlatinas\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-06 23:07-0300\n"
+"POT-Creation-Date: 2026-10-06 23:21-0300\n"
 "PO-Revision-Date: 2026-05-23 18:15-0300\n"
 "Last-Translator: RetroPlatinas\n"
 "Language-Team: English\n"
@@ -127,60 +127,60 @@ msgstr[1] ""
 msgid "badge name"
 msgstr ""
 
-#: apps/achievements/forms.py:32 templates/games/detail.html:23
+#: apps/achievements/forms.py:31 templates/games/detail.html:23
 msgid "Points"
 msgstr ""
 
-#: apps/achievements/forms.py:36
+#: apps/achievements/forms.py:35
 msgid "New badge"
 msgstr ""
 
-#: apps/achievements/forms.py:45
+#: apps/achievements/forms.py:44
 msgid "Condition (mem_addr)"
 msgstr ""
 
-#: apps/achievements/forms.py:48
+#: apps/achievements/forms.py:47
 msgid ""
 "The trigger in rcheevos syntax, checked with the same parser the emulators "
 "run."
 msgstr ""
 
-#: apps/achievements/forms.py:51
+#: apps/achievements/forms.py:50
 msgid ""
 "A draft reaches only its author, in the emulator's unofficial list, and is "
 "never awarded. Community and verified reach every player and are worth "
 "points."
 msgstr ""
 
-#: apps/achievements/forms.py:70
+#: apps/achievements/forms.py:68
 #, python-format
 msgid ""
 "PNG, JPEG or GIF, at most %(megabytes)s MiB and %(pixels)s pixels a side. "
 "Leave empty to keep the current badge."
 msgstr ""
 
-#: apps/achievements/forms.py:88 templates/achievements/code-notes.html:22
+#: apps/achievements/forms.py:86 templates/achievements/code-notes.html:22
 #: templates/components/site-menu.html:11
 msgid "Search"
 msgstr ""
 
-#: apps/achievements/forms.py:95
+#: apps/achievements/forms.py:93
 msgid "Note"
 msgstr ""
 
-#: apps/achievements/forms.py:97
+#: apps/achievements/forms.py:95
 msgid "What the address holds: its size, its values and what they mean."
 msgstr ""
 
-#: apps/achievements/forms.py:105 templates/achievements/code-note-edit.html:16
+#: apps/achievements/forms.py:103 templates/achievements/code-note-edit.html:16
 msgid "Address"
 msgstr ""
 
-#: apps/achievements/forms.py:107
+#: apps/achievements/forms.py:105
 msgid "In hexadecimal, such as 0x001234."
 msgstr ""
 
-#: apps/achievements/forms.py:116
+#: apps/achievements/forms.py:114
 #, python-format
 msgid "Enter a hexadecimal address from 0x0 to 0x%(max)x, such as 0x001234."
 msgstr ""
@@ -246,13 +246,13 @@ msgstr ""
 msgid "Missable"
 msgstr ""
 
-#: apps/achievements/models.py:173 apps/achievements/models.py:368
+#: apps/achievements/models.py:173 apps/achievements/models.py:378
 #: apps/games/models.py:62 apps/games/models.py:75 apps/games/models.py:128
 #: apps/leaderboards/models.py:37
 msgid "game"
 msgstr ""
 
-#: apps/achievements/models.py:178 apps/achievements/models.py:373
+#: apps/achievements/models.py:178 apps/achievements/models.py:383
 #: apps/leaderboards/models.py:52
 msgid "author"
 msgstr ""
@@ -284,13 +284,13 @@ msgstr ""
 msgid "type"
 msgstr ""
 
-#: apps/achievements/models.py:204 apps/achievements/models.py:386
+#: apps/achievements/models.py:204 apps/achievements/models.py:396
 #: apps/leaderboards/models.py:55
 msgid "updated at"
 msgstr ""
 
 #: apps/achievements/models.py:209 apps/achievements/models.py:247
-#: apps/achievements/models.py:346
+#: apps/achievements/models.py:356
 msgid "achievement"
 msgstr ""
 
@@ -314,12 +314,12 @@ msgstr ""
 msgid "achievement revisions"
 msgstr ""
 
-#: apps/achievements/models.py:341 apps/anticheat/models.py:24
+#: apps/achievements/models.py:351 apps/anticheat/models.py:24
 #: apps/games/models.py:122 apps/leaderboards/models.py:93
 msgid "user"
 msgstr ""
 
-#: apps/achievements/models.py:348 apps/achievements/models.py:359
+#: apps/achievements/models.py:358 apps/achievements/models.py:369
 #: templates/accounts/partials/identity-header.html:63
 #: templates/accounts/partials/sec-recent-unlocks.html:15
 #: templates/feed/partials/feed-list.html:14
@@ -328,19 +328,19 @@ msgstr ""
 msgid "hardcore"
 msgstr ""
 
-#: apps/achievements/models.py:350
+#: apps/achievements/models.py:360
 msgid "unlocked at"
 msgstr ""
 
-#: apps/achievements/models.py:354
+#: apps/achievements/models.py:364
 msgid "user unlock"
 msgstr ""
 
-#: apps/achievements/models.py:355
+#: apps/achievements/models.py:365
 msgid "user unlocks"
 msgstr ""
 
-#: apps/achievements/models.py:359
+#: apps/achievements/models.py:369
 #: templates/accounts/partials/identity-header.html:63
 #: templates/accounts/partials/sec-recent-unlocks.html:15
 #: templates/games/partials/panel-achievements.html:50 templates/home.html:70
@@ -348,23 +348,23 @@ msgstr ""
 msgid "softcore"
 msgstr ""
 
-#: apps/achievements/models.py:375
+#: apps/achievements/models.py:385
 msgid "address"
 msgstr ""
 
-#: apps/achievements/models.py:376
+#: apps/achievements/models.py:386
 msgid "note"
 msgstr ""
 
-#: apps/achievements/models.py:384
+#: apps/achievements/models.py:394
 msgid "updated by"
 msgstr ""
 
-#: apps/achievements/models.py:389
+#: apps/achievements/models.py:399
 msgid "code note"
 msgstr ""
 
-#: apps/achievements/models.py:390
+#: apps/achievements/models.py:400
 msgid "code notes"
 msgstr ""
 
@@ -1300,7 +1300,7 @@ msgid "Back to the game"
 msgstr ""
 
 #: templates/achievements/edit.html:45
-#: templates/games/partials/panel-achievements.html:59
+#: templates/games/partials/panel-achievements.html:60
 msgid "History"
 msgstr ""
 
