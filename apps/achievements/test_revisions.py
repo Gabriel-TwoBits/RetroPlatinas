@@ -6,7 +6,9 @@ from http import HTTPStatus
 import pytest
 from django.contrib.admin.sites import site as admin_site
 from django.contrib.auth import get_user_model
+from django.db import connection
 from django.test import RequestFactory
+from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.dateformat import format as date_format
@@ -244,6 +246,21 @@ def test_a_change_to_an_achievement_written_without_save_records_its_prior_state
         seeded_at,
     )
     assert (change.mem_addr, change.editor) == (SECOND_TRIGGER, author)
+
+
+def test_the_baseline_is_recorded_under_the_achievements_row_lock(game, author):
+    [achievement] = Achievement.objects.bulk_create(
+        [Achievement(game=game, author=author, title="Seeded", mem_addr=FIRST_TRIGGER)]
+    )
+    achievement.mem_addr = SECOND_TRIGGER
+
+    with CaptureQueriesContext(connection) as queries:
+        achievement.save(editor=author)
+
+    statements = [query["sql"] for query in queries.captured_queries]
+    lock = next(i for i, sql in enumerate(statements) if sql.endswith("FOR UPDATE"))
+    baseline = next(i for i, sql in enumerate(statements) if "achievementrevision" in sql)
+    assert lock < baseline
 
 
 def _upload(client, user, token, game, achievement_id=0, **overrides):

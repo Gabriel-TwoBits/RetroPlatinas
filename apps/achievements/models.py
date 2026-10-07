@@ -319,7 +319,15 @@ def record_baselines(achievement_ids):
     last updated, so its first recorded change has a state to differ from.
 
     Covers achievements written without `save()`: `bulk_create`, `update()` and `loaddata`.
+    Must run in a transaction.
     """
+    # Locked first, so two concurrent first changes cannot both find no revision.
+    list(
+        Achievement.objects.select_for_update()
+        .filter(pk__in=achievement_ids)
+        .order_by("pk")
+        .values_list("pk", flat=True)
+    )
     stored = Achievement.objects.filter(pk__in=achievement_ids, revisions__isnull=True).values(
         "pk", "updated_at", *REVISED_FIELDS
     )
