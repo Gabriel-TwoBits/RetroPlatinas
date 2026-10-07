@@ -82,7 +82,7 @@ STUCK = "stuck"  # a quit that never reached the map (SELECT ignored mid-air)
 QUIT_MOVE = "quit-and-reenter"
 QUIT_PROBABILITY = 0.02  # per segment: a quit costs about a thousand frames of menus and loading
 CLEAR_GOAL = "clear"
-# A clear shows Stage Clear, or goes straight to the map when the player died in the stage.
+# A clear shows Stage Clear, or goes straight to the map after a death past a checkpoint.
 CLEARED_STATES = (GAME_STATE_STAGE_CLEARED, GAME_STATE_LEVEL_WON)
 AKU_INVINCIBLE_LEVEL = achievements.collectible_seed().AKU_INVINCIBLE_LEVEL
 # From the clear to the gem landing on the Stage Clear screen: about 370 frames on N. Sanity Beach.
