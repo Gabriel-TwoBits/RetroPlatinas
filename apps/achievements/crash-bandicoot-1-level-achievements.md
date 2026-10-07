@@ -69,6 +69,12 @@ cannot occur on:
 | Pause → SELECT quit | stage → `19` |
 | Stage Clear → map | `2d` → `19` |
 | Entering another stage | `19` → that stage's id |
+| A clear after a death past a checkpoint | stage → `19`: the game skips Stage Clear (game state `03`) |
+
+The last row is a real clear the condition misses: the stage counts as cleared, but the game shows no Stage
+Clear screen, which the description names (measured on N. Sanity Beach,
+`crash-bandicoot-1-advanced-achievements.md`). A death before any checkpoint restarts the stage and its clear
+shows Stage Clear as usual.
 
 The constants carry rcheevos' `h` prefix: a bare `0x2d` is a memory read, not the number `0x2d`.
 
