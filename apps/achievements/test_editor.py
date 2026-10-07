@@ -236,6 +236,21 @@ def test_creating_an_achievement_saves_a_draft_by_its_author(client, author, gam
 
 
 @pytest.mark.django_db
+def test_an_author_may_create_an_achievement_already_published_as_community(
+    client, author, other, game
+):
+    client.force_login(author)
+
+    _post(client, _new_url(game), status=Achievement.STATUS_COMMUNITY)
+
+    achievement = Achievement.objects.get()
+    assert achievement.status == Achievement.STATUS_COMMUNITY
+    assert _served(client, other, OTHER_TOKEN, game)[achievement.pk]["Flags"] == (
+        ACHIEVEMENT_FLAGS_CORE
+    )
+
+
+@pytest.mark.django_db
 def test_a_created_draft_is_listed_on_the_game_page_for_its_author_only(
     client, author, other, game
 ):
