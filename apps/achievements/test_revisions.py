@@ -443,6 +443,8 @@ def test_reverting_restores_the_revision_as_a_new_one(client, game, author):
     assert len(revisions) == 3
     assert revisions[-1].revised_values() == first.revised_values()
     assert revisions[-1].editor == author
+    entries = client.get(_history_url(achievement)).context["entries"]
+    assert [entry.is_current for entry in entries] == [True, False, False]
 
 
 def test_staff_reverts_another_authors_achievement(client, game, author, staff):

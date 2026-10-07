@@ -102,17 +102,19 @@ def history(achievement, user):
     # TRADEOFF: every revision on one page; paginate if an achievement reaches hundreds.
     revisions = list(achievement.revisions.select_related("editor"))
     current = achievement.revised_values()
+    latest_number = len(revisions)
     entries = []
     previous = None
     for number, revision in enumerate(revisions, start=1):
-        is_current = revision.revised_values() == current
+        # A revert repeats an earlier revision's values, so only the latest one is current.
+        holds_current = revision.revised_values() == current
         entries.append(
             HistoryEntry(
                 number=number,
                 revision=revision,
                 changes=changes_between(previous, revision),
-                is_current=is_current,
-                revertible=not is_current and can_revert(user, achievement, revision),
+                is_current=holds_current and number == latest_number,
+                revertible=not holds_current and can_revert(user, achievement, revision),
             )
         )
         previous = revision
