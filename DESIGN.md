@@ -278,7 +278,8 @@ answers 404. Every game title on the home, the profile and the games list links 
   `state-platinum` with a check seal, *Community* in `brand`, *Draft* in `gold`. For a logged-in
   viewer an unlocked badge has a 2px `state-hardcore` or `state-softcore` border with the mode
   and local date under the description; a locked one comes from the `_lock` route, faded, with
-  muted text. An anonymous visitor sees the plain badges and no unlock filters. Under the points,
+  muted text. An anonymous visitor sees the plain badges and no unlock filters. Each title links
+to the achievement page. Under the points,
   an *Edit* link in `brand` leads to the achievement editor on the rows the viewer may edit (their
   own, or every row for staff), and a *History* link in `brand` on every row leads to the
   achievement's history.
@@ -295,6 +296,40 @@ answers 404. Every game title on the home, the profile and the games list links 
   description and its entries by active users. Scores and ranks belong to the leaderboard page.
 - **Recent players** — the 20 active users who played last: identicon, profile link, published
   achievements unlocked (and how many in hardcore) and when they last played.
+- **Comments** — under the tabs, the shared comments section (see *Comments*).
+
+## Achievement page
+
+`/games/<id>/achievements/<aid>/` (`templates/achievements/detail.html`), in a `max-w-3xl`
+column; another user's draft answers 404, to staff as well: a draft's page is its author's.
+
+- **Header** — a ruled section: a link back to the game, the badge (a game object, on
+  `bg-surface`), the title with its status chip (`components/status-chip.html`, as on the game
+  page), a mono line with the points in `gold`, the type when it has one and the author's profile
+  link, then the description (escaped, line breaks kept). Outlined buttons under it: *Edit
+  achievement* for its author or staff, and *History*.
+- **Unlocks** — stat lines: the active users who unlocked it in any mode, those in hardcore, and
+  the active users who played the game. A draft shows one muted line instead: it is never
+  awarded.
+- **Comments** — the shared comments section (see *Comments*).
+
+## Comments
+
+`templates/comments/partials/thread.html`, built by `apps/comments/threads.py`, at the bottom of
+the game page and of the achievement page, as `<section id="comments">`.
+
+- **Heading** — the comment count as a ruled section heading.
+- **Rows** — oldest first, split by hairlines: the author's identicon, profile link and local
+  timestamp on a mono line, the content under it (escaped, line breaks kept). Its author and
+  staff get a small *Delete* in `danger` at the right of the mono line, which asks to confirm.
+  No comments shows the empty state.
+- **Form** — for a logged-in viewer, under a `border-line2` rule: the content textarea (at most
+  2000 characters) and a filled *Post comment* button. An anonymous visitor gets a *Log in to
+  comment* link that returns to the section.
+- **HTMX** — adding (`POST …/comments/` on the game or achievement URL) and deleting
+  (`POST /comments/<id>/delete/`) answer the whole section, swapped in place of `#comments`; an
+  invalid comment comes back with its error in the form. Without htmx loaded, the forms post
+  normally and return to the page.
 
 ## Achievement editor
 
