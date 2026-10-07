@@ -22,6 +22,8 @@ MAX_BADGE_UPLOAD_BYTES = BYTES_PER_MIB
 BADGE_UPLOAD_FORMATS = ("PNG", "JPEG", "GIF")
 # Bounds the memory a small compressed upload can take once decoded.
 MAX_BADGE_UPLOAD_SIDE_PX = 1024
+# The point values RAWeb accepts (`AchievementPoints`), the ones RAIntegration offers.
+ACHIEVEMENT_POINT_VALUES = frozenset({0, 1, 2, 3, 4, 5, 10, 25, 50, 100})
 
 
 def badge_name_for(number):

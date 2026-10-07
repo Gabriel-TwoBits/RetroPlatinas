@@ -10,7 +10,9 @@ from django.db import transaction
 from django.db.models import Max, Min
 from django.utils import translation
 
+from apps.achievements.editing import achievements_reachable_by, can_edit
 from apps.achievements.models import (
+    ACHIEVEMENT_POINT_VALUES,
     BADGE_NAME_MAX_CHARS,
     PLACEHOLDER_BADGE_NAME,
     Achievement,
@@ -52,10 +54,6 @@ def _access_denied(message="Access denied."):
 _INVALID_CHECKSUM = _access_denied("Invalid checksum.")
 _STAFF_ONLY = _access_denied("Only staff can perform this action.")
 _NOT_THE_AUTHOR = _access_denied("Only the author or staff can change this.")
-
-
-def _can_edit(user, author_id):
-    return user.is_staff or author_id == user.pk
 
 
 def _text_param(request, name, *, required=True, max_length=None):
@@ -161,7 +159,7 @@ def _save_code_notes(user, game, notes):
                     game=game, author=user, address=_stored_address(address), note=text
                 )
                 successful.append(address)
-            elif not _can_edit(user, note.author_id):
+            elif not can_edit(user, note.author_id):
                 denied.append(address)
             elif text == "":
                 note.delete()
@@ -280,8 +278,6 @@ def handle_submitcodenotes(request):
 
 # rcheevos signs points * 3 into the uploadachievement checksum.
 CHECKSUM_POINTS_MULTIPLIER = 3
-# The point values RAWeb accepts (`AchievementPoints`), the ones RAIntegration offers.
-ACHIEVEMENT_POINT_VALUES = frozenset({0, 1, 2, 3, 4, 5, 10, 25, 50, 100})
 # The category RAIntegration files the achievement under; publishing happens on the site only.
 UPLOAD_CATEGORIES = frozenset({ACHIEVEMENT_FLAGS_CORE, ACHIEVEMENT_FLAGS_UNOFFICIAL})
 ACHIEVEMENT_TYPES = frozenset(value for value, _ in Achievement.TYPE_CHOICES)
@@ -362,18 +358,13 @@ def _create_achievement(user, game_id, fields):
 
 
 def _update_achievement(user, achievement_id, game_id, fields):
-    # Only staff see other users' drafts; to anyone else they do not exist.
-    if user.is_staff:
-        editable = Achievement.objects.all()
-    else:
-        editable = Achievement.objects.visible_to(user)
     with transaction.atomic():
-        achievement = editable.filter(pk=achievement_id).first()
+        achievement = achievements_reachable_by(user).filter(pk=achievement_id).first()
         if achievement is None:
             return _ACHIEVEMENT_NOT_FOUND
         elif game_id not in (0, achievement.game_id):
             return _invalid_parameter("Invalid g: the achievement belongs to another game.")
-        elif not _can_edit(user, achievement.author_id):
+        elif not can_edit(user, achievement.author_id):
             return _NOT_THE_AUTHOR
         elif (
             achievement.points != fields["points"]
@@ -525,7 +516,7 @@ def handle_uploadleaderboard(request):
             return _not_found("leaderboard")
         elif game_id not in (0, leaderboard.game_id):
             return _invalid_parameter("Invalid g: the leaderboard belongs to another game.")
-        elif not _can_edit(user, leaderboard.author_id):
+        elif not can_edit(user, leaderboard.author_id):
             return _NOT_THE_AUTHOR
         else:
             return _save_leaderboard(leaderboard, fields, value_format)
