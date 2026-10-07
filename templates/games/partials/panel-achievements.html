@@ -30,19 +30,7 @@
               <div class="min-w-0 flex-1">
                 <div class="flex flex-wrap items-baseline gap-x-2 text-sm font-semibold {% if row.state == 'locked' %}text-txt-muted{% else %}text-txt{% endif %}">
                   <span class="break-words">{{ achievement.title }}</span>
-                  {% if achievement.status == "verified" %}
-                    <span class="inline-flex items-center gap-1 rounded-chip border border-state-platinum px-1.5 font-mono text-xs font-normal text-state-platinum">
-                      <svg viewBox="0 0 24 24" fill="none" class="h-3 w-3 shrink-0" aria-hidden="true">
-                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-                        <path d="M7 12.5 L10.5 16 L17 9" stroke="currentColor" stroke-width="2" fill="none"/>
-                      </svg>{{ achievement.get_status_display }}</span>
-                  {% elif achievement.status == "community" %}
-                    <span class="rounded-chip border border-brand-dim px-1.5 font-mono text-xs font-normal text-brand">{{ achievement.get_status_display }}</span>
-                  {% elif achievement.status == "draft" %}
-                    <span class="rounded-chip border border-gold-dim px-1.5 font-mono text-xs font-normal text-gold">{{ achievement.get_status_display }}</span>
-                  {% else %}
-                    <span class="rounded-chip border border-line2 px-1.5 font-mono text-xs font-normal text-txt-muted">{{ achievement.get_status_display }}</span>
-                  {% endif %}
+                  {% include "components/status-chip.html" %}
                 </div>
                 <div class="mt-1 break-words text-xs leading-snug {% if row.state == 'locked' %}text-txt-faint{% else %}text-txt-muted{% endif %}">{{ achievement.description }}</div>
                 {% if row.unlocked_at %}
