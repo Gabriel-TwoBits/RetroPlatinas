@@ -113,11 +113,23 @@ def add_code_note(author, game, address, text):
             )
 
 
+def _compared_text(text):
+    """The text as two writers' copies are compared: browsers send a textarea's line breaks as
+    CRLF and Django strips its ends, so neither difference is an edit."""
+    return text.replace("\r\n", "\n").strip()
+
+
 def rewrite_code_note(note, editor, text):
-    """Replaces the note's text as `editor` writes it; the note stays its author's."""
-    note.note = text
-    note.updated_by = editor
-    note.save(update_fields=["note", "updated_by", "updated_at"])
+    """Replaces the note's text as `editor` writes it; the note stays its author's.
+
+    The same text again is no edit: who last changed the note stays as it was.
+    """
+    if _compared_text(text) == _compared_text(note.note):
+        return
+    else:
+        note.note = text
+        note.updated_by = editor
+        note.save(update_fields=["note", "updated_by", "updated_at"])
 
 
 def save_code_notes(user, game, notes):

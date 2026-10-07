@@ -262,6 +262,19 @@ def test_saving_the_same_text_records_no_edit(client, author, lives):
 
 
 @pytest.mark.django_db
+def test_saving_a_multi_line_note_untouched_records_no_edit(client, author, lives):
+    lives.note = "Lives\n0 = game over"
+    lives.save()
+    client.force_login(author)
+
+    # Browsers send a textarea's line breaks as CRLF.
+    client.post(_edit_url(lives), {"note": "Lives\r\n0 = game over\r\n"})
+
+    lives.refresh_from_db()
+    assert (lives.note, lives.updated_by) == ("Lives\n0 = game over", None)
+
+
+@pytest.mark.django_db
 def test_edit_requires_a_note(client, author, lives):
     client.force_login(author)
 

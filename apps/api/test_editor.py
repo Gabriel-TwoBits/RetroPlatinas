@@ -712,6 +712,18 @@ def test_submitcodenotes_credits_staff_rewriting_the_notes_of_others(client, sta
 
 
 @pytest.mark.django_db
+def test_submitcodenotes_resending_the_same_text_records_no_edit(client, staff, other, game):
+    theirs = _note(game, other, "0x1234", "Lives")
+    body = _with(RCHEEVOS_CODE_NOTES, u=STAFF, t=STAFF_TOKEN, n=f"{LIVES_ADDRESS}:Lives\n")
+
+    assert _raw(client, body) == {"Success": True, "SuccessfulAddresses": [0x1234]}
+    theirs.refresh_from_db()
+    assert (theirs.note, theirs.updated_by) == ("Lives", None)
+    served = _post(client, r="codenotes2", g=GAME_ID)["CodeNotes"]
+    assert served == [{"User": OTHER, "Address": "0x001234", "Note": "Lives"}]
+
+
+@pytest.mark.django_db
 @pytest.mark.parametrize(
     ("notes", "error"),
     [

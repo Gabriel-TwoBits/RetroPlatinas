@@ -178,11 +178,7 @@ def edit_code_note(request, game_id, note_id):
         form = CodeNoteForm(initial={"note": note.note})
 
     if form.is_bound and form.is_valid():
-        if form.has_changed():
-            rewrite_code_note(note, request.user, form.cleaned_data["note"])
-        else:
-            # The same text again is no edit: who last changed the note stays as it was.
-            pass
+        rewrite_code_note(note, request.user, form.cleaned_data["note"])
         messages.success(request, gettext("Code note saved."))
         return redirect("code_notes", game_id=note.game_id)
     else:
