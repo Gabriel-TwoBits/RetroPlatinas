@@ -18,8 +18,8 @@ which must not, and which rich presence strings the game must show.
   updated by the same `rc_runtime_do_frame` and read back after every frame
   (`rc_runtime_get_richpresence`), where DuckStation reads it once per ping.
 - **Definitions:** `achievements.py` imports the seed commands and calls their builders
-  (`build_mem_addr`, `collectible_achievements`, `build_rich_presence`), so the harness tests
-  exactly the strings the server serves. Nothing is copied.
+  (`build_mem_addr`, `collectible_achievements`, `advanced_achievements`, `build_rich_presence`),
+  so the harness tests exactly the strings the server serves. Nothing is copied.
 
 The harness runs **inside the project container**, like everything else. Nothing it downloads or
 produces is committed: cores, the compiled shim, states, traces and screenshots live in
@@ -96,6 +96,7 @@ came from the cache or was derived moments earlier.
 | `<stage>-clear` | `<stage>-start` | Stage Clear screen after `plans/<stage>-clear.json`; only for a stage with a committed plan |
 | `nsanity-beach-two-masks` | `nsanity-beach-start` | N. Sanity Beach re-entered with 2 Aku Aku masks: twice, the clearing plan up to the first Aku Aku crate, then a quit and a re-entry |
 | `nsanity-beach-farmed-wumpa` | `nsanity-beach-start` | N. Sanity Beach re-entered with 36 Wumpa: twice, the clearing plan up to its 20th fruit, then a quit and a re-entry |
+| `<stage>-checkpoint-respawn` | `<stage>-start` | The stage after `plans/<stage>-checkpoint.json` (a route that breaks a checkpoint crate) and a death by seeded random play: the player back in control at the checkpoint; only for a stage with that plan |
 
 `<stage>` is each level achievement's stage, in `states.STAGES` with its level id, map cursor and
 the direction it runs on screen: `nsanity-beach`, `jungle-rollers`, `the-great-gate`, `boulders`,
@@ -107,9 +108,9 @@ then enters and quits N. Sanity Beach so the map reloads with the paths to the l
 the recipes walk the cursor along. The poke only *reaches* a stage; nothing writes a clear, a
 level id or a game state, so every clear in a scenario is played. The farmed states are real play:
 a quit commits the Wumpa and masks collected and the re-entry brings the crates back, as for a
-player farming them; a recipe fails when its replay diverges from the count it expects. The one
-other write is the lives poke of the `-lives-poked` scenarios, which is secondary evidence only
-(see *Scenarios*).
+player farming them; a recipe fails when its replay diverges from the count it expects. The only
+other writes are the pokes of the `-poked` scenarios (lives, box count), which are secondary
+evidence only (see *Scenarios*).
 
 `states.py --fresh` re-derives every state and prints a digest per state; two runs on the same core
 build print the same digests. Deriving a `<stage>-clear` state is the end-to-end reproducibility
@@ -139,11 +140,17 @@ while the others keep their hits, as in a live session.
 | `<stage>-quit` | `<stage>-start` | nothing | Pause -> SELECT quits: right after control, after running and standing, after standing |
 | `<stage>-clear` | `<stage>-start` | the stage's achievement, once, on Stage Clear (lid `0x2D`) | Replays the clearing plan (a real completion); after a re-arm, Stage Clear -> map, the next stage and a quit fire nothing |
 | `papu-papu-quit` | `papu-papu-start` | nothing | Standing in the Papu Papu boss fight, then pause -> SELECT |
+| `<boss>-boss` | `<boss>-start` | the boss achievement, once, on the last hit (lid of the fight) | Replays `plans/<boss>-boss.json`; then a state saved after the hit is loaded, the fight returns to the map, and the fight is entered again and quit |
+| `<boss>-deaths` | `<boss>-start` | nothing | The boss plan replayed until the boss has one health left, then a death; another death right after the respawn, which brings the boss back at full health |
 | `<stage>-no-wumpa` | `<stage>-start` | the stage's achievement on Stage Clear and `Beach Diet` on the clear (lid of the stage) | Replays `plans/<stage>-no-wumpa.json`, a clear without a Wumpa; then as `<stage>-clear`. Only for the stage `Beach Diet` names |
 | `<stage>-aku` | the plan's start | `Mask Stack`, once, on the third mask (lid of the stage) | Replays `plans/<stage>-aku.json`; then a state saved after the event is loaded, and the stage is quit, re-entered with the masks committed and quit |
 | `<stage>-wumpa` | the plan's start | `Fruit Into Life`, once, on the wrap past 100 (lid of the stage) | Replays `plans/<stage>-wumpa.json`; then the same state load, quit, re-entry and quit |
 | `<stage>-lives-poked` | the Wumpa plan's start | `Bandicoot Reserve` on the route's first extra life, then `Fruit Into Life` on the wrap | **Secondary evidence (RAM poke):** lives set to 98 (player and lives HUD), then the Wumpa route; later extra lives leave 99 |
 | `<stage>-lives-cap-poked` | the Wumpa plan's start | `Fruit Into Life` only | **Secondary evidence (RAM poke):** lives set to 99; every extra life of the route leaves 99 |
+| `<stage>-gem` | `<stage>-start` | the stage's achievement and its gem achievement, on Stage Clear (lid `0x2D`) | Replays `plans/<stage>-gem.json`, a clear with every box in one life; then as `<stage>-clear` |
+| `<stage>-gem-poked` | `<stage>-start` | the stage's achievement and its gem achievement, on Stage Clear | **Secondary evidence (RAM poke):** the clearing plan with the box count set to the stage's boxes (`scenarios.STAGE_BOXES`, measured) before its last segment; the Stage Clear screen hands out the gem; then as `<stage>-clear` |
+| `<stage>-one-box-short-poked` | `<stage>-start` | the stage's achievement only | **Secondary evidence (RAM poke):** the same with one box fewer: no gem |
+| `<stage>-checkpoint-death` | `<stage>-start` | nothing | `plans/<stage>-checkpoint.json`, the death of `<stage>-checkpoint-respawn`, then `plans/<stage>-checkpoint-clear.json` from the checkpoint: the game skips Stage Clear after that death and goes straight to the map, so neither the stage's achievement nor its gem fires |
 
 Every scenario also lists the rich presence strings the game must show on the way (`presence`,
 regular expressions matched in full): the title and demo strings in `cold-boot`, `attract` and
@@ -163,7 +170,9 @@ the death it runs into, and each death after a respawn replays the route again f
 The collectible scenarios exist only for a stage with the matching committed plan. The lives poke
 writes a starting count, never the event: 99 lives are out of a searched run's reach, so the life
 that reaches the cap is a real one the Wumpa route earns, and the scenarios are labelled as
-secondary evidence wherever they are reported.
+secondary evidence wherever they are reported. The box count poke is the same kind: it writes the
+count the Stage Clear screen judges, never the gem bit, which the game sets or not; a stage gets
+the gem scenarios when it has a gem achievement and the plans they replay.
 
 A new achievement needs a scenario that reaches its event and the look-alike events that must not
 fire it; add it to `SCENARIOS` with the lid its event shows.
@@ -186,20 +195,23 @@ A plan (`plans/*.json`) is a list of `[frames, button_mask]` inputs (the source 
 replay) with the 16-frame macro names that produced them, the named start state, and the core and
 core build it was searched on. `plan.replay()` refuses another core and warns on another build.
 
-`explore.py STAGE` keeps an archive of cells (the player's position and the goal's score), each
-with a compressed save state, and plays random macros from the stage's start state (or `--from`
-another derivable state): half of the rollouts start from one of the best cells (the frontier:
-highest score, then deepest, where a timed obstacle is passed), the others from rarely chosen
-cells. The macros are the stage's `plan.HEADINGS` set (`up`, `down` for Boulders, which runs
-towards the camera, `right` for The Great Gate). The goal (`--goal`, `explore.GOALS`) decides when
-a rollout wins:
+`explore.py STAGE` (a stage of `states.STAGES` or a boss fight of `states.BOSS_FIGHTS`) keeps an
+archive of cells (the player's position and the goal's score), each with a compressed save state,
+and plays random macros from the stage's start state (or `--from` another derivable state): half
+of the rollouts start from one of the best cells (the frontier: highest score, then deepest, where
+a timed obstacle is passed), the others from rarely chosen cells. The macros are the stage's
+`plan.HEADINGS` set (`up`, `down` for Boulders, which runs towards the camera, `right` for The
+Great Gate). The goal (`--goal`, `explore.GOALS`) decides when a rollout wins:
 
 | Goal | Wins when | Score | Also |
 | --- | --- | --- | --- |
-| `clear` (default) | the game reports the stage cleared (`0x618D0` = stage cleared, or the Stage Clear level) | none | |
+| `clear` (default) | the game reports the stage cleared (`0x618D0` = `0x500`, or `0x300` after a death past a checkpoint, when Stage Clear is skipped; or the Stage Clear level) | none | |
 | `no-wumpa` | the stage is cleared | none | collecting a Wumpa ends the rollout |
 | `wumpa` | the player's Wumpa count goes down: it wrapped past 100 | the Wumpa count | farms |
 | `aku` | Aku Aku holds three masks | the masks | farms |
+| `gem` | the stage is cleared and the Stage Clear screen then hands out its gem (the bit of the stage under the map cursor, within 900 frames) | the boxes broken | a clear without the gem ends the rollout |
+| `checkpoint` | a checkpoint crate is broken (`0x619A0` leaves -1) | none | |
+| `boss` | the boss's health (`0x60DDC` object, `+0x105`) reaches 0 | the health lost | |
 
 A goal that farms also plays `quit-and-reenter` on about one segment in fifty: stand, pause, SELECT
 and enter the stage again, which commits the counts and brings the crates back. The frames it took
