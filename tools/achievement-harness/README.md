@@ -97,7 +97,7 @@ came from the cache or was derived moments earlier.
 | `nsanity-beach-two-masks` | `nsanity-beach-start` | N. Sanity Beach re-entered with 2 Aku Aku masks: twice, the clearing plan up to the first Aku Aku crate, then a quit and a re-entry |
 | `nsanity-beach-farmed-wumpa` | `nsanity-beach-start` | N. Sanity Beach re-entered with 36 Wumpa: twice, the clearing plan up to its 20th fruit, then a quit and a re-entry |
 | `<stage>-checkpoint-respawn` | `<stage>-start` | The stage after `plans/<stage>-checkpoint.json` (a route that breaks a checkpoint crate) and a death by seeded random play: the player back in control at the checkpoint; only for a stage with that plan |
-| `<stage>-early-death-restart` | `<stage>-start` | The stage after a death by seeded random play before any checkpoint (derivation fails otherwise): the stage restarted, every box back |
+| `<stage>-early-death-restart` | `<stage>-start` | The stage after a death by seeded random play before any checkpoint (derivation fails otherwise): the stage restarted, every box back; only for a stage given a seed known to die there (`Stage.early_death_seed`, N. Sanity Beach) |
 
 `<stage>` is each level achievement's stage, in `states.STAGES` with its level id, map cursor and
 the direction it runs on screen: `nsanity-beach`, `jungle-rollers`, `the-great-gate`, `boulders`,

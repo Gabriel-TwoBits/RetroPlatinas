@@ -55,8 +55,9 @@ FARM_STAND_FRAMES = 120
 # interpreter, so a plan searched from the respawn replays after the same death.
 CHECKPOINT_DEATH_SEED = 1
 # Dying before any checkpoint: on N. Sanity Beach this seed dies near the start, which restarts
-# the stage with every box back and the box count at 0.
-EARLY_DEATH_SEED = 2
+# the stage with every box back and the box count at 0. Random play finds no death at all in
+# The Great Gate, so the restart state exists only for the stages given a seed.
+NSANITY_BEACH_EARLY_DEATH_SEED = 2
 DEATH_TIMEOUT_SEGMENTS = 900
 
 
@@ -66,6 +67,7 @@ class Stage:
     level_id: int  # c1 LID, what `0x6188D` reads inside the stage
     map_index: int  # map cursor (`0x619C5`) on the stage
     heading: str  # plan.HEADINGS key: the way the stage runs on screen
+    early_death_seed: int | None = None  # dies before any checkpoint (`early_death_restart`)
 
     @property
     def start(self):
@@ -110,7 +112,7 @@ class Stage:
 
 
 STAGES = (
-    Stage("nsanity-beach", LID_NSANITY_BEACH, 0, "up"),
+    Stage("nsanity-beach", LID_NSANITY_BEACH, 0, "up", NSANITY_BEACH_EARLY_DEATH_SEED),
     Stage("jungle-rollers", LID_JUNGLE_ROLLERS, 1, "up"),
     Stage("the-great-gate", LID_THE_GREAT_GATE, 2, "right"),
     Stage("boulders", LID_BOULDERS, 3, "down"),
@@ -199,11 +201,14 @@ def _stage_recipes(stage):
         )
     else:
         pass  # No checkpoint route: no respawn state.
-    recipes[stage.early_death_restart] = Recipe(
-        stage.start,
-        _early_death_restart(stage),
-        f"{stage.name} restarted after a death before any checkpoint",
-    )
+    if stage.early_death_seed is not None:
+        recipes[stage.early_death_restart] = Recipe(
+            stage.start,
+            _early_death_restart(stage),
+            f"{stage.name} restarted after a death before any checkpoint",
+        )
+    else:
+        pass  # No seed known to die before a checkpoint: no restart state.
     return recipes
 
 
@@ -227,7 +232,7 @@ def die_by_random_play(emu, stage, seed):
 
 def _early_death_restart(stage):
     def derive(emu):
-        die_by_random_play(emu, stage, EARLY_DEATH_SEED)
+        die_by_random_play(emu, stage, stage.early_death_seed)
         if emu.s32(CHECKPOINT_ID) != NO_CHECKPOINT:
             raise RuntimeError(f"{stage.name}: the early death came after a checkpoint")
         else:
