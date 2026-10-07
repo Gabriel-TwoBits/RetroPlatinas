@@ -1,9 +1,10 @@
-"""Go-Explore search for an input plan that reaches a goal in a stage.
+"""Go-Explore search for an input plan that reaches a goal in a stage or a boss fight.
 
 An archive maps cells (player position and the goal's score) to compressed save states; each
 iteration restores a rarely chosen cell and plays random 16-frame macros (the stage's
 plan.HEADINGS set) from it. A rollout wins when the goal is reached (GOALS: the stage cleared, a
-clear without a Wumpa, the Wumpa count wrapping at 100, a third Aku Aku mask); a death, a level
+clear without a Wumpa, the Wumpa count wrapping at 100, a third Aku Aku mask, a clear the game
+rewards with the stage's gem, a checkpoint crate broken, the boss beaten); a death, a level
 change that is not the clear (a bonus round), or a move the goal forbids ends it. A goal that
 farms also plays QUIT_MOVE now and then: stand, quit from the pause menu and enter the stage
 again, which commits the player's Wumpa and masks and brings the stage's items back, as a player
@@ -32,16 +33,24 @@ import plan as plans
 import states
 from harness import SECONDS_PER_MINUTE, Emu, mask_of
 from probes import (
+    BOX_COUNT,
+    CHECKPOINT_ID,
     DISPLAY_FLAGS_NORMAL,
+    FIXED_POINT_SHIFT,
     GAME_STATE,
+    GAME_STATE_LEVEL_WON,
     GAME_STATE_STAGE_CLEARED,
     LEVEL_ID,
     LID_STAGE_CLEAR,
     NEXT_DISPLAY_FLAGS,
+    NO_CHECKPOINT,
     PLAYER_POINTER,
     PLAYER_POSITION_OFFSETS,
     RESPAWN_COUNT,
+    STAGE_ID,
     aku_level,
+    boss_health,
+    has_gem,
     player_fruit,
 )
 from provision import SHOTS_DIR
@@ -74,7 +83,11 @@ STUCK = "stuck"  # a quit that never reached the map (SELECT ignored mid-air)
 QUIT_MOVE = "quit-and-reenter"
 QUIT_PROBABILITY = 0.02  # per segment: a quit costs about a thousand frames of menus and loading
 CLEAR_GOAL = "clear"
+# A clear shows Stage Clear, or goes straight to the map when the player died in the stage.
+CLEARED_STATES = (GAME_STATE_STAGE_CLEARED, GAME_STATE_LEVEL_WON)
 AKU_INVINCIBLE_LEVEL = achievements.collectible_seed().AKU_INVINCIBLE_LEVEL
+# From the clear to the gem landing on the Stage Clear screen: about 370 frames on N. Sanity Beach.
+GEM_AWARD_TIMEOUT_FRAMES = 900
 
 
 @dataclass(frozen=True)
@@ -84,6 +97,7 @@ class Goal:
     check: Callable  # Runner -> REACHED, FORBIDDEN or None, after every frame
     clear_wins: bool  # the stage's clear is the goal; otherwise it ends the rollout
     farms: bool = False  # QUIT_MOVE is played: the goal's items come back on re-entry
+    confirm: Callable | None = None  # Runner -> bool, after a winning clear: whether it counts
 
 
 def no_score(_runner):
@@ -121,6 +135,37 @@ def aku_invincible(runner):
     return REACHED if aku_score(runner) >= AKU_INVINCIBLE_LEVEL else None
 
 
+def box_score(runner):
+    return runner.emu.s32(BOX_COUNT) >> FIXED_POINT_SHIFT
+
+
+def gem_awarded(runner):
+    """Plays on from the clear, without input, until the Stage Clear screen hands out the gem of
+    the stage under the map cursor (the game's own verdict on every box and no death), or not."""
+    map_index = runner.emu.u8(STAGE_ID)
+    for _ in range(GEM_AWARD_TIMEOUT_FRAMES):
+        if has_gem(runner.emu, map_index):
+            return True
+        runner.emu.run(1, 0)
+    return False
+
+
+def checkpoint_reached(runner):
+    return REACHED if runner.emu.s32(CHECKPOINT_ID) != NO_CHECKPOINT else None
+
+
+def boss_hits(runner):
+    """Health the boss lost since the fight started; 0 while no boss object is allocated."""
+    health = boss_health(runner.emu)
+    if health is None or runner.start_boss_health is None:
+        return 0
+    return runner.start_boss_health - health
+
+
+def boss_beaten(runner):
+    return REACHED if boss_health(runner.emu) == 0 else None
+
+
 GOALS = {
     CLEAR_GOAL: Goal("clear the stage", no_score, nothing_to_check, clear_wins=True),
     "no-wumpa": Goal(
@@ -132,6 +177,15 @@ GOALS = {
     "aku": Goal(
         "hold three Aku Aku masks", aku_score, aku_invincible, clear_wins=False, farms=True
     ),
+    "gem": Goal(
+        "clear the stage with the gem: every box, no death",
+        box_score,
+        nothing_to_check,
+        clear_wins=True,
+        confirm=gem_awarded,
+    ),
+    "checkpoint": Goal("break a checkpoint crate", no_score, checkpoint_reached, clear_wins=False),
+    "boss": Goal("beat the boss", boss_hits, boss_beaten, clear_wins=False),
 }
 
 
@@ -156,6 +210,7 @@ class Runner:
         self.respawns = emu.s32(RESPAWN_COUNT)
         self.level_id = emu.u8(LEVEL_ID)
         self.start_fruit = player_fruit(emu)
+        self.start_boss_health = boss_health(emu)
         self.fruit = self.previous_fruit = self.start_fruit
 
     def sync(self):
@@ -173,7 +228,7 @@ class Runner:
         """CLEARED, DEAD (respawned), ELSEWHERE (another level loaded), the goal's REACHED or
         FORBIDDEN, or None."""
         level_id = self.emu.u8(LEVEL_ID)
-        if self.emu.u32(GAME_STATE) == GAME_STATE_STAGE_CLEARED or level_id == LID_STAGE_CLEAR:
+        if self.emu.u32(GAME_STATE) in CLEARED_STATES or level_id == LID_STAGE_CLEAR:
             return CLEARED
         if self.emu.s32(RESPAWN_COUNT) != self.respawns:
             return DEAD
@@ -211,7 +266,11 @@ class Runner:
         return DEAD
 
     def won(self, outcome):
-        return outcome == REACHED or (outcome == CLEARED and self.goal.clear_wins)
+        if outcome == REACHED:
+            return True
+        if outcome == CLEARED and self.goal.clear_wins:
+            return self.goal.confirm is None or self.goal.confirm(self)
+        return False
 
     def quit_and_reenter(self):
         """Stands, quits from the pause menu and enters the stage again from the map.
@@ -384,7 +443,7 @@ class Explorer:
 
 
 def main():
-    stages = {stage.name: stage for stage in states.STAGES}
+    stages = {stage.name: stage for stage in (*states.STAGES, *states.BOSS_FIGHTS)}
     parser = argparse.ArgumentParser(description="Search an input plan that reaches a goal.")
     parser.add_argument("stage", choices=sorted(stages))
     parser.add_argument("--goal", default=CLEAR_GOAL, choices=sorted(GOALS))

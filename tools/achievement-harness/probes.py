@@ -33,11 +33,11 @@ LEVELS_UNLOCKED = 0x61948  # map stages the island map spawns when it loads
 PERCENT_COMPLETE = 0x61974
 BONUS_ROUND_ID = 0x6197C
 BOX_COUNT = 0x61984  # 24.8, boxes broken in the current stage
-ITEM_POOL1 = 0x61988  # gem bits
+ITEM_POOL1 = 0x61988  # gem bits: bit n + 1 is the clear gem of map stage n (`0x619C5`)
 GEM_STAMP = 0x61990
 ISLAND_CAM_STATE = 0x61994  # RA "overworld status"
 IS_FIRST_ZONE = 0x61998  # RA "on results screen"; really 1 after every load and every respawn
-CHECKPOINT_ID = 0x619A0
+CHECKPOINT_ID = 0x619A0  # -1 until a checkpoint crate of the stage is broken
 ITEM_POOL2 = 0x619AC  # gem and key bits
 TITLE_PAUSE_STATE = 0x619B4
 STAGE_ID = 0x619C5  # byte 1 of the map cursor global: RA "current stage"
@@ -50,8 +50,12 @@ DEATH_COUNT = 0x61A3C  # 24.8
 # Engine variables outside the globals block.
 PAUSED = 0x56400
 PLAYER_POINTER = 0x566B4
+BOSS_POINTER = 0x60DDC  # the boss object of a boss fight; reallocated on every respawn
 
 AKU_LEVEL_OFFSET = 0x189
+# Integer byte of the boss's 24.8 health: Papu Papu starts at 3.
+BOSS_HEALTH_OFFSET = 0x105
+BITS_PER_BYTE = 8
 # The player object's counters, 24.8: Wumpa (wraps at 100 into an extra life), then lives (capped
 # at 99). The Wumpa HUD only animates towards the player's count, a few frames behind.
 PLAYER_FRUIT_OFFSET = 0x160
@@ -76,10 +80,14 @@ NON_STAGE_LIDS = (LID_TITLE, LID_STAGE_CLEAR)
 # Game states (c1 `GAME_STATE_*`, src/globals.h).
 GAME_STATE_PLAYING = 0x100
 GAME_STATE_GAME_OVER = 0x200
-GAME_STATE_STAGE_CLEARED = 0x500  # c1 `GAME_STATE_NEW_GEM`, set on every stage clear
+# c1 `GAME_STATE_CONTINUE`: a level won without the Stage Clear screen, straight to the map (a
+# boss beaten, a stage cleared after a death).
+GAME_STATE_LEVEL_WON = 0x300
+GAME_STATE_STAGE_CLEARED = 0x500  # c1 `GAME_STATE_NEW_GEM`: a stage cleared, Stage Clear next
 TITLE_STATE_MAIN_MENU = 5
 TITLE_STATE_WORLD_MAP = 0xF
 ON_THE_MAP = 1
+NO_CHECKPOINT = -1
 PAUSED_ON = 1
 DISPLAY_FLAGS_NORMAL = 0xFFFF
 
@@ -107,6 +115,21 @@ def fixed(address):
 
 def aku_level(emu):
     return emu.deref(AKU_POINTER, AKU_LEVEL_OFFSET)
+
+
+def boss_health(emu):
+    return emu.deref(BOSS_POINTER, BOSS_HEALTH_OFFSET)
+
+
+def gem_bit(map_index):
+    """`(address, mask)` of the clear gem bit of the map stage `map_index` (`0x619C5`)."""
+    bit = map_index + 1
+    return ITEM_POOL1 + bit // BITS_PER_BYTE, 1 << (bit % BITS_PER_BYTE)
+
+
+def has_gem(emu, map_index):
+    address, mask = gem_bit(map_index)
+    return bool(emu.u8(address) & mask)
 
 
 def in_a_stage(emu):
@@ -192,6 +215,7 @@ GLOBALS = [
 OBJECTS = [
     ("paused", u8(PAUSED)),
     ("aku_level", aku_level),
+    ("boss_health", boss_health),
     ("fruit_hud", hud_count(FRUIT_HUD_POINTER)),
     ("life_hud", hud_count(LIFE_HUD_POINTER)),
     ("player_ptr", u24(PLAYER_POINTER)),
@@ -219,6 +243,7 @@ SUMMARY_KEYS = [
     "player_fruit",
     "player_lives",
     "aku_level",
+    "boss_health",
     "paused",
 ]
 
