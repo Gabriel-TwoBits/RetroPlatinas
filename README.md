@@ -64,7 +64,8 @@ http://localhost:8000/admin/ → log in with the superuser created above.
 
 Badges are uploaded images named after their sequential number, as RetroAchievements names them
 (`00001`, `00002`, …): upload one in the admin (**Achievements → Badges**) or from RAIntegration,
-then set that name as the achievement's badge name. A badge's image never changes; new art is a new
+then set that name as the achievement's badge name; the site's achievement editor uploads one
+and names the achievement after it in one step. A badge's image never changes; new art is a new
 badge. Staff may delete a badge no achievement uses. `00000` is the placeholder every achievement
 shows until it gets a badge. Upload a game's icon in the game's admin page; until one is uploaded, a
 placeholder is shown too. Placeholders are drawn in code. Emulators fetch the images from
@@ -156,6 +157,17 @@ not zero. An unlock carrying `o` is dated that far back, at most one day. A requ
 (curl, a test script) must sign itself the same way — `award_validation_hash` and
 `leaderboard_validation_hash` in `apps/anticheat/detection.py` compute it.
 
+## Editing achievements on the site
+
+Logged-in users create an achievement at `/games/<id>/achievements/new/` and edit one at
+`/games/<id>/achievements/<aid>/edit/`: title, description, points (RetroAchievements' scale),
+type, a badge upload (which becomes a new badge), the `mem_addr` condition and the status. A new
+achievement starts as a draft. Only its author or staff edit it: another user gets 403, and another
+user's draft does not exist (404). The author moves it between draft and community; only staff set
+or lift verified. A change of status or points recounts its unlockers' points, as the admin does.
+The condition must parse with the vendored rcheevos parser: `apps/achievements/triggers.py` runs
+`scripts/check-mem-addr.sh`, whose binary `entrypoint.sh` compiles at container startup.
+
 ## Editing sets from RAIntegration
 
 RAIntegration writes sets through `POST /dorequest.php` (the badge upload goes to
@@ -166,7 +178,7 @@ A refusal answers `access_denied` with `Status` 403, as RetroAchievements does.
 | --- | --- | --- |
 | `codenotes2` | anyone | the game's notes, `Address` as `0x%06x` |
 | `submitcodenote`, `submitcodenotes` | any user adds; only the note's author or staff changes or deletes it | an empty note deletes; the last writer becomes the note's author; `submitcodenotes` lists the refused addresses in `AccessDeniedAddresses` |
-| `uploadachievement` | any user creates; only the author or staff changes | a new achievement is always a **draft**, whatever `f` says, and `f` never changes a status: publish in the admin. `b` must be an uploaded badge or `00000`; `x` is the type |
+| `uploadachievement` | any user creates; only the author or staff changes | a new achievement is always a **draft**, whatever `f` says, and `f` never changes a status: publish on the site (the achievement editor or the admin). `b` must be an uploaded badge or `00000`; `x` is the type |
 | `uploadleaderboard` | staff creates; only the author or staff changes | stored as `STA:…::CAN:…::SUB:…::VAL:…`; format aliases (`TIME`, `POINTS`, …) are stored by their canonical name. Leaderboards have no draft state: a new one is live for every player, hence staff only |
 | `submitrichpresence` | staff | replaces the game's rich presence script |
 | `submitgametitle` | staff | links the hash to game `g`, or to the game titled `i` on console `c`, created if there is none |

@@ -264,7 +264,8 @@ answers 404. Every game title on the home, the profile and the games list links 
 - **Header** — a ruled section: the icon through the `/Images/` route (a game object, so it sits
   on `bg-surface`), title, console tag and name, then the published achievements and their
   points side by side split by a vertical hairline, and the description (escaped, line breaks
-  kept). Drafts never count.
+  kept). Drafts never count. A logged-in viewer gets a *New achievement* outlined button under
+  it, leading to the achievement editor.
 - **Tabs** — underline tabs (`.rp-tab`): *Achievements*, *Leaderboards*, *Recent players*.
   Each loads through HTMX from `/games/<id>/panel/<tab>/`, which answers the tab bar with its
   tab active plus the panel, swapped into `#game-tabs`; the active state is rendered by the
@@ -277,7 +278,9 @@ answers 404. Every game title on the home, the profile and the games list links 
   `state-platinum` with a check seal, *Community* in `brand`, *Draft* in `gold`. For a logged-in
   viewer an unlocked badge has a 2px `state-hardcore` or `state-softcore` border with the mode
   and local date under the description; a locked one comes from the `_lock` route, faded, with
-  muted text. An anonymous visitor sees the plain badges and no unlock filters.
+  muted text. An anonymous visitor sees the plain badges and no unlock filters. Under the points,
+  an *Edit* link in `brand` leads to the achievement editor on the rows the viewer may edit (their
+  own, or every row for staff).
 - **Status choice** — outlined chips over the list, the active one in `brand`: *Verified only*,
   *Verified + Community* (the default) and, for a logged-in viewer, *All incl. my drafts*. Each
   reloads the achievements panel through the same HTMX route (`?show=verified|published|all`);
@@ -291,6 +294,16 @@ answers 404. Every game title on the home, the profile and the games list links 
   description and its entries by active users. Scores and ranks belong to the leaderboard page.
 - **Recent players** — the 20 active users who played last: identicon, profile link, published
   achievements unlocked (and how many in hardcore) and when they last played.
+
+## Achievement editor
+
+`/games/<id>/achievements/new/` and `/games/<id>/achievements/<aid>/edit/`
+(`templates/achievements/edit.html`): the auth-page shape below in a `max-w-2xl` column, the
+title over a `border-line2` rule with the game linked under it. Editing shows the author, created
+and last-updated times as hairline-split mono rows, then the current badge unlocked and locked
+(game objects, on `bg-surface`), then the form: title, description, points, type, a new badge
+upload, the condition (`mem_addr`, checked by the rcheevos parser) and the status. Saving returns
+to the edit page with the message *Achievement saved.*; *Back to the game* sits under a hairline.
 
 ## Leaderboard page
 
