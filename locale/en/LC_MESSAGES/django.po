@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RetroPlatinas\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-06 22:09-0300\n"
+"POT-Creation-Date: 2026-10-06 22:19-0300\n"
 "PO-Revision-Date: 2026-05-23 18:15-0300\n"
 "Last-Translator: RetroPlatinas\n"
 "Language-Team: English\n"
@@ -125,32 +125,32 @@ msgstr[1] ""
 msgid "badge name"
 msgstr ""
 
-#: apps/achievements/forms.py:28 templates/games/detail.html:23
+#: apps/achievements/forms.py:30 templates/games/detail.html:23
 msgid "Points"
 msgstr ""
 
-#: apps/achievements/forms.py:32
+#: apps/achievements/forms.py:34
 msgid "New badge"
 msgstr ""
 
-#: apps/achievements/forms.py:41
+#: apps/achievements/forms.py:43
 msgid "Condition (mem_addr)"
 msgstr ""
 
-#: apps/achievements/forms.py:44
+#: apps/achievements/forms.py:46
 msgid ""
 "The trigger in rcheevos syntax, checked with the same parser the emulators "
 "run."
 msgstr ""
 
-#: apps/achievements/forms.py:47
+#: apps/achievements/forms.py:49
 msgid ""
 "A draft reaches only its author, in the emulator's unofficial list, and is "
 "never awarded. Community and verified reach every player and are worth "
 "points."
 msgstr ""
 
-#: apps/achievements/forms.py:66
+#: apps/achievements/forms.py:68
 #, python-format
 msgid ""
 "PNG, JPEG or GIF, at most %(megabytes)s MiB and %(pixels)s pixels a side. "
@@ -322,15 +322,20 @@ msgstr ""
 msgid "code notes"
 msgstr ""
 
-#: apps/achievements/triggers.py:37
+#: apps/achievements/triggers.py:40
 msgid "The condition could not be checked right now; try again later."
 msgstr ""
 
-#: apps/achievements/triggers.py:47
+#: apps/achievements/triggers.py:50
 msgid "An achievement condition is a single line of trigger conditions."
 msgstr ""
 
-#: apps/achievements/triggers.py:68
+#: apps/achievements/triggers.py:55
+#, python-format
+msgid "The condition is too long: at most %(limit)s bytes."
+msgstr ""
+
+#: apps/achievements/triggers.py:77
 #, python-format
 msgid "rcheevos cannot parse this condition: %(reason)s."
 msgstr ""

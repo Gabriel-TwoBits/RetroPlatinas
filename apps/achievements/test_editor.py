@@ -157,6 +157,15 @@ def test_validate_trigger_refuses_what_the_checker_parses_as_something_else(mem_
     assert error.value.code == "not_a_trigger"
 
 
+def test_validate_trigger_refuses_a_condition_too_long_to_check():
+    too_long = VALID_TRIGGER + "_0xH0001=1" * triggers.MAX_TRIGGER_BYTES
+
+    with pytest.raises(ValidationError) as error:
+        triggers.validate_trigger(too_long)
+
+    assert error.value.code == "trigger_too_long"
+
+
 def test_validate_trigger_reports_a_missing_checker(monkeypatch, tmp_path):
     monkeypatch.setattr(triggers, "MEM_ADDR_CHECKER", tmp_path / "missing.sh")
 

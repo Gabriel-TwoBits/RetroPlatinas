@@ -21,6 +21,9 @@ INVALID_VERDICT = "INVALID"
 LEADERBOARD_PREFIX = "STA:"
 RICH_PRESENCE_MARKER = "Display:"
 LINE_BREAKS = ("\n", "\r")
+# 64 KiB. The condition travels as one argv element, which Linux caps at 128 KiB (MAX_ARG_STRLEN);
+# a real trigger is a few KiB at most.
+MAX_TRIGGER_BYTES = 65_536
 
 
 def _not_a_trigger(mem_addr):
@@ -46,6 +49,12 @@ def validate_trigger(mem_addr):
         raise ValidationError(
             _("An achievement condition is a single line of trigger conditions."),
             code="not_a_trigger",
+        )
+    if len(mem_addr.encode()) > MAX_TRIGGER_BYTES:
+        raise ValidationError(
+            _("The condition is too long: at most %(limit)s bytes."),
+            code="trigger_too_long",
+            params={"limit": MAX_TRIGGER_BYTES},
         )
     try:
         result = subprocess.run(
