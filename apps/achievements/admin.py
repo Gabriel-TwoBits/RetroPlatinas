@@ -5,7 +5,15 @@ from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 from django.utils.translation import ngettext
 
-from apps.achievements.models import Achievement, Badge, CodeNote, UserUnlock
+from apps.achievements.models import (
+    Achievement,
+    AchievementRevision,
+    Badge,
+    CodeNote,
+    UserUnlock,
+    record_baselines,
+    record_revisions,
+)
 from apps.achievements.scoring import recalculate_unlocker_points
 from apps.games.models import PlayerGame
 from apps.images.catalog import badge_path
@@ -107,7 +115,7 @@ class AchievementAdmin(admin.ModelAdmin):
         self._change_status(request, queryset, Achievement.STATUS_DRAFT)
 
     def save_model(self, request, obj, form, change):
-        super().save_model(request, obj, form, change)
+        obj.save(editor=request.user)
         if "status" in form.changed_data or "points" in form.changed_data:
             recalculate_unlocker_points([obj.pk])
         if "game" in form.changed_data:
@@ -116,9 +124,11 @@ class AchievementAdmin(admin.ModelAdmin):
     def _change_status(self, request, queryset, status):
         with transaction.atomic():
             changing_ids = list(queryset.exclude(status=status).values_list("pk", flat=True))
+            record_baselines(changing_ids)
             changed = Achievement.objects.filter(pk__in=changing_ids).update(
                 status=status, updated_at=timezone.now()
             )
+            record_revisions(changing_ids, request.user)
             recalculate_unlocker_points(changing_ids)
         message = ngettext(
             "%(count)d achievement moved to %(status)s.",
@@ -156,11 +166,13 @@ class BadgeAdmin(admin.ModelAdmin):
             return self.get_readonly_fields(request, obj)
 
     def has_delete_permission(self, request, obj=None):
-        # Achievements refer to badges by name, with no foreign key to protect them, so only a
-        # badge no achievement uses may go, and one at a time.
+        # Achievements and their revisions refer to badges by name, with no foreign key to
+        # protect them, so only a badge none of them uses may go, and one at a time.
         if obj is None:
             return False
         elif Achievement.objects.filter(badge_name=obj.name).exists():
+            return False
+        elif AchievementRevision.objects.filter(badge_name=obj.name).exists():
             return False
         else:
             return super().has_delete_permission(request, obj)

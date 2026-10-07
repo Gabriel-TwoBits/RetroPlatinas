@@ -38,7 +38,7 @@ def _save(form, editor):
         upload = form.cleaned_data["badge"]
         if upload is not None:
             achievement.badge_name = Badge.objects.create(image=upload, uploaded_by=editor).name
-        achievement.save()
+        achievement.save(editor=editor)
         if SCORED_FIELDS & set(form.changed_data):
             recalculate_unlocker_points([achievement.pk])
     return achievement

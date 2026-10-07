@@ -2,7 +2,7 @@ import re
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.db import models
+from django.db import models, transaction
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from PIL import Image
@@ -24,6 +24,8 @@ BADGE_UPLOAD_FORMATS = ("PNG", "JPEG", "GIF")
 MAX_BADGE_UPLOAD_SIDE_PX = 1024
 # The point values RAWeb accepts (`AchievementPoints`), the ones RAIntegration offers.
 ACHIEVEMENT_POINT_VALUES = frozenset({0, 1, 2, 3, 4, 5, 10, 25, 50, 100})
+# The achievement fields an `AchievementRevision` records.
+REVISED_FIELDS = ("title", "description", "points", "type", "mem_addr", "badge_name", "status")
 
 
 def badge_name_for(number):
@@ -217,6 +219,118 @@ class Achievement(models.Model):
             raise ValidationError(
                 {"badge_name": _("No badge has this name; upload the badge first.")}
             )
+
+    def save(self, *args, editor=None, **kwargs):
+        """Saves the achievement and records a revision when a revised field changed; `editor` is
+        who changed it, `None` when unknown."""
+        with transaction.atomic():
+            if not self._state.adding:
+                record_baselines([self.pk])
+            else:
+                # A new achievement has no stored state to record.
+                pass
+            super().save(*args, **kwargs)
+            record_revisions([self.pk], editor)
+
+    def revised_values(self):
+        return {field: getattr(self, field) for field in REVISED_FIELDS}
+
+
+class AchievementRevision(models.Model):
+    """An achievement's revised fields as one change left them. History is append-only: a revert
+    is a new revision."""
+
+    achievement = models.ForeignKey(
+        Achievement,
+        on_delete=models.CASCADE,
+        related_name="revisions",
+        verbose_name=_("achievement"),
+    )
+    # `None` when unknown: a baseline, or a save that named no editor.
+    editor = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="+",
+        verbose_name=_("editor"),
+    )
+    title = models.CharField(
+        max_length=Achievement._meta.get_field("title").max_length, verbose_name=_("title")
+    )
+    description = models.TextField(verbose_name=_("description"))
+    points = models.IntegerField(verbose_name=_("points"))
+    mem_addr = models.TextField(verbose_name=_("memory address expression"))
+    badge_name = models.CharField(max_length=BADGE_NAME_MAX_CHARS, verbose_name=_("badge name"))
+    status = models.CharField(
+        max_length=Achievement._meta.get_field("status").max_length,
+        choices=Achievement.STATUS_CHOICES,
+        verbose_name=_("status"),
+    )
+    type = models.CharField(
+        max_length=Achievement._meta.get_field("type").max_length,
+        choices=Achievement.TYPE_CHOICES,
+        blank=True,
+        verbose_name=_("type"),
+    )
+    created_at = models.DateTimeField(
+        default=timezone.now, editable=False, verbose_name=_("created at")
+    )
+
+    class Meta:
+        verbose_name = _("achievement revision")
+        verbose_name_plural = _("achievement revisions")
+        ordering = ["achievement", "created_at", "pk"]
+
+    def __str__(self):
+        return f"{self.achievement} @ {self.created_at:%Y-%m-%d %H:%M:%S}"
+
+    def revised_values(self):
+        return {field: getattr(self, field) for field in REVISED_FIELDS}
+
+
+def _latest_revised_values(achievement_ids):
+    """`{achievement_id: revised values}` of each achievement's latest revision."""
+    latest = (
+        AchievementRevision.objects.filter(achievement_id__in=achievement_ids)
+        .order_by("achievement_id", "-created_at", "-pk")
+        .distinct("achievement_id")
+        .values("achievement_id", *REVISED_FIELDS)
+    )
+    return {row.pop("achievement_id"): row for row in latest}
+
+
+def record_revisions(achievement_ids, editor):
+    """Records, by `editor`, the stored state of each achievement whose revised fields differ from
+    its latest revision, so a save that changed none of them records nothing."""
+    latest = _latest_revised_values(achievement_ids)
+    stored = Achievement.objects.filter(pk__in=achievement_ids).values("pk", *REVISED_FIELDS)
+    AchievementRevision.objects.bulk_create(
+        [
+            AchievementRevision(achievement_id=row.pop("pk"), editor=editor, **row)
+            for row in stored
+            if latest.get(row["pk"]) != {field: row[field] for field in REVISED_FIELDS}
+        ]
+    )
+
+
+def record_baselines(achievement_ids):
+    """Records the stored state of each achievement that has no revision yet, dated when it was
+    last updated, so its first recorded change has a state to differ from.
+
+    Covers achievements written without `save()`: `bulk_create`, `update()` and `loaddata`.
+    """
+    stored = Achievement.objects.filter(pk__in=achievement_ids, revisions__isnull=True).values(
+        "pk", "updated_at", *REVISED_FIELDS
+    )
+    AchievementRevision.objects.bulk_create(
+        [
+            AchievementRevision(
+                achievement_id=row.pop("pk"), created_at=row.pop("updated_at"), **row
+            )
+            for row in stored
+        ]
+    )
 
 
 class UserUnlock(models.Model):

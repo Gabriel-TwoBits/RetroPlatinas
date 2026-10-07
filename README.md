@@ -66,9 +66,9 @@ Badges are uploaded images named after their sequential number, as RetroAchievem
 (`00001`, `00002`, …): upload one in the admin (**Achievements → Badges**) or from RAIntegration,
 then set that name as the achievement's badge name; the site's achievement editor uploads one
 and names the achievement after it in one step. A badge's image never changes; new art is a new
-badge. Staff may delete a badge no achievement uses. `00000` is the placeholder every achievement
-shows until it gets a badge. Upload a game's icon in the game's admin page; until one is uploaded, a
-placeholder is shown too. Placeholders are drawn in code. Emulators fetch the images from
+badge. Staff may delete a badge no achievement or achievement revision uses. `00000` is the
+placeholder every achievement shows until it gets a badge. Upload a game's icon in the game's admin
+page; until one is uploaded, a placeholder is shown too. Placeholders are drawn in code. Emulators fetch the images from
 RetroAchievements-compatible paths, served by Django views (not by the `/media/` static serving,
 which exists in development only):
 

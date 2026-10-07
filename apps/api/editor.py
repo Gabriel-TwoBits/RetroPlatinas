@@ -267,7 +267,7 @@ def _create_achievement(user, game_id, fields):
     if game is None:
         return _GAME_NOT_FOUND
     # New achievements are drafts whatever `f` asks: only the site publishes them.
-    achievement = Achievement.objects.create(
+    achievement = Achievement(
         game=game,
         author=user,
         status=Achievement.STATUS_DRAFT,
@@ -278,6 +278,7 @@ def _create_achievement(user, game_id, fields):
         badge_name=fields["badge_name"],
         type=fields["type"] or Achievement.TYPE_NONE,
     )
+    achievement.save(editor=user)
     return {"Success": True, "AchievementID": achievement.pk}
 
 
@@ -306,7 +307,7 @@ def _update_achievement(user, achievement_id, game_id, fields):
             if fields["type"] is not None:
                 achievement.type = fields["type"]
             # The status stays: `f` never publishes or unpublishes.
-            achievement.save()
+            achievement.save(editor=user)
             if points_changed and achievement.status in Achievement.PUBLISHED_STATUSES:
                 recalculate_unlocker_points([achievement.pk])
             return {"Success": True, "AchievementID": achievement.pk}
