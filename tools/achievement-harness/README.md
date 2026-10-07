@@ -97,6 +97,7 @@ came from the cache or was derived moments earlier.
 | `nsanity-beach-two-masks` | `nsanity-beach-start` | N. Sanity Beach re-entered with 2 Aku Aku masks: twice, the clearing plan up to the first Aku Aku crate, then a quit and a re-entry |
 | `nsanity-beach-farmed-wumpa` | `nsanity-beach-start` | N. Sanity Beach re-entered with 36 Wumpa: twice, the clearing plan up to its 20th fruit, then a quit and a re-entry |
 | `<stage>-checkpoint-respawn` | `<stage>-start` | The stage after `plans/<stage>-checkpoint.json` (a route that breaks a checkpoint crate) and a death by seeded random play: the player back in control at the checkpoint; only for a stage with that plan |
+| `<stage>-early-death-restart` | `<stage>-start` | The stage after a death by seeded random play before any checkpoint (derivation fails otherwise): the stage restarted, every box back |
 
 `<stage>` is each level achievement's stage, in `states.STAGES` with its level id, map cursor and
 the direction it runs on screen: `nsanity-beach`, `jungle-rollers`, `the-great-gate`, `boulders`,
@@ -150,6 +151,7 @@ while the others keep their hits, as in a live session.
 | `<stage>-gem` | `<stage>-start` | the stage's achievement and its gem achievement, on Stage Clear (lid `0x2D`) | Replays `plans/<stage>-gem.json`, a clear with every box in one life; then as `<stage>-clear` |
 | `<stage>-gem-poked` | `<stage>-start` | the stage's achievement and its gem achievement, on Stage Clear | **Secondary evidence (RAM poke):** the clearing plan with the box count set to the stage's boxes (`scenarios.STAGE_BOXES`, measured) before its last segment; the Stage Clear screen hands out the gem; then as `<stage>-clear` |
 | `<stage>-one-box-short-poked` | `<stage>-start` | the stage's achievement only | **Secondary evidence (RAM poke):** the same with one box fewer: no gem |
+| `<stage>-early-death-gem-poked` | `<stage>-early-death-restart` | the stage's achievement and its gem achievement, on Stage Clear | **Secondary evidence (RAM poke):** `plans/<stage>-early-death-clear.json`, a clear searched from the restart after a death before any checkpoint, with the box count set to the stage's boxes before its last segment: the game still hands out the gem; then as `<stage>-clear` |
 | `<stage>-checkpoint-death` | `<stage>-start` | the stage's achievement on the switch to the map (lid `0x19`); `Beach Diet` on the clear (lid of the stage) for its stage, whose route picks up no Wumpa; never the gem | `plans/<stage>-checkpoint.json`, the death of `<stage>-checkpoint-respawn`, then `plans/<stage>-checkpoint-clear.json` from the checkpoint: the game skips Stage Clear after that death and goes straight to the map (game state `0x300`) |
 | `<stage>-checkpoint-death-fruit-poked` | `<stage>-start` | the stage's achievement only | **Secondary evidence (RAM poke):** the same with one Wumpa set (player and Wumpa HUD) after the respawn, which the clear commits. Only for the stage `Beach Diet` names |
 

@@ -42,7 +42,7 @@ built by the command's `build_gem_mem_addr` and `build_boss_mem_addr`; the harne
 | Boxes per stage | Stage Clear screen | N. Sanity Beach **49** (8 broken by the clearing plan + 41 missed), Jungle Rollers **38** (12 + 26). The other stages were not measured |
 | Gem bits | `0x61988`… (c1 `item_pool1`) | Bit *n* + 1 is map stage *n* (`0x619c5`): N. Sanity Beach bit 1, Jungle Rollers bit 2, The Great Gate bit 3, Boulders bit 4, Upstream bit 5. The **Stage Clear screen** sets the bit about 280 frames after it loads, when the box count reached the stage's boxes ("PERFECT"); one short leaves it clear. It persists through the map and the next stages |
 | Boss health | `0x60ddc` pointer, `+0x105` (24.8 at `+0x104`) | The boss object of a boss fight. Papu Papu starts at **3** and loses one per hit (3 → 2 → 1 → 0, then `ff` as the object winds down). A respawn allocates a new object at 3 (the pointer reads `0` for two frames). On other levels the pointer names other objects |
-| A clear after a death past a checkpoint | `0x618d1`, `0x6188d` | The game state turns `03` instead of `05` and the stage goes **straight to the island map** (`09` → `19`, no Stage Clear screen, so no gem); the stage still counts as cleared (`0x61948` 1 → 2 on N. Sanity Beach). A death before any checkpoint restarts the stage, and its clear shows Stage Clear as usual |
+| A clear after a death past a checkpoint | `0x618d1`, `0x6188d` | The game state turns `03` instead of `05` and the stage goes **straight to the island map** (`09` → `19`, no Stage Clear screen, so no gem); the stage still counts as cleared (`0x61948` 1 → 2 on N. Sanity Beach). A death before any checkpoint restarts the stage (every box back, the count at 0, the respawn count `0x618a1` at 1 through Stage Clear), and its clear shows Stage Clear as usual and hands out the gem for every box (seen with the count poked) |
 | Papu Papu's exit | `0x6188d`, `0x618d1` | After the last hit the game state turns `03` and the fight goes **straight to the island map** (`0a` → `19`, no Stage Clear screen), the cursor moving on to Rolling Stones |
 
 ## Logic
@@ -117,6 +117,7 @@ the count is set before its last segment, and the Stage Clear screen decides.
 | `nsanity-beach-gem-poked` | 49 boxes | `Shoreline Sparkle` once, when the Stage Clear screen sets bit 1 (frame 7407, lid `2d`, 280 frames after it loads); `N. Sanity Beach` on the switch to `2d` |
 | `jungle-rollers-gem-poked` | 38 boxes | `Rolled Clean` once, when the screen sets bit 2 (frame 12816, lid `2d`) |
 | `nsanity-beach-one-box-short-poked`, `jungle-rollers-one-box-short-poked` | 48, 37 | no gem, no gem achievement |
+| `nsanity-beach-early-death-gem-poked` | 49 boxes, on `plans/nsanity-beach-early-death-clear.json`, a clear searched from the restart after a death before any checkpoint (`explore.py nsanity-beach --from nsanity-beach-early-death-restart --seed 5`) | `Shoreline Sparkle` once, on the Stage Clear screen (lid `2d`): the early death does not stop the gem |
 
 **No-fire scenarios**, every one with these six achievements active: `cold-boot`, `attract` (15 minutes of demos,
 Papu Papu's among them), `attract-then-new-game`, `game-over`, `<stage>-deaths` and `<stage>-quit` for the six
@@ -127,6 +128,9 @@ gem or the boss. Every scenario above is a test in `tools/achievement-harness/te
 
 - **A real gem run**, on N. Sanity Beach at least: break all 49 boxes in one life and see `Shoreline Sparkle`
   pop on the Stage Clear screen with the gem, once. The harness only saw the gem from a poked box count.
+- **A gem after a death before the first checkpoint**: die before any checkpoint crate, then break all 49
+  boxes and finish; the game hands out the gem and `Shoreline Sparkle` pops (the harness saw it with the box
+  count poked).
 - **A death after the checkpoint**: break boxes, break the checkpoint crate, die, finish from the checkpoint;
   the stage goes straight to the map, no gem achievement pops, and the stage's level achievement does (the
   harness saw it on N. Sanity Beach).

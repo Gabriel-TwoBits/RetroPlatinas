@@ -647,6 +647,18 @@ for _stage in _GEM_STAGES:
         )
     else:
         pass  # No clearing plan or no measured box total to poke.
+    if _stage.early_death_clear_plan_path.is_file() and _stage.name in STAGE_BOXES:
+        SCENARIOS[f"{_stage.name}-early-death-gem-poked"] = Scenario(
+            _stage.early_death_restart,
+            _gem_lids,
+            "SECONDARY EVIDENCE (RAM poke): a death before any checkpoint, then the clear from the "
+            "restart with the box count set to every box of the stage before its last segment",
+            clear(_stage, _stage.early_death_clear_plan_path, boxes=STAGE_BOXES[_stage.name]),
+            (in_stage(_name), STAGE_CLEAR, ISLAND_MAP),
+            never=(NO_LIVES,),
+        )
+    else:
+        pass  # No clear searched from a restart after an early death.
     if _stage.checkpoint_clear_plan_path.is_file():
         _straight_to_map = {_name: LID_TITLE}
         if _name == _collectibles.NO_WUMPA_STAGE:
