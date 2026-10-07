@@ -418,8 +418,8 @@ def test_deleting_an_unknown_comment_is_404(client, author):
 def test_a_comment_on_a_draft_another_user_cannot_see_is_404_to_them(
     client, author, other, staff, game
 ):
-    """A published achievement moved back to draft keeps its comments, out of reach of all but
-    the draft's author."""
+    """A published achievement moved back to draft keeps its comments, out of reach on the site
+    of all but the draft's author; staff moderate them in the admin."""
     achievement = _achievement(game, author)
     comment = _comment(other, target_achievement=achievement)
     achievement.status = Achievement.STATUS_DRAFT
@@ -430,3 +430,24 @@ def test_a_comment_on_a_draft_another_user_cannot_see_is_404_to_them(
     client.force_login(author)
     assert _post(client, _delete_url(comment)).status_code == HTTPStatus.FORBIDDEN
     assert Comment.objects.exists()
+
+
+@pytest.mark.django_db
+def test_staff_delete_a_comment_on_a_draft_in_the_admin(admin_client, author, other, game):
+    """The admin is the moderation path for comments no page shows."""
+    achievement = _achievement(game, author, status=Achievement.STATUS_DRAFT)
+    comment = _comment(other, target_achievement=achievement)
+    response = admin_client.post(f"/admin/comments/comment/{comment.pk}/delete/", {"post": "yes"})
+    assert response.status_code == HTTPStatus.FOUND
+    assert not Comment.objects.exists()
+
+
+@pytest.mark.django_db
+def test_the_admin_lists_comments_but_does_not_add_them(admin_client, author, game, achievement):
+    _comment(author, target_game=game, content="On the game")
+    _comment(author, target_achievement=achievement, content="On the achievement")
+    page = admin_client.get("/admin/comments/comment/").content.decode()
+    assert "On the game" in page
+    assert "On the achievement" in page
+    response = admin_client.get("/admin/comments/comment/add/")
+    assert response.status_code == HTTPStatus.FORBIDDEN
