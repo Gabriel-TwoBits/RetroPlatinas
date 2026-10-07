@@ -37,6 +37,8 @@ SECOND_TRIGGER = "0xH0001=1_0xH0002=3"
 THIRD_TRIGGER = "0xH0001=1_0xH0002=3_d0xH0004=0"
 ORIGINAL_POINTS = 5
 NEW_POINTS = 10
+# Settable only in the admin: RA's scale stops at 100.
+OFF_SCALE_POINTS = 1000
 ACHIEVEMENT_CHANGELIST_URL = "/admin/achievements/achievement/"
 
 
@@ -542,6 +544,24 @@ def test_staff_may_revert_to_a_verified_revision(client, game, author, staff):
     assert response.status_code == HTTPStatus.FOUND
     achievement.refresh_from_db()
     assert achievement.status == Achievement.STATUS_VERIFIED
+
+
+def test_reverting_cannot_restore_points_off_the_editors_scale(client, game, author):
+    achievement = _achievement(game, author, status=Achievement.STATUS_COMMUNITY)
+    achievement.points = OFF_SCALE_POINTS
+    achievement.save()
+    off_scale = _revisions(achievement)[-1]
+    achievement.points = ORIGINAL_POINTS
+    achievement.save()
+    client.force_login(author)
+
+    history = client.get(_history_url(achievement)).content.decode()
+    response = client.post(_revert_url(achievement, off_scale))
+
+    assert _revert_url(achievement, off_scale) not in history
+    assert response.status_code == HTTPStatus.FORBIDDEN
+    achievement.refresh_from_db()
+    assert achievement.points == ORIGINAL_POINTS
 
 
 def test_reverting_the_points_recounts_the_unlockers(client, game, author, other):

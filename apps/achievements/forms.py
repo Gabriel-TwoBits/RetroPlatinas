@@ -2,9 +2,8 @@ from django import forms
 from django.utils.translation import gettext_lazy as _
 
 from apps.achievements.code_notes import MAX_CODE_NOTE_ADDRESS, typed_address
-from apps.achievements.editing import settable_statuses
+from apps.achievements.editing import settable_points, settable_statuses
 from apps.achievements.models import (
-    ACHIEVEMENT_POINT_VALUES,
     BADGE_UPLOAD_FORMATS,
     BYTES_PER_MIB,
     MAX_BADGE_UPLOAD_BYTES,
@@ -59,8 +58,7 @@ class AchievementForm(forms.ModelForm):
 
     def __init__(self, *args, editor, **kwargs):
         super().__init__(*args, **kwargs)
-        # Points set outside the scale (in the admin) stay selectable while they are unchanged.
-        points = sorted(ACHIEVEMENT_POINT_VALUES | {self.instance.points})
+        points = sorted(settable_points(self.instance.points))
         self.fields["points"].choices = [(value, value) for value in points]
         allowed = settable_statuses(editor, self.instance.status)
         self.fields["status"].choices = [

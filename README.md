@@ -180,8 +180,8 @@ editor, right before its next recorded change. `/games/<id>/achievements/<aid>/h
 revisions, newest first, each with a line diff against the one before it (`mem_addr` one condition
 per line); it is visible to whoever may see the achievement. Its author or staff may revert to an
 earlier revision: the revert is a new revision, the history is never rewritten, and only to a
-status they may set in the editor, so an author can neither self-verify nor lift a verified seal
-by reverting.
+status and points they may set in the editor, so an author can neither self-verify nor lift a
+verified seal by reverting, and nobody restores points off RA's scale.
 
 ## Code notes on the site
 

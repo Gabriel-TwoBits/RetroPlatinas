@@ -1,6 +1,6 @@
 """Who may change what an editor wrote, shared by RAIntegration's uploads and the web editor."""
 
-from apps.achievements.models import Achievement
+from apps.achievements.models import ACHIEVEMENT_POINT_VALUES, Achievement
 
 
 def can_edit(user, author_id):
@@ -26,3 +26,9 @@ def settable_statuses(user, current_status):
         return [Achievement.STATUS_VERIFIED]
     else:
         return [Achievement.STATUS_DRAFT, Achievement.STATUS_COMMUNITY]
+
+
+def settable_points(current_points):
+    """The points an achievement now worth `current_points` may be given: RA's scale, plus the
+    current value, which may lie outside it when the admin set it."""
+    return ACHIEVEMENT_POINT_VALUES | {current_points}
