@@ -413,6 +413,7 @@ def test_history_is_in_brazilian_portuguese(client, game, author):
 
 def test_editor_and_game_page_link_to_the_history(client, game, author):
     achievement = _achievement(game, author, status=Achievement.STATUS_COMMUNITY)
+    anonymous_game_page = client.get(reverse("game_detail", args=[game.pk]))
     client.force_login(author)
 
     editor = client.get(reverse("achievement_edit", args=[game.pk, achievement.pk]))
@@ -420,6 +421,7 @@ def test_editor_and_game_page_link_to_the_history(client, game, author):
 
     assert _history_url(achievement) in editor.content.decode()
     assert _history_url(achievement) in game_page.content.decode()
+    assert _history_url(achievement) in anonymous_game_page.content.decode()
 
 
 # --- Revert ---
