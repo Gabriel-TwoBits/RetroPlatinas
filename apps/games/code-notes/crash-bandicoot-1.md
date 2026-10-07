@@ -54,7 +54,7 @@ The c1 name is the global's name in the decompilation.
 | Address (rcheevos) | Size | Meaning | Source | Status |
 | --- | --- | --- | --- | --- |
 | `0xH6188d` | 8-bit | Level id (c1 `cur_lid_ro`, GOOL global 0 set by `GoolInitLid`; `LID_*` in `src/common.h`): `19` title, menus and island map · `09` N. Sanity Beach · `0c` Jungle Rollers · `12` The Great Gate · `0e` Boulders · `0f` Upstream · `15` Rolling Stones · `2d` Stage Clear screen (`LID_LEVELEND`). A clear moves it from the stage's id to `2d`; a death respawns in place; a game over and a pause → quit move it to `19`; the attract demos go stage id → `19` | c1 + harness | **VALIDATED** (harness) |
-| `0xH618d1` | 8-bit | Game state (c1 `game_state >> 8`): `00` cutscene / menus · `01` playing (an attract demo too, while `0x61a30` is non-zero) · `02` game over · `03` leaving the Stage Clear screen · `04` quitting from the pause menu · `05` stage cleared (c1 `GAME_STATE_NEW_GEM`, set on every clear, gem or not) · `06` title / demo ending. On a clear it reads `05` for about 90 frames, then `01` from the frame `0x6188d` becomes `2d` | c1 + harness | **VALIDATED** (harness) |
+| `0xH618d1` | 8-bit | Game state (c1 `game_state >> 8`): `00` cutscene / menus · `01` playing (an attract demo too, while `0x61a30` is non-zero) · `02` game over · `03` leaving the Stage Clear screen, or a level won straight to the map (a boss beaten; a stage cleared after a death past a checkpoint, which skips Stage Clear) · `04` quitting from the pause menu · `05` stage cleared (c1 `GAME_STATE_NEW_GEM`, gem or not, unless a death past a checkpoint made it `03`) · `06` title / demo ending. On a clear it reads `05` for about 90 frames, then `01` from the frame `0x6188d` becomes `2d` | c1 + harness | **VALIDATED** (harness) |
 | `0xH61a30` | 8-bit | Attract-demo playback (c1 `pbak_state`): `03` demo picked · `02` demo playing · `00` in normal play. Leaves `02` about 55 frames and is back to `00` about 15–18 frames **before** a demo's level switches back to `19` | c1 + harness | **VALIDATED** (harness) |
 | `0xH618d4` | 8-bit | Title screen (c1 `title_state`, `src/title.c`), meaningful while `0x6188d` is `19`: `0a`/`07` the Sony and Universal screens · `08` Naughty Dog · `05` main menu · `06` options · `0c` game over · `0d`/`0e` password / load game · `0f` island map. Keeps its last value inside a stage | c1 + harness (`0a`, `07`, `08`, `05`, `0c`, `0f`) | **VALIDATED** (harness) |
 | `0xW566b4` +`0x165` | 8-bit (via ptr) | Lives: integer byte of the player object's 24.8 lives at `+0x164`. Changes on the fatal hit; holds leftovers of the previous level for 1–2 frames after a level loads. The pointer reads `0` (object freed) from a pause → quit, and about 70 frames before the Stage Clear screen, until the level changes. **Capped at 99**: an extra life at 99 keeps 99, and the next extra life clamps a poked 150 to 99 (measured by a RAM poke, secondary evidence) | harness | **VALIDATED** (harness) |
@@ -65,6 +65,9 @@ The c1 name is the global's name in the decompilation.
 | `0xH619c5` | 8-bit | Stage under the map cursor (`00`=N. Sanity Beach … `20`=Whole Hog; table below). Stays set inside the stage; `00` until the cursor first moves and in every attract demo | code note + harness | **VALIDATED** (notes agree) |
 | `0xH61998` | 8-bit | c1 `is_first_zone`, **not** a results flag: `0→1` on every level-file load (boot logos, title, demos, stages, map, Stage Clear) and on every respawn; back to `0` when Crash leaves the first zone | c1 + harness | **CORRECTED** (the note says "On Results Screen") |
 | `0xW618cc` | 24-bit ptr | Aku Aku object pointer (shield level at `+0x189`). `0` only until the first level or demo loads after power-on, **never cleared** afterwards: it means "something loaded since power-on", not "a stage is loaded" | code note + harness | **CORRECTED** (not a "game running" guard) |
+| `0xH61985` | 8-bit | Box count (c1 `box_count`, 24.8 at `0x61984`): `+1` per box broken in the stage; a death sets it back to `0` (then `1` three frames after a respawn at a checkpoint), and so does every level load. On the Stage Clear screen (`2d`) it counts the missed boxes up, one per 18 frames. Measured totals: N. Sanity Beach 49, Jungle Rollers 38 | c1 + harness | **VALIDATED** (harness) |
+| `0xN61988`, `0xO61988` | bit | Clear gems of N. Sanity Beach and Jungle Rollers (c1 `item_pool1`; bit *n* + 1 is map stage *n* of `0x619c5`). Set by the Stage Clear screen about 280 frames after it loads, when the box count reached the stage's boxes (one short leaves it clear); kept through the map and the next stages. Seen only with the box count poked to the total (secondary evidence) | harness | **VALIDATED** (harness, poked count) |
+| `0xW60ddc` +`0x105` | 8-bit (via ptr) | Papu Papu's health: integer byte of the boss object's 24.8 health at `+0x104`. `3` at the start of the fight, `-1` per hit; after the last hit (1 → 0) it reads `ff` and the fight goes straight to the island map (game state `03`, `0a` → `19`, no Stage Clear). A respawn allocates a new object at `3`, the pointer reading `0` for two frames | code note + harness | **VALIDATED** (harness) |
 | `0xW618cc` +`0x189` | 8-bit (via ptr) | Aku Aku masks: integer byte of the Aku object's 24.8 level at `+0x188`, `0` none, `1`–`3` masks. The first mask spawns him at `1` (a value written before that is overwritten); the third (2 → 3) turns Crash invincible; a hit takes one, a death all. The object is reallocated per level and holds the previous value for about 20 frames after a load | harness | **VALIDATED** (harness) |
 
 ## Key addresses (code notes; partial harness observations marked)
@@ -78,14 +81,13 @@ observed, not a full validation of the address.
 | `0x61988`–`0x6198b` | bitfield ×4 | Gems collected: bit *n*+1 counted from `0x61988` is stage *n* of the `0x619c5` table | Core of the 26-gem tracking |
 | `0x619ad` | bitfield | Key/Gem pt1: bit0 Fumbling-in-the-Dark gem, bit2 Jaws-of-Darkness **key** | Secret / key-gated |
 | `0x619ae` | bitfield | Key/Gem pt2: bit2 Whole Hog gem, bit4 Sunset Vista **key** | Secret / key-gated |
-| `0x61985` | 8-bit | Boxes destroyed/missed (running counter, per stage); counts the missed boxes on the Stage Clear screen | The USA note; its `(EU)` twin `0x61665` is out of scope |
 | `0x6197c` | 8-bit | Current bonus stage id (Tawna/Brio/Cortex) | Bonus-round identity, not token count |
 | `0x61974` | 8-bit | Game progress — **updates only while the progress screen is shown** | Laggy; not a live counter |
 | `0x61a10` | 8-bit | Gems total — **updates only while the progress screen is shown** | Laggy aggregate |
 | `0x618a4` | 24-bit ptr | Wumpa fruit count (deref `+0x6c → +0xe4 → +0x0c`) | In-stage Wumpa, live (harness); holds leftovers of the previous level for up to about 20 frames after a level loads (harness); the pointer reads `0` until the first stage after power-on loads, then keeps the last stage's HUD on the map (harness) |
 | `0x618a8` | 24-bit ptr | Lives counter (deref `+0x6c → +0xe4 → +0x0c`) | The note's `+0x06` first hop always reads 2 (harness); `+0x6c` reads the lives |
 | `0x618ed` / `0x618f1` / `0x618f5` | 8-bit | Lives / Aku Aku / Wumpas — committed copies: written from the player on a clear (the frame `0x618d1` becomes `05`) and on a pause → quit, handed to the player when the next stage starts; deaths and checkpoints leave them alone (harness) | Map-side mirror; a quit keeps the Wumpa and masks collected |
-| `0x60ddc` | 24-bit ptr | Boss health (Papu/Ripper/Pinstripe/Cortex/Brio via offsets) | Hit-counter semantics, see raw dump |
+| `0x60ddc` | 24-bit ptr | Boss health (Papu/Ripper/Pinstripe/Cortex/Brio via offsets) | Hit-counter semantics, see raw dump; Papu Papu's `+0x105` is validated above |
 | `0x61898` | 24-bit ptr | Koala Kong health (deref `+0x6c → +0x105`) | |
 | `0x54b84` | 8-bit | Frame counter; keeps counting while paused (harness) | For the timed-boss achievements |
 | `0x56400` | 8-bit | `01` = game paused | Pause guard for timed runs |
@@ -162,11 +164,10 @@ Climb), Purple (Lights Out), Yellow (The Lab). **Keys:** Sunset Vista → `0x619
 1. **Bonus-round token count.** Achievements need "collect 3 Tawna / 3 Brio tokens". `0x6197c` gives the
    bonus-stage **identity** but **no note documents the token counter**. c1 names a `tawna_count` global at
    `0x61900` (24.8); Cortex and Brio have `0x618f8` / `0x618fc`. Unvalidated.
-2. **Per-stage box totals.** Only a single running "boxes destroyed/missed" counter (`0x61985`) exists — no
-   per-stage "X of Y" totals. Fine for standard 100% (gem bit = all boxes); any "N of M boxes" achievement needs
-   the per-stage total discovered in game.
-3. **Which frame the gem bit is set** (during the stage or on the Stage Clear screen) — measure before
-   building a gem achievement on its edge.
+2. **Per-stage box totals.** Only a single running box counter (`0x61985`) exists — no per-stage "X of Y"
+   totals in RAM. Fine for standard 100% (gem bit = all boxes); N. Sanity Beach (49) and Jungle Rollers (38)
+   are measured, any other "N of M boxes" achievement needs its stage's total measured.
+3. **Gem bit timing — measured:** the Stage Clear screen sets it (see **Validated addresses**).
 4. **The 26-gem completion mask.** `0x61a10` ("gems total") only updates on the progress screen, so it is not a
    reliable live "26/26" trigger. A robust all-gems condition has to AND the individual bits above — build the
    exact mask and verify the total lands at 26 in game.
@@ -195,7 +196,7 @@ validation contradicts them, plus five addresses marked *RetroPlatinas* that the
 | `0x618a4` | pointer | [24-bit Pointer]<br>+0x6c \|<br>.+0xe4 \|<br>..+0x0c \| [8-bit] Wumpa Fruits |
 | `0x618a8` | pointer | [24-bit Pointer]<br>+0x06 \|<br>.+0xe4 \|<br>..+0x0c \| [8-bit] Live Counter<br><br>RetroPlatinas correction: the first hop is +0x6c, not +0x06 (+0x06 always reads 2; validated in the headless harness). |
 | `0x618cc` | pointer | [24-bit Pointer]<br>+0x80 \| [32-bit] Aku Aku's X Position<br>+0x84 \| [32-bit] Aku Aku's Y Position<br>+0x88 \| [32-bit] Aku Aku's Z Position<br><br>+0x189 \| Aku Aku Shield Level<br>0x01 = Level 1<br><br>----- Debug -----<br>+0xe0 \| [32-bit] Invincible Crash (freeze this value after acquiring Aku Aku shield, unfreeze upon finishing the level)<br><br>RetroPlatinas correction: null only until the first level loads after power-on and never cleared afterwards, so it is not a "stage loaded" guard (validated in the headless harness). |
-| `0x618d1` | enum/flag | Game state (RetroPlatinas; c1 game_state, validated in the headless harness):<br>00 - Cutscene / menus<br>01 - Playing<br>02 - Game over<br>03 - Leaving the Stage Clear screen<br>04 - Quitting from the pause menu<br>05 - Stage cleared<br>06 - Title / demo ending |
+| `0x618d1` | enum/flag | Game state (RetroPlatinas; c1 game_state, validated in the headless harness):<br>00 - Cutscene / menus<br>01 - Playing<br>02 - Game over<br>03 - Leaving the Stage Clear screen, or a level won straight to the map (boss beaten, stage cleared after a death past a checkpoint)<br>04 - Quitting from the pause menu<br>05 - Stage cleared<br>06 - Title / demo ending |
 | `0x618ed` | 8-bit | Lives Countrer (Map) |
 | `0x618f1` | 8-bit | Aku Aku (Map) |
 | `0x618f5` | 8-bit | Wumpas (Map) |
