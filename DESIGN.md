@@ -112,15 +112,16 @@ Each is a small `{% include ... with ... %}` partial, reused across screens:
 | --- | --- | --- |
 | `section-heading.html` | `title, accent` | every section |
 | `site-menu.html` | `nav_class, account_class` | header: desktop row and mobile disclosure |
-| `form-fields.html` | `form` | login, register, password change, edit profile |
+| `form-fields.html` | `form` | login, register, password change, edit profile, comment form |
 | `logo.html` | `variant` (lockup/selo), `size` | header, footer |
 | `game-card.html` | `initials, title, href, meta, state, state_label, pct, icons, icons_more` | profile (mobile games panel); future game lists |
-| `empty-state.html` | `title, body, href, cta` | every data block with nothing to show (home sets and activity, profile sections) |
+| `empty-state.html` | `title, body, href, cta` | every data block with nothing to show (home sets and activity, profile sections, comments) |
 | `achievement-badge.html` | `state, size, label` | badge states |
 | `progress-bar-segmented.html` | `not_pct, beaten_pct, plat_pct, height` | console progression (desktop and mobile) |
 | `console-tag.html` | `label, variant` (table/default), `tone` | console progression, home sets |
 | `user-line.html` | `initials, name, meta, delta, href` | leaderboards/lists |
-| `stat-line.html` | `label, value, sub` | profile statistics, home numbers |
+| `stat-line.html` | `label, value, sub` | profile statistics, home numbers, achievement page unlocks |
+| `status-chip.html` | `achievement` | game page achievement rows, achievement page header |
 
 Titles go in with an inline translation: `{% include "components/section-heading.html" with
 title=_("Recent activity") %}`.
@@ -279,10 +280,9 @@ answers 404. Every game title on the home, the profile and the games list links 
   viewer an unlocked badge has a 2px `state-hardcore` or `state-softcore` border with the mode
   and local date under the description; a locked one comes from the `_lock` route, faded, with
   muted text. An anonymous visitor sees the plain badges and no unlock filters. Each title links
-to the achievement page. Under the points,
-  an *Edit* link in `brand` leads to the achievement editor on the rows the viewer may edit (their
-  own, or every row for staff), and a *History* link in `brand` on every row leads to the
-  achievement's history.
+  to the achievement page. Under the points, an *Edit* link in `brand` leads to the achievement
+  editor on the rows the viewer may edit (their own, or every row for staff), and a *History*
+  link in `brand` on every row leads to the achievement's history.
 - **Status choice** — outlined chips over the list, the active one in `brand`: *Verified only*,
   *Verified + Community* (the default) and, for a logged-in viewer, *All incl. my drafts*. Each
   reloads the achievements panel through the same HTMX route (`?show=verified|published|all`);
@@ -329,7 +329,10 @@ the game page and of the achievement page, as `<section id="comments">`.
 - **HTMX** — adding (`POST …/comments/` on the game or achievement URL) and deleting
   (`POST /comments/<id>/delete/`) answer the whole section, swapped in place of `#comments`; an
   invalid comment comes back with its error in the form. Without htmx loaded, the forms post
-  normally and return to the page.
+  normally and return to the page. An htmx post after the session expired answers `HX-Redirect`
+  to the login page, which returns to the section.
+- **Moderation** — staff also delete comments in the admin, the only path for one on an
+  achievement moved back to draft, whose page only its author opens.
 
 ## Achievement editor
 
