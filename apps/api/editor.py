@@ -1,7 +1,6 @@
 """The dorequest and doupload actions RAIntegration writes a set with: code notes, achievements,
 leaderboards, rich presence, badges and hashes (`rc_api_editor.c`)."""
 
-import logging
 import re
 from http import HTTPStatus
 
@@ -10,6 +9,7 @@ from django.db import transaction
 from django.db.models import Max, Min
 from django.utils import translation
 
+from apps.achievements.code_notes import code_notes_by_address, save_code_notes, served_address
 from apps.achievements.editing import achievements_reachable_by, can_edit
 from apps.achievements.models import (
     ACHIEVEMENT_POINT_VALUES,
@@ -17,7 +17,6 @@ from apps.achievements.models import (
     PLACEHOLDER_BADGE_NAME,
     Achievement,
     Badge,
-    CodeNote,
     is_known_badge_name,
     validate_badge_image,
 )
@@ -38,8 +37,6 @@ from apps.api.handlers import (
 )
 from apps.games.models import LOWERCASE_HEX, MD5_HEX_DIGITS, Console, Game, GameHash
 from apps.leaderboards.models import Leaderboard
-
-logger = logging.getLogger("apps.api")
 
 
 def _access_denied(message="Access denied."):
@@ -94,83 +91,6 @@ CODE_NOTE_ESCAPE = re.compile(r"\\(.?)", re.DOTALL)
 CODE_NOTE_ESCAPES = {"\\": "\\", "r": "\r", "n": "\n"}
 CODE_NOTE_LINE_SEPARATOR = "\n"
 CODE_NOTE_ADDRESS_SEPARATOR = ":"
-HEX_BASE = 16
-# RA serves code note addresses as `0x%06x`.
-CODE_NOTE_ADDRESS_HEX_DIGITS = 6
-
-
-def _served_address(address):
-    """The address as RA serves it, which rcheevos reads back as hex."""
-    return f"0x{address:0{CODE_NOTE_ADDRESS_HEX_DIGITS}x}"
-
-
-def _stored_address(address):
-    return f"0x{address:x}"
-
-
-def _parsed_address(note):
-    """The note's address as a number, else `None`: the column is free text, typed in the admin."""
-    try:
-        address = int(note.address, HEX_BASE)
-    except ValueError:
-        address = None
-    if address is None or address < 0:
-        logger.warning("Code note %s has no hex address: %r", note.pk, note.address)
-        return None
-    else:
-        return address
-
-
-def _code_notes_by_address(game):
-    """The game's notes by address; the text column holds hex addresses in any padding.
-
-    A note whose address does not parse is left out rather than failing the whole game.
-    """
-    # TRADEOFF: parsed in Python because `address` is text; an integer column makes it a query.
-    notes = CodeNote.objects.filter(game=game).select_related("author").order_by("id")
-    by_address = {}
-    for note in notes:
-        address = _parsed_address(note)
-        if address is not None:
-            by_address[address] = note
-        else:
-            continue
-    return by_address
-
-
-def _save_code_notes(user, game, notes):
-    """Writes `{address: text}`, an empty text deleting the note, as far as `user` may.
-
-    Returns the addresses written and the addresses refused: anyone may add a note, only its
-    author or staff may change or delete it.
-    """
-    successful = []
-    denied = []
-    with transaction.atomic():
-        # Serializes writers per game, so two adds of one new address cannot both insert it.
-        Game.objects.select_for_update().get(pk=game.pk)
-        existing = _code_notes_by_address(game)
-        for address, text in notes.items():
-            note = existing.get(address)
-            if note is None and text == "":
-                successful.append(address)
-            elif note is None:
-                CodeNote.objects.create(
-                    game=game, author=user, address=_stored_address(address), note=text
-                )
-                successful.append(address)
-            elif not can_edit(user, note.author_id):
-                denied.append(address)
-            elif text == "":
-                note.delete()
-                successful.append(address)
-            else:
-                # As on RA, a note is credited to whoever wrote its current text.
-                note.author = user
-                note.note = text
-                note.save(update_fields=["author", "note", "updated_at"])
-                successful.append(address)
-    return successful, denied
 
 
 def handle_codenotes2(request):
@@ -181,11 +101,11 @@ def handle_codenotes2(request):
     if game is None:
         return _GAME_NOT_FOUND
 
-    notes = sorted(_code_notes_by_address(game).items())
+    notes = sorted(code_notes_by_address(game).items())
     return {
         "Success": True,
         "CodeNotes": [
-            {"User": note.author.username, "Address": _served_address(address), "Note": note.note}
+            {"User": note.author.username, "Address": served_address(address), "Note": note.note}
             # rcheevos reads an empty note as a deleted one.
             for address, note in notes
             if note.note
@@ -208,7 +128,7 @@ def handle_submitcodenote(request):
         return _GAME_NOT_FOUND
 
     # rcheevos omits `n` to delete the note.
-    _, denied = _save_code_notes(user, game, {address: request.POST.get("n", "")})
+    _, denied = save_code_notes(user, game, {address: request.POST.get("n", "")})
     if denied:
         return _NOT_THE_AUTHOR
     else:
@@ -262,7 +182,7 @@ def handle_submitcodenotes(request):
     if game is None:
         return _GAME_NOT_FOUND
 
-    successful, denied = _save_code_notes(user, game, notes)
+    successful, denied = save_code_notes(user, game, notes)
     if denied:
         # rcheevos reads both lists alongside `access_denied`.
         return {
