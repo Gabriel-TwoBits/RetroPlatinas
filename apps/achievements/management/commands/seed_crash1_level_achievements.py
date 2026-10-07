@@ -8,6 +8,11 @@ ACHIEVEMENT_POINTS = 5
 LEVEL_ID_ADDRESS = "0xH6188d"
 # c1 `LID_LEVELEND`: the Stage Clear screen, loaded only when a stage is finished.
 STAGE_CLEAR_LEVEL_ID = 0x2D
+TITLE_LEVEL_ID = 0x19  # title screens, menus, game over screen and island map
+# c1 `game_state >> 8`: 3 (`GAME_STATE_CONTINUE`) when a stage is cleared after a death past a
+# checkpoint, which skips Stage Clear and loads the map; a quit is 4, a game over 2.
+GAME_STATE_ADDRESS = "0xH618d1"
+GAME_STATE_LEVEL_WON = 3
 
 # (title, c1 level id), in map order.
 LEVEL_ACHIEVEMENTS = [
@@ -26,15 +31,18 @@ def rcheevos_hex(value):
 
 
 def build_mem_addr(level_id):
-    """Fires on the frame the loaded level changes from this stage to the Stage Clear screen."""
+    """Fires on the frame the loaded level changes from this stage to the Stage Clear screen
+    (alt 1), or straight to the map on a clear that skips it (alt 2)."""
     return (
-        f"{LEVEL_ID_ADDRESS}={rcheevos_hex(STAGE_CLEAR_LEVEL_ID)}_"
         f"d{LEVEL_ID_ADDRESS}={rcheevos_hex(level_id)}"
+        f"S{LEVEL_ID_ADDRESS}={rcheevos_hex(STAGE_CLEAR_LEVEL_ID)}"
+        f"S{LEVEL_ID_ADDRESS}={rcheevos_hex(TITLE_LEVEL_ID)}_"
+        f"{GAME_STATE_ADDRESS}={GAME_STATE_LEVEL_WON}"
     )
 
 
 def build_description(title):
-    return f"Finish {title} and reach the Stage Clear screen."
+    return f"Finish {title}."
 
 
 class Command(BaseCommand):

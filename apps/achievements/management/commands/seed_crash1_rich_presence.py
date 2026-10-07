@@ -2,21 +2,21 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 
 from apps.achievements.management.commands.seed_crash1_level_achievements import (
+    GAME_STATE_ADDRESS,
     LEVEL_ID_ADDRESS,
     STAGE_CLEAR_LEVEL_ID,
+    TITLE_LEVEL_ID,
     rcheevos_hex,
 )
 from apps.achievements.management.crash1 import seed_crash1_game
 
 # c1 level ids (`LID_*`, src/common.h) that are not stages; 0 is RAM before the first level loads.
 POWER_ON_LEVEL_ID = 0x00
-TITLE_LEVEL_ID = 0x19  # title screens, menus, game over screen and island map
 INTRO_LEVEL_ID = 0x38
 ENDING_LEVEL_ID = 0x39
 
 # c1 `game_state >> 8`: 2 from the fatal hit of the last life until the title level loads; 6
 # (`GAME_STATE_TITLE`) only in the attract loop, from the end of a demo or the intro.
-GAME_STATE_ADDRESS = "0xH618d1"
 GAME_STATE_GAME_OVER = 2
 GAME_STATE_ATTRACT = 6
 # c1 `title_state`: the screen the title level shows (title.c `TitleLoadState`).

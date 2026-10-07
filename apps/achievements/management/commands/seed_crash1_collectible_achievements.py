@@ -2,18 +2,19 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 
 from apps.achievements.management.commands.seed_crash1_level_achievements import (
+    GAME_STATE_ADDRESS,
+    GAME_STATE_LEVEL_WON,
     LEVEL_ACHIEVEMENTS,
     LEVEL_ID_ADDRESS,
     STAGE_CLEAR_LEVEL_ID,
+    TITLE_LEVEL_ID,
     rcheevos_hex,
 )
 from apps.achievements.management.commands.seed_crash1_rich_presence import (
     DEMO_PLAYBACK_ADDRESS,
-    GAME_STATE_ADDRESS,
     LEVEL_SETTLED,
     PLAYER_LOADED,
     PLAYER_POINTER_ADDRESS,
-    TITLE_LEVEL_ID,
 )
 from apps.achievements.management.crash1 import seed_crash1_game, upsert_achievements
 
@@ -107,19 +108,24 @@ def build_aku_mem_addr():
 
 def build_no_wumpa_mem_addr(level_id):
     """Fires on the frame this stage is cleared while the committed Wumpa count stays as it was
-    when the stage started: the clear commits the player's count on that very frame.
+    when the stage started: the clear commits the player's count on that very frame. The clear
+    leads to Stage Clear (alt 1), or straight to the map after a death past a checkpoint (alt 2).
 
     TRADEOFF: exactly 100 Wumpa collected in the run also commits an unchanged count; telling it
     apart needs the lives, which a death changes on the same run.
     """
-    return "_".join(
+    core = "_".join(
         [
             f"{DEMO_PLAYBACK_ADDRESS}={NO_DEMO}",
             f"{LEVEL_ID_ADDRESS}={rcheevos_hex(level_id)}",
             f"d{GAME_STATE_ADDRESS}={GAME_STATE_PLAYING}",
-            f"{GAME_STATE_ADDRESS}={GAME_STATE_STAGE_CLEARED}",
             f"{COMMITTED_FRUIT_ADDRESS}=d{COMMITTED_FRUIT_ADDRESS}",
         ]
+    )
+    return (
+        f"{core}"
+        f"S{GAME_STATE_ADDRESS}={GAME_STATE_STAGE_CLEARED}"
+        f"S{GAME_STATE_ADDRESS}={GAME_STATE_LEVEL_WON}"
     )
 
 

@@ -104,7 +104,7 @@ level; nothing else fires.
 | --- | --- | --- |
 | `papu-papu-boss` | `plans/papu-papu-boss.json`, found by the harness's search (`explore.py papu-papu --goal boss`): three hits on Papu Papu (frames 258, 606, 1066); then a state saved after the hit is loaded, the fight returns to the map, and the fight is entered again and quit | `Chief Toppled` fires once, on the last hit (frame 1066, lid `0a`); nothing else fires |
 | `papu-papu-deaths` | the same plan up to Papu Papu's last health (frame 606), then a death; a second death right after the respawn | nothing fires |
-| `nsanity-beach-checkpoint-death` | `plans/nsanity-beach-checkpoint.json` breaks the checkpoint crate (9 boxes counted), a death by seeded random play, then `plans/nsanity-beach-checkpoint-clear.json`, a clear searched from the checkpoint respawn (`explore.py nsanity-beach --from nsanity-beach-checkpoint-respawn`) | the stage ends on game state `03` and goes straight to the map, no Stage Clear screen, gem bit clear; nothing fires |
+| `nsanity-beach-checkpoint-death` | `plans/nsanity-beach-checkpoint.json` breaks the checkpoint crate (9 boxes counted), a death by seeded random play, then `plans/nsanity-beach-checkpoint-clear.json`, a clear searched from the checkpoint respawn (`explore.py nsanity-beach --from nsanity-beach-checkpoint-respawn`) | the stage ends on game state `03` and goes straight to the map, no Stage Clear screen, gem bit clear; no gem or boss achievement fires (the level achievement and `Beach Diet` do, through their alt groups for this exit) |
 
 **Secondary evidence (RAM poke).** No search reached every box of a stage: the box-aware search of
 N. Sanity Beach (`explore.py nsanity-beach --goal gem`, which scores the boxes broken alive and wins only on a
@@ -128,7 +128,8 @@ gem or the boss. Every scenario above is a test in `tools/achievement-harness/te
 - **A real gem run**, on N. Sanity Beach at least: break all 49 boxes in one life and see `Shoreline Sparkle`
   pop on the Stage Clear screen with the gem, once. The harness only saw the gem from a poked box count.
 - **A death after the checkpoint**: break boxes, break the checkpoint crate, die, finish from the checkpoint;
-  the stage goes straight to the map and nothing pops (the harness saw it on N. Sanity Beach).
+  the stage goes straight to the map, no gem achievement pops, and the stage's level achievement does (the
+  harness saw it on N. Sanity Beach).
 - **The Great Gate, Boulders and Upstream** were never cleared in the harness: their gem bits (3, 4, 5) come
   from the code notes and DuckStation's all-gems cheat, which agree with the measured bits 1 and 2. Win each
   gem and see its achievement, and only its achievement, pop.

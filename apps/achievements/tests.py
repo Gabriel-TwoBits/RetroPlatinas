@@ -53,7 +53,9 @@ from apps.achievements.management.crash1 import (
 from apps.achievements.models import Achievement, CodeNote, UserUnlock
 from apps.games.models import Console, Game, GameHash
 
-MEM_ADDR_PATTERN = re.compile(r"^0xH6188d=h2d_d0xH6188d=h(?P<level_id>[0-9a-f]{2})$")
+MEM_ADDR_PATTERN = re.compile(
+    r"^d0xH6188d=h(?P<level_id>[0-9a-f]{2})S0xH6188d=h2dS0xH6188d=h19_0xH618d1=3$"
+)
 HEX = 16
 LEVEL_COUNT = len(LEVEL_ACHIEVEMENTS)
 CODE_NOTE_COUNT = 113
@@ -576,7 +578,7 @@ def test_in_play_guard_excludes_demos_menus_stage_clear_and_level_loads():
 
 def test_no_wumpa_mem_addr_compares_the_committed_count_on_the_clear_frame():
     assert build_no_wumpa_mem_addr(NSANITY_BEACH_LEVEL_ID) == (
-        "0xH61a30=0_0xH6188d=h09_d0xH618d1=1_0xH618d1=5_0xH618f5=d0xH618f5"
+        "0xH61a30=0_0xH6188d=h09_d0xH618d1=1_0xH618f5=d0xH618f5S0xH618d1=5S0xH618d1=3"
     )
 
 

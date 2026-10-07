@@ -33,12 +33,12 @@ Every condition is `build_mem_addr(level_id)`; only the stage's level id changes
 
 | Title | Level id (`0x6188d`) | Map cursor (`0x619c5`) | `mem_addr` |
 | --- | --- | --- | --- |
-| N. Sanity Beach | `09` | `00` | `0xH6188d=h2d_d0xH6188d=h09` |
-| Jungle Rollers | `0c` | `01` | `0xH6188d=h2d_d0xH6188d=h0c` |
-| The Great Gate | `12` | `02` | `0xH6188d=h2d_d0xH6188d=h12` |
-| Boulders | `0e` | `03` | `0xH6188d=h2d_d0xH6188d=h0e` |
-| Upstream | `0f` | `04` | `0xH6188d=h2d_d0xH6188d=h0f` |
-| Rolling Stones | `15` | `06` | `0xH6188d=h2d_d0xH6188d=h15` |
+| N. Sanity Beach | `09` | `00` | `d0xH6188d=h09S0xH6188d=h2dS0xH6188d=h19_0xH618d1=3` |
+| Jungle Rollers | `0c` | `01` | `d0xH6188d=h0cS0xH6188d=h2dS0xH6188d=h19_0xH618d1=3` |
+| The Great Gate | `12` | `02` | `d0xH6188d=h12S0xH6188d=h2dS0xH6188d=h19_0xH618d1=3` |
+| Boulders | `0e` | `03` | `d0xH6188d=h0eS0xH6188d=h2dS0xH6188d=h19_0xH618d1=3` |
+| Upstream | `0f` | `04` | `d0xH6188d=h0fS0xH6188d=h2dS0xH6188d=h19_0xH618d1=3` |
+| Rolling Stones | `15` | `06` | `d0xH6188d=h15S0xH6188d=h2dS0xH6188d=h19_0xH618d1=3` |
 
 The level ids are the c1 `LID_*` constants; the harness measured each one by entering the stage from the
 map (`states.py` refuses a stage whose level id differs).
@@ -51,30 +51,32 @@ screen that tallies the boxes. c1's `CoreLoop` forces `LID_TITLE` (`19`) on a ga
 pause → quit; any other switch is requested by the level's own GOOL objects (`next_lid`), and the only one
 ever seen loading `2d` is a stage's exit. A death respawns inside the same level.
 
-| Part | Meaning |
-| --- | --- |
-| `0xH6188d=h2d` | the loaded level is the Stage Clear screen on this frame |
-| `d0xH6188d=h<id>` | and on the previous frame it was this stage |
+A clear leaves the stage one of two ways. Normally the stage loads Stage Clear. After a death past a checkpoint
+the game skips Stage Clear and loads the island map with game state `03` (c1 `GAME_STATE_CONTINUE`), the
+stage still counted as cleared (`0x61948` rises; measured on N. Sanity Beach,
+`crash-bandicoot-1-advanced-achievements.md`). A death before any checkpoint restarts the stage, and its clear
+shows Stage Clear as usual. The condition has one alt group per way out:
 
-Together they are true on exactly one frame: the one where the level switches from this stage to Stage
-Clear (`ra-developer-docs/why-delta.md`: describe the moment the event happens, not a state). That frame
-cannot occur on:
+| Group | Part | Meaning |
+| --- | --- | --- |
+| core | `d0xH6188d=h<id>` | on the previous frame the loaded level was this stage |
+| alt 1 | `0xH6188d=h2d` | on this frame it is the Stage Clear screen |
+| alt 2 | `0xH6188d=h19_0xH618d1=3` | on this frame it is the title/map level, and the game state says the level was won |
 
-| Look-alike | What `0x6188d` does |
-| --- | --- |
-| Power-on (RAM zeroed) | `00` → `19` |
-| Attract demos | `19` → demo stage → `19`; measured over 15 minutes, no demo ever loads `2d` |
-| Death / respawn | unchanged |
-| Game over | stage → `19` |
-| Pause → SELECT quit | stage → `19` |
-| Stage Clear → map | `2d` → `19` |
-| Entering another stage | `19` → that stage's id |
-| A clear after a death past a checkpoint | stage → `19`: the game skips Stage Clear (game state `03`) |
+Each is true on exactly one frame: the one where the level switches from this stage to Stage Clear, or
+straight to the map on a won stage (`ra-developer-docs/why-delta.md`: describe the moment the event happens,
+not a state). Neither frame can occur on:
 
-The last row is a real clear the condition misses: the stage counts as cleared, but the game shows no Stage
-Clear screen, which the description names (measured on N. Sanity Beach,
-`crash-bandicoot-1-advanced-achievements.md`). A death before any checkpoint restarts the stage and its clear
-shows Stage Clear as usual.
+| Look-alike | What `0x6188d` does | Game state `0x618d1` |
+| --- | --- | --- |
+| Power-on (RAM zeroed) | `00` → `19` | `00` |
+| Attract demos | `19` → demo stage → `19`; measured over 15 minutes, no demo ever loads `2d` | `06` on the way back |
+| Death / respawn | unchanged | |
+| Game over | stage → `19` | `02` |
+| Pause → SELECT quit | stage → `19` | `04` |
+| Stage Clear → map | `2d` → `19`, not from a stage | `03` |
+| Papu Papu beaten | `0a` → `19`, not a stage of this set | `03` |
+| Entering another stage | `19` → that stage's id | |
 
 The constants carry rcheevos' `h` prefix: a bare `0x2d` is a memory read, not the number `0x2d`.
 
@@ -88,9 +90,9 @@ The constants carry rcheevos' `h` prefix: a bare `0x2d` is a memory read, not th
 - **`0x61a30`** (attract-demo playback, c1 `pbak_state`) is non-zero while a demo plays but is back to `00`
   about 15–18 frames **before** the demo's level switches back to the title, so it would be `00` on any
   switch frame; and no demo loads `2d`.
-- **`0x618d1`** (game state) reads `05` ("stage cleared") for about 90 frames before a real clear switches to
-  `2d`. It would only guard a stage → `2d` switch that is not a clear, for which no path is known, at the
-  cost of a second address per condition.
+- **`0x618d1`** (game state) on alt 1: it reads `05` ("stage cleared") for about 90 frames before a real
+  clear switches to `2d`. It would only guard a stage → `2d` switch that is not a clear, for which no path is
+  known. Alt 2 needs it: a stage → `19` switch is also a game over or a quit.
 - **`0x61a68`** ("finished/quit a level" in the code notes) is sound-library data.
 
 ## Validation
@@ -100,7 +102,8 @@ runs it over every generated condition.
 
 Behaviour: the harness plays the real disc on `pcsx_rearmed` (interpreter, deterministic) with all six
 achievements active in the vendored rcheevos runtime, and judges every trigger: an expected achievement must
-fire exactly once, while the game shows the Stage Clear level `2d`, and nothing else may fire anything.
+fire exactly once, while the game shows the Stage Clear level `2d` (the map level `19` on a clear that skips
+it), and nothing else may fire anything.
 Each scenario is a test in `tools/achievement-harness/test_achievement_harness.py` (skipped without the disc).
 
 Runs on `PCSX-ReARMed r26 ff81ed1` with the vendored rcheevos 12.3. Stages other than N. Sanity Beach are
@@ -116,6 +119,7 @@ writes a clear, a level id or a game state.
 | `<stage>-quit`, all six stages | pause → SELECT right after control, after running and standing, after standing | nothing fires |
 | `nsanity-beach-clear` | a real clear (`plans/nsanity-beach-clear.json`), then Stage Clear → map, Jungle Rollers entered and quit | N. Sanity Beach fires once, on the switch to `2d`; nothing else fires |
 | `jungle-rollers-clear` | a real clear (`plans/jungle-rollers-clear.json`), then Stage Clear → map, The Great Gate entered and quit | Jungle Rollers fires once, on the switch to `2d`; nothing else fires |
+| `nsanity-beach-checkpoint-death` | the checkpoint crate broken, a death, and a real clear from the checkpoint, which skips Stage Clear (game state `03`, `09` → `19`) | N. Sanity Beach fires once, on the switch to `19` (alt 2); no gem |
 
 The same scenarios, except the clears and `the-great-gate-deaths` (plans replay only on the core they were
 searched on), also pass on `SwanStation 1.0.0 b6c30a7`, the DuckStation fork, with a real NTSC-U BIOS.
@@ -132,6 +136,9 @@ condition names is measured on entry, and deaths and quits fire nothing.
   pops on the Stage Clear screen, once. The harness never produced these clears.
 - **All six, on DuckStation:** the popup appears on the Stage Clear screen (not earlier, on the stage's
   exit), and a death, a pause → quit, a game over and leaving Stage Clear for the map unlock nothing.
+- **A clear after a death past a checkpoint:** break a checkpoint crate, die, finish the stage; there is no
+  Stage Clear screen, and the popup appears when the island map loads (alt 2). Seen in the harness on
+  N. Sanity Beach only.
   DuckStation runs rcheevos 12.4.0 against its own CD timing; the harness ran 12.3 on libretro cores.
 - **Load a save state taken inside a stage (softcore) and finish it:** the edge needs the stage's level id
   on the previous frame, which a state load inside the stage keeps; not exercised in the harness.

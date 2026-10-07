@@ -29,6 +29,7 @@ from probes import (
     BOX_COUNT,
     CHECKPOINT_ID,
     FIXED_POINT_SHIFT,
+    FRUIT_HUD_POINTER,
     GAME_STATE,
     GAME_STATE_GAME_OVER,
     GAME_STATE_PLAYING,
@@ -37,6 +38,7 @@ from probes import (
     LID_TITLE,
     LIFE_HUD_POINTER,
     PBAK_STATE,
+    PLAYER_FRUIT_OFFSET,
     PLAYER_LIVES_OFFSET,
     PLAYER_POINTER,
     RESPAWN_COUNT,
@@ -398,11 +400,12 @@ def clear(stage, plan_path, boxes=None):
     return play
 
 
-def checkpoint_death(stage):
+def checkpoint_death(stage, fruit=None):
     """The checkpoint route, a death, then the clear searched from the checkpoint respawn.
 
-    The game skips the Stage Clear screen after a death: the clear ends straight on the map
-    (game state `0x300`), so neither the gem nor the stage's achievement can fire.
+    The game skips the Stage Clear screen after a death past a checkpoint: the clear ends straight
+    on the map (game state `0x300`), so the stage's achievement fires there and the gem cannot.
+    `fruit`, when given, is poked as the player's Wumpa after the respawn (poke_fruit).
     """
 
     def play(s):
@@ -414,6 +417,10 @@ def checkpoint_death(stage):
         s.note(f"respawned at the checkpoint with {box_count(s.emu)} boxes counted")
         s.emu.restore(s.emu.snapshot())  # as the respawn state the clear was searched from
         s.note("state reloaded (the frame count restarts at 0)")
+        if fruit is not None:
+            poke_fruit(s, fruit)
+        else:
+            pass  # The Wumpa the route collected.
         plan_path = stage.checkpoint_clear_plan_path
         plan = plans.load(plan_path)
         s.note(f"replaying {plan_path.name}: {plan.frames} frames")
@@ -426,24 +433,32 @@ def checkpoint_death(stage):
     return play
 
 
-def poke_lives(s, lives):
-    """SECONDARY EVIDENCE ONLY: sets the player's lives (and the lives HUD, so it shows them
-    without counting up and the run keeps the timing its plan was searched on).
-
-    The harness's only write to a counter an achievement reads (`map-unlocked`'s
-    `levels_unlocked` write only reaches a stage): the cap is far out of a searched run's reach.
-    The lives that then reach the cap are still real ones, earned by the replayed plan.
+def poke_player_count(s, offset, hud_pointer, value, what):
+    """SECONDARY EVIDENCE ONLY: sets a 24.8 count of the player object, and the HUD showing it so
+    it shows the value without counting up and the run keeps the timing its plan was searched on.
     """
     player = s.emu.u24(PLAYER_POINTER)
-    hud = s.emu.u24(LIFE_HUD_POINTER)
-    display = hud_count_address(s.emu, LIFE_HUD_POINTER)
+    hud = s.emu.u24(hud_pointer)
+    display = hud_count_address(s.emu, hud_pointer)
     if not player or not hud or display is None:
-        raise RuntimeError("no player or lives HUD to poke: not in a stage")
-    fixed_lives = lives << FIXED_POINT_SHIFT
-    s.emu.write_u32(player + PLAYER_LIVES_OFFSET, fixed_lives)
-    s.emu.write_u32(hud + HUD_COUNT_OFFSET, fixed_lives)
-    s.emu.write_u32(display, lives)
-    s.note(f"POKED the player's lives to {lives} (secondary evidence, not a played state)")
+        raise RuntimeError(f"no player or {what} HUD to poke: not in a stage")
+    fixed_value = value << FIXED_POINT_SHIFT
+    s.emu.write_u32(player + offset, fixed_value)
+    s.emu.write_u32(hud + HUD_COUNT_OFFSET, fixed_value)
+    s.emu.write_u32(display, value)
+    s.note(f"POKED the player's {what} to {value} (secondary evidence, not a played state)")
+
+
+def poke_lives(s, lives):
+    """Pokes the player's lives (poke_player_count): the cap is far out of a searched run's reach.
+    The lives that then reach the cap are still real ones, earned by the replayed plan."""
+    poke_player_count(s, PLAYER_LIVES_OFFSET, LIFE_HUD_POINTER, lives, "lives")
+
+
+def poke_fruit(s, fruit):
+    """Pokes the player's Wumpa (poke_player_count): the clear commits the count, so a run that
+    picked up fruit, where the searched route picked up none."""
+    poke_player_count(s, PLAYER_FRUIT_OFFSET, FRUIT_HUD_POINTER, fruit, "Wumpa")
 
 
 def goal_event(stage, goal, start_lives=None):
@@ -633,10 +648,25 @@ for _stage in _GEM_STAGES:
     else:
         pass  # No clearing plan or no measured box total to poke.
     if _stage.checkpoint_clear_plan_path.is_file():
+        _straight_to_map = {_name: LID_TITLE}
+        if _name == _collectibles.NO_WUMPA_STAGE:
+            # The checkpoint route and the clear from the respawn pick up no Wumpa.
+            _route_lids = {**_straight_to_map, _collectibles.NO_WUMPA_TITLE: _stage.level_id}
+            SCENARIOS[f"{_stage.name}-checkpoint-death-fruit-poked"] = Scenario(
+                _stage.start,
+                _straight_to_map,
+                "SECONDARY EVIDENCE (RAM poke): the checkpoint death and clear with one Wumpa "
+                "poked after the respawn",
+                checkpoint_death(_stage, fruit=1),
+                (in_stage(_name), ISLAND_MAP),
+                never=(NO_LIVES, STAGE_CLEAR),
+            )
+        else:
+            _route_lids = _straight_to_map
         SCENARIOS[f"{_stage.name}-checkpoint-death"] = Scenario(
             _stage.start,
-            NOTHING_FIRES,
-            "a death after the checkpoint, then the clear from the checkpoint: no Stage Clear",
+            _route_lids,
+            "a death after the checkpoint, then the clear from the checkpoint straight to the map",
             checkpoint_death(_stage),
             (in_stage(_name), ISLAND_MAP),
             never=(NO_LIVES, STAGE_CLEAR),
