@@ -169,12 +169,14 @@ Unofficial Achievements" (`Cheevos/UnofficialTestMode`) and reload the game, the
 - rcheevos **never sends `awardachievement` for an unofficial achievement**, and the server rejects
   a draft anyway (`invalid_state`), so no `UserUnlock` and no points.
 
-**Publish it to see the full cycle** (admin bulk actions: publish as community, mark verified,
-move back to draft). Every player then receives it as core, without UnofficialTestMode: the unlock
-is sent, recorded and scored, and `AchievementsRemaining` (published achievements not yet unlocked
-in that mode) reaching `0` fires the mastery event. Moving a published achievement back to draft
-(bulk action or change form) keeps its unlocks but recalculates every unlocker's points without
-it; republishing counts them again.
+**Publish it to see the full cycle**: its author moves it from draft to community in the web
+editor (`/games/<id>/achievements/<aid>/edit/`); staff also use the admin bulk actions (publish as
+community, mark verified, move back to draft), and only staff set verified. Every player then
+receives it as core, without UnofficialTestMode: the unlock is sent, recorded and scored, and
+`AchievementsRemaining` (published achievements not yet unlocked in that mode) reaching `0` fires
+the mastery event. Moving a published achievement back to draft (web editor, bulk action or change
+form) keeps its unlocks but recalculates every unlocker's points without it; republishing counts
+them again.
 
 ## i18n workflow
 
