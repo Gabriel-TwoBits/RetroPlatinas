@@ -15,3 +15,14 @@ def achievements_reachable_by(user):
         return Achievement.objects.all()
     else:
         return Achievement.objects.visible_to(user)
+
+
+def settable_statuses(user, current_status):
+    """The statuses `user` may give an achievement now in `current_status`: staff any; an
+    author moves it between draft and community, and leaves the verified seal to staff."""
+    if user.is_staff:
+        return [status for status, _label in Achievement.STATUS_CHOICES]
+    elif current_status == Achievement.STATUS_VERIFIED:
+        return [Achievement.STATUS_VERIFIED]
+    else:
+        return [Achievement.STATUS_DRAFT, Achievement.STATUS_COMMUNITY]

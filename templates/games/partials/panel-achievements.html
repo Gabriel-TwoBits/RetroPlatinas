@@ -52,8 +52,11 @@
                   </div>
                 {% endif %}
               </div>
-              <div class="shrink-0 font-mono text-xs {% if row.state == 'locked' %}text-txt-faint{% else %}text-gold{% endif %}">
-                {% blocktrans count points=achievement.points %}{{ points }} pt{% plural %}{{ points }} pts{% endblocktrans %}
+              <div class="flex shrink-0 flex-col items-end gap-1 font-mono text-xs">
+                <span class="{% if row.state == 'locked' %}text-txt-faint{% else %}text-gold{% endif %}">{% blocktrans count points=achievement.points %}{{ points }} pt{% plural %}{{ points }} pts{% endblocktrans %}</span>
+                {% if row.editable %}
+                  <a href="{% url 'achievement_edit' game.pk achievement.pk %}" class="text-brand">{% trans "Edit" %}</a>
+                {% endif %}
               </div>
             </div>
           {% endwith %}

@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% if form.instance.pk %}{% trans "Edit achievement" %}{% else %}{% trans "New achievement" %}{% endif %} — RetroPlatinas{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-2xl px-4 py-10">
+  <div class="border-b border-line2 pb-3">
+    <h1 class="font-display text-2xl font-bold text-txt">{% if form.instance.pk %}{% trans "Edit achievement" %}{% else %}{% trans "New achievement" %}{% endif %}</h1>
+    <a href="{% url 'game_detail' game.pk %}" class="mt-1 inline-block text-sm text-brand">{{ game.title }}</a>
+  </div>
+
+  {% with achievement=form.instance %}
+    {% if achievement.pk %}
+      <dl class="mt-4 font-mono text-xs text-txt-faint">
+        <div class="flex gap-2 border-b border-line py-2">
+          <dt>{% trans "Author" %}</dt>
+          <dd><a href="{% url 'user_detail' achievement.author.username %}" class="text-brand">{{ achievement.author.username }}</a></dd>
+        </div>
+        <div class="flex gap-2 border-b border-line py-2">
+          <dt>{% trans "Created" %}</dt>
+          <dd><time datetime="{{ achievement.created_at|date:'c' }}">{{ achievement.created_at|date:"SHORT_DATETIME_FORMAT" }}</time></dd>
+        </div>
+        <div class="flex gap-2 border-b border-line py-2">
+          <dt>{% trans "Last updated" %}</dt>
+          <dd><time datetime="{{ achievement.updated_at|date:'c' }}">{{ achievement.updated_at|date:"SHORT_DATETIME_FORMAT" }}</time></dd>
+        </div>
+      </dl>
+    {% endif %}
+  {% endwith %}
+
+  <div class="mt-6 flex items-center gap-3">
+    <img src="{{ badge_url }}" alt="{% trans 'Current badge' %}" width="64" height="64" class="h-16 w-16 rounded-tile border border-line2 bg-surface">
+    <img src="{{ locked_badge_url }}" alt="{% trans 'Current badge, locked' %}" width="64" height="64" class="h-16 w-16 rounded-tile border border-line bg-surface">
+  </div>
+
+  <form method="post" enctype="multipart/form-data" class="rp-form mt-6">
+    {% csrf_token %}
+    {% include "components/form-fields.html" %}
+    <button type="submit" class="mt-2 w-full rounded-tile bg-brand px-4 py-2.5 font-display text-sm font-bold text-brand-ink">{% trans "Save achievement" %}</button>
+  </form>
+  <div class="mt-6 border-t border-line pt-4 text-sm text-txt-muted">
+    <a href="{% url 'game_detail' game.pk %}" class="text-brand">{% trans "Back to the game" %}</a>
+  </div>
+</div>
+{% endblock %}

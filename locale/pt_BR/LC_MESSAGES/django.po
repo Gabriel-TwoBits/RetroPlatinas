@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RetroPlatinas\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-06 18:29-0300\n"
+"POT-Creation-Date: 2026-10-06 22:09-0300\n"
 "PO-Revision-Date: 2026-05-23 18:15-0300\n"
 "Last-Translator: RetroPlatinas\n"
 "Language-Team: Brazilian Portuguese\n"
@@ -86,12 +86,12 @@ msgstr "Emblema bloqueado"
 msgid "Badge"
 msgstr "Emblema"
 
-#: apps/achievements/admin.py:71 apps/achievements/models.py:190
+#: apps/achievements/admin.py:71 apps/achievements/models.py:192
 msgid "status"
 msgstr "status"
 
 #: apps/achievements/admin.py:77 apps/achievements/admin.py:137
-#: apps/achievements/models.py:113
+#: apps/achievements/models.py:115
 msgid "badge"
 msgstr "emblema"
 
@@ -123,131 +123,170 @@ msgid_plural "%(count)d achievements moved to %(status)s."
 msgstr[0] "%(count)d conquista movida para %(status)s."
 msgstr[1] "%(count)d conquistas movidas para %(status)s."
 
-#: apps/achievements/admin.py:141 apps/achievements/models.py:183
+#: apps/achievements/admin.py:141 apps/achievements/models.py:185
 msgid "badge name"
 msgstr "nome do emblema"
 
-#: apps/achievements/models.py:36
+#: apps/achievements/forms.py:28 templates/games/detail.html:23
+msgid "Points"
+msgstr "Pontos"
+
+#: apps/achievements/forms.py:32
+msgid "New badge"
+msgstr "Novo emblema"
+
+#: apps/achievements/forms.py:41
+msgid "Condition (mem_addr)"
+msgstr "Condição (mem_addr)"
+
+#: apps/achievements/forms.py:44
+msgid ""
+"The trigger in rcheevos syntax, checked with the same parser the emulators "
+"run."
+msgstr ""
+"O gatilho na sintaxe do rcheevos, verificado com o mesmo parser que os "
+"emuladores rodam."
+
+#: apps/achievements/forms.py:47
+msgid ""
+"A draft reaches only its author, in the emulator's unofficial list, and is "
+"never awarded. Community and verified reach every player and are worth "
+"points."
+msgstr ""
+"Um rascunho chega só ao autor, na lista de não oficiais do emulador, e nunca "
+"é concedido. Comunidade e verificado chegam a todos os jogadores e valem "
+"pontos."
+
+#: apps/achievements/forms.py:66
+#, python-format
+msgid ""
+"PNG, JPEG or GIF, at most %(megabytes)s MiB and %(pixels)s pixels a side. "
+"Leave empty to keep the current badge."
+msgstr ""
+"PNG, JPEG ou GIF, com no máximo %(megabytes)s MiB e %(pixels)s pixels de "
+"lado. Deixe vazio para manter o emblema atual."
+
+#: apps/achievements/models.py:38
 #, python-format
 msgid "The badge image must be at most %(limit)s bytes."
 msgstr "A imagem do emblema deve ter no máximo %(limit)s bytes."
 
-#: apps/achievements/models.py:48 apps/achievements/models.py:53
-#: apps/achievements/models.py:72
+#: apps/achievements/models.py:50 apps/achievements/models.py:55
+#: apps/achievements/models.py:74
 msgid "Upload a PNG, JPEG or GIF image."
 msgstr "Envie uma imagem PNG, JPEG ou GIF."
 
-#: apps/achievements/models.py:56
+#: apps/achievements/models.py:58
 #, python-format
 msgid "The badge image must be at most %(limit)s pixels on each side."
 msgstr "A imagem do emblema deve ter no máximo %(limit)s pixels de cada lado."
 
-#: apps/achievements/models.py:98
+#: apps/achievements/models.py:100
 msgid "image"
 msgstr "imagem"
 
-#: apps/achievements/models.py:106
+#: apps/achievements/models.py:108
 msgid "uploaded by"
 msgstr "enviado por"
 
-#: apps/achievements/models.py:108 apps/achievements/models.py:199
+#: apps/achievements/models.py:110 apps/achievements/models.py:201
 #: apps/anticheat/models.py:28 apps/games/models.py:59
 #: apps/leaderboards/models.py:54
 msgid "created at"
 msgstr "criado em"
 
-#: apps/achievements/models.py:114
+#: apps/achievements/models.py:116
 msgid "badges"
 msgstr "emblemas"
 
-#: apps/achievements/models.py:145
+#: apps/achievements/models.py:147
 msgid "Draft"
 msgstr "Rascunho"
 
-#: apps/achievements/models.py:146 apps/games/page.py:76 templates/home.html:52
+#: apps/achievements/models.py:148 apps/games/page.py:77 templates/home.html:52
 msgid "Community"
 msgstr "Comunidade"
 
-#: apps/achievements/models.py:147
+#: apps/achievements/models.py:149
 msgid "Verified"
 msgstr "Verificado"
 
-#: apps/achievements/models.py:159
+#: apps/achievements/models.py:161
 msgid "None"
 msgstr "Nenhum"
 
-#: apps/achievements/models.py:160
+#: apps/achievements/models.py:162
 msgid "Progression"
 msgstr "Progressão"
 
-#: apps/achievements/models.py:161
+#: apps/achievements/models.py:163
 msgid "Win condition"
 msgstr "Condição de vitória"
 
-#: apps/achievements/models.py:162
+#: apps/achievements/models.py:164
 msgid "Missable"
 msgstr "Perdível"
 
-#: apps/achievements/models.py:169 apps/achievements/models.py:252
+#: apps/achievements/models.py:171 apps/achievements/models.py:254
 #: apps/games/models.py:62 apps/games/models.py:75 apps/games/models.py:128
 #: apps/leaderboards/models.py:37
 msgid "game"
 msgstr "jogo"
 
-#: apps/achievements/models.py:174 apps/achievements/models.py:257
+#: apps/achievements/models.py:176 apps/achievements/models.py:259
 #: apps/leaderboards/models.py:52
 msgid "author"
 msgstr "autor"
 
-#: apps/achievements/models.py:176 apps/games/models.py:49
+#: apps/achievements/models.py:178 apps/games/models.py:49
 #: apps/leaderboards/models.py:39
 msgid "title"
 msgstr "título"
 
-#: apps/achievements/models.py:177 apps/games/models.py:57
+#: apps/achievements/models.py:179 apps/games/models.py:57
 #: apps/leaderboards/models.py:40
 msgid "description"
 msgstr "descrição"
 
-#: apps/achievements/models.py:178
+#: apps/achievements/models.py:180
 msgid "points"
 msgstr "pontos"
 
-#: apps/achievements/models.py:179 apps/leaderboards/models.py:41
+#: apps/achievements/models.py:181 apps/leaderboards/models.py:41
 msgid "memory address expression"
 msgstr "expressão de endereço de memória"
 
-#: apps/achievements/models.py:184
+#: apps/achievements/models.py:186
 msgid "The number of an uploaded badge, or 00000 for the placeholder."
 msgstr "O número de um emblema enviado, ou 00000 para o emblema genérico."
 
-#: apps/achievements/models.py:197
+#: apps/achievements/models.py:199
 msgid "type"
 msgstr "tipo"
 
-#: apps/achievements/models.py:200 apps/achievements/models.py:261
+#: apps/achievements/models.py:202 apps/achievements/models.py:263
 #: apps/leaderboards/models.py:55
 msgid "updated at"
 msgstr "atualizado em"
 
-#: apps/achievements/models.py:205 apps/achievements/models.py:230
+#: apps/achievements/models.py:207 apps/achievements/models.py:232
 msgid "achievement"
 msgstr "conquista"
 
-#: apps/achievements/models.py:206
+#: apps/achievements/models.py:208
 msgid "achievements"
 msgstr "conquistas"
 
-#: apps/achievements/models.py:216
+#: apps/achievements/models.py:218
 msgid "No badge has this name; upload the badge first."
 msgstr "Nenhum emblema tem este nome; envie o emblema primeiro."
 
-#: apps/achievements/models.py:225 apps/anticheat/models.py:24
+#: apps/achievements/models.py:227 apps/anticheat/models.py:24
 #: apps/games/models.py:122 apps/leaderboards/models.py:93
 msgid "user"
 msgstr "usuário"
 
-#: apps/achievements/models.py:232 apps/achievements/models.py:243
+#: apps/achievements/models.py:234 apps/achievements/models.py:245
 #: templates/accounts/partials/identity-header.html:63
 #: templates/accounts/partials/sec-recent-unlocks.html:15
 #: templates/feed/partials/feed-list.html:14
@@ -256,19 +295,19 @@ msgstr "usuário"
 msgid "hardcore"
 msgstr "hardcore"
 
-#: apps/achievements/models.py:234
+#: apps/achievements/models.py:236
 msgid "unlocked at"
 msgstr "desbloqueado em"
 
-#: apps/achievements/models.py:238
+#: apps/achievements/models.py:240
 msgid "user unlock"
 msgstr "desbloqueio de usuário"
 
-#: apps/achievements/models.py:239
+#: apps/achievements/models.py:241
 msgid "user unlocks"
 msgstr "desbloqueios de usuário"
 
-#: apps/achievements/models.py:243
+#: apps/achievements/models.py:245
 #: templates/accounts/partials/identity-header.html:63
 #: templates/accounts/partials/sec-recent-unlocks.html:15
 #: templates/games/partials/panel-achievements.html:50 templates/home.html:70
@@ -276,21 +315,40 @@ msgstr "desbloqueios de usuário"
 msgid "softcore"
 msgstr "softcore"
 
-#: apps/achievements/models.py:259
+#: apps/achievements/models.py:261
 msgid "address"
 msgstr "endereço"
 
-#: apps/achievements/models.py:260
+#: apps/achievements/models.py:262
 msgid "note"
 msgstr "nota"
 
-#: apps/achievements/models.py:264
+#: apps/achievements/models.py:266
 msgid "code note"
 msgstr "anotação de código"
 
-#: apps/achievements/models.py:265
+#: apps/achievements/models.py:267
 msgid "code notes"
 msgstr "anotações de código"
+
+#: apps/achievements/triggers.py:37
+msgid "The condition could not be checked right now; try again later."
+msgstr ""
+"Não foi possível verificar a condição agora; tente de novo mais tarde."
+
+#: apps/achievements/triggers.py:47
+msgid "An achievement condition is a single line of trigger conditions."
+msgstr ""
+"A condição de uma conquista é uma única linha de condições de gatilho."
+
+#: apps/achievements/triggers.py:68
+#, python-format
+msgid "rcheevos cannot parse this condition: %(reason)s."
+msgstr "O rcheevos não consegue interpretar esta condição: %(reason)s."
+
+#: apps/achievements/views.py:44
+msgid "Achievement saved."
+msgstr "Conquista salva."
 
 #: apps/anticheat/admin.py:41
 msgid "Mark selected activities as legitimate"
@@ -496,77 +554,77 @@ msgstr "jogo do jogador"
 msgid "player games"
 msgstr "jogos dos jogadores"
 
-#: apps/games/page.py:15 templates/accounts/partials/sec-completion.html:7
+#: apps/games/page.py:16 templates/accounts/partials/sec-completion.html:7
 #: templates/games/detail.html:19 templates/home.html:8
 msgid "Achievements"
 msgstr "Conquistas"
 
-#: apps/games/page.py:16
+#: apps/games/page.py:17
 msgid "Leaderboards"
 msgstr "Placares"
 
-#: apps/games/page.py:17
+#: apps/games/page.py:18
 msgid "Recent players"
 msgstr "Jogadores recentes"
 
-#: apps/games/page.py:25
+#: apps/games/page.py:26
 msgid "All"
 msgstr "Todas"
 
-#: apps/games/page.py:26
+#: apps/games/page.py:27
 msgid "Unlocked"
 msgstr "Desbloqueadas"
 
-#: apps/games/page.py:27
+#: apps/games/page.py:28
 msgid "Locked"
 msgstr "Bloqueadas"
 
-#: apps/games/page.py:36
+#: apps/games/page.py:37
 msgid "Verified only"
 msgstr "Somente verificadas"
 
-#: apps/games/page.py:37
+#: apps/games/page.py:38
 msgid "Verified + Community"
 msgstr "Verificadas + comunidade"
 
-#: apps/games/page.py:38
+#: apps/games/page.py:39
 msgid "All incl. my drafts"
 msgstr "Todas, com meus rascunhos"
 
-#: apps/games/page.py:49
+#: apps/games/page.py:50
 msgid "No verified achievements yet"
 msgstr "Nenhuma conquista verificada ainda"
 
-#: apps/games/page.py:50
+#: apps/games/page.py:51
 msgid "No published achievements yet"
 msgstr "Nenhuma conquista publicada ainda"
 
-#: apps/games/page.py:51
+#: apps/games/page.py:52
 msgid "No published achievements or drafts yet"
 msgstr "Nenhuma conquista publicada ou rascunho ainda"
 
-#: apps/games/page.py:55
+#: apps/games/page.py:56
 msgid "No verified achievements unlocked yet"
 msgstr "Nenhuma conquista verificada desbloqueada ainda"
 
-#: apps/games/page.py:56
+#: apps/games/page.py:57
 msgid "Every verified achievement unlocked"
 msgstr "Todas as conquistas verificadas desbloqueadas"
 
-#: apps/games/page.py:57 apps/games/page.py:59
+#: apps/games/page.py:58 apps/games/page.py:60
 msgid "No achievements unlocked yet"
 msgstr "Nenhuma conquista desbloqueada ainda"
 
-#: apps/games/page.py:58 apps/games/page.py:60
+#: apps/games/page.py:59 apps/games/page.py:61
 msgid "Every achievement unlocked"
 msgstr "Todas as conquistas desbloqueadas"
 
-#: apps/games/page.py:73
+#: apps/games/page.py:74
 msgctxt "achievement section"
 msgid "Verified"
 msgstr "Verificadas"
 
-#: apps/games/page.py:77
+#: apps/games/page.py:78
 msgid "Your drafts"
 msgstr "Seus rascunhos"
 
@@ -1065,6 +1123,43 @@ msgstr "Criar conta"
 msgid "Already have an account?"
 msgstr "Já tem uma conta?"
 
+#: templates/achievements/edit.html:4 templates/achievements/edit.html:9
+msgid "Edit achievement"
+msgstr "Editar conquista"
+
+#: templates/achievements/edit.html:4 templates/achievements/edit.html:9
+#: templates/games/detail.html:33
+msgid "New achievement"
+msgstr "Nova conquista"
+
+#: templates/achievements/edit.html:17
+msgid "Author"
+msgstr "Autor"
+
+#: templates/achievements/edit.html:21
+msgid "Created"
+msgstr "Criada em"
+
+#: templates/achievements/edit.html:25
+msgid "Last updated"
+msgstr "Atualizada em"
+
+#: templates/achievements/edit.html:33
+msgid "Current badge"
+msgstr "Emblema atual"
+
+#: templates/achievements/edit.html:34
+msgid "Current badge, locked"
+msgstr "Emblema atual, bloqueado"
+
+#: templates/achievements/edit.html:40
+msgid "Save achievement"
+msgstr "Salvar conquista"
+
+#: templates/achievements/edit.html:43
+msgid "Back to the game"
+msgstr "Voltar ao jogo"
+
 #: templates/base.html:37
 msgid "Menu"
 msgstr "Menu"
@@ -1269,10 +1364,6 @@ msgstr "Assim que alguém jogar, os desbloqueios aparecem aqui."
 msgid "Be the first to play →"
 msgstr "Seja o primeiro a jogar →"
 
-#: templates/games/detail.html:23
-msgid "Points"
-msgstr "Pontos"
-
 #: templates/games/list.html:10
 msgid ""
 "By default, games with a published achievement set; a minimum of 0 "
@@ -1298,6 +1389,10 @@ msgstr "Mostrar conquistas por status"
 #: templates/games/partials/panel-achievements.html:11
 msgid "Filter achievements"
 msgstr "Filtrar conquistas"
+
+#: templates/games/partials/panel-achievements.html:58
+msgid "Edit"
+msgstr "Editar"
 
 #: templates/games/partials/panel-leaderboards.html:12
 #: templates/leaderboards/detail.html:15

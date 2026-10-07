@@ -4,6 +4,7 @@ leaderboards and sessions."""
 from django.utils.translation import gettext_lazy as _
 from django.utils.translation import pgettext_lazy
 
+from apps.achievements.editing import can_edit
 from apps.achievements.models import Achievement, UserUnlock
 from apps.core import stats
 from apps.images.catalog import avatar_path, badge_path, versioned_game_icon_path
@@ -95,9 +96,9 @@ def _unlock_times(game, viewer):
         return times
 
 
-def _row(achievement, unlocks, tracked):
+def _row(achievement, unlocks, viewer):
     """`unlocks` maps a mode to its unlock time; hardcore outranks the softcore twin it writes."""
-    if not tracked:
+    if not viewer.is_authenticated:
         state = None
     elif STATE_HARDCORE in unlocks:
         state = STATE_HARDCORE
@@ -110,6 +111,7 @@ def _row(achievement, unlocks, tracked):
         "state": state,
         "unlocked_at": unlocks.get(state),
         "badge_url": badge_path(achievement.badge_name, locked=state == STATE_LOCKED),
+        "editable": can_edit(viewer, achievement.author_id),
     }
 
 
@@ -118,7 +120,7 @@ def _achievement_rows(game, viewer):
     unlock_times = _unlock_times(game, viewer)
     achievements = Achievement.objects.visible_to(viewer).filter(game=game).order_by("id")
     return [
-        _row(achievement, unlock_times.get(achievement.pk, {}), viewer.is_authenticated)
+        _row(achievement, unlock_times.get(achievement.pk, {}), viewer)
         for achievement in achievements
     ]
 
