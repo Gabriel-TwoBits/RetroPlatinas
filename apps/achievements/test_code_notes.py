@@ -5,6 +5,8 @@ from http import HTTPStatus
 
 import pytest
 from django.contrib.auth import get_user_model
+from django.db import connection
+from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 
 from apps.achievements.code_notes import MAX_CODE_NOTE_ADDRESS
@@ -328,6 +330,20 @@ def test_author_deletes_their_note(client, author, lives):
 
     assert response["Location"] == _list_url(lives.game)
     assert not CodeNote.objects.exists()
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    ("url", "data"), [(_edit_url, {"note": "Lives (8-bit)"}), (_delete_url, {})]
+)
+def test_edit_and_delete_lock_the_game_as_raintegration_writes_do(client, author, lives, url, data):
+    client.force_login(author)
+
+    with CaptureQueriesContext(connection) as queries:
+        client.post(url(lives), data)
+
+    game_table = Game._meta.db_table
+    assert any(game_table in query["sql"] and "FOR UPDATE" in query["sql"] for query in queries)
 
 
 @pytest.mark.django_db

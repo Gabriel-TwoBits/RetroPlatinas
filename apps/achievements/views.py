@@ -94,7 +94,16 @@ def edit_achievement(request, game_id, achievement_id):
 
 
 def _code_note(request, game_id, note_id):
-    """The note `request.user` may change, else 404 for an unknown one and 403 for another's."""
+    """The note `request.user` may change, else 404 for an unknown one and 403 for another's.
+
+    A POST first locks the game row, as every code note writer does, so the note cannot be
+    deleted between this read and the write; the caller runs inside a transaction.
+    """
+    if request.method == "POST":
+        get_object_or_404(Game.objects.select_for_update(), pk=game_id)
+    else:
+        # Reading a note needs no lock.
+        pass
     note = get_object_or_404(
         CodeNote.objects.select_related("game", "author", "updated_by"),
         pk=note_id,
@@ -170,10 +179,11 @@ def new_code_note(request, game_id):
 
 @login_required
 @require_http_methods(["GET", "POST"])
+@transaction.atomic
 def edit_code_note(request, game_id, note_id):
     note = _code_note(request, game_id, note_id)
     if request.method == "POST":
-        form = CodeNoteForm(request.POST, initial={"note": note.note})
+        form = CodeNoteForm(request.POST)
     else:
         form = CodeNoteForm(initial={"note": note.note})
 
@@ -187,6 +197,7 @@ def edit_code_note(request, game_id, note_id):
 
 @login_required
 @require_POST
+@transaction.atomic
 def delete_code_note(request, game_id, note_id):
     note = _code_note(request, game_id, note_id)
     note.delete()
