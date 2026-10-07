@@ -11,6 +11,7 @@ plan derives afresh instead of reusing a state a fresh checkout could no longer 
 
 import argparse
 import hashlib
+import random
 from collections.abc import Callable
 from dataclasses import dataclass
 
@@ -26,6 +27,7 @@ from probes import (
     LID_ROLLING_STONES,
     LID_THE_GREAT_GATE,
     LID_UPSTREAM,
+    RESPAWN_COUNT,
     aku_level,
     player_fruit,
 )
@@ -47,6 +49,10 @@ WUMPA_FARM_PASSES = 2
 FARMED_WUMPA = 36
 # Longer than navigation.QUIT_STAND_FRAMES; the plans searched from the farmed states depend on it.
 FARM_STAND_FRAMES = 120
+# Dying after a checkpoint: seeded random macros of the stage's heading, deterministic on the
+# interpreter, so a plan searched from the respawn replays after the same death.
+CHECKPOINT_DEATH_SEED = 1
+DEATH_TIMEOUT_SEGMENTS = 900
 
 
 @dataclass(frozen=True)
@@ -71,6 +77,16 @@ class Stage:
     def goal_plan_path(self, goal):
         """`plans/<stage>-<goal>.json`: a searched route to the goal (explore.GOALS)."""
         return PLANS_DIR / f"{self.name}-{goal}.json"
+
+    @property
+    def checkpoint_respawn(self):
+        """The stage after its checkpoint route and a death: the player back at the checkpoint."""
+        return f"{self.name}-checkpoint-respawn"
+
+    @property
+    def checkpoint_clear_plan_path(self):
+        """A clear searched from `checkpoint_respawn`."""
+        return PLANS_DIR / f"{self.name}-checkpoint-clear.json"
 
     @property
     def deepest_plan_path(self):
@@ -160,7 +176,41 @@ def _stage_recipes(stage):
         )
     else:
         pass  # No clearing plan: no clear state, no clear scenario.
+    if stage.goal_plan_path("checkpoint").is_file():
+        recipes[stage.checkpoint_respawn] = Recipe(
+            stage.start,
+            _checkpoint_respawn(stage),
+            f"{stage.name} respawned at the checkpoint of plans/{stage.name}-checkpoint.json",
+        )
+    else:
+        pass  # No checkpoint route: no respawn state.
     return recipes
+
+
+def die_by_random_play(emu, stage, seed):
+    """Seeded random macros of the stage's heading until a respawn, then the player's control."""
+    rng = random.Random(seed)
+    names = plans.HEADINGS[stage.heading]
+    before = emu.s32(RESPAWN_COUNT)
+    for _ in range(DEATH_TIMEOUT_SEGMENTS):
+        if emu.s32(RESPAWN_COUNT) != before:
+            break
+        for frames, buttons in plans.MACROS[rng.choice(names)]:
+            emu.step(frames, buttons)
+    else:
+        raise TimeoutError(f"no death in {stage.name} after {DEATH_TIMEOUT_SEGMENTS} segments")
+    navigation.wait_until(
+        emu, navigation.playing_a_stage, navigation.LOAD_TIMEOUT_FRAMES, "control after a respawn"
+    )
+    emu.step(navigation.CONTROL_SETTLE_FRAMES)
+
+
+def _checkpoint_respawn(stage):
+    def derive(emu):
+        plans.replay(emu, plans.load(stage.goal_plan_path("checkpoint")))
+        die_by_random_play(emu, stage, CHECKPOINT_DEATH_SEED)
+
+    return derive
 
 
 def _farm(route_frames, passes, probe, expected, what):
