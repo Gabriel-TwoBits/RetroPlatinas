@@ -18,13 +18,16 @@ import re
 import subprocess
 import sys
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 import achievements
 import navigation
 import plan as plans
+import states
 from harness import CORE_DEFAULTS, DEFAULT_CORE, FRAMES_PER_SECOND, SECONDS_PER_MINUTE, Btn
 from probes import (
+    BOX_COUNT,
+    CHECKPOINT_ID,
     FIXED_POINT_SHIFT,
     GAME_STATE,
     GAME_STATE_GAME_OVER,
@@ -37,6 +40,8 @@ from probes import (
     PLAYER_LIVES_OFFSET,
     PLAYER_POINTER,
     RESPAWN_COUNT,
+    boss_health,
+    has_gem,
     hud_count_address,
 )
 from session import Session
@@ -59,7 +64,8 @@ AFTER_LAST_QUIT_FRAMES = 600
 AFTER_GAME_OVER_FRAMES = 1200
 # Four lives at a new game; extra lives picked up on the way are bounded by this.
 MAX_DEATHS_TO_GAME_OVER = 12
-STAGE_CLEAR_SHOTS = 5
+# A gem lands about 280 frames into the Stage Clear screen, before its "press X" prompt.
+STAGE_CLEAR_SHOTS = 8
 STAGE_CLEAR_SHOT_FRAMES = 60
 DEATH_SEED = 1
 PLAN_PREFIX_DIVISOR = 2  # deaths start halfway through a stage's clearing plan
@@ -67,6 +73,9 @@ PLAN_PREFIX_DIVISOR = 2  # deaths start halfway through a stage's clearing plan
 AFTER_EVENT_FRAMES = 300
 
 HEADING_BUTTONS = {"up": Btn.UP, "down": Btn.DOWN, "right": Btn.RIGHT}
+# Boxes of a stage, measured: those its clearing plan breaks plus those the Stage Clear screen then
+# counts as missed (N. Sanity Beach 8 + 41, Jungle Rollers 12 + 26).
+STAGE_BOXES = {"nsanity-beach": 49, "jungle-rollers": 38}
 
 # Rich presence strings (seed_crash1_rich_presence) as regular expressions. Stage names come from
 # the level achievements' titles or are spelled out here, never from the script's own lookup.
@@ -267,6 +276,62 @@ def quits(stage):
     return play
 
 
+def replay_until(s, inputs, predicate):
+    """Replays `inputs` frame by frame until `predicate(emu)`; returns whether it held."""
+    for frames, mask in inputs:
+        for _ in range(frames):
+            if predicate(s.emu):
+                return True
+            s.emu.run(1, mask)
+    return predicate(s.emu)
+
+
+def boss_deaths(stage, plan_path):
+    """Deaths in a boss fight with the boss one hit from defeat, then right after the respawn.
+
+    The winning plan is replayed up to the boss's last health; a respawn allocates a new boss at
+    full health, so no death may pass for the final hit.
+    """
+    last_hit = achievements.advanced_seed().LAST_HIT_HEALTH
+
+    def play(s):
+        rng = random.Random(DEATH_SEED)
+        route = plans.load(plan_path).inputs
+        if not replay_until(s, route, lambda emu: boss_health(emu) == last_hit):
+            raise RuntimeError(f"{plan_path.name} never left the boss at {last_hit} health")
+        s.note(f"boss at {last_hit} health after replaying {plan_path.name}; dying")
+        die(s, stage, rng, "death 1", [])
+        s.rearm("death 2: re-armed right after the respawn, the boss back at full health")
+        die(s, stage, rng, "death 2", [])
+        s.step(AFTER_DEATH_FRAMES)
+
+    return play
+
+
+def boss_win(stage, plan_path):
+    """Replays the plan that beats the boss; a state saved after the hit is loaded back, the fight
+    returns to the map, and the boss fight is entered again and quit."""
+
+    def play(s):
+        plan = plans.load(plan_path)
+        s.note(f"replaying {plan_path.name}: {plan.frames} frames, the last hit at its end")
+        plans.replay(s.emu, plan)
+        s.step(AFTER_EVENT_FRAMES)
+        s.note("save a state after the last hit and load it: every trigger back to WAITING")
+        s.emu.restore(s.emu.snapshot())
+        s.wait_until(navigation.on_the_map, navigation.LOAD_TIMEOUT_FRAMES, "map after the boss")
+        s.step(navigation.MAP_SETTLE_FRAMES)
+        s.rearm("the boss fight entered again from the map and quit")
+        navigation.move_cursor_to(s.emu, stage.map_index)
+        entered = navigation.enter_stage(s.emu)
+        s.note(f"entered lid {entered:#x}")
+        s.step(QUIT_AFTER_CONTROL_FRAMES)
+        navigation.pause_and_quit(s.emu)
+        s.step(AFTER_LAST_QUIT_FRAMES)
+
+    return play
+
+
 def boss_quit(s):
     """Quits before the boss first reaches Crash: SELECT does nothing while he is being hit."""
     s.step(QUIT_AFTER_CONTROL_FRAMES)
@@ -274,11 +339,50 @@ def boss_quit(s):
     s.step(AFTER_LAST_QUIT_FRAMES)
 
 
-def clear(stage, plan_path):
+def box_count(emu):
+    return emu.s32(BOX_COUNT) >> FIXED_POINT_SHIFT
+
+
+def poke_boxes(s, boxes):
+    """SECONDARY EVIDENCE ONLY: sets the stage's box count, which the Stage Clear screen compares
+    with the stage's boxes to hand out the gem. The gem bit itself is never written: the game
+    sets it, or not."""
+    s.emu.write_u32(BOX_COUNT, boxes << FIXED_POINT_SHIFT)
+    s.note(f"POKED the box count to {boxes} (secondary evidence, not a played state)")
+
+
+def split_inputs(inputs, frames):
+    """`[frames, button_mask]` runs -> the runs of the first `frames` frames, and the rest."""
+    head, tail, played = [], [], 0
+    for run_frames, mask in inputs:
+        if played + run_frames <= frames:
+            head.append([run_frames, mask])
+        elif played >= frames:
+            tail.append([run_frames, mask])
+        else:
+            cut = frames - played
+            head.append([cut, mask])
+            tail.append([run_frames - cut, mask])
+        played += run_frames
+    return head, tail
+
+
+def clear(stage, plan_path, boxes=None):
+    """Replays a clearing plan; then Stage Clear -> map, the next stage and a quit fire nothing.
+
+    `boxes`, when given, is poked as the box count before the plan's last segment (poke_boxes).
+    """
+
     def play(s):
         plan = plans.load(plan_path)
         s.note(f"replaying {plan_path.name}: {plan.frames} frames")
-        plans.replay(s.emu, plan)
+        if boxes is None:
+            plans.replay(s.emu, plan)
+        else:
+            head, tail = split_inputs(plan.inputs, plan.frames - plans.SEGMENT_FRAMES)
+            plans.replay(s.emu, replace(plan, inputs=head))
+            poke_boxes(s, boxes)
+            plans.replay(s.emu, replace(plan, inputs=tail))
         s.note("plan finished")
         navigation.wait_for_stage_clear(s.emu, plan_path.name)
         for _ in range(STAGE_CLEAR_SHOTS):
@@ -292,6 +396,34 @@ def clear(stage, plan_path):
         s.step(LEAVE_SPAWN_ZONE_FRAMES, [Btn.UP])
         s.step(STAND_BEFORE_QUIT_FRAMES)
         navigation.pause_and_quit(s.emu)
+        s.step(AFTER_LAST_QUIT_FRAMES)
+
+    return play
+
+
+def checkpoint_death(stage):
+    """The checkpoint route, a death, then the clear searched from the checkpoint respawn.
+
+    The game skips the Stage Clear screen after a death: the clear ends straight on the map
+    (game state `0x300`), so neither the gem nor the stage's achievement can fire.
+    """
+
+    def play(s):
+        route = stage.goal_plan_path("checkpoint")
+        s.note(f"replaying {route.name}: up to its checkpoint crate")
+        plans.replay(s.emu, plans.load(route))
+        s.note(f"checkpoint {s.emu.s32(CHECKPOINT_ID):#x}, {box_count(s.emu)} boxes; dying")
+        states.die_by_random_play(s.emu, stage, states.CHECKPOINT_DEATH_SEED)
+        s.note(f"respawned at the checkpoint with {box_count(s.emu)} boxes counted")
+        s.emu.restore(s.emu.snapshot())  # as the respawn state the clear was searched from
+        s.note("state reloaded (the frame count restarts at 0)")
+        plan_path = stage.checkpoint_clear_plan_path
+        plan = plans.load(plan_path)
+        s.note(f"replaying {plan_path.name}: {plan.frames} frames")
+        plans.replay(s.emu, plan)
+        s.note(f"plan finished: game state {s.emu.u32(GAME_STATE):#x}")
+        s.wait_until(navigation.on_the_map, navigation.LOAD_TIMEOUT_FRAMES, "map after the clear")
+        s.note(f"on the map; gem bit {int(has_gem(s.emu, stage.map_index))}")
         s.step(AFTER_LAST_QUIT_FRAMES)
 
     return play
@@ -463,6 +595,57 @@ for _stage in STAGES:
         )
     else:
         pass  # Only the seeded stage has a no-Wumpa achievement to judge.
+_advanced = achievements.advanced_seed()
+_GEM_TITLES = {stage: title for title, stage, _map_index, _points in _advanced.GEM_ACHIEVEMENTS}
+_GEM_STAGES = [stage for stage in STAGES if achievements.level_title(stage.level_id) in _GEM_TITLES]
+for _stage in _GEM_STAGES:
+    _name = achievements.level_title(_stage.level_id)
+    _gem_title = _GEM_TITLES[_name]
+    _gem_lids = {_name: LID_STAGE_CLEAR, _gem_title: LID_STAGE_CLEAR}
+    _gem_plan = _stage.goal_plan_path("gem")
+    if _gem_plan.is_file():
+        SCENARIOS[f"{_stage.name}-gem"] = Scenario(
+            _stage.start,
+            _gem_lids,
+            f"{_stage.name} cleared with every box by its plan, then the next stage quit",
+            clear(_stage, _gem_plan),
+            (in_stage(_name), STAGE_CLEAR, ISLAND_MAP),
+            never=(NO_LIVES,),
+        )
+    else:
+        pass  # No searched gem run.
+    if _stage.plan_path.is_file() and _stage.name in STAGE_BOXES:
+        SCENARIOS[f"{_stage.name}-gem-poked"] = Scenario(
+            _stage.start,
+            _gem_lids,
+            "SECONDARY EVIDENCE (RAM poke): the clearing plan with the box count set to every box "
+            "of the stage before its last segment",
+            clear(_stage, _stage.plan_path, boxes=STAGE_BOXES[_stage.name]),
+            (in_stage(_name), STAGE_CLEAR, ISLAND_MAP),
+            never=(NO_LIVES,),
+        )
+        SCENARIOS[f"{_stage.name}-one-box-short-poked"] = Scenario(
+            _stage.start,
+            {_name: LID_STAGE_CLEAR},
+            "SECONDARY EVIDENCE (RAM poke): the clearing plan with the box count set one short of "
+            "every box of the stage before its last segment",
+            clear(_stage, _stage.plan_path, boxes=STAGE_BOXES[_stage.name] - 1),
+            (in_stage(_name), STAGE_CLEAR, ISLAND_MAP),
+            never=(NO_LIVES,),
+        )
+    else:
+        pass  # No clearing plan or no measured box total to poke.
+    if _stage.checkpoint_clear_plan_path.is_file():
+        SCENARIOS[f"{_stage.name}-checkpoint-death"] = Scenario(
+            _stage.start,
+            NOTHING_FIRES,
+            "a death after the checkpoint, then the clear from the checkpoint: no Stage Clear",
+            checkpoint_death(_stage),
+            (in_stage(_name), ISLAND_MAP),
+            never=(NO_LIVES, STAGE_CLEAR),
+        )
+    else:
+        pass  # No route from the checkpoint respawn to the clear.
 SCENARIOS["papu-papu-quit"] = Scenario(
     BOSS_FIGHTS[0].start,
     NOTHING_FIRES,
@@ -471,6 +654,30 @@ SCENARIOS["papu-papu-quit"] = Scenario(
     (fighting("Papu Papu", NEW_GAME_LIVES), ISLAND_MAP),
     never=(NO_LIVES,),
 )
+for _boss in BOSS_FIGHTS:
+    _boss_plan = _boss.goal_plan_path("boss")
+    if _boss_plan.is_file():
+        SCENARIOS[f"{_boss.name}-boss"] = Scenario(
+            _boss.start,
+            {_advanced.BOSS_TITLE: _boss.level_id},
+            f"{_boss.name} beaten by its searched plan, a state load, the map, a re-entry, a quit",
+            boss_win(_boss, _boss_plan),
+            (fighting(_advanced.BOSS_NAME, NEW_GAME_LIVES), ISLAND_MAP),
+            never=(NO_LIVES,),
+        )
+        SCENARIOS[f"{_boss.name}-deaths"] = Scenario(
+            _boss.start,
+            NOTHING_FIRES,
+            f"two deaths in the {_boss.name} fight, the first with the boss one hit from defeat",
+            boss_deaths(_boss, _boss_plan),
+            (
+                fighting(_advanced.BOSS_NAME, NEW_GAME_LIVES),
+                fighting(_advanced.BOSS_NAME, LOW_LIVES),
+            ),
+            never=(NO_LIVES,),
+        )
+    else:
+        pass  # No searched win: the boss achievement stays for the in-game check.
 
 
 def on_expected_level(trigger, expected):
