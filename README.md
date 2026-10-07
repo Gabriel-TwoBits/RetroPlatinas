@@ -111,7 +111,8 @@ answers 404 whenever `DEBUG` is off.
 Read-only JSON for the public site, outside `dorequest.php` (`GET` only; an unknown user, game or
 leaderboard answers 404 with `{"Error": …}`). The queries behind it live in `apps/core/stats.py`,
 shared with the `dorequest.php` leaderboard handlers, the profile page, the home page, the game
-page, the leaderboard page, the ranking page, the feed page and the games list.
+page, the achievement page, the leaderboard page, the ranking page, the feed page and the games
+list.
 
 | Path | Returns |
 | --- | --- |
@@ -192,6 +193,15 @@ hex (`0x` optional, up to `0xffffffff`) and stored as `0x%x`, one note per addre
 or staff edit (`/games/<id>/code-notes/<note_id>/edit/`) or delete it; another user gets 403, as
 from RAIntegration (`can_edit` in `apps/achievements/editing.py`). A change keeps the author and
 records who made it and when.
+
+## Comments on the site
+
+Games and achievements take comments, shown at the bottom of the game page and of the achievement
+page (`/games/<id>/achievements/<aid>/`). Logged-in users add one with
+`POST /games/<id>/comments/` or `POST /games/<id>/achievements/<aid>/comments/` (at most 2000
+characters); only its author or staff delete it with `POST /comments/<id>/delete/`, and another
+user gets 403. A draft's page and comments exist only for its author; staff moderate every
+comment, including those on a draft, in the admin.
 
 ## Editing sets from RAIntegration
 
