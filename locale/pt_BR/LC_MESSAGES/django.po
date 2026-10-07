@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RetroPlatinas\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-06 23:15-0300\n"
+"POT-Creation-Date: 2026-10-06 23:07-0300\n"
 "PO-Revision-Date: 2026-05-23 18:15-0300\n"
 "Last-Translator: RetroPlatinas\n"
 "Language-Team: Brazilian Portuguese\n"
@@ -396,27 +396,31 @@ msgstr "A condição é longa demais: no máximo %(limit)s bytes."
 msgid "rcheevos cannot parse this condition: %(reason)s."
 msgstr "O rcheevos não consegue interpretar esta condição: %(reason)s."
 
-#: apps/achievements/views.py:57
+#: apps/achievements/views.py:55
 msgid "Achievement saved."
 msgstr "Conquista salva."
 
-#: apps/achievements/views.py:136
+#: apps/achievements/views.py:126
+msgid "Achievement reverted."
+msgstr "Conquista revertida."
+
+#: apps/achievements/views.py:173
 msgid "Invalid code note search"
 msgstr "Busca de anotações de código inválida"
 
-#: apps/achievements/views.py:170
+#: apps/achievements/views.py:207
 msgid "This game already has a note at this address: edit it."
 msgstr "Este jogo já tem uma anotação neste endereço: edite-a."
 
-#: apps/achievements/views.py:174
+#: apps/achievements/views.py:211
 msgid "Code note added."
 msgstr "Anotação de código adicionada."
 
-#: apps/achievements/views.py:192
+#: apps/achievements/views.py:229
 msgid "Code note saved."
 msgstr "Anotação de código salva."
 
-#: apps/achievements/views.py:204
+#: apps/achievements/views.py:241
 msgid "Code note deleted."
 msgstr "Anotação de código excluída."
 
@@ -1284,6 +1288,7 @@ msgid "No code notes yet"
 msgstr "Nenhuma anotação de código ainda"
 
 #: templates/achievements/edit.html:4 templates/achievements/edit.html:9
+#: templates/achievements/history.html:13
 msgid "Edit achievement"
 msgstr "Editar conquista"
 
@@ -1311,6 +1316,51 @@ msgstr "Salvar conquista"
 #: templates/achievements/edit.html:43
 msgid "Back to the game"
 msgstr "Voltar ao jogo"
+
+#: templates/achievements/edit.html:45
+#: templates/games/partials/panel-achievements.html:59
+msgid "History"
+msgstr "Histórico"
+
+#: templates/achievements/history.html:4
+msgid "Achievement history"
+msgstr "Histórico da conquista"
+
+#: templates/achievements/history.html:11
+msgid ""
+"Every change to the achievement, newest first, with what it changed. "
+"Reverting adds a new revision; earlier ones stay."
+msgstr ""
+"Cada mudança na conquista, da mais recente para a mais antiga, com o que ela "
+"mudou. Reverter cria uma nova revisão; as anteriores continuam."
+
+#: templates/achievements/history.html:18
+#, python-format
+msgid "%(revisions)s revision"
+msgid_plural "%(revisions)s revisions"
+msgstr[0] "%(revisions)s revisão"
+msgstr[1] "%(revisions)s revisões"
+
+#: templates/achievements/history.html:30
+msgid "unknown editor"
+msgstr "editor desconhecido"
+
+#: templates/achievements/history.html:33
+msgctxt "the revision the achievement has now"
+msgid "current"
+msgstr "atual"
+
+#: templates/achievements/history.html:39
+msgid "Revert to this revision"
+msgstr "Reverter para esta revisão"
+
+#: templates/achievements/history.html:59
+msgid "No field changed."
+msgstr "Nenhum campo mudou."
+
+#: templates/achievements/history.html:63
+msgid "No change recorded yet"
+msgstr "Nenhuma mudança registrada ainda"
 
 #: templates/base.html:37
 msgid "Menu"

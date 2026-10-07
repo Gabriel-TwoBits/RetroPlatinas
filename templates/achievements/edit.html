@@ -41,6 +41,9 @@
   </form>
   <div class="mt-6 border-t border-line pt-4 text-sm text-txt-muted">
     <a href="{% url 'game_detail' game.pk %}" class="text-brand">{% trans "Back to the game" %}</a>
+    {% if form.instance.pk %}
+      · <a href="{% url 'achievement_history' game.pk form.instance.pk %}" class="text-brand">{% trans "History" %}</a>
+    {% endif %}
   </div>
 </div>
 {% endblock %}

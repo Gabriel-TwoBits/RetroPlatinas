@@ -22,12 +22,10 @@ from apps.achievements.forms import (
     NewCodeNoteForm,
 )
 from apps.achievements.models import Achievement, Badge, CodeNote
-from apps.achievements.scoring import recalculate_unlocker_points
+from apps.achievements.revisions import can_revert, history, revert
+from apps.achievements.scoring import SCORED_FIELDS, recalculate_unlocker_points
 from apps.games.models import Game
 from apps.images.catalog import badge_path
-
-# What an unlocker's totals are counted from.
-SCORED_FIELDS = frozenset({"status", "points"})
 
 
 def _save(form, editor):
@@ -69,6 +67,15 @@ def _editor(request, achievement):
         )
 
 
+def _reachable_achievement(user, game_id, achievement_id):
+    """The achievement `user` may look up, else 404: another user's draft does not exist."""
+    return get_object_or_404(
+        achievements_reachable_by(user).select_related("game", "author"),
+        pk=achievement_id,
+        game_id=game_id,
+    )
+
+
 @login_required
 @require_http_methods(["GET", "POST"])
 def new_achievement(request, game_id):
@@ -79,15 +86,45 @@ def new_achievement(request, game_id):
 @login_required
 @require_http_methods(["GET", "POST"])
 def edit_achievement(request, game_id, achievement_id):
-    achievement = get_object_or_404(
-        achievements_reachable_by(request.user).select_related("game", "author"),
-        pk=achievement_id,
-        game_id=game_id,
-    )
+    achievement = _reachable_achievement(request.user, game_id, achievement_id)
     if not can_edit(request.user, achievement.author_id):
         raise PermissionDenied("Only the author or staff edit an achievement.")
     else:
         return _editor(request, achievement)
+
+
+@require_safe
+def achievement_history(request, game_id, achievement_id):
+    achievement = _reachable_achievement(request.user, game_id, achievement_id)
+    return render(
+        request,
+        "achievements/history.html",
+        {
+            "achievement": achievement,
+            "game": achievement.game,
+            "entries": history(achievement, request.user),
+            "editable": can_edit(request.user, achievement.author_id),
+        },
+    )
+
+
+@login_required
+@require_POST
+@transaction.atomic
+def revert_achievement(request, game_id, achievement_id, revision_id):
+    # The lock serializes this revert with another change to the achievement.
+    achievement = get_object_or_404(
+        achievements_reachable_by(request.user).select_for_update(),
+        pk=achievement_id,
+        game_id=game_id,
+    )
+    revision = get_object_or_404(achievement.revisions, pk=revision_id)
+    if not can_revert(request.user, achievement, revision):
+        raise PermissionDenied("Only the author or staff revert, to a status they may set.")
+    else:
+        revert(achievement, revision, request.user)
+        messages.success(request, gettext("Achievement reverted."))
+        return redirect("achievement_history", game_id=game_id, achievement_id=achievement.pk)
 
 
 # --- Code notes ---

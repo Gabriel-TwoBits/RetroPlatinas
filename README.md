@@ -169,6 +169,20 @@ or lift verified. A change of status or points recounts its unlockers' points, a
 The condition must parse with the vendored rcheevos parser: `apps/achievements/triggers.py` runs
 `scripts/check-mem-addr.sh`, whose binary `entrypoint.sh` compiles at container startup.
 
+### Revisions
+
+Every save that changes an achievement's title, description, points, type, `mem_addr`, badge name
+or status records an `AchievementRevision` with who made it and when, whatever the path: the
+site's editor, the admin (its change form and status actions) or RAIntegration's
+`uploadachievement`. A save that changes none of them records nothing. An achievement written
+without `save()` (`bulk_create`, `update()`, `loaddata`) gets its stored state recorded, with no
+editor, right before its next recorded change. `/games/<id>/achievements/<aid>/history/` lists the
+revisions, newest first, each with a line diff against the one before it (`mem_addr` one condition
+per line); it is visible to whoever may see the achievement. Its author or staff may revert to an
+earlier revision: the revert is a new revision, the history is never rewritten, and only to a
+status they may set in the editor, so an author can neither self-verify nor lift a verified seal
+by reverting.
+
 ## Code notes on the site
 
 `/games/<id>/code-notes/` lists a game's code notes to anyone, in address order, searchable by

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RetroPlatinas\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-06 23:15-0300\n"
+"POT-Creation-Date: 2026-10-06 23:07-0300\n"
 "PO-Revision-Date: 2026-05-23 18:15-0300\n"
 "Last-Translator: RetroPlatinas\n"
 "Language-Team: English\n"
@@ -386,27 +386,31 @@ msgstr ""
 msgid "rcheevos cannot parse this condition: %(reason)s."
 msgstr ""
 
-#: apps/achievements/views.py:57
+#: apps/achievements/views.py:55
 msgid "Achievement saved."
 msgstr ""
 
-#: apps/achievements/views.py:136
+#: apps/achievements/views.py:126
+msgid "Achievement reverted."
+msgstr ""
+
+#: apps/achievements/views.py:173
 msgid "Invalid code note search"
 msgstr ""
 
-#: apps/achievements/views.py:170
+#: apps/achievements/views.py:207
 msgid "This game already has a note at this address: edit it."
 msgstr ""
 
-#: apps/achievements/views.py:174
+#: apps/achievements/views.py:211
 msgid "Code note added."
 msgstr ""
 
-#: apps/achievements/views.py:192
+#: apps/achievements/views.py:229
 msgid "Code note saved."
 msgstr ""
 
-#: apps/achievements/views.py:204
+#: apps/achievements/views.py:241
 msgid "Code note deleted."
 msgstr ""
 
@@ -1266,6 +1270,7 @@ msgid "No code notes yet"
 msgstr ""
 
 #: templates/achievements/edit.html:4 templates/achievements/edit.html:9
+#: templates/achievements/history.html:13
 msgid "Edit achievement"
 msgstr ""
 
@@ -1292,6 +1297,49 @@ msgstr ""
 
 #: templates/achievements/edit.html:43
 msgid "Back to the game"
+msgstr ""
+
+#: templates/achievements/edit.html:45
+#: templates/games/partials/panel-achievements.html:59
+msgid "History"
+msgstr ""
+
+#: templates/achievements/history.html:4
+msgid "Achievement history"
+msgstr ""
+
+#: templates/achievements/history.html:11
+msgid ""
+"Every change to the achievement, newest first, with what it changed. "
+"Reverting adds a new revision; earlier ones stay."
+msgstr ""
+
+#: templates/achievements/history.html:18
+#, python-format
+msgid "%(revisions)s revision"
+msgid_plural "%(revisions)s revisions"
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/achievements/history.html:30
+msgid "unknown editor"
+msgstr ""
+
+#: templates/achievements/history.html:33
+msgctxt "the revision the achievement has now"
+msgid "current"
+msgstr ""
+
+#: templates/achievements/history.html:39
+msgid "Revert to this revision"
+msgstr ""
+
+#: templates/achievements/history.html:59
+msgid "No field changed."
+msgstr ""
+
+#: templates/achievements/history.html:63
+msgid "No change recorded yet"
 msgstr ""
 
 #: templates/base.html:37

@@ -4,6 +4,9 @@ from django.db.models.functions import Coalesce
 
 from apps.achievements.models import Achievement, UserUnlock
 
+# The achievement fields an unlocker's totals are counted from.
+SCORED_FIELDS = frozenset({"status", "points"})
+
 
 def _published_unlock_points(hardcore):
     points = (
