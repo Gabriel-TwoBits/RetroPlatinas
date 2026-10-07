@@ -161,9 +161,10 @@ not zero. An unlock carrying `o` is dated that far back, at most one day. A requ
 
 Logged-in users create an achievement at `/games/<id>/achievements/new/` and edit one at
 `/games/<id>/achievements/<aid>/edit/`: title, description, points (RetroAchievements' scale),
-type, a badge upload (which becomes a new badge), the `mem_addr` condition and the status. A new
-achievement starts as a draft. Only its author or staff edit it: another user gets 403, and another
-user's draft does not exist (404). The author moves it between draft and community; only staff set
+type, a badge upload (which becomes a new badge), the `mem_addr` condition and the status. The
+status of a new achievement defaults to draft; its author may also create it as community right
+away. Only its author or staff edit it: another user gets 403, and another user's draft does not
+exist (404). The author moves it between draft and community; only staff set
 or lift verified. A change of status or points recounts its unlockers' points, as the admin does.
 The condition must parse with the vendored rcheevos parser: `apps/achievements/triggers.py` runs
 `scripts/check-mem-addr.sh`, whose binary `entrypoint.sh` compiles at container startup.
