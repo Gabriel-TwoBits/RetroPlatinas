@@ -24,6 +24,7 @@ from apps.achievements.forms import (
 from apps.achievements.models import Achievement, Badge, CodeNote
 from apps.achievements.revisions import can_revert, history, revert
 from apps.achievements.scoring import SCORED_FIELDS, recalculate_unlocker_points
+from apps.comments.threads import thread
 from apps.core import stats
 from apps.games.models import Game
 from apps.images.catalog import badge_path
@@ -95,6 +96,7 @@ def achievement_detail(request, game_id, achievement_id):
             "unlockers": stats.achievement_unlockers(achievement),
             "players": stats.game_players(achievement.game).count(),
             "editable": can_edit(request.user, achievement.author_id),
+            "thread": thread(achievement, request.user),
         },
     )
 

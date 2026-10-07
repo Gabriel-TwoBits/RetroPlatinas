@@ -10,6 +10,7 @@ urlpatterns = [
     path("", include("apps.core.urls")),
     path("", include("apps.games.urls")),
     path("", include("apps.achievements.urls")),
+    path("", include("apps.comments.urls")),
     path("", include("apps.leaderboards.urls")),
     path("", include("apps.api.urls")),
     path("", include("apps.images.urls")),

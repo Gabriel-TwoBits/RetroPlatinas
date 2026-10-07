@@ -1,0 +1,46 @@
+{% load i18n %}
+{% comment %}
+  The comments section of a page, swapped whole by its add and delete forms. Args:
+    thread : apps.comments.threads.thread
+{% endcomment %}
+<section id="comments" class="mt-8">
+  {% blocktrans asvar heading count comments=thread.rows|length %}{{ comments }} comment{% plural %}{{ comments }} comments{% endblocktrans %}
+  {% include "components/section-heading.html" with title=heading %}
+  <div>
+    {% for row in thread.rows %}
+      {% with comment=row.comment %}
+        <article class="flex gap-3 border-t border-line py-3 first:border-t-0">
+          <img src="{{ row.avatar_url }}" alt="" width="32" height="32" class="h-8 w-8 shrink-0 rounded-card border border-line2">
+          <div class="min-w-0 flex-1">
+            <div class="flex flex-wrap items-baseline justify-between gap-2">
+              <div class="min-w-0 font-mono text-xs text-txt-faint">
+                <a href="{% url 'user_detail' comment.author.username %}" class="font-display text-sm font-semibold text-txt">{{ comment.author.username }}</a>
+                · <time datetime="{{ comment.created_at|date:'c' }}">{{ comment.created_at|date:"SHORT_DATETIME_FORMAT" }}</time>
+              </div>
+              {% if row.deletable %}
+                <form method="post" action="{{ row.delete_url }}" hx-post="{{ row.delete_url }}" hx-target="#comments" hx-swap="outerHTML"
+                      hx-confirm="{% trans 'Delete this comment?' %}" class="shrink-0">
+                  {% csrf_token %}
+                  <button type="submit" class="font-mono text-xs text-danger">{% trans "Delete" %}</button>
+                </form>
+              {% endif %}
+            </div>
+            <p class="mt-1 whitespace-pre-line break-words text-sm leading-relaxed text-txt-muted">{{ comment.content }}</p>
+          </div>
+        </article>
+      {% endwith %}
+    {% empty %}
+      {% include "components/empty-state.html" with title=_("No comments yet") %}
+    {% endfor %}
+  </div>
+  {% if user.is_authenticated %}
+    <form method="post" action="{{ thread.add_url }}" hx-post="{{ thread.add_url }}" hx-target="#comments" hx-swap="outerHTML"
+          class="rp-form mt-4 border-t border-line2 pt-4">
+      {% csrf_token %}
+      {% include "components/form-fields.html" with form=thread.form %}
+      <button type="submit" class="rounded-tile bg-brand px-4 py-2 font-display text-sm font-bold text-brand-ink">{% trans "Post comment" %}</button>
+    </form>
+  {% else %}
+    <a href="{% url 'login' %}?next={{ thread.page_url|urlencode }}%23comments" class="mt-4 inline-block font-mono text-xs text-brand">{% trans "Log in to comment" %}</a>
+  {% endif %}
+</section>

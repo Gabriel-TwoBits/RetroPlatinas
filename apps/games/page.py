@@ -6,6 +6,7 @@ from django.utils.translation import pgettext_lazy
 
 from apps.achievements.editing import can_edit
 from apps.achievements.models import Achievement, UserUnlock
+from apps.comments.threads import thread
 from apps.core import stats
 from apps.images.catalog import avatar_path, badge_path, versioned_game_icon_path
 
@@ -209,7 +210,8 @@ def panel_context(game, viewer, tab, show, achievement_filter):
 
 
 def game_context(game, viewer):
-    """The full page: the game's header and its achievements tab, published and unfiltered."""
+    """The full page: the game's header, its achievements tab, published and unfiltered, and its
+    comments."""
     rows = _achievement_rows(game, viewer)
     published = [
         row["achievement"]
@@ -222,4 +224,5 @@ def game_context(game, viewer):
         "icon_url": versioned_game_icon_path(game),
         "published_achievements": len(published),
         "published_points": sum(achievement.points for achievement in published),
+        "thread": thread(game, viewer),
     }
