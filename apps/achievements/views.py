@@ -2,13 +2,26 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
+from django.http import HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext
-from django.views.decorators.http import require_http_methods
+from django.views.decorators.http import require_http_methods, require_POST, require_safe
 
+from apps.achievements.code_notes import (
+    add_code_note,
+    address_label,
+    rewrite_code_note,
+    search_code_notes,
+    served_address,
+)
 from apps.achievements.editing import achievements_reachable_by, can_edit
-from apps.achievements.forms import AchievementForm
-from apps.achievements.models import Achievement, Badge
+from apps.achievements.forms import (
+    AchievementForm,
+    CodeNoteForm,
+    CodeNoteSearchForm,
+    NewCodeNoteForm,
+)
+from apps.achievements.models import Achievement, Badge, CodeNote
 from apps.achievements.scoring import recalculate_unlocker_points
 from apps.games.models import Game
 from apps.images.catalog import badge_path
@@ -75,3 +88,111 @@ def edit_achievement(request, game_id, achievement_id):
         raise PermissionDenied("Only the author or staff edit an achievement.")
     else:
         return _editor(request, achievement)
+
+
+# --- Code notes ---
+
+
+def _code_note(request, game_id, note_id):
+    """The note `request.user` may change, else 404 for an unknown one and 403 for another's."""
+    note = get_object_or_404(
+        CodeNote.objects.select_related("game", "author", "updated_by"),
+        pk=note_id,
+        game_id=game_id,
+    )
+    if not can_edit(request.user, note.author_id):
+        raise PermissionDenied("Only the author or staff change a code note.")
+    else:
+        return note
+
+
+def _code_note_editor(request, game, form, note=None):
+    return render(
+        request,
+        "achievements/code-note-edit.html",
+        {
+            "form": form,
+            "game": game,
+            "note": note,
+            "address": None if note is None else address_label(note),
+        },
+    )
+
+
+@require_safe
+def code_notes(request, game_id):
+    game = get_object_or_404(Game, pk=game_id)
+    search = CodeNoteSearchForm(request.GET)
+    if not search.is_valid():
+        return HttpResponseBadRequest(gettext("Invalid code note search"))
+    else:
+        query = search.cleaned_data["q"]
+        # TRADEOFF: every matching note on one page; paginate if a game's notes reach thousands.
+        rows = [
+            {
+                "address": served_address(address),
+                "note": note,
+                "editable": can_edit(request.user, note.author_id),
+            }
+            for address, note in search_code_notes(game, query)
+        ]
+        return render(
+            request,
+            "achievements/code-notes.html",
+            {"game": game, "rows": rows, "query": query, "search": search},
+        )
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def new_code_note(request, game_id):
+    game = get_object_or_404(Game, pk=game_id)
+    if request.method == "POST":
+        form = NewCodeNoteForm(request.POST)
+    else:
+        form = NewCodeNoteForm()
+
+    if form.is_bound and form.is_valid():
+        note = add_code_note(
+            request.user, game, form.cleaned_data["address"], form.cleaned_data["note"]
+        )
+        if note is None:
+            form.add_error(
+                "address", gettext("This game already has a note at this address: edit it.")
+            )
+            return _code_note_editor(request, game, form)
+        else:
+            messages.success(request, gettext("Code note added."))
+            return redirect("code_notes", game_id=game.pk)
+    else:
+        return _code_note_editor(request, game, form)
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def edit_code_note(request, game_id, note_id):
+    note = _code_note(request, game_id, note_id)
+    if request.method == "POST":
+        form = CodeNoteForm(request.POST, initial={"note": note.note})
+    else:
+        form = CodeNoteForm(initial={"note": note.note})
+
+    if form.is_bound and form.is_valid():
+        if form.has_changed():
+            rewrite_code_note(note, request.user, form.cleaned_data["note"])
+        else:
+            # The same text again is no edit: who last changed the note stays as it was.
+            pass
+        messages.success(request, gettext("Code note saved."))
+        return redirect("code_notes", game_id=note.game_id)
+    else:
+        return _code_note_editor(request, note.game, form, note)
+
+
+@login_required
+@require_POST
+def delete_code_note(request, game_id, note_id):
+    note = _code_note(request, game_id, note_id)
+    note.delete()
+    messages.success(request, gettext("Code note deleted."))
+    return redirect("code_notes", game_id=note.game_id)

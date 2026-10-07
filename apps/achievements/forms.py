@@ -1,6 +1,7 @@
 from django import forms
 from django.utils.translation import gettext_lazy as _
 
+from apps.achievements.code_notes import MAX_CODE_NOTE_ADDRESS, typed_address
 from apps.achievements.editing import settable_statuses
 from apps.achievements.models import (
     ACHIEVEMENT_POINT_VALUES,
@@ -9,6 +10,7 @@ from apps.achievements.models import (
     MAX_BADGE_UPLOAD_BYTES,
     MAX_BADGE_UPLOAD_SIDE_PX,
     Achievement,
+    CodeNote,
     validate_badge_image,
 )
 from apps.achievements.triggers import validate_trigger
@@ -76,3 +78,43 @@ class AchievementForm(forms.ModelForm):
         mem_addr = self.cleaned_data["mem_addr"]
         validate_trigger(mem_addr)
         return mem_addr
+
+
+CODE_NOTE_ROWS = 4
+CODE_NOTE_SEARCH_MAX_LENGTH = 100
+
+
+class CodeNoteSearchForm(forms.Form):
+    q = forms.CharField(required=False, max_length=CODE_NOTE_SEARCH_MAX_LENGTH, label=_("Search"))
+
+
+class CodeNoteForm(forms.Form):
+    """A code note's text, as its author or staff changes it."""
+
+    note = forms.CharField(
+        label=_("Note"),
+        widget=forms.Textarea(attrs={"rows": CODE_NOTE_ROWS}),
+        help_text=_("What the address holds: its size, its values and what they mean."),
+    )
+
+
+class NewCodeNoteForm(CodeNoteForm):
+    """A new code note: `address` cleans to the number the hex text names."""
+
+    address = forms.CharField(
+        label=_("Address"),
+        max_length=CodeNote._meta.get_field("address").max_length,
+        help_text=_("In hexadecimal, such as 0x001234."),
+        widget=forms.TextInput(attrs={"spellcheck": "false", "autocomplete": "off"}),
+    )
+    field_order = ("address", "note")
+
+    def clean_address(self):
+        address = typed_address(self.cleaned_data["address"])
+        if address is None:
+            raise forms.ValidationError(
+                _("Enter a hexadecimal address from 0x0 to 0x%(max)x, such as 0x001234."),
+                params={"max": MAX_CODE_NOTE_ADDRESS},
+            )
+        else:
+            return address

@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Code notes" %} — {{ game.title }} — RetroPlatinas{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-3xl px-4 py-6 sm:py-8">
+  <section class="border-b border-line2 pb-6">
+    <a href="{% url 'game_detail' game.pk %}" class="font-mono text-xs text-brand hover:text-brand-hi">← {{ game.title }}</a>
+    <h1 class="mt-2 font-display text-2xl font-bold leading-tight text-txt sm:text-3xl">{% trans "Code notes" %}</h1>
+    <p class="mt-2 text-sm leading-relaxed text-txt-muted">{% trans "What the community found at each memory address of the game. RAIntegration loads these same notes." %}</p>
+    {% if user.is_authenticated %}
+      <a href="{% url 'code_note_new' game.pk %}" class="mt-4 inline-block rounded-card border border-line2 px-4 py-2 font-display text-sm font-semibold text-txt-muted no-underline hover:border-brand hover:text-brand-hi hover:no-underline">{% trans "New code note" %}</a>
+    {% endif %}
+  </section>
+
+  <form action="{% url 'code_notes' game.pk %}" method="get" role="search" class="rp-form mt-6 flex items-end gap-3">
+    <div class="min-w-0 flex-1">
+      <label for="code-note-search" class="mb-1 block font-display text-sm font-semibold text-txt">{{ search.q.label }}</label>
+      <input id="code-note-search" type="search" name="q" value="{{ query }}" maxlength="{{ search.q.field.max_length }}" autocomplete="off" placeholder="{% trans 'Address or text' %}">
+    </div>
+    <button type="submit" class="shrink-0 rounded-tile border border-line2 px-4 py-2 font-display text-sm font-semibold text-txt">{% trans "Search" %}</button>
+  </form>
+
+  <section class="mt-6">
+    {% if query %}
+      {% blocktrans asvar heading count notes=rows|length %}{{ notes }} note matches{% plural %}{{ notes }} notes match{% endblocktrans %}
+    {% else %}
+      {% blocktrans asvar heading count notes=rows|length %}{{ notes }} note{% plural %}{{ notes }} notes{% endblocktrans %}
+    {% endif %}
+    {% include "components/section-heading.html" with title=heading %}
+    {% for row in rows %}
+      <div class="border-t border-line py-3 first:border-t-0">
+        <div class="flex items-baseline justify-between gap-3">
+          <code class="font-mono text-sm font-bold text-brand">{{ row.address }}</code>
+          {% if row.editable %}
+            <a href="{% url 'code_note_edit' game.pk row.note.pk %}" class="shrink-0 font-mono text-xs text-brand hover:text-brand-hi">{% trans "Edit" %}</a>
+          {% endif %}
+        </div>
+        <p class="mt-1 whitespace-pre-wrap break-words font-mono text-xs leading-relaxed text-txt">{{ row.note.note }}</p>
+        <div class="mt-1 font-mono text-xs text-txt-faint">
+          {% trans "by" context "code note author" %} <a href="{% url 'user_detail' row.note.author.username %}" class="text-brand">{{ row.note.author.username }}</a>
+          {% if row.note.updated_by %}
+            · {% trans "last edited by" %} <a href="{% url 'user_detail' row.note.updated_by.username %}" class="text-brand">{{ row.note.updated_by.username }}</a>
+          {% endif %}
+          · <time datetime="{{ row.note.updated_at|date:'c' }}">{{ row.note.updated_at|date:"SHORT_DATETIME_FORMAT" }}</time>
+        </div>
+      </div>
+    {% empty %}
+      {% if query %}
+        {% include "components/empty-state.html" with title=_("No code note matches the search") %}
+      {% else %}
+        {% include "components/empty-state.html" with title=_("No code notes yet") %}
+      {% endif %}
+    {% endfor %}
+  </section>
+</div>
+{% endblock %}

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RetroPlatinas\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-06 22:19-0300\n"
+"POT-Creation-Date: 2026-10-06 22:32-0300\n"
 "PO-Revision-Date: 2026-05-23 18:15-0300\n"
 "Last-Translator: RetroPlatinas\n"
 "Language-Team: English\n"
@@ -125,36 +125,62 @@ msgstr[1] ""
 msgid "badge name"
 msgstr ""
 
-#: apps/achievements/forms.py:30 templates/games/detail.html:23
+#: apps/achievements/forms.py:32 templates/games/detail.html:23
 msgid "Points"
 msgstr ""
 
-#: apps/achievements/forms.py:34
+#: apps/achievements/forms.py:36
 msgid "New badge"
 msgstr ""
 
-#: apps/achievements/forms.py:43
+#: apps/achievements/forms.py:45
 msgid "Condition (mem_addr)"
 msgstr ""
 
-#: apps/achievements/forms.py:46
+#: apps/achievements/forms.py:48
 msgid ""
 "The trigger in rcheevos syntax, checked with the same parser the emulators "
 "run."
 msgstr ""
 
-#: apps/achievements/forms.py:49
+#: apps/achievements/forms.py:51
 msgid ""
 "A draft reaches only its author, in the emulator's unofficial list, and is "
 "never awarded. Community and verified reach every player and are worth "
 "points."
 msgstr ""
 
-#: apps/achievements/forms.py:68
+#: apps/achievements/forms.py:70
 #, python-format
 msgid ""
 "PNG, JPEG or GIF, at most %(megabytes)s MiB and %(pixels)s pixels a side. "
 "Leave empty to keep the current badge."
+msgstr ""
+
+#: apps/achievements/forms.py:88 templates/achievements/code-notes.html:22
+#: templates/components/site-menu.html:11
+msgid "Search"
+msgstr ""
+
+#: apps/achievements/forms.py:95
+msgid "Note"
+msgstr ""
+
+#: apps/achievements/forms.py:97
+msgid "What the address holds: its size, its values and what they mean."
+msgstr ""
+
+#: apps/achievements/forms.py:105 templates/achievements/code-note-edit.html:16
+msgid "Address"
+msgstr ""
+
+#: apps/achievements/forms.py:107
+msgid "In hexadecimal, such as 0x001234."
+msgstr ""
+
+#: apps/achievements/forms.py:116
+#, python-format
+msgid "Enter a hexadecimal address from 0x0 to 0x%(max)x, such as 0x001234."
 msgstr ""
 
 #: apps/achievements/models.py:38
@@ -255,7 +281,7 @@ msgstr ""
 msgid "type"
 msgstr ""
 
-#: apps/achievements/models.py:202 apps/achievements/models.py:263
+#: apps/achievements/models.py:202 apps/achievements/models.py:272
 #: apps/leaderboards/models.py:55
 msgid "updated at"
 msgstr ""
@@ -314,11 +340,15 @@ msgstr ""
 msgid "note"
 msgstr ""
 
-#: apps/achievements/models.py:266
+#: apps/achievements/models.py:270
+msgid "updated by"
+msgstr ""
+
+#: apps/achievements/models.py:275
 msgid "code note"
 msgstr ""
 
-#: apps/achievements/models.py:267
+#: apps/achievements/models.py:276
 msgid "code notes"
 msgstr ""
 
@@ -340,8 +370,28 @@ msgstr ""
 msgid "rcheevos cannot parse this condition: %(reason)s."
 msgstr ""
 
-#: apps/achievements/views.py:44
+#: apps/achievements/views.py:57
 msgid "Achievement saved."
+msgstr ""
+
+#: apps/achievements/views.py:127
+msgid "Invalid code note search"
+msgstr ""
+
+#: apps/achievements/views.py:161
+msgid "This game already has a note at this address: edit it."
+msgstr ""
+
+#: apps/achievements/views.py:165
+msgid "Code note added."
+msgstr ""
+
+#: apps/achievements/views.py:186
+msgid "Code note saved."
+msgstr ""
+
+#: apps/achievements/views.py:197
+msgid "Code note deleted."
 msgstr ""
 
 #: apps/anticheat/admin.py:41
@@ -1111,25 +1161,105 @@ msgstr ""
 msgid "Already have an account?"
 msgstr ""
 
+#: templates/achievements/code-note-edit.html:4
+#: templates/achievements/code-note-edit.html:9
+msgid "Edit code note"
+msgstr ""
+
+#: templates/achievements/code-note-edit.html:4
+#: templates/achievements/code-note-edit.html:9
+#: templates/achievements/code-notes.html:13
+msgid "New code note"
+msgstr ""
+
+#: templates/achievements/code-note-edit.html:20
+#: templates/achievements/edit.html:17
+msgid "Author"
+msgstr ""
+
+#: templates/achievements/code-note-edit.html:25
+msgid "Last edited by"
+msgstr ""
+
+#: templates/achievements/code-note-edit.html:30
+#: templates/achievements/edit.html:25
+msgid "Last updated"
+msgstr ""
+
+#: templates/achievements/code-note-edit.html:39
+msgid "Save code note"
+msgstr ""
+
+#: templates/achievements/code-note-edit.html:45
+msgid "Delete code note"
+msgstr ""
+
+#: templates/achievements/code-note-edit.html:50
+msgid "Back to the code notes"
+msgstr ""
+
+#: templates/achievements/code-notes.html:4
+#: templates/achievements/code-notes.html:10 templates/games/detail.html:36
+msgid "Code notes"
+msgstr ""
+
+#: templates/achievements/code-notes.html:11
+msgid ""
+"What the community found at each memory address of the game. RAIntegration "
+"loads these same notes."
+msgstr ""
+
+#: templates/achievements/code-notes.html:20
+msgid "Address or text"
+msgstr ""
+
+#: templates/achievements/code-notes.html:27
+#, python-format
+msgid "%(notes)s note matches"
+msgid_plural "%(notes)s notes match"
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/achievements/code-notes.html:29
+#, python-format
+msgid "%(notes)s note"
+msgid_plural "%(notes)s notes"
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/achievements/code-notes.html:37
+#: templates/games/partials/panel-achievements.html:58
+msgid "Edit"
+msgstr ""
+
+#: templates/achievements/code-notes.html:42
+msgctxt "code note author"
+msgid "by"
+msgstr ""
+
+#: templates/achievements/code-notes.html:44
+msgid "last edited by"
+msgstr ""
+
+#: templates/achievements/code-notes.html:51
+msgid "No code note matches the search"
+msgstr ""
+
+#: templates/achievements/code-notes.html:53
+msgid "No code notes yet"
+msgstr ""
+
 #: templates/achievements/edit.html:4 templates/achievements/edit.html:9
 msgid "Edit achievement"
 msgstr ""
 
 #: templates/achievements/edit.html:4 templates/achievements/edit.html:9
-#: templates/games/detail.html:33
+#: templates/games/detail.html:34
 msgid "New achievement"
-msgstr ""
-
-#: templates/achievements/edit.html:17
-msgid "Author"
 msgstr ""
 
 #: templates/achievements/edit.html:21
 msgid "Created"
-msgstr ""
-
-#: templates/achievements/edit.html:25
-msgid "Last updated"
 msgstr ""
 
 #: templates/achievements/edit.html:33
@@ -1167,10 +1297,6 @@ msgstr ""
 
 #: templates/components/site-menu.html:7
 msgid "Main navigation"
-msgstr ""
-
-#: templates/components/site-menu.html:11
-msgid "Search"
 msgstr ""
 
 #: templates/components/site-menu.html:21
@@ -1348,10 +1474,6 @@ msgstr ""
 
 #: templates/games/partials/panel-achievements.html:11
 msgid "Filter achievements"
-msgstr ""
-
-#: templates/games/partials/panel-achievements.html:58
-msgid "Edit"
 msgstr ""
 
 #: templates/games/partials/panel-leaderboards.html:12

@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% if note %}{% trans "Edit code note" %}{% else %}{% trans "New code note" %}{% endif %} — RetroPlatinas{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-2xl px-4 py-10">
+  <div class="border-b border-line2 pb-3">
+    <h1 class="font-display text-2xl font-bold text-txt">{% if note %}{% trans "Edit code note" %}{% else %}{% trans "New code note" %}{% endif %}</h1>
+    <a href="{% url 'code_notes' game.pk %}" class="mt-1 inline-block text-sm text-brand">{{ game.title }}</a>
+  </div>
+
+  {% if note %}
+    <dl class="mt-4 font-mono text-xs text-txt-faint">
+      <div class="flex gap-2 border-b border-line py-2">
+        <dt>{% trans "Address" %}</dt>
+        <dd class="font-bold text-brand">{{ address }}</dd>
+      </div>
+      <div class="flex gap-2 border-b border-line py-2">
+        <dt>{% trans "Author" %}</dt>
+        <dd><a href="{% url 'user_detail' note.author.username %}" class="text-brand">{{ note.author.username }}</a></dd>
+      </div>
+      {% if note.updated_by %}
+        <div class="flex gap-2 border-b border-line py-2">
+          <dt>{% trans "Last edited by" %}</dt>
+          <dd><a href="{% url 'user_detail' note.updated_by.username %}" class="text-brand">{{ note.updated_by.username }}</a></dd>
+        </div>
+      {% endif %}
+      <div class="flex gap-2 border-b border-line py-2">
+        <dt>{% trans "Last updated" %}</dt>
+        <dd><time datetime="{{ note.updated_at|date:'c' }}">{{ note.updated_at|date:"SHORT_DATETIME_FORMAT" }}</time></dd>
+      </div>
+    </dl>
+  {% endif %}
+
+  <form method="post" class="rp-form mt-6">
+    {% csrf_token %}
+    {% include "components/form-fields.html" %}
+    <button type="submit" class="mt-2 w-full rounded-tile bg-brand px-4 py-2.5 font-display text-sm font-bold text-brand-ink">{% trans "Save code note" %}</button>
+  </form>
+
+  {% if note %}
+    <form method="post" action="{% url 'code_note_delete' game.pk note.pk %}" class="mt-4">
+      {% csrf_token %}
+      <button type="submit" class="w-full rounded-tile border border-danger px-4 py-2.5 font-display text-sm font-semibold text-danger">{% trans "Delete code note" %}</button>
+    </form>
+  {% endif %}
+
+  <div class="mt-6 border-t border-line pt-4 text-sm text-txt-muted">
+    <a href="{% url 'code_notes' game.pk %}" class="text-brand">{% trans "Back to the code notes" %}</a>
+  </div>
+</div>
+{% endblock %}

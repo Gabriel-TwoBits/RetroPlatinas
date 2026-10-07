@@ -169,6 +169,15 @@ or lift verified. A change of status or points recounts its unlockers' points, a
 The condition must parse with the vendored rcheevos parser: `apps/achievements/triggers.py` runs
 `scripts/check-mem-addr.sh`, whose binary `entrypoint.sh` compiles at container startup.
 
+## Code notes on the site
+
+`/games/<id>/code-notes/` lists a game's code notes to anyone, in address order, searchable by
+text or address. Logged-in users add one at `/games/<id>/code-notes/new/`: the address is typed in
+hex (`0x` optional, up to `0xffffffff`) and stored as `0x%x`, one note per address. Only its author
+or staff edit (`/games/<id>/code-notes/<note_id>/edit/`) or delete it; another user gets 403, as
+from RAIntegration (`can_edit` in `apps/achievements/editing.py`). A change keeps the author and
+records who made it and when.
+
 ## Editing sets from RAIntegration
 
 RAIntegration writes sets through `POST /dorequest.php` (the badge upload goes to

@@ -4,6 +4,7 @@ The address column is free text (the admin types it too), so every reader parses
 """
 
 import logging
+import re
 
 from django.db import transaction
 
@@ -16,6 +17,9 @@ logger = logging.getLogger(__name__)
 HEX_BASE = 16
 # RA serves code note addresses as `0x%06x`.
 CODE_NOTE_ADDRESS_HEX_DIGITS = 6
+# rcheevos sends and reads a code note address as a uint32.
+MAX_CODE_NOTE_ADDRESS = 0xFFFFFFFF
+TYPED_ADDRESS = re.compile(r"(?:0x)?([0-9a-f]+)", re.IGNORECASE)
 
 
 def served_address(address):
@@ -40,6 +44,27 @@ def parsed_address(note):
         return address
 
 
+def address_label(note):
+    """The note's address as served, else as stored when it does not parse."""
+    address = parsed_address(note)
+    if address is None:
+        return note.address
+    else:
+        return served_address(address)
+
+
+def typed_address(text):
+    """The address a person typed as hex, `0x` optional, else `None`."""
+    match = TYPED_ADDRESS.fullmatch(text)
+    if match is None:
+        return None
+    address = int(match.group(1), HEX_BASE)
+    if address > MAX_CODE_NOTE_ADDRESS:
+        return None
+    else:
+        return address
+
+
 def code_notes_by_address(game):
     """The game's notes by address; the text column holds hex addresses in any padding.
 
@@ -55,6 +80,37 @@ def code_notes_by_address(game):
         else:
             continue
     return by_address
+
+
+def search_code_notes(game, query):
+    """The game's notes as `(address, note)` in address order, narrowed to those whose text or
+    served address contains `query`, or whose address is `query` read as hex."""
+    notes = sorted(code_notes_by_address(game).items())
+    if query == "":
+        return notes
+    else:
+        needle = query.casefold()
+        wanted = typed_address(query)
+        return [
+            (address, note)
+            for address, note in notes
+            if address == wanted
+            or needle in served_address(address)
+            or needle in note.note.casefold()
+        ]
+
+
+def add_code_note(author, game, address, text):
+    """Creates `author`'s note at `address`, else `None` when the game has a note there."""
+    with transaction.atomic():
+        # Serializes writers per game, as `save_code_notes` does.
+        Game.objects.select_for_update().get(pk=game.pk)
+        if address in code_notes_by_address(game):
+            return None
+        else:
+            return CodeNote.objects.create(
+                game=game, author=author, address=stored_address(address), note=text
+            )
 
 
 def rewrite_code_note(note, editor, text):

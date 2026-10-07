@@ -13,4 +13,16 @@ urlpatterns = [
         views.edit_achievement,
         name="achievement_edit",
     ),
+    path("games/<int:game_id>/code-notes/", views.code_notes, name="code_notes"),
+    path("games/<int:game_id>/code-notes/new/", views.new_code_note, name="code_note_new"),
+    path(
+        "games/<int:game_id>/code-notes/<int:note_id>/edit/",
+        views.edit_code_note,
+        name="code_note_edit",
+    ),
+    path(
+        "games/<int:game_id>/code-notes/<int:note_id>/delete/",
+        views.delete_code_note,
+        name="code_note_delete",
+    ),
 ]
