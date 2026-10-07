@@ -328,6 +328,8 @@ def record_baselines(achievement_ids):
         .order_by("pk")
         .values_list("pk", flat=True)
     )
+    # TRADEOFF: such a write to an achievement that already has revisions is folded into its next
+    # revision, by that editor; compare with the latest revision if a path starts doing that.
     stored = Achievement.objects.filter(pk__in=achievement_ids, revisions__isnull=True).values(
         "pk", "updated_at", *REVISED_FIELDS
     )
