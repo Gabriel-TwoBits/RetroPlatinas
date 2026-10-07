@@ -17,6 +17,8 @@ BADGE_UPLOAD_ACCEPT = ",".join(
     f"image/{image_format.lower()}" for image_format in BADGE_UPLOAD_FORMATS
 )
 FIELDS = ("title", "description", "points", "type", "badge", "mem_addr", "status")
+DESCRIPTION_ROWS = 3
+MEM_ADDR_ROWS = 4
 
 
 class AchievementForm(forms.ModelForm):
@@ -49,8 +51,8 @@ class AchievementForm(forms.ModelForm):
             ),
         }
         widgets = {
-            "description": forms.Textarea(attrs={"rows": 3}),
-            "mem_addr": forms.Textarea(attrs={"rows": 4, "spellcheck": "false"}),
+            "description": forms.Textarea(attrs={"rows": DESCRIPTION_ROWS}),
+            "mem_addr": forms.Textarea(attrs={"rows": MEM_ADDR_ROWS, "spellcheck": "false"}),
         }
 
     def __init__(self, *args, editor, **kwargs):
