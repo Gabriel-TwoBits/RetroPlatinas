@@ -1,6 +1,6 @@
 """Rankings, point totals, completion and site-wide activity for the stats API, the
 `dorequest.php` leaderboard handlers, the profile page, the home page, the game page, the
-leaderboard page, the ranking page, the feed page and the games list.
+achievement page, the leaderboard page, the ranking page, the feed page and the games list.
 
 Only published achievements count. Inactive accounts (system accounts such as `ra-import`,
 deactivated users) hold no rank and are left out of player lists and `leaderboard_entries`; the
@@ -349,6 +349,19 @@ def game_players(game):
     return PlayerGame.objects.filter(game=game, user__is_active=True).order_by(
         "-last_played_at", "id"
     )
+
+
+def achievement_unlockers(achievement):
+    """How many active users unlocked `achievement` in each mode; none while it is a draft."""
+    counts = (
+        published_unlocks()
+        .filter(achievement=achievement, user__is_active=True)
+        .aggregate(
+            hardcore=Count("user", filter=Q(hardcore=True), distinct=True),
+            softcore=Count("user", distinct=True),
+        )
+    )
+    return ByMode(hardcore=counts["hardcore"], softcore=counts["softcore"])
 
 
 def game_players_with_progress(game, limit):

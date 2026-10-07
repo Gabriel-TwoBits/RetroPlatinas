@@ -9,6 +9,11 @@ urlpatterns = [
         name="achievement_new",
     ),
     path(
+        "games/<int:game_id>/achievements/<int:achievement_id>/",
+        views.achievement_detail,
+        name="achievement_detail",
+    ),
+    path(
         "games/<int:game_id>/achievements/<int:achievement_id>/edit/",
         views.edit_achievement,
         name="achievement_edit",

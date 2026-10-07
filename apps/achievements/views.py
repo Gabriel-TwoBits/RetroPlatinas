@@ -24,6 +24,7 @@ from apps.achievements.forms import (
 from apps.achievements.models import Achievement, Badge, CodeNote
 from apps.achievements.revisions import can_revert, history, revert
 from apps.achievements.scoring import SCORED_FIELDS, recalculate_unlocker_points
+from apps.core import stats
 from apps.games.models import Game
 from apps.images.catalog import badge_path
 
@@ -73,6 +74,28 @@ def _reachable_achievement(user, game_id, achievement_id):
         achievements_reachable_by(user).select_related("game", "author"),
         pk=achievement_id,
         game_id=game_id,
+    )
+
+
+@require_safe
+def achievement_detail(request, game_id, achievement_id):
+    # Unlike the editor's lookup, staff do not reach another user's draft: its page is the author's.
+    achievement = get_object_or_404(
+        Achievement.objects.visible_to(request.user).select_related("game", "author"),
+        pk=achievement_id,
+        game_id=game_id,
+    )
+    return render(
+        request,
+        "achievements/detail.html",
+        {
+            "achievement": achievement,
+            "game": achievement.game,
+            "badge_url": badge_path(achievement.badge_name),
+            "unlockers": stats.achievement_unlockers(achievement),
+            "players": stats.game_players(achievement.game).count(),
+            "editable": can_edit(request.user, achievement.author_id),
+        },
     )
 
 

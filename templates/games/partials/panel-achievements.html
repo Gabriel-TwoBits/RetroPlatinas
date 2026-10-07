@@ -29,7 +29,7 @@
                    class="h-12 w-12 shrink-0 rounded-tile {% if row.state == 'hardcore' %}border-2 border-state-hardcore{% elif row.state == 'softcore' %}border-2 border-state-softcore{% elif row.state == 'locked' %}border border-line opacity-60{% else %}border border-line2{% endif %}">
               <div class="min-w-0 flex-1">
                 <div class="flex flex-wrap items-baseline gap-x-2 text-sm font-semibold {% if row.state == 'locked' %}text-txt-muted{% else %}text-txt{% endif %}">
-                  <span class="break-words">{{ achievement.title }}</span>
+                  <a href="{% url 'achievement_detail' game.pk achievement.pk %}" class="break-words hover:text-brand-hi">{{ achievement.title }}</a>
                   {% include "components/status-chip.html" %}
                 </div>
                 <div class="mt-1 break-words text-xs leading-snug {% if row.state == 'locked' %}text-txt-faint{% else %}text-txt-muted{% endif %}">{{ achievement.description }}</div>
