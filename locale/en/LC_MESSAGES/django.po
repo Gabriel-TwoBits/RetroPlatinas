@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RetroPlatinas\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 22:45-0300\n"
+"POT-Creation-Date: 2026-10-09 23:06-0300\n"
 "PO-Revision-Date: 2026-05-23 18:15-0300\n"
 "Last-Translator: RetroPlatinas\n"
 "Language-Team: English\n"
@@ -27,6 +27,32 @@ msgstr ""
 
 #: apps/accounts/models.py:20
 msgid "bio"
+msgstr ""
+
+#: apps/accounts/models.py:38 apps/achievements/models.py:378
+#: apps/anticheat/models.py:24 apps/games/models.py:122
+#: apps/leaderboards/models.py:93 apps/notifications/models.py:35
+msgid "user"
+msgstr ""
+
+#: apps/accounts/models.py:41
+msgid "friend"
+msgstr ""
+
+#: apps/accounts/models.py:43 apps/achievements/models.py:113
+#: apps/achievements/models.py:204 apps/achievements/models.py:278
+#: apps/anticheat/models.py:28 apps/comments/models.py:43
+#: apps/games/models.py:59 apps/leaderboards/models.py:54
+#: apps/notifications/models.py:42
+msgid "created at"
+msgstr ""
+
+#: apps/accounts/models.py:46
+msgid "friendship"
+msgstr ""
+
+#: apps/accounts/models.py:47
+msgid "friendships"
 msgstr ""
 
 #: apps/accounts/profile.py:45
@@ -63,16 +89,20 @@ msgid "Total"
 msgstr ""
 
 #: apps/accounts/ranking.py:19
-#: templates/accounts/partials/identity-header.html:22
+#: templates/accounts/partials/identity-header.html:23
 msgid "Hardcore"
 msgstr ""
 
 #: apps/accounts/ranking.py:20
-#: templates/accounts/partials/identity-header.html:33
+#: templates/accounts/partials/identity-header.html:34
 msgid "Softcore"
 msgstr ""
 
 #: apps/accounts/views.py:72
+msgid "You cannot follow yourself."
+msgstr ""
+
+#: apps/accounts/views.py:116
 msgid "Unknown ranking mode"
 msgstr ""
 
@@ -208,13 +238,6 @@ msgstr ""
 msgid "uploaded by"
 msgstr ""
 
-#: apps/achievements/models.py:113 apps/achievements/models.py:204
-#: apps/achievements/models.py:278 apps/anticheat/models.py:28
-#: apps/comments/models.py:43 apps/games/models.py:59
-#: apps/leaderboards/models.py:54 apps/notifications/models.py:42
-msgid "created at"
-msgstr ""
-
 #: apps/achievements/models.py:119
 msgid "badges"
 msgstr ""
@@ -247,13 +270,13 @@ msgstr ""
 msgid "Missable"
 msgstr ""
 
-#: apps/achievements/models.py:174 apps/achievements/models.py:404
+#: apps/achievements/models.py:174 apps/achievements/models.py:405
 #: apps/comments/models.py:51 apps/games/models.py:62 apps/games/models.py:75
 #: apps/games/models.py:128 apps/leaderboards/models.py:37
 msgid "game"
 msgstr ""
 
-#: apps/achievements/models.py:179 apps/achievements/models.py:409
+#: apps/achievements/models.py:179 apps/achievements/models.py:410
 #: apps/comments/models.py:39 apps/leaderboards/models.py:52
 msgid "author"
 msgstr ""
@@ -285,13 +308,13 @@ msgstr ""
 msgid "type"
 msgstr ""
 
-#: apps/achievements/models.py:205 apps/achievements/models.py:422
+#: apps/achievements/models.py:205 apps/achievements/models.py:423
 #: apps/leaderboards/models.py:55
 msgid "updated at"
 msgstr ""
 
 #: apps/achievements/models.py:210 apps/achievements/models.py:248
-#: apps/achievements/models.py:382 apps/comments/models.py:59
+#: apps/achievements/models.py:383 apps/comments/models.py:59
 msgid "achievement"
 msgstr ""
 
@@ -315,14 +338,8 @@ msgstr ""
 msgid "achievement revisions"
 msgstr ""
 
-#: apps/achievements/models.py:377 apps/anticheat/models.py:24
-#: apps/games/models.py:122 apps/leaderboards/models.py:93
-#: apps/notifications/models.py:35
-msgid "user"
-msgstr ""
-
-#: apps/achievements/models.py:384 apps/achievements/models.py:395
-#: templates/accounts/partials/identity-header.html:63
+#: apps/achievements/models.py:385 apps/achievements/models.py:396
+#: templates/accounts/partials/identity-header.html:64
 #: templates/accounts/partials/sec-recent-unlocks.html:15
 #: templates/feed/partials/feed-list.html:14
 #: templates/games/partials/panel-achievements.html:38 templates/home.html:69
@@ -330,43 +347,43 @@ msgstr ""
 msgid "hardcore"
 msgstr ""
 
-#: apps/achievements/models.py:386
+#: apps/achievements/models.py:387
 msgid "unlocked at"
 msgstr ""
 
-#: apps/achievements/models.py:390
+#: apps/achievements/models.py:391
 msgid "user unlock"
 msgstr ""
 
-#: apps/achievements/models.py:391
+#: apps/achievements/models.py:392
 msgid "user unlocks"
 msgstr ""
 
-#: apps/achievements/models.py:395
-#: templates/accounts/partials/identity-header.html:63
+#: apps/achievements/models.py:396
+#: templates/accounts/partials/identity-header.html:64
 #: templates/accounts/partials/sec-recent-unlocks.html:15
 #: templates/games/partials/panel-achievements.html:38 templates/home.html:70
 #: templates/home.html:141
 msgid "softcore"
 msgstr ""
 
-#: apps/achievements/models.py:411
+#: apps/achievements/models.py:412
 msgid "address"
 msgstr ""
 
-#: apps/achievements/models.py:412
+#: apps/achievements/models.py:413
 msgid "note"
 msgstr ""
 
-#: apps/achievements/models.py:420
+#: apps/achievements/models.py:421
 msgid "updated by"
 msgstr ""
 
-#: apps/achievements/models.py:425
+#: apps/achievements/models.py:426
 msgid "code note"
 msgstr ""
 
-#: apps/achievements/models.py:426
+#: apps/achievements/models.py:427
 msgid "code notes"
 msgstr ""
 
@@ -881,6 +898,31 @@ msgstr ""
 msgid "notifications"
 msgstr ""
 
+#: templates/accounts/friends.html:4 templates/accounts/friends.html:9
+#, python-format
+msgid "%(username)s's friends"
+msgstr ""
+
+#: templates/accounts/friends.html:10
+msgid "Back to the profile"
+msgstr ""
+
+#: templates/accounts/friends.html:15
+msgid "Following"
+msgstr ""
+
+#: templates/accounts/friends.html:20
+msgid "Not following anyone yet"
+msgstr ""
+
+#: templates/accounts/friends.html:25
+msgid "Followers"
+msgstr ""
+
+#: templates/accounts/friends.html:30
+msgid "No followers yet"
+msgstr ""
+
 #: templates/accounts/login.html:4 templates/accounts/login.html:8
 #: templates/accounts/login.html:12 templates/accounts/register.html:14
 msgid "Log in"
@@ -911,33 +953,64 @@ msgstr ""
 msgid "How to start →"
 msgstr ""
 
+#: templates/accounts/partials/follow-control.html:5
+#, python-format
+msgid "%(shown)s follower"
+msgid_plural "%(shown)s followers"
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/accounts/partials/follow-control.html:6
+#, python-format
+msgid "%(shown)s following"
+msgstr ""
+
+#: templates/accounts/partials/follow-control.html:11
+#: templates/accounts/partials/follow-control.html:19
+msgid "Follow"
+msgstr ""
+
+#: templates/accounts/partials/follow-control.html:16
+msgid "Unfollow"
+msgstr ""
+
+#: templates/accounts/partials/friend-row.html:7
+#, python-format
+msgid "%(shown)s hardcore pts"
+msgstr ""
+
+#: templates/accounts/partials/friend-row.html:8
+#, python-format
+msgid "%(shown)s softcore pts"
+msgstr ""
+
 #: templates/accounts/partials/identity-header.html:12
 #, python-format
 msgid "member since %(date)s"
 msgstr ""
 
-#: templates/accounts/partials/identity-header.html:15
+#: templates/accounts/partials/identity-header.html:16
 #: templates/accounts/profile-edit.html:4
 #: templates/accounts/profile-edit.html:8
 msgid "Edit profile"
 msgstr ""
 
-#: templates/accounts/partials/identity-header.html:26
-#: templates/accounts/partials/identity-header.html:37
+#: templates/accounts/partials/identity-header.html:27
+#: templates/accounts/partials/identity-header.html:38
 #, python-format
 msgid "#%(rank)s of %(players)s"
 msgstr ""
 
-#: templates/accounts/partials/identity-header.html:28
-#: templates/accounts/partials/identity-header.html:39
+#: templates/accounts/partials/identity-header.html:29
+#: templates/accounts/partials/identity-header.html:40
 msgid "unranked"
 msgstr ""
 
-#: templates/accounts/partials/identity-header.html:52 templates/home.html:127
+#: templates/accounts/partials/identity-header.html:53 templates/home.html:127
 msgid "Playing now"
 msgstr ""
 
-#: templates/accounts/partials/identity-header.html:52
+#: templates/accounts/partials/identity-header.html:53
 msgid "Last played"
 msgstr ""
 

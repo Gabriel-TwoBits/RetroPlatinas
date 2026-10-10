@@ -29,3 +29,31 @@ class User(AbstractUser):
                 violation_error_message=_("A user with that email already exists."),
             ),
         ]
+
+
+class Friendship(models.Model):
+    """A one-way follow: `user` follows `friend`."""
+
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="follows", verbose_name=_("user")
+    )
+    friend = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="followed_by", verbose_name=_("friend")
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("created at"))
+
+    class Meta:
+        verbose_name = _("friendship")
+        verbose_name_plural = _("friendships")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "friend"], name="accounts_friendship_user_friend_unique"
+            ),
+            models.CheckConstraint(
+                condition=~models.Q(user=models.F("friend")),
+                name="accounts_friendship_no_self_follow",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.user} → {self.friend}"

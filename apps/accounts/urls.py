@@ -26,5 +26,8 @@ urlpatterns = [
     path("ranking/", views.ranking, name="ranking"),
     path("users/<str:username>/", views.user_detail, name="user_detail"),
     path("users/<str:username>/edit/", views.edit_profile, name="edit_profile"),
+    path("users/<str:username>/friends/", views.user_friends, name="user_friends"),
+    path("users/<str:username>/follow/", views.follow, name="user_follow"),
+    path("users/<str:username>/unfollow/", views.unfollow, name="user_unfollow"),
     path("users/<str:username>/panel/<slug:tab>/", views.user_panel, name="user_panel"),
 ]

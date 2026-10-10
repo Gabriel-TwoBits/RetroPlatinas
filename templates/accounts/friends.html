@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% blocktrans with username=profile_user.username %}{{ username }}'s friends{% endblocktrans %} — RetroPlatinas{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-5xl px-4 py-6 sm:py-8">
+  <section class="border-b border-line2 pb-6">
+    <h1 class="break-all font-display text-2xl font-bold leading-tight text-txt sm:text-3xl">{% blocktrans with username=profile_user.username %}{{ username }}'s friends{% endblocktrans %}</h1>
+    <a href="{% url 'user_detail' profile_user.username %}" class="mt-2 inline-block font-mono text-xs text-brand">← {% trans "Back to the profile" %}</a>
+  </section>
+
+  <div class="mt-6 grid gap-8 lg:grid-cols-2">
+    <section>
+      {% include "components/section-heading.html" with title=_("Following") %}
+      <ol id="following" class="mt-2">
+        {% for row in following %}
+          {% include "accounts/partials/friend-row.html" %}
+        {% empty %}
+          <li>{% include "components/empty-state.html" with title=_("Not following anyone yet") %}</li>
+        {% endfor %}
+      </ol>
+    </section>
+    <section>
+      {% include "components/section-heading.html" with title=_("Followers") %}
+      <ol id="followers" class="mt-2">
+        {% for row in followers %}
+          {% include "accounts/partials/friend-row.html" %}
+        {% empty %}
+          <li>{% include "components/empty-state.html" with title=_("No followers yet") %}</li>
+        {% endfor %}
+      </ol>
+    </section>
+  </div>
+</div>
+{% endblock %}

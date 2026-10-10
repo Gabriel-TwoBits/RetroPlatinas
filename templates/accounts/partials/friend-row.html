@@ -1,0 +1,11 @@
+{% load i18n humanize %}
+<li class="flex items-center gap-3 border-t border-line py-3 first:border-t-0">
+  <img src="{{ row.avatar_url }}" alt="" width="32" height="32" class="h-8 w-8 shrink-0 rounded-card border border-line2">
+  <div class="min-w-0 flex-1">
+    <a href="{% url 'user_detail' row.user.username %}" class="block truncate font-display text-sm font-semibold text-txt">{{ row.user.username }}</a>
+    <div class="mt-1 font-mono text-xs text-txt-faint">
+      <span class="text-state-hardcore">{% blocktrans with shown=row.user.hardcore_points|intcomma %}{{ shown }} hardcore pts{% endblocktrans %}</span>
+      · <span class="text-state-softcore">{% blocktrans with shown=row.user.softcore_points|intcomma %}{{ shown }} softcore pts{% endblocktrans %}</span>
+    </div>
+  </div>
+</li>
