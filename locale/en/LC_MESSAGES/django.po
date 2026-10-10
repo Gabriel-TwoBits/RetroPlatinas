@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RetroPlatinas\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-10 13:09-0300\n"
+"POT-Creation-Date: 2026-10-10 13:38-0300\n"
 "PO-Revision-Date: 2026-05-23 18:15-0300\n"
 "Last-Translator: RetroPlatinas\n"
 "Language-Team: English\n"
@@ -30,8 +30,9 @@ msgid "bio"
 msgstr ""
 
 #: apps/accounts/models.py:38 apps/achievements/models.py:365
-#: apps/anticheat/models.py:24 apps/games/models.py:122
-#: apps/leaderboards/models.py:93 apps/notifications/models.py:35
+#: apps/anticheat/models.py:24 apps/games/models.py:247
+#: apps/games/models.py:316 apps/leaderboards/models.py:93
+#: apps/notifications/models.py:35
 msgid "user"
 msgstr ""
 
@@ -42,7 +43,7 @@ msgstr ""
 #: apps/accounts/models.py:43 apps/achievements/models.py:113
 #: apps/achievements/models.py:193 apps/achievements/models.py:265
 #: apps/anticheat/models.py:28 apps/comments/models.py:43
-#: apps/games/models.py:59 apps/leaderboards/models.py:54
+#: apps/games/models.py:84 apps/leaderboards/models.py:54
 #: apps/notifications/models.py:42
 msgid "created at"
 msgstr ""
@@ -128,7 +129,7 @@ msgstr ""
 msgid "badge preview"
 msgstr ""
 
-#: apps/achievements/admin.py:92 apps/games/admin.py:62
+#: apps/achievements/admin.py:92 apps/games/admin.py:104
 #: apps/images/tests.py:392
 msgid "Available after saving."
 msgstr ""
@@ -270,8 +271,8 @@ msgid "Missable"
 msgstr ""
 
 #: apps/achievements/models.py:163 apps/achievements/models.py:392
-#: apps/comments/models.py:51 apps/games/models.py:62 apps/games/models.py:75
-#: apps/games/models.py:128 apps/leaderboards/models.py:37
+#: apps/comments/models.py:51 apps/games/models.py:112 apps/games/models.py:184
+#: apps/games/models.py:253 apps/leaderboards/models.py:37
 msgid "game"
 msgstr ""
 
@@ -281,12 +282,12 @@ msgid "author"
 msgstr ""
 
 #: apps/achievements/models.py:170 apps/achievements/models.py:247
-#: apps/games/models.py:49 apps/leaderboards/models.py:39
+#: apps/games/models.py:74 apps/leaderboards/models.py:39
 msgid "title"
 msgstr ""
 
 #: apps/achievements/models.py:171 apps/achievements/models.py:249
-#: apps/games/models.py:57 apps/leaderboards/models.py:40
+#: apps/games/models.py:82 apps/leaderboards/models.py:40
 msgid "description"
 msgstr ""
 
@@ -386,6 +387,10 @@ msgstr ""
 msgid "code notes"
 msgstr ""
 
+#: apps/achievements/models.py:424
+msgid "A subset shares its parent game's code notes: note the parent game."
+msgstr ""
+
 #: apps/achievements/triggers.py:40
 msgid "The condition could not be checked right now; try again later."
 msgstr ""
@@ -404,31 +409,31 @@ msgstr ""
 msgid "rcheevos cannot parse this condition: %(reason)s."
 msgstr ""
 
-#: apps/achievements/views.py:55
+#: apps/achievements/views.py:56
 msgid "Achievement saved."
 msgstr ""
 
-#: apps/achievements/views.py:143
+#: apps/achievements/views.py:144
 msgid "Achievement reverted."
 msgstr ""
 
-#: apps/achievements/views.py:190
+#: apps/achievements/views.py:203
 msgid "Invalid code note search"
 msgstr ""
 
-#: apps/achievements/views.py:224
+#: apps/achievements/views.py:239
 msgid "This game already has a note at this address: edit it."
 msgstr ""
 
-#: apps/achievements/views.py:228
+#: apps/achievements/views.py:243
 msgid "Code note added."
 msgstr ""
 
-#: apps/achievements/views.py:246
+#: apps/achievements/views.py:261
 msgid "Code note saved."
 msgstr ""
 
-#: apps/achievements/views.py:258
+#: apps/achievements/views.py:273
 msgid "Code note deleted."
 msgstr ""
 
@@ -583,11 +588,19 @@ msgstr ""
 msgid "Game icon"
 msgstr ""
 
-#: apps/games/admin.py:54 apps/games/models.py:56
+#: apps/games/admin.py:68 apps/games/models.py:323
+msgid "subset"
+msgstr ""
+
+#: apps/games/admin.py:69
+msgid "subsets"
+msgstr ""
+
+#: apps/games/admin.py:96 apps/games/models.py:81
 msgid "icon"
 msgstr ""
 
-#: apps/games/admin.py:58
+#: apps/games/admin.py:100
 msgid "icon preview"
 msgstr ""
 
@@ -635,7 +648,7 @@ msgstr ""
 msgid "short name"
 msgstr ""
 
-#: apps/games/models.py:37 apps/games/models.py:54
+#: apps/games/models.py:37 apps/games/models.py:79
 msgid "console"
 msgstr ""
 
@@ -643,69 +656,151 @@ msgstr ""
 msgid "consoles"
 msgstr ""
 
-#: apps/games/models.py:58
-msgid "rich presence patch"
+#: apps/games/models.py:54
+msgid "Bonus"
 msgstr ""
 
-#: apps/games/models.py:63
-msgid "games"
+#: apps/games/models.py:55
+msgid "Challenge"
 msgstr ""
 
-#: apps/games/models.py:78
-msgid "MD5"
+#: apps/games/models.py:56
+msgid "Specialty"
 msgstr ""
 
-#: apps/games/models.py:80
-msgid "label"
+#: apps/games/models.py:57
+msgid "Exclusive"
 msgstr ""
 
 #: apps/games/models.py:83
+msgid "rich presence patch"
+msgstr ""
+
+#: apps/games/models.py:92
+msgid "parent game"
+msgstr ""
+
+#: apps/games/models.py:99
+msgid "subset type"
+msgstr ""
+
+#: apps/games/models.py:100
+msgid "Empty for a game's core set."
+msgstr ""
+
+#: apps/games/models.py:105
+msgid "subset title"
+msgstr ""
+
+#: apps/games/models.py:106
+msgid "The name the emulator shows for the subset, such as \"Bonus\"."
+msgstr ""
+
+#: apps/games/models.py:113
+msgid "games"
+msgstr ""
+
+#: apps/games/models.py:154
+msgid "A game with a parent game is a subset: choose its type."
+msgstr ""
+
+#: apps/games/models.py:157
+msgid "A subset needs a parent game."
+msgstr ""
+
+#: apps/games/models.py:164
+msgid "A game cannot be its own parent."
+msgstr ""
+
+#: apps/games/models.py:166
+msgid "The parent game must be a core game, not a subset."
+msgstr ""
+
+#: apps/games/models.py:168
+msgid "A subset is on its parent game's console."
+msgstr ""
+
+#: apps/games/models.py:172
+msgid "This game has subsets of its own, so it cannot be a subset."
+msgstr ""
+
+#: apps/games/models.py:174
+msgid "A subset needs a title."
+msgstr ""
+
+#: apps/games/models.py:187
+msgid "MD5"
+msgstr ""
+
+#: apps/games/models.py:189
+msgid "label"
+msgstr ""
+
+#: apps/games/models.py:192
 msgid "game hash"
 msgstr ""
 
-#: apps/games/models.py:84
+#: apps/games/models.py:193
 msgid "game hashes"
 msgstr ""
 
-#: apps/games/models.py:96
+#: apps/games/models.py:205
 #, python-format
 msgid "Enter an MD5 hash: %(digits)s hexadecimal digits."
 msgstr ""
 
-#: apps/games/models.py:130
+#: apps/games/models.py:213
+msgid ""
+"A bonus or challenge subset loads with its parent game's discs: link the "
+"hash to the parent game."
+msgstr ""
+
+#: apps/games/models.py:255
 msgid "first played at"
 msgstr ""
 
-#: apps/games/models.py:131
+#: apps/games/models.py:256
 msgid "last played at"
 msgstr ""
 
-#: apps/games/models.py:132
+#: apps/games/models.py:257
 msgid "playtime (seconds)"
 msgstr ""
 
-#: apps/games/models.py:134
+#: apps/games/models.py:259
 msgid "last rich presence"
 msgstr ""
 
-#: apps/games/models.py:136
+#: apps/games/models.py:261
 msgid "last ping at"
 msgstr ""
 
-#: apps/games/models.py:138
+#: apps/games/models.py:263
 msgid "session started at"
 msgstr ""
 
-#: apps/games/models.py:140
+#: apps/games/models.py:265
 msgid "hardcore session"
 msgstr ""
 
-#: apps/games/models.py:145
+#: apps/games/models.py:270
 msgid "player game"
 msgstr ""
 
-#: apps/games/models.py:146
+#: apps/games/models.py:271
 msgid "player games"
+msgstr ""
+
+#: apps/games/models.py:325
+msgid "opted in"
+msgstr ""
+
+#: apps/games/models.py:328
+msgid "subset preference"
+msgstr ""
+
+#: apps/games/models.py:329
+msgid "subset preferences"
 msgstr ""
 
 #: apps/games/page.py:17 templates/accounts/partials/sec-completion.html:7

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RetroPlatinas\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-10 13:09-0300\n"
+"POT-Creation-Date: 2026-10-10 13:38-0300\n"
 "PO-Revision-Date: 2026-05-23 18:15-0300\n"
 "Last-Translator: RetroPlatinas\n"
 "Language-Team: Brazilian Portuguese\n"
@@ -30,8 +30,9 @@ msgid "bio"
 msgstr "bio"
 
 #: apps/accounts/models.py:38 apps/achievements/models.py:365
-#: apps/anticheat/models.py:24 apps/games/models.py:122
-#: apps/leaderboards/models.py:93 apps/notifications/models.py:35
+#: apps/anticheat/models.py:24 apps/games/models.py:247
+#: apps/games/models.py:316 apps/leaderboards/models.py:93
+#: apps/notifications/models.py:35
 msgid "user"
 msgstr "usuário"
 
@@ -42,7 +43,7 @@ msgstr "amigo"
 #: apps/accounts/models.py:43 apps/achievements/models.py:113
 #: apps/achievements/models.py:193 apps/achievements/models.py:265
 #: apps/anticheat/models.py:28 apps/comments/models.py:43
-#: apps/games/models.py:59 apps/leaderboards/models.py:54
+#: apps/games/models.py:84 apps/leaderboards/models.py:54
 #: apps/notifications/models.py:42
 msgid "created at"
 msgstr "criado em"
@@ -130,7 +131,7 @@ msgstr "emblema"
 msgid "badge preview"
 msgstr "prévia do emblema"
 
-#: apps/achievements/admin.py:92 apps/games/admin.py:62
+#: apps/achievements/admin.py:92 apps/games/admin.py:104
 #: apps/images/tests.py:392
 msgid "Available after saving."
 msgstr "Disponível depois de salvar."
@@ -187,7 +188,10 @@ msgid ""
 "Every player receives both. An official achievement is awarded and worth "
 "points; an unofficial one sits in the emulator's unofficial list and is "
 "never awarded."
-msgstr "Todo jogador recebe as duas. Uma conquista oficial é concedida e vale pontos; uma não oficial fica na lista de não oficiais do emulador e nunca é concedida."
+msgstr ""
+"Todo jogador recebe as duas. Uma conquista oficial é concedida e vale "
+"pontos; uma não oficial fica na lista de não oficiais do emulador e nunca é "
+"concedida."
 
 #: apps/achievements/forms.py:64
 #, python-format
@@ -277,8 +281,8 @@ msgid "Missable"
 msgstr "Perdível"
 
 #: apps/achievements/models.py:163 apps/achievements/models.py:392
-#: apps/comments/models.py:51 apps/games/models.py:62 apps/games/models.py:75
-#: apps/games/models.py:128 apps/leaderboards/models.py:37
+#: apps/comments/models.py:51 apps/games/models.py:112 apps/games/models.py:184
+#: apps/games/models.py:253 apps/leaderboards/models.py:37
 msgid "game"
 msgstr "jogo"
 
@@ -288,12 +292,12 @@ msgid "author"
 msgstr "autor"
 
 #: apps/achievements/models.py:170 apps/achievements/models.py:247
-#: apps/games/models.py:49 apps/leaderboards/models.py:39
+#: apps/games/models.py:74 apps/leaderboards/models.py:39
 msgid "title"
 msgstr "título"
 
 #: apps/achievements/models.py:171 apps/achievements/models.py:249
-#: apps/games/models.py:57 apps/leaderboards/models.py:40
+#: apps/games/models.py:82 apps/leaderboards/models.py:40
 msgid "description"
 msgstr "descrição"
 
@@ -393,6 +397,10 @@ msgstr "anotação de código"
 msgid "code notes"
 msgstr "anotações de código"
 
+#: apps/achievements/models.py:424
+msgid "A subset shares its parent game's code notes: note the parent game."
+msgstr "Um subset compartilha as anotações de código do jogo pai: anote no jogo pai."
+
 #: apps/achievements/triggers.py:40
 msgid "The condition could not be checked right now; try again later."
 msgstr "Não foi possível verificar a condição agora; tente de novo mais tarde."
@@ -411,31 +419,31 @@ msgstr "A condição é longa demais: no máximo %(limit)s bytes."
 msgid "rcheevos cannot parse this condition: %(reason)s."
 msgstr "O rcheevos não consegue interpretar esta condição: %(reason)s."
 
-#: apps/achievements/views.py:55
+#: apps/achievements/views.py:56
 msgid "Achievement saved."
 msgstr "Conquista salva."
 
-#: apps/achievements/views.py:143
+#: apps/achievements/views.py:144
 msgid "Achievement reverted."
 msgstr "Conquista revertida."
 
-#: apps/achievements/views.py:190
+#: apps/achievements/views.py:203
 msgid "Invalid code note search"
 msgstr "Busca de anotações de código inválida"
 
-#: apps/achievements/views.py:224
+#: apps/achievements/views.py:239
 msgid "This game already has a note at this address: edit it."
 msgstr "Este jogo já tem uma anotação neste endereço: edite-a."
 
-#: apps/achievements/views.py:228
+#: apps/achievements/views.py:243
 msgid "Code note added."
 msgstr "Anotação de código adicionada."
 
-#: apps/achievements/views.py:246
+#: apps/achievements/views.py:261
 msgid "Code note saved."
 msgstr "Anotação de código salva."
 
-#: apps/achievements/views.py:258
+#: apps/achievements/views.py:273
 msgid "Code note deleted."
 msgstr "Anotação de código excluída."
 
@@ -545,7 +553,9 @@ msgstr "Criando conquistas"
 #: apps/core/docs.py:56
 msgid ""
 "Write a condition in the web editor, test it unofficial and make it official."
-msgstr "Escreva uma condição no editor do site, teste enquanto ela é não oficial e torne-a oficial."
+msgstr ""
+"Escreva uma condição no editor do site, teste enquanto ela é não oficial e "
+"torne-a oficial."
 
 #: apps/core/docs.py:60
 msgid "Statuses and contributing"
@@ -553,7 +563,9 @@ msgstr "Status e como contribuir"
 
 #: apps/core/docs.py:61
 msgid "What official and unofficial mean, and how code notes help a set."
-msgstr "O que significam oficial e não oficial, e como as anotações de código ajudam um set."
+msgstr ""
+"O que significam oficial e não oficial, e como as anotações de código ajudam "
+"um set."
 
 #: apps/core/docs.py:66
 msgid "Leaderboards and rich presence"
@@ -593,11 +605,19 @@ msgstr "Filtro de feed desconhecido"
 msgid "Game icon"
 msgstr "Ícone do jogo"
 
-#: apps/games/admin.py:54 apps/games/models.py:56
+#: apps/games/admin.py:68 apps/games/models.py:323
+msgid "subset"
+msgstr "subset"
+
+#: apps/games/admin.py:69
+msgid "subsets"
+msgstr "subsets"
+
+#: apps/games/admin.py:96 apps/games/models.py:81
 msgid "icon"
 msgstr "ícone"
 
-#: apps/games/admin.py:58
+#: apps/games/admin.py:100
 msgid "icon preview"
 msgstr "prévia do ícone"
 
@@ -645,7 +665,7 @@ msgstr "nome"
 msgid "short name"
 msgstr "nome curto"
 
-#: apps/games/models.py:37 apps/games/models.py:54
+#: apps/games/models.py:37 apps/games/models.py:79
 msgid "console"
 msgstr "console"
 
@@ -653,70 +673,152 @@ msgstr "console"
 msgid "consoles"
 msgstr "consoles"
 
-#: apps/games/models.py:58
+#: apps/games/models.py:54
+msgid "Bonus"
+msgstr "Bônus"
+
+#: apps/games/models.py:55
+msgid "Challenge"
+msgstr "Desafio"
+
+#: apps/games/models.py:56
+msgid "Specialty"
+msgstr "Especial"
+
+#: apps/games/models.py:57
+msgid "Exclusive"
+msgstr "Exclusivo"
+
+#: apps/games/models.py:83
 msgid "rich presence patch"
 msgstr "script de rich presence"
 
-#: apps/games/models.py:63
+#: apps/games/models.py:92
+msgid "parent game"
+msgstr "jogo pai"
+
+#: apps/games/models.py:99
+msgid "subset type"
+msgstr "tipo de subset"
+
+#: apps/games/models.py:100
+msgid "Empty for a game's core set."
+msgstr "Vazio no set principal de um jogo."
+
+#: apps/games/models.py:105
+msgid "subset title"
+msgstr "título do subset"
+
+#: apps/games/models.py:106
+msgid "The name the emulator shows for the subset, such as \"Bonus\"."
+msgstr "O nome que o emulador mostra para o subset, como \"Bônus\"."
+
+#: apps/games/models.py:113
 msgid "games"
 msgstr "jogos"
 
-#: apps/games/models.py:78
+#: apps/games/models.py:154
+msgid "A game with a parent game is a subset: choose its type."
+msgstr "Um jogo com jogo pai é um subset: escolha o tipo dele."
+
+#: apps/games/models.py:157
+msgid "A subset needs a parent game."
+msgstr "Um subset precisa de um jogo pai."
+
+#: apps/games/models.py:164
+msgid "A game cannot be its own parent."
+msgstr "Um jogo não pode ser pai de si mesmo."
+
+#: apps/games/models.py:166
+msgid "The parent game must be a core game, not a subset."
+msgstr "O jogo pai precisa ser um jogo principal, não um subset."
+
+#: apps/games/models.py:168
+msgid "A subset is on its parent game's console."
+msgstr "Um subset fica no console do jogo pai."
+
+#: apps/games/models.py:172
+msgid "This game has subsets of its own, so it cannot be a subset."
+msgstr "Este jogo tem subsets próprios, então não pode ser um subset."
+
+#: apps/games/models.py:174
+msgid "A subset needs a title."
+msgstr "Um subset precisa de um título."
+
+#: apps/games/models.py:187
 msgid "MD5"
 msgstr "MD5"
 
-#: apps/games/models.py:80
+#: apps/games/models.py:189
 msgid "label"
 msgstr "rótulo"
 
-#: apps/games/models.py:83
+#: apps/games/models.py:192
 msgid "game hash"
 msgstr "hash do jogo"
 
-#: apps/games/models.py:84
+#: apps/games/models.py:193
 msgid "game hashes"
 msgstr "hashes do jogo"
 
-#: apps/games/models.py:96
+#: apps/games/models.py:205
 #, python-format
 msgid "Enter an MD5 hash: %(digits)s hexadecimal digits."
 msgstr "Informe um hash MD5: %(digits)s dígitos hexadecimais."
 
-#: apps/games/models.py:130
+#: apps/games/models.py:213
+msgid ""
+"A bonus or challenge subset loads with its parent game's discs: link the "
+"hash to the parent game."
+msgstr "Um subset bônus ou de desafio carrega com os discos do jogo pai: vincule o hash ao jogo pai."
+
+#: apps/games/models.py:255
 msgid "first played at"
 msgstr "jogou pela primeira vez em"
 
-#: apps/games/models.py:131
+#: apps/games/models.py:256
 msgid "last played at"
 msgstr "jogou pela última vez em"
 
-#: apps/games/models.py:132
+#: apps/games/models.py:257
 msgid "playtime (seconds)"
 msgstr "tempo de jogo (segundos)"
 
-#: apps/games/models.py:134
+#: apps/games/models.py:259
 msgid "last rich presence"
 msgstr "último rich presence"
 
-#: apps/games/models.py:136
+#: apps/games/models.py:261
 msgid "last ping at"
 msgstr "último ping em"
 
-#: apps/games/models.py:138
+#: apps/games/models.py:263
 msgid "session started at"
 msgstr "sessão iniciada em"
 
-#: apps/games/models.py:140
+#: apps/games/models.py:265
 msgid "hardcore session"
 msgstr "sessão hardcore"
 
-#: apps/games/models.py:145
+#: apps/games/models.py:270
 msgid "player game"
 msgstr "jogo do jogador"
 
-#: apps/games/models.py:146
+#: apps/games/models.py:271
 msgid "player games"
 msgstr "jogos dos jogadores"
+
+#: apps/games/models.py:325
+msgid "opted in"
+msgstr "ativado"
+
+#: apps/games/models.py:328
+msgid "subset preference"
+msgstr "preferência de subset"
+
+#: apps/games/models.py:329
+msgid "subset preferences"
+msgstr "preferências de subset"
 
 #: apps/games/page.py:17 templates/accounts/partials/sec-completion.html:7
 #: templates/games/detail.html:19 templates/home.html:8
@@ -1354,8 +1456,12 @@ msgid "Players by points from official achievements, refreshed every minute."
 msgid_plural ""
 "Players by points from official achievements, refreshed every %(minutes)s "
 "minutes."
-msgstr[0] "Jogadores ordenados pelos pontos das conquistas oficiais. Atualiza a cada minuto."
-msgstr[1] "Jogadores ordenados pelos pontos das conquistas oficiais. Atualiza a cada %(minutes)s minutos."
+msgstr[0] ""
+"Jogadores ordenados pelos pontos das conquistas oficiais. Atualiza a cada "
+"minuto."
+msgstr[1] ""
+"Jogadores ordenados pelos pontos das conquistas oficiais. Atualiza a cada "
+"%(minutes)s minutos."
 
 #: templates/accounts/register.html:8 templates/home.html:25
 msgid "Create account"
@@ -1480,7 +1586,9 @@ msgstr "Desbloqueios"
 msgid ""
 "An unofficial achievement is never awarded: it counts no unlocks until it is "
 "made official."
-msgstr "Uma conquista não oficial nunca é concedida: não conta desbloqueios até se tornar oficial."
+msgstr ""
+"Uma conquista não oficial nunca é concedida: não conta desbloqueios até se "
+"tornar oficial."
 
 #: templates/achievements/detail.html:39
 msgid "Players who unlocked it"
@@ -1632,7 +1740,10 @@ msgid ""
 "Every logged-in player can write achievements for a game on the site. A new "
 "achievement starts unofficial: it is never awarded, so you can test it in "
 "the emulator before it counts for anyone."
-msgstr "Todo jogador logado pode escrever conquistas para um jogo no site. Uma conquista nova começa não oficial: ela nunca é concedida, então dá para testá-la no emulador antes que ela conte para alguém."
+msgstr ""
+"Todo jogador logado pode escrever conquistas para um jogo no site. Uma "
+"conquista nova começa não oficial: ela nunca é concedida, então dá para "
+"testá-la no emulador antes que ela conte para alguém."
 
 #: templates/docs/creating-achievements.html:9
 msgid "From unofficial to official"
@@ -1694,7 +1805,10 @@ msgid ""
 "Log in to DuckStation, turn on Test Unofficial Achievements in Settings → "
 "Achievements, then close the game and open it again: the emulator only "
 "fetches the achievements when a game loads."
-msgstr "Entre no DuckStation, ative Testar Conquistas Não Oficiais (Test Unofficial Achievements) em Configurações → Conquistas, depois feche o jogo e abra de novo: o emulador só busca as conquistas quando um jogo carrega."
+msgstr ""
+"Entre no DuckStation, ative Testar Conquistas Não Oficiais (Test Unofficial "
+"Achievements) em Configurações → Conquistas, depois feche o jogo e abra de "
+"novo: o emulador só busca as conquistas quando um jogo carrega."
 
 #: templates/docs/creating-achievements.html:27
 msgid ""
@@ -1702,7 +1816,11 @@ msgid ""
 "the pause screen's counter only counts official ones. The pop-up fires when "
 "the condition is met, which proves it works, but an unofficial achievement "
 "is never recorded or worth points."
-msgstr "As conquistas não oficiais aparecem na lista de conquistas marcadas como (Unofficial); o contador da tela de pausa só conta as oficiais. O pop-up aparece quando a condição é atendida, o que prova que ela funciona, mas uma conquista não oficial nunca é registrada nem vale pontos."
+msgstr ""
+"As conquistas não oficiais aparecem na lista de conquistas marcadas como "
+"(Unofficial); o contador da tela de pausa só conta as oficiais. O pop-up "
+"aparece quando a condição é atendida, o que prova que ela funciona, mas uma "
+"conquista não oficial nunca é registrada nem vale pontos."
 
 #: templates/docs/creating-achievements.html:30
 #: templates/docs/statuses-and-contributing.html:42
@@ -1713,7 +1831,9 @@ msgstr "Torne-a oficial"
 msgid ""
 "Back in the editor, set the status to Official. Every player then receives "
 "it as an official achievement, and unlocking it counts and scores."
-msgstr "De volta ao editor, mude o status para Oficial. A partir daí todo jogador a recebe como conquista oficial, e desbloqueá-la conta e vale pontos."
+msgstr ""
+"De volta ao editor, mude o status para Oficial. A partir daí todo jogador a "
+"recebe como conquista oficial, e desbloqueá-la conta e vale pontos."
 
 #: templates/docs/creating-achievements.html:32
 msgid "What each status means →"
@@ -1905,7 +2025,9 @@ msgid ""
 "It is unofficial: the emulator lists it only with Test Unofficial "
 "Achievements on, and an unofficial achievement is never recorded or worth "
 "points."
-msgstr "Ela é não oficial: o emulador só a lista com Testar Conquistas Não Oficiais ativado, e uma conquista não oficial nunca é registrada nem vale pontos."
+msgstr ""
+"Ela é não oficial: o emulador só a lista com Testar Conquistas Não Oficiais "
+"ativado, e uma conquista não oficial nunca é registrada nem vale pontos."
 
 #: templates/docs/faq.html:33
 msgid ""
@@ -2243,7 +2365,10 @@ msgid ""
 "Every achievement is official or unofficial: its status decides whether "
 "unlocking it is recorded and worth points. Sets grow from players writing, "
 "testing and reviewing them."
-msgstr "Toda conquista é oficial ou não oficial: o status decide se o desbloqueio é registrado e vale pontos. Os sets crescem com jogadores escrevendo, testando e revisando conquistas."
+msgstr ""
+"Toda conquista é oficial ou não oficial: o status decide se o desbloqueio é "
+"registrado e vale pontos. Os sets crescem com jogadores escrevendo, testando "
+"e revisando conquistas."
 
 #: templates/docs/statuses-and-contributing.html:8
 msgid "Statuses"
@@ -2254,7 +2379,10 @@ msgid ""
 "Every player receives it as an official achievement, and unlocking it is "
 "recorded and worth its points. Only official achievements count towards "
 "rankings, completion and platinums."
-msgstr "Todo jogador a recebe como conquista oficial, e o desbloqueio é registrado e vale os pontos dela. Só as conquistas oficiais contam para o ranking, o progresso de conclusão e as platinas."
+msgstr ""
+"Todo jogador a recebe como conquista oficial, e o desbloqueio é registrado e "
+"vale os pontos dela. Só as conquistas oficiais contam para o ranking, o "
+"progresso de conclusão e as platinas."
 
 #: templates/docs/statuses-and-contributing.html:16
 msgid ""
@@ -2262,7 +2390,11 @@ msgid ""
 "Unofficial Achievements on, and the game page lists it in its own section. "
 "It is never recorded and never worth points. A new achievement starts "
 "unofficial."
-msgstr "Todo jogador também a recebe, na lista de não oficiais do emulador, com Testar Conquistas Não Oficiais ativado, e a página do jogo a lista numa seção própria. Nunca é registrada e nunca vale pontos. Uma conquista nova começa não oficial."
+msgstr ""
+"Todo jogador também a recebe, na lista de não oficiais do emulador, com "
+"Testar Conquistas Não Oficiais ativado, e a página do jogo a lista numa "
+"seção própria. Nunca é registrada e nunca vale pontos. Uma conquista nova "
+"começa não oficial."
 
 #: templates/docs/statuses-and-contributing.html:22
 msgid "Who changes a status"
@@ -2271,13 +2403,17 @@ msgstr "Quem muda um status"
 #: templates/docs/statuses-and-contributing.html:24
 msgid ""
 "The author or staff make an achievement official or unofficial in the editor."
-msgstr "O autor ou a equipe torna uma conquista oficial ou não oficial no editor."
+msgstr ""
+"O autor ou a equipe torna uma conquista oficial ou não oficial no editor."
 
 #: templates/docs/statuses-and-contributing.html:25
 msgid ""
 "Making an official achievement unofficial keeps everyone's unlocks but takes "
 "its points out of their totals; making it official again counts them again."
-msgstr "Tornar não oficial uma conquista oficial mantém os desbloqueios de todos, mas tira os pontos dela dos totais; torná-la oficial de novo volta a contá-los."
+msgstr ""
+"Tornar não oficial uma conquista oficial mantém os desbloqueios de todos, "
+"mas tira os pontos dela dos totais; torná-la oficial de novo volta a contá-"
+"los."
 
 #: templates/docs/statuses-and-contributing.html:30 templates/home.html:86
 msgid "How to contribute"
@@ -2303,7 +2439,9 @@ msgstr "Escreva e teste como não oficial"
 msgid ""
 "Follow the creating achievements guide, and test it in the game before "
 "making it official."
-msgstr "Siga o guia de criação de conquistas e teste no jogo antes de torná-la oficial."
+msgstr ""
+"Siga o guia de criação de conquistas e teste no jogo antes de torná-la "
+"oficial."
 
 #: templates/docs/statuses-and-contributing.html:39
 msgid "Creating achievements →"
@@ -2313,7 +2451,9 @@ msgstr "Criando conquistas →"
 msgid ""
 "Once it fires at the right moment, make it official. Players can leave "
 "feedback in the comments on its page."
-msgstr "Quando ela disparar no momento certo, torne-a oficial. Os jogadores podem deixar opiniões nos comentários da página dela."
+msgstr ""
+"Quando ela disparar no momento certo, torne-a oficial. Os jogadores podem "
+"deixar opiniões nos comentários da página dela."
 
 #: templates/docs/statuses-and-contributing.html:46
 msgid "Share what you found"
@@ -2418,7 +2558,10 @@ msgid ""
 "By default, games with an official achievement; a minimum of 0 achievements "
 "lists every game. Search by title, or narrow the list by console and set "
 "size."
-msgstr "Por padrão, jogos com uma conquista oficial; um mínimo de 0 conquistas lista todos os jogos. Busque pelo título ou filtre a lista por console e tamanho do set."
+msgstr ""
+"Por padrão, jogos com uma conquista oficial; um mínimo de 0 conquistas lista "
+"todos os jogos. Busque pelo título ou filtre a lista por console e tamanho "
+"do set."
 
 #: templates/games/list.html:19
 msgid "Search by title"

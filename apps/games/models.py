@@ -45,7 +45,32 @@ class Console(models.Model):
         return (self.ra_id,)
 
 
+# RA's subset types; a core set has none.
+SET_TYPE_BONUS = "bonus"
+SET_TYPE_CHALLENGE = "challenge"
+SET_TYPE_SPECIALTY = "specialty"
+SET_TYPE_EXCLUSIVE = "exclusive"
+SET_TYPE_CHOICES = [
+    (SET_TYPE_BONUS, _("Bonus")),
+    (SET_TYPE_CHALLENGE, _("Challenge")),
+    (SET_TYPE_SPECIALTY, _("Specialty")),
+    (SET_TYPE_EXCLUSIVE, _("Exclusive")),
+]
+SUBSET_TYPES = [value for value, _label in SET_TYPE_CHOICES]
+# Played alongside the core set once the player opts in; these have no disc hash of their own.
+OPT_IN_SET_TYPES = [SET_TYPE_BONUS, SET_TYPE_CHALLENGE]
+
+
+class GameQuerySet(models.QuerySet):
+    def core(self):
+        """The games that are not a subset of another."""
+        return self.filter(set_type__isnull=True)
+
+
 class Game(models.Model):
+    """A game's core set, or, with a parent and a `set_type`, one of its subsets (RA's
+    "supporting game"): achievements, leaderboards, players and rarity are per row."""
+
     title = models.CharField(max_length=255, verbose_name=_("title"))
     console = models.ForeignKey(
         Console,
@@ -57,14 +82,98 @@ class Game(models.Model):
     description = models.TextField(blank=True, verbose_name=_("description"))
     rich_presence_patch = models.TextField(blank=True, verbose_name=_("rich presence patch"))
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("created at"))
+    parent_game = models.ForeignKey(
+        "self",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="subsets",
+        limit_choices_to={"set_type__isnull": True},
+        verbose_name=_("parent game"),
+    )
+    set_type = models.CharField(
+        max_length=16,
+        choices=SET_TYPE_CHOICES,
+        null=True,
+        blank=True,
+        verbose_name=_("subset type"),
+        help_text=_("Empty for a game's core set."),
+    )
+    set_title = models.CharField(
+        max_length=128,
+        blank=True,
+        verbose_name=_("subset title"),
+        help_text=_('The name the emulator shows for the subset, such as "Bonus".'),
+    )
+
+    objects = GameQuerySet.as_manager()
 
     class Meta:
         verbose_name = _("game")
         verbose_name_plural = _("games")
         ordering = ["title"]
+        constraints = [
+            models.CheckConstraint(
+                # `set_type IN (...)` is NULL, which a CHECK passes, for a NULL type.
+                condition=models.Q(set_type__isnull=True, parent_game__isnull=True)
+                | (
+                    models.Q(
+                        set_type__isnull=False,
+                        set_type__in=SUBSET_TYPES,
+                        parent_game__isnull=False,
+                    )
+                    & ~models.Q(set_title="")
+                ),
+                name="games_game_core_or_titled_subset",
+            ),
+        ]
 
     def __str__(self):
         return self.title
+
+    @property
+    def is_subset(self):
+        return self.set_type is not None
+
+    @property
+    def core_game(self):
+        """The core game this set belongs to: its parent for a subset, else itself."""
+        if self.is_subset:
+            return self.parent_game
+        else:
+            return self
+
+    def clean(self):
+        super().clean()
+        # The related object, not its id: an admin inline sets a parent not saved yet.
+        parent = self.parent_game
+        if self.set_type is None and parent is None:
+            return
+        elif self.set_type is None:
+            raise ValidationError(
+                {"set_type": _("A game with a parent game is a subset: choose its type.")}
+            )
+        elif parent is None:
+            raise ValidationError({"parent_game": _("A subset needs a parent game.")})
+        else:
+            self._clean_subset(parent)
+
+    def _clean_subset(self, parent):
+        errors = {}
+        if self.pk is not None and parent.pk == self.pk:
+            errors["parent_game"] = _("A game cannot be its own parent.")
+        elif parent.is_subset:
+            errors["parent_game"] = _("The parent game must be a core game, not a subset.")
+        elif self.console_id != parent.console_id:
+            errors["console"] = _("A subset is on its parent game's console.")
+        else:
+            pass
+        if self.pk is not None and Game.objects.filter(parent_game_id=self.pk).exists():
+            errors["set_type"] = _("This game has subsets of its own, so it cannot be a subset.")
+        if not self.set_title:
+            errors["set_title"] = _("A subset needs a title.")
+        if errors:
+            raise ValidationError(errors)
 
 
 class GameHash(models.Model):
@@ -98,6 +207,22 @@ class GameHash(models.Model):
                     )
                 }
             )
+        elif self._game_or_none() is not None and self.game.set_type in OPT_IN_SET_TYPES:
+            raise ValidationError(
+                _(
+                    "A bonus or challenge subset loads with its parent game's discs: link the "
+                    "hash to the parent game."
+                )
+            )
+        else:
+            pass
+
+    def _game_or_none(self):
+        """The game, else `None`; an admin inline on a game not saved yet sets it unsaved."""
+        if self.game_id is not None or GameHash.game.is_cached(self):
+            return self.game
+        else:
+            return None
 
     # TRADEOFF: lowercased in Python only; update()/bulk_create/loaddata and rows stored in
     # uppercase escape it. A data migration plus CheckConstraint(md5=Lower("md5")) closes it.
@@ -179,3 +304,34 @@ class PlayerGame(models.Model):
             credited = timedelta(0)
         self.playtime_seconds += round(credited.total_seconds())
         self.last_ping_at = now
+
+
+class UserSetPreference(models.Model):
+    """A player's choice to play a bonus or challenge subset; without one the subset is off."""
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="set_preferences",
+        verbose_name=_("user"),
+    )
+    subset_game = models.ForeignKey(
+        Game,
+        on_delete=models.CASCADE,
+        related_name="set_preferences",
+        limit_choices_to={"set_type__in": OPT_IN_SET_TYPES},
+        verbose_name=_("subset"),
+    )
+    opted_in = models.BooleanField(default=False, verbose_name=_("opted in"))
+
+    class Meta:
+        verbose_name = _("subset preference")
+        verbose_name_plural = _("subset preferences")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "subset_game"], name="games_usersetpreference_user_subset_unique"
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.user} — {self.subset_game}"

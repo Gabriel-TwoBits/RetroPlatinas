@@ -417,6 +417,15 @@ class CodeNote(models.Model):
     def __str__(self):
         return f"{self.address} ({self.game})"
 
+    def clean(self):
+        super().clean()
+        if self.game_id is not None and self.game.is_subset:
+            raise ValidationError(
+                {"game": _("A subset shares its parent game's code notes: note the parent game.")}
+            )
+        else:
+            pass
+
     @property
     def last_writer(self):
         """Who wrote the current text, whom RAIntegration credits the note to."""

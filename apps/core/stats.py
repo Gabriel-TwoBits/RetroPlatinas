@@ -2,7 +2,8 @@
 `dorequest.php` leaderboard handlers, the profile page, the home page, the game page, the
 achievement page, the leaderboard page, the ranking page, the feed page and the games list.
 
-Only official achievements count. Inactive accounts (system accounts such as `ra-import`,
+Only official achievements count. Game listings and "games played" hold core games only: a subset
+belongs to its parent game. Inactive accounts (system accounts such as `ra-import`,
 deactivated users) hold no rank and are left out of player lists and `leaderboard_entries`; the
 leaderboard rank helpers rank whichever entries they are given.
 """
@@ -97,8 +98,8 @@ class RankingTally(NamedTuple):
 
 def ranking_tallies(user_ids, hardcore):
     """`{user_id: RankingTally}` for each of `user_ids`: the distinct official achievements
-    unlocked in the mode and the platinums (games with every official achievement unlocked in
-    hardcore), whatever the mode."""
+    unlocked in the mode, subsets included, and the platinums (core games with every official
+    achievement unlocked in hardcore), whatever the mode."""
     per_game = list(
         official_unlocks()
         .filter(user_id__in=user_ids)
@@ -113,6 +114,7 @@ def ranking_tallies(user_ids, hardcore):
     official_per_game = dict(
         Achievement.objects.filter(
             game_id__in={game_id for _, game_id, _, _ in per_game},
+            game__set_type__isnull=True,
             status=Achievement.STATUS_OFFICIAL,
         )
         .order_by()
@@ -125,7 +127,8 @@ def ranking_tallies(user_ids, hardcore):
     for user_id, game_id, game_unlocked, hardcore_unlocked in per_game:
         unlocked[user_id] += game_unlocked
         # Unlocks are of the game's official achievements, so reaching its count is all of them;
-        # a game made unofficial between the two queries has no count and no platinum.
+        # a subset, or a game made unofficial between the two queries, has no count and no
+        # platinum.
         if hardcore_unlocked == official_per_game.get(game_id):
             platinums[user_id] += 1
     return {
@@ -157,7 +160,7 @@ def unlocked_achievement_counts(user):
 
 
 def games_played_count(user):
-    return PlayerGame.objects.filter(user=user).count()
+    return PlayerGame.objects.filter(user=user, game__set_type__isnull=True).count()
 
 
 def _one_row_per_unlock(unlocks):
@@ -209,7 +212,7 @@ def recent_followed_unlocks(follower, limit):
 
 
 def official_games():
-    """The games with an official achievement, by title, each annotated with
+    """The core games with an official achievement, by title, each annotated with
     `official_achievements`, `official_points` and `player_count` (the active users with points
     who unlocked one of its official achievements, as `ranked_player_counts` counts players)."""
     official = Q(achievements__status=Achievement.STATUS_OFFICIAL)
@@ -223,7 +226,8 @@ def official_games():
         .values("count")
     )
     return (
-        Game.objects.annotate(
+        Game.objects.core()
+        .annotate(
             official_achievements=Count("achievements", filter=official),
             official_points=Sum("achievements__points", filter=official),
             player_count=Coalesce(Subquery(player_count), 0),
@@ -235,7 +239,7 @@ def official_games():
 
 
 def catalog_games():
-    """Every game, each annotated with `official_achievements` and `played_by` (the active
+    """Every core game, each annotated with `official_achievements` and `played_by` (the active
     users who played it, as `game_players` lists them)."""
     played_by = (
         PlayerGame.objects.filter(game=OuterRef("pk"), user__is_active=True)
@@ -244,12 +248,16 @@ def catalog_games():
         .annotate(count=Count("pk"))
         .values("count")
     )
-    return Game.objects.annotate(
-        official_achievements=Count(
-            "achievements", filter=Q(achievements__status=Achievement.STATUS_OFFICIAL)
-        ),
-        played_by=Coalesce(Subquery(played_by), 0),
-    ).select_related("console")
+    return (
+        Game.objects.core()
+        .annotate(
+            official_achievements=Count(
+                "achievements", filter=Q(achievements__status=Achievement.STATUS_OFFICIAL)
+            ),
+            played_by=Coalesce(Subquery(played_by), 0),
+        )
+        .select_related("console")
+    )
 
 
 def playing_now():
@@ -302,13 +310,13 @@ def _game_progress(played, achievements, hardcore_ids, softcore_ids):
 
 
 def played_games_progress(user):
-    """A `GameProgress` for each game the user played, most recently played first.
+    """A `GameProgress` for each core game the user played, most recently played first.
 
     A game is beaten once every official progression and win-condition achievement is unlocked
     in any mode, and platinum once every official achievement is unlocked in hardcore.
     """
     played = list(
-        PlayerGame.objects.filter(user=user)
+        PlayerGame.objects.filter(user=user, game__set_type__isnull=True)
         .select_related("game__console")
         .order_by("-last_played_at", "id")
     )
