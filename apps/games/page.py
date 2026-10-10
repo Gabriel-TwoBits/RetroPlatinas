@@ -72,7 +72,6 @@ SUBSET_SEAL = pgettext_lazy("subset seal", "Completed")
 CORE_ACCENT = "brand"
 CORE_SEAL_TONE = "state-platinum"
 SUBSET_ACCENT = "brand2"
-PERCENT = 100
 
 RECENT_PLAYERS_SHOWN = 20
 
@@ -170,11 +169,10 @@ def _progress(set_game, official_rows, viewer):
 
 
 def _percent(progress):
-    """Floored, so 100% means every achievement and never a rounded-up 99.5%."""
-    if progress is None or progress.achievements == 0:
+    if progress is None:
         return 0
     else:
-        return progress.unlocked.softcore * PERCENT // progress.achievements
+        return stats.completion_percent(progress.unlocked.softcore, progress.achievements)
 
 
 def _opted_in_ids(sets, viewer):

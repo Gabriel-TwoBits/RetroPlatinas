@@ -37,7 +37,6 @@ _MOBILE_BAR_SPAN_PX = 52
 _MIN_HEAT_OPACITY = 0.35
 _HEAT_OPACITY_SPAN = 0.65
 _FULL_OPACITY = "1"
-_PERCENT = 100
 
 STATE_PLATINUM = "platinum"
 STATE_BEATEN = "beaten"
@@ -54,20 +53,12 @@ def _initials(title):
     return "".join(word[0] for word in words[:INITIALS_LETTERS]).upper()
 
 
-def _percent(part, whole):
-    """Floored, so 100% means every achievement and never a rounded-up 99.5%."""
-    if whole == 0:
-        return 0
-    else:
-        return part * _PERCENT // whole
-
-
 def _css_percent(part, whole):
     """A CSS width, formatted in Python: Django would localise a float to a pt-BR `12,5`."""
     if whole == 0:
         return "0%"
     else:
-        return f"{part / whole * _PERCENT:.1f}%"
+        return f"{part / whole * stats.PERCENT:.1f}%"
 
 
 def _state(progress):
@@ -136,7 +127,7 @@ def _game(progress):
         "unlocked": progress.unlocked,
         "points_unlocked": progress.points_unlocked,
         "meta": _meta(progress),
-        "pct": _percent(progress.unlocked.softcore, progress.achievements),
+        "pct": stats.completion_percent(progress.unlocked.softcore, progress.achievements),
         "beaten": progress.beaten,
         "state": state,
         "state_label": STATE_LABELS[state],

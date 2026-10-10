@@ -292,6 +292,17 @@ def playing_now():
 BEATING_TYPES = (Achievement.TYPE_PROGRESSION, Achievement.TYPE_WIN_CONDITION)
 
 
+PERCENT = 100
+
+
+def completion_percent(part, whole):
+    """Floored, so 100% means every achievement and never a rounded-up 99.5%."""
+    if whole == 0:
+        return 0
+    else:
+        return part * PERCENT // whole
+
+
 @dataclass
 class SetProgress:
     """A user's progress on one set's official achievements. `complete` once every one is
