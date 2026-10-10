@@ -854,11 +854,13 @@ def test_seed_rich_presence_replaces_a_stale_script():
 
 @pytest.mark.django_db
 def test_patch_serves_the_seeded_rich_presence(client, player_token):
-    _, token = player_token
+    user, token = player_token
     call_command("seed_crash1_rich_presence", verbosity=0)
     game = Game.objects.get(title=GAME_TITLE)
 
-    data = client.post("/dorequest.php", {"r": "patch", "t": token, "g": game.pk}).json()
+    data = client.post(
+        "/dorequest.php", {"r": "patch", "u": user.username, "t": token, "g": game.pk}
+    ).json()
 
     assert data["Success"] is True
     assert data["PatchData"]["RichPresencePatch"] == build_rich_presence()
@@ -990,10 +992,10 @@ def test_achievement_seeds_share_the_game_without_clashing():
 
 @pytest.mark.django_db
 def test_patch_exposes_seeded_collectible_achievements(client, collectibles_game, player_token):
-    _, token = player_token
+    user, token = player_token
 
     data = client.post(
-        "/dorequest.php", {"r": "patch", "t": token, "g": collectibles_game.pk}
+        "/dorequest.php", {"r": "patch", "u": user.username, "t": token, "g": collectibles_game.pk}
     ).json()
 
     assert data["Success"] is True
@@ -1010,7 +1012,7 @@ def test_awardachievement_scores_a_seeded_collectible(client, collectibles_game,
 
     data = client.post(
         "/dorequest.php",
-        {"r": "awardachievement", "t": token, "a": achievement.pk, "h": "1"},
+        _award_params(user, token, achievement, "1"),
     ).json()
 
     assert data["Success"] is True
@@ -1117,9 +1119,11 @@ def test_seed_advanced_achievements_refuses_two_rows_with_one_title(advanced_gam
 
 @pytest.mark.django_db
 def test_patch_exposes_seeded_advanced_achievements(client, advanced_game, player_token):
-    _, token = player_token
+    user, token = player_token
 
-    data = client.post("/dorequest.php", {"r": "patch", "t": token, "g": advanced_game.pk}).json()
+    data = client.post(
+        "/dorequest.php", {"r": "patch", "u": user.username, "t": token, "g": advanced_game.pk}
+    ).json()
 
     assert data["Success"] is True
     served = {a["Title"]: (a["MemAddr"], a["Points"]) for a in data["PatchData"]["Achievements"]}
@@ -1252,10 +1256,10 @@ def test_seed_leaderboards_refuses_two_rows_with_one_title(leaderboard_game):
 
 @pytest.mark.django_db
 def test_patch_serves_the_seeded_leaderboards(client, leaderboard_game, player_token):
-    _, token = player_token
+    user, token = player_token
 
     data = client.post(
-        "/dorequest.php", {"r": "patch", "t": token, "g": leaderboard_game.pk}
+        "/dorequest.php", {"r": "patch", "u": user.username, "t": token, "g": leaderboard_game.pk}
     ).json()
 
     assert data["Success"] is True
