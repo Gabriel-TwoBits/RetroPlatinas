@@ -6,6 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}RetroPlatinas{% endblock %}</title>
   <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}">
+  <link rel="preload" href="{% static 'fonts/oxanium-latin.woff2' %}" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="{% static 'fonts/atkinson-hyperlegible-next-latin.woff2' %}" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="{% static 'css/output.css' %}">
 </head>
 <body class="min-h-screen flex flex-col bg-bg font-sans text-txt antialiased">
@@ -56,7 +58,7 @@
   <main class="flex-1">{% block content %}{% endblock %}</main>
 
   <footer class="border-t border-line">
-    <div class="mx-auto flex max-w-6xl flex-wrap items-center gap-4 px-4 py-6 font-mono text-xs text-txt-faint">
+    <div class="mx-auto flex max-w-6xl flex-wrap items-center gap-4 px-4 py-6 font-data text-xs text-txt-faint">
       {% include "components/logo.html" with variant="selo" size=22 %}
       <span>© RetroPlatinas</span>
       <a class="text-txt-faint no-underline hover:text-brand-hi" href="{% url 'games_list' %}">{% trans "Games" %}</a>
