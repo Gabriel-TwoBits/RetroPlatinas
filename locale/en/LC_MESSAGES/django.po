@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RetroPlatinas\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-10 14:45-0300\n"
+"POT-Creation-Date: 2026-10-10 14:51-0300\n"
 "PO-Revision-Date: 2026-05-23 18:15-0300\n"
 "Last-Translator: RetroPlatinas\n"
 "Language-Team: English\n"
@@ -29,7 +29,7 @@ msgstr ""
 msgid "bio"
 msgstr ""
 
-#: apps/accounts/models.py:38 apps/achievements/models.py:380
+#: apps/accounts/models.py:38 apps/achievements/models.py:372
 #: apps/anticheat/models.py:24 apps/games/models.py:289
 #: apps/games/models.py:358 apps/leaderboards/models.py:93
 #: apps/notifications/models.py:35
@@ -56,40 +56,40 @@ msgstr ""
 msgid "friendships"
 msgstr ""
 
-#: apps/accounts/profile.py:46 apps/games/page.py:70
+#: apps/accounts/profile.py:45 apps/games/page.py:70
 msgid "Platinum"
 msgstr ""
 
-#: apps/accounts/profile.py:47
+#: apps/accounts/profile.py:46
 msgid "Beaten"
 msgstr ""
 
-#: apps/accounts/profile.py:48
+#: apps/accounts/profile.py:47
 msgid "In progress"
 msgstr ""
 
-#: apps/accounts/profile.py:85
+#: apps/accounts/profile.py:76
 #, python-format
 msgid "%(hours)s h"
 msgstr ""
 
-#: apps/accounts/profile.py:87
+#: apps/accounts/profile.py:78
 #, python-format
 msgid "%(minutes)s min"
 msgstr ""
 
-#: apps/accounts/profile.py:93
+#: apps/accounts/profile.py:84
 #, python-format
 msgid ""
 "%(console)s · %(unlocked)s/%(total)s achievements (%(hardcore)s hardcore) · "
 "%(points_unlocked)s/%(points)s pts · %(playtime)s played · %(when)s"
 msgstr ""
 
-#: apps/accounts/profile.py:174
+#: apps/accounts/profile.py:165
 msgid "Total"
 msgstr ""
 
-#: apps/accounts/profile.py:199
+#: apps/accounts/profile.py:190
 #, python-format
 msgid "%(game)s — %(set)s subset"
 msgstr ""
@@ -294,13 +294,13 @@ msgstr ""
 msgid "Missable"
 msgstr ""
 
-#: apps/achievements/models.py:163 apps/achievements/models.py:407
+#: apps/achievements/models.py:163 apps/achievements/models.py:399
 #: apps/comments/models.py:51 apps/games/models.py:122 apps/games/models.py:226
 #: apps/games/models.py:295 apps/leaderboards/models.py:37
 msgid "game"
 msgstr ""
 
-#: apps/achievements/models.py:168 apps/achievements/models.py:412
+#: apps/achievements/models.py:168 apps/achievements/models.py:404
 #: apps/comments/models.py:39 apps/leaderboards/models.py:52
 msgid "author"
 msgstr ""
@@ -332,13 +332,13 @@ msgstr ""
 msgid "type"
 msgstr ""
 
-#: apps/achievements/models.py:194 apps/achievements/models.py:425
+#: apps/achievements/models.py:194 apps/achievements/models.py:417
 #: apps/leaderboards/models.py:55
 msgid "updated at"
 msgstr ""
 
 #: apps/achievements/models.py:197 apps/achievements/models.py:235
-#: apps/achievements/models.py:385 apps/comments/models.py:59
+#: apps/achievements/models.py:377 apps/comments/models.py:59
 msgid "achievement"
 msgstr ""
 
@@ -362,7 +362,7 @@ msgstr ""
 msgid "achievement revisions"
 msgstr ""
 
-#: apps/achievements/models.py:387 apps/achievements/models.py:398
+#: apps/achievements/models.py:379 apps/achievements/models.py:390
 #: templates/accounts/partials/identity-header.html:64
 #: templates/accounts/partials/sec-recent-unlocks.html:15
 #: templates/feed/partials/feed-list.html:14
@@ -371,19 +371,19 @@ msgstr ""
 msgid "hardcore"
 msgstr ""
 
-#: apps/achievements/models.py:389
+#: apps/achievements/models.py:381
 msgid "unlocked at"
 msgstr ""
 
-#: apps/achievements/models.py:393
+#: apps/achievements/models.py:385
 msgid "user unlock"
 msgstr ""
 
-#: apps/achievements/models.py:394
+#: apps/achievements/models.py:386
 msgid "user unlocks"
 msgstr ""
 
-#: apps/achievements/models.py:398
+#: apps/achievements/models.py:390
 #: templates/accounts/partials/identity-header.html:64
 #: templates/accounts/partials/sec-recent-unlocks.html:15
 #: templates/games/partials/achievement-row.html:18 templates/home.html:70
@@ -391,27 +391,27 @@ msgstr ""
 msgid "softcore"
 msgstr ""
 
-#: apps/achievements/models.py:414
+#: apps/achievements/models.py:406
 msgid "address"
 msgstr ""
 
-#: apps/achievements/models.py:415
+#: apps/achievements/models.py:407
 msgid "note"
 msgstr ""
 
-#: apps/achievements/models.py:423
+#: apps/achievements/models.py:415
 msgid "updated by"
 msgstr ""
 
-#: apps/achievements/models.py:428
+#: apps/achievements/models.py:420
 msgid "code note"
 msgstr ""
 
-#: apps/achievements/models.py:429
+#: apps/achievements/models.py:421
 msgid "code notes"
 msgstr ""
 
-#: apps/achievements/models.py:439
+#: apps/achievements/models.py:431
 msgid "A subset shares its parent game's code notes: note the parent game."
 msgstr ""
 
