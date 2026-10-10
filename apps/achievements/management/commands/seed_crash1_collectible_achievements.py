@@ -16,7 +16,12 @@ from apps.achievements.management.commands.seed_crash1_rich_presence import (
     PLAYER_LOADED,
     PLAYER_POINTER_ADDRESS,
 )
-from apps.achievements.management.crash1 import seed_crash1_game, upsert_achievements
+from apps.achievements.management.crash1 import (
+    BONUS_SET_TITLE,
+    seed_crash1_bonus_subset,
+    seed_crash1_game,
+    upsert_achievements,
+)
 from apps.achievements.models import Achievement
 
 # c1 `game_state >> 8`: 1 while a stage (or a boss fight, a bonus round, an attract demo) plays;
@@ -47,6 +52,8 @@ WUMPA_TITLE = "Fruit Into Life"
 AKU_TITLE = "Mask Stack"
 LIVES_TITLE = "Bandicoot Reserve"
 NO_WUMPA_TITLE = "Beach Diet"
+# Challenges beyond the game's own 100%: they go to the opt-in bonus subset, the rest to core.
+BONUS_SUBSET_TITLES = (NO_WUMPA_TITLE, LIVES_TITLE)
 
 
 def player_value(offset):
@@ -165,20 +172,38 @@ def collectible_achievements():
     ]
 
 
+def split_by_set(rows):
+    """`(core_rows, bonus_rows)` of collectible achievement rows, by `BONUS_SUBSET_TITLES`."""
+    core_rows, bonus_rows = [], []
+    for row in rows:
+        title, *_ = row
+        if title in BONUS_SUBSET_TITLES:
+            bonus_rows.append(row)
+        else:
+            core_rows.append(row)
+    return core_rows, bonus_rows
+
+
 class Command(BaseCommand):
     help = (
-        "Seed the Crash Bandicoot 1 Wumpa, lives and Aku Aku achievements (idempotent); "
-        "existing rows, matched by title, get the current condition, description and type."
+        "Seed the Crash Bandicoot 1 Wumpa, lives and Aku Aku achievements and the bonus subset "
+        "the lives and no-Wumpa challenges belong to (idempotent); existing rows, matched by "
+        "title in any set of the game, move to their set and get the current condition, "
+        "description and type."
     )
 
     @transaction.atomic
     def handle(self, *args, **options):
-        game, author = seed_crash1_game()
+        core, author = seed_crash1_game()
+        bonus = seed_crash1_bonus_subset(core)
         rows = collectible_achievements()
-        created, updated = upsert_achievements(game, author, rows)
+        core_rows, bonus_rows = split_by_set(rows)
+        core_created, core_updated = upsert_achievements(core, author, core_rows)
+        bonus_created, bonus_updated = upsert_achievements(bonus, author, bonus_rows)
         self.stdout.write(
             self.style.SUCCESS(
-                f"Seeded {len(rows)} collectible achievements: "
-                f"{created} created, {updated} updated."
+                f"Seeded {len(rows)} collectible achievements, {len(bonus_rows)} in the "
+                f"{BONUS_SET_TITLE} subset: {core_created + bonus_created} created, "
+                f"{core_updated + bonus_updated} updated."
             )
         )

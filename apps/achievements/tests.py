@@ -9,6 +9,7 @@ import pytest
 from django.contrib.auth.models import Permission
 from django.core.management import CommandError, call_command
 from django.db import IntegrityError
+from django.db.models import Q
 from django.utils import timezone
 
 from apps.accounts.models import User
@@ -26,6 +27,7 @@ from apps.achievements.management.commands.seed_crash1_advanced_achievements imp
 from apps.achievements.management.commands.seed_crash1_code_notes import load_code_notes
 from apps.achievements.management.commands.seed_crash1_collectible_achievements import (
     AKU_TITLE,
+    BONUS_SUBSET_TITLES,
     CHALLENGE_POINTS,
     LIVES_TITLE,
     NO_WUMPA_TITLE,
@@ -54,6 +56,7 @@ from apps.achievements.management.commands.seed_crash1_level_achievements import
 )
 from apps.achievements.management.commands.seed_crash1_rich_presence import build_rich_presence
 from apps.achievements.management.crash1 import (
+    BONUS_SET_TITLE,
     GAME_TITLE,
     IMPORT_AUTHOR,
     PS1_RA_ID,
@@ -63,7 +66,14 @@ from apps.achievements.management.crash1 import (
 from apps.achievements.models import Achievement, CodeNote, UserUnlock
 from apps.anticheat.detection import award_validation_hash
 from apps.api.handlers import ACHIEVEMENT_FLAGS_CORE
-from apps.games.models import Console, Game, GameHash, PlayerGame
+from apps.games.models import (
+    SET_TYPE_BONUS,
+    Console,
+    Game,
+    GameHash,
+    PlayerGame,
+    UserSetPreference,
+)
 from apps.leaderboards.models import Leaderboard, LeaderboardEntry
 
 MEM_ADDR_PATTERN = re.compile(
@@ -82,6 +92,7 @@ SEED_COMMANDS = (
     "seed_crash1_leaderboards",
 )
 COLLECTIBLE_COUNT = len(collectible_achievements())
+BONUS_SUBSET_COUNT = len(BONUS_SUBSET_TITLES)
 COLLECTIBLE_POINTS = {
     WUMPA_TITLE: WUMPA_POINTS,
     AKU_TITLE: CHALLENGE_POINTS,
@@ -238,7 +249,11 @@ def test_seed_crash1_code_notes_command_is_idempotent():
 def crash1_game_rows():
     return (
         list(Console.objects.values_list("pk", "ra_id", "name", "short_name")),
-        list(Game.objects.values_list("pk", "title", "console_id")),
+        list(
+            Game.objects.values_list(
+                "pk", "title", "console_id", "parent_game_id", "set_type", "set_title"
+            )
+        ),
         list(GameHash.objects.values_list("pk", "md5", "label", "game_id")),
         list(User.objects.values_list("pk", "username", "is_active")),
     )
@@ -265,7 +280,8 @@ def test_seeding_the_crash1_game_twice_is_a_no_op():
 
     assert crash1_game_rows() == seeded
     consoles, games, hashes, users = seeded
-    assert (len(consoles), len(games), len(hashes), len(users)) == (1, 1, 1, 1)
+    # The core game and its bonus subset.
+    assert (len(consoles), len(games), len(hashes), len(users)) == (1, 2, 1, 1)
 
 
 @pytest.mark.django_db
@@ -868,9 +884,21 @@ def collectibles_game(db):
     return Game.objects.get(title=GAME_TITLE)
 
 
+@pytest.fixture
+def bonus_subset(collectibles_game):
+    return collectibles_game.subsets.get()
+
+
+def crash1_achievements():
+    """Every achievement of the Crash Bandicoot core game and its subsets."""
+    return Achievement.objects.filter(
+        Q(game__title=GAME_TITLE) | Q(game__parent_game__title=GAME_TITLE)
+    )
+
+
 @pytest.mark.django_db
 def test_seed_collectible_achievements_creates_official_set(collectibles_game):
-    achievements = collectibles_game.achievements.all()
+    achievements = crash1_achievements()
 
     assert {a.title: a.points for a in achievements} == COLLECTIBLE_POINTS
     for achievement in achievements:
@@ -960,20 +988,72 @@ def test_seed_collectible_achievements_updates_an_existing_condition_by_title(pl
 
 
 @pytest.mark.django_db
-def test_seed_collectible_achievements_refuses_two_rows_with_one_title(collectibles_game):
-    original = collectibles_game.achievements.get(title=WUMPA_TITLE)
+@pytest.mark.parametrize("title", [WUMPA_TITLE, NO_WUMPA_TITLE])
+def test_seed_collectible_achievements_refuses_two_rows_with_one_title(collectibles_game, title):
+    original = crash1_achievements().get(title=title)
     Achievement.objects.create(
         game=collectibles_game,
         author=original.author,
-        title=WUMPA_TITLE,
+        title=title,
         description="old",
-        points=WUMPA_POINTS,
+        points=original.points,
         mem_addr="0xH000161=0",
         status=Achievement.STATUS_OFFICIAL,
     )
 
-    with pytest.raises(CommandError, match=f"2 achievements .* are titled '{WUMPA_TITLE}'"):
+    with pytest.raises(CommandError, match=f"2 achievements .* are titled '{title}'"):
         call_command("seed_crash1_collectible_achievements", verbosity=0)
+
+
+@pytest.mark.django_db
+def test_seed_collectible_achievements_creates_the_bonus_subset(collectibles_game, bonus_subset):
+    assert bonus_subset.parent_game == collectibles_game
+    assert (bonus_subset.set_type, bonus_subset.set_title) == (SET_TYPE_BONUS, BONUS_SET_TITLE)
+    assert bonus_subset.title == f"{GAME_TITLE} [Subset - {BONUS_SET_TITLE}]"
+    assert bonus_subset.console == collectibles_game.console
+    assert not bonus_subset.hashes.exists()
+
+
+@pytest.mark.django_db
+def test_seed_collectible_achievements_puts_the_challenges_in_the_bonus_subset(
+    collectibles_game, bonus_subset
+):
+    core_titles = set(collectibles_game.achievements.values_list("title", flat=True))
+    bonus_titles = set(bonus_subset.achievements.values_list("title", flat=True))
+
+    assert core_titles == {WUMPA_TITLE, AKU_TITLE}
+    assert bonus_titles == set(BONUS_SUBSET_TITLES) == {NO_WUMPA_TITLE, LIVES_TITLE}
+
+
+@pytest.mark.django_db
+def test_seed_collectible_achievements_moves_a_core_challenge_into_the_bonus_subset(
+    player_token,
+):
+    user, _ = player_token
+    call_command("seed_crash1_level_achievements", verbosity=0)
+    core = Game.objects.get(title=GAME_TITLE)
+    seeded = {title: row for title, *row in collectible_achievements()}
+    description, mem_addr, points, achievement_type = seeded[NO_WUMPA_TITLE]
+    stale = Achievement.objects.create(
+        game=core,
+        author=User.objects.get(username=IMPORT_AUTHOR),
+        title=NO_WUMPA_TITLE,
+        description=description,
+        mem_addr=mem_addr,
+        points=points,
+        type=achievement_type,
+        status=Achievement.STATUS_OFFICIAL,
+    )
+    UserUnlock.objects.create(user=user, achievement=stale, hardcore=True)
+    output = StringIO()
+
+    call_command("seed_crash1_collectible_achievements", stdout=output)
+
+    moved = Achievement.objects.get(pk=stale.pk)
+    assert moved.game == core.subsets.get()
+    assert (moved.points, moved.status) == (points, Achievement.STATUS_OFFICIAL)
+    assert UserUnlock.objects.filter(achievement=moved, hardcore=True).count() == 1
+    assert f"{COLLECTIBLE_COUNT - 1} created, 1 updated" in output.getvalue()
 
 
 @pytest.mark.django_db
@@ -982,32 +1062,63 @@ def test_achievement_seeds_share_the_game_without_clashing():
     call_command("seed_crash1_collectible_achievements", verbosity=0)
     call_command("seed_crash1_advanced_achievements", verbosity=0)
 
-    titles = list(
-        Achievement.objects.filter(game__title=GAME_TITLE).values_list("title", flat=True)
-    )
+    titles = list(crash1_achievements().values_list("title", flat=True))
     assert len(titles) == LEVEL_COUNT + COLLECTIBLE_COUNT + ADVANCED_COUNT
     assert len(set(titles)) == len(titles)
+    core_count = Achievement.objects.filter(game__title=GAME_TITLE).count()
+    assert core_count == len(titles) - BONUS_SUBSET_COUNT
 
 
 @pytest.mark.django_db
-def test_patch_exposes_seeded_collectible_achievements(client, collectibles_game, player_token):
+@pytest.mark.parametrize("in_bonus_subset", [False, True])
+def test_patch_exposes_seeded_collectible_achievements_per_set(
+    client, collectibles_game, bonus_subset, player_token, in_bonus_subset
+):
     user, token = player_token
+    if in_bonus_subset:
+        game = bonus_subset
+    else:
+        game = collectibles_game
 
     data = client.post(
-        "/dorequest.php", {"r": "patch", "u": user.username, "t": token, "g": collectibles_game.pk}
+        "/dorequest.php", {"r": "patch", "u": user.username, "t": token, "g": game.pk}
     ).json()
 
     assert data["Success"] is True
     served = {a["Title"]: (a["MemAddr"], a["Points"]) for a in data["PatchData"]["Achievements"]}
     assert served == {
-        title: (mem_addr, points) for title, _, mem_addr, points, _ in collectible_achievements()
+        title: (mem_addr, points)
+        for title, _, mem_addr, points, _ in collectible_achievements()
+        if (title in BONUS_SUBSET_TITLES) == in_bonus_subset
     }
 
 
 @pytest.mark.django_db
-def test_awardachievement_scores_a_seeded_collectible(client, collectibles_game, player_token):
+def test_achievementsets_serves_the_crash_bonus_subset_only_when_opted_in(
+    client, collectibles_game, bonus_subset, player_token
+):
     user, token = player_token
-    achievement = collectibles_game.achievements.get(title=LIVES_TITLE)
+    params = {"r": "achievementsets", "u": user.username, "t": token, "m": USA_DISC_MD5}
+
+    opted_out = client.post("/dorequest.php", params).json()
+    UserSetPreference.objects.create(user=user, subset_game=bonus_subset, opted_in=True)
+    opted_in = client.post("/dorequest.php", params).json()
+
+    assert opted_out["GameId"] == opted_in["GameId"] == collectibles_game.pk
+    assert [(s["GameId"], s["Type"]) for s in opted_out["Sets"]] == [(collectibles_game.pk, "core")]
+    assert [(s["GameId"], s["Type"], s["Title"]) for s in opted_in["Sets"]] == [
+        (collectibles_game.pk, "core", None),
+        (bonus_subset.pk, SET_TYPE_BONUS, BONUS_SET_TITLE),
+    ]
+    core, bonus = opted_in["Sets"]
+    assert {a["Title"] for a in core["Achievements"]} == {WUMPA_TITLE, AKU_TITLE}
+    assert {a["Title"] for a in bonus["Achievements"]} == set(BONUS_SUBSET_TITLES)
+
+
+@pytest.mark.django_db
+def test_awardachievement_scores_a_seeded_collectible(client, bonus_subset, player_token):
+    user, token = player_token
+    achievement = bonus_subset.achievements.get(title=LIVES_TITLE)
 
     data = client.post(
         "/dorequest.php",
@@ -1015,7 +1126,8 @@ def test_awardachievement_scores_a_seeded_collectible(client, collectibles_game,
     ).json()
 
     assert data["Success"] is True
-    assert data["AchievementsRemaining"] == COLLECTIBLE_COUNT - 1
+    # Counted within the achievement's own set, the bonus subset.
+    assert data["AchievementsRemaining"] == BONUS_SUBSET_COUNT - 1
     user.refresh_from_db()
     assert (user.softcore_points, user.hardcore_points) == (CHALLENGE_POINTS, CHALLENGE_POINTS)
 
@@ -1245,6 +1357,21 @@ def test_seed_leaderboards_updates_an_existing_definition_by_title(leaderboard_g
     assert updated.author == user
     assert LeaderboardEntry.objects.get(leaderboard=updated).score == EDITED_SCORE
     assert leaderboard_game.leaderboards.count() == LEADERBOARD_COUNT
+
+
+@pytest.mark.django_db
+def test_seed_leaderboards_keeps_the_leaderboards_on_the_core_set(leaderboard_game):
+    call_command("seed_crash1_collectible_achievements", verbosity=0)
+    title, *_ = leaderboards()[0]
+    strayed = leaderboard_game.leaderboards.get(title=title)
+    strayed.game = leaderboard_game.subsets.get()
+    strayed.save()
+
+    call_command("seed_crash1_leaderboards", verbosity=0)
+
+    assert Leaderboard.objects.get(pk=strayed.pk).game == leaderboard_game
+    assert leaderboard_game.leaderboards.count() == LEADERBOARD_COUNT
+    assert not Leaderboard.objects.filter(game__parent_game=leaderboard_game).exists()
 
 
 @pytest.mark.django_db
