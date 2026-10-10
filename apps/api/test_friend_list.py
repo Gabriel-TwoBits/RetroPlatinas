@@ -13,7 +13,7 @@ from django.utils import timezone
 
 from apps.accounts.models import Friendship
 from apps.api.handlers import API_TOKEN_LIFETIME, LAST_SEEN_UNKNOWN
-from apps.games.models import Console, Game, PlayerGame
+from apps.games.models import OPT_IN_SET_TYPES, Console, Game, PlayerGame
 from apps.images.catalog import avatar_path, versioned_game_icon_path
 
 User = get_user_model()
@@ -163,6 +163,30 @@ def test_getfriendlist_dates_a_session_without_pings_by_its_start_and_unknown_pr
 
     assert entry["LastSeen"] == LAST_SEEN_UNKNOWN
     assert entry["LastSeenTime"] == int(record.last_played_at.timestamp())
+    assert entry["LastGameId"] == crash.pk
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("set_type", OPT_IN_SET_TYPES)
+def test_getfriendlist_reads_a_subset_unlock_as_its_parents_session(
+    client, player, crash, set_type
+):
+    subset = Game.objects.create(
+        title="Crash Bandicoot [Subset - Bonus]",
+        console=crash.console,
+        parent_game=crash,
+        set_type=set_type,
+        set_title="Bonus",
+    )
+    friend = _friend(player, "friend")
+    session = _play(friend, crash, minutes_ago=LATEST_MINUTES_AGO, rich_presence="N. Sanity Beach")
+    # The row an unlock in the subset creates: never pinged, played at the unlock.
+    _play(friend, subset, minutes_ago=0, pinged=False)
+
+    entry = _friend_list(client)["Friends"][0]
+
+    assert entry["LastSeen"] == "N. Sanity Beach"
+    assert entry["LastSeenTime"] == int(session.last_ping_at.timestamp())
     assert entry["LastGameId"] == crash.pk
 
 

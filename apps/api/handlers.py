@@ -28,7 +28,14 @@ from apps.core.stats import (
     rank_by_score,
     ranked_entries,
 )
-from apps.games.models import RICH_PRESENCE_MAX_LENGTH, Console, Game, GameHash, PlayerGame
+from apps.games.models import (
+    OPT_IN_SET_TYPES,
+    RICH_PRESENCE_MAX_LENGTH,
+    Console,
+    Game,
+    GameHash,
+    PlayerGame,
+)
 from apps.games.sets import session_game, sets_for_game, sets_for_hash
 from apps.images.catalog import (
     avatar_path,
@@ -1014,10 +1021,17 @@ def _seen_at():
     return Coalesce("last_ping_at", "last_played_at")
 
 
+def _session_records():
+    """The play records sessions are recorded on: a bonus or challenge subset's row only holds
+    its unlocks, as its sessions are its parent's."""
+    return PlayerGame.objects.exclude(game__set_type__in=OPT_IN_SET_TYPES)
+
+
 def _followed_users(user):
     """The active users `user` follows, most recently seen first, at most `FRIEND_LIST_MAX`."""
     last_seen_at = (
-        PlayerGame.objects.filter(user=OuterRef("pk"))
+        _session_records()
+        .filter(user=OuterRef("pk"))
         .annotate(seen_at=_seen_at())
         .order_by("-seen_at")
         .values("seen_at")[:1]
@@ -1033,7 +1047,8 @@ def _followed_users(user):
 def _latest_play_records(users):
     """Each user's most recently seen play record, by user id."""
     records = (
-        PlayerGame.objects.filter(user__in=users)
+        _session_records()
+        .filter(user__in=users)
         .annotate(seen_at=_seen_at())
         .select_related("game")
         .order_by("user_id", "-seen_at", "-id")
