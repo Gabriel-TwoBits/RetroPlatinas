@@ -414,6 +414,8 @@ def test_the_games_list_and_home_leave_subsets_out(client, core, bonus, played):
     assert [card["game"] for card in games_list.context["cards"]] == [core]
     assert [item["game"] for item in home.context["sets"]] == [core]
     assert BONUS_TITLE not in games_list.content.decode()
+    # The site's totals still count the subset's achievement and unlocks.
+    assert home.context["numbers"]["achievements"] == len((core, bonus))
 
 
 @pytest.mark.django_db

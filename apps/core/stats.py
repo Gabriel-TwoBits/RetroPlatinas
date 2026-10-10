@@ -189,6 +189,11 @@ def _active_users_unlocks():
     return _one_row_per_unlock(official_unlocks().filter(user__is_active=True))
 
 
+def site_official_achievement_count():
+    """How many official achievements there are, in core sets and subsets alike."""
+    return Achievement.objects.filter(status=Achievement.STATUS_OFFICIAL).count()
+
+
 def site_unlock_count():
     """How many unlocks of official achievements active users made, each once."""
     return _active_users_unlocks().count()

@@ -42,7 +42,7 @@ def home_context():
     return {
         "numbers": {
             "games": len(sets),
-            "achievements": sum(item["achievements"] for item in sets),
+            "achievements": stats.site_official_achievement_count(),
             "players": stats.ranked_player_counts().softcore,
             "unlocks": stats.site_unlock_count(),
         },
