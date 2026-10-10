@@ -101,11 +101,11 @@ def definitions():
     ]
     seeded += [
         (title, mem_addr)
-        for title, _description, mem_addr, _points in collectible_seed().collectible_achievements()
+        for title, _description, mem_addr, *_ in collectible_seed().collectible_achievements()
     ]
     seeded += [
         (title, mem_addr)
-        for title, _description, mem_addr, _points in advanced_seed().advanced_achievements()
+        for title, _description, mem_addr, *_ in advanced_seed().advanced_achievements()
     ]
     return [
         Definition(FIRST_RUNTIME_ID + index, title, mem_addr)

@@ -21,8 +21,9 @@ own.
 
 `python manage.py seed_crash1_collectible_achievements` is idempotent and behaves like the level seed
 (`crash-bandicoot-1-level-achievements.md`): a missing title is created (`community`, author `ra-import`), an
-existing one, matched by title, gets the current `mem_addr` and description and keeps its status, points,
-author and unlocks; two rows with one title fail the command without writing anything. Both commands share
+existing one, matched by title, gets the current `mem_addr`, description and type (standard, `""`) and keeps
+its status, points, author and unlocks; two rows with one title fail the command without writing anything.
+Both commands share
 `upsert_achievements` in `apps/achievements/management/crash1.py`. The conditions are built by the command's
 `build_*_mem_addr` functions; the harness imports them, so it tests the strings the server serves.
 

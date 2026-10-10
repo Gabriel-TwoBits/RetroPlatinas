@@ -17,6 +17,7 @@ from apps.achievements.management.commands.seed_crash1_rich_presence import (
     PLAYER_POINTER_ADDRESS,
 )
 from apps.achievements.management.crash1 import seed_crash1_game, upsert_achievements
+from apps.achievements.models import Achievement
 
 # c1 `game_state >> 8`: 1 while a stage (or a boss fight, a bonus round, an attract demo) plays;
 # 5 (`GAME_STATE_NEW_GEM`) from the frame a stage is cleared, gem or not, for about 90 frames.
@@ -130,7 +131,7 @@ def build_no_wumpa_mem_addr(level_id):
 
 
 def collectible_achievements():
-    """`(title, description, mem_addr, points)` of every collectible achievement."""
+    """`(title, description, mem_addr, points, type)` of every collectible achievement."""
     no_wumpa_level_id = dict(LEVEL_ACHIEVEMENTS)[NO_WUMPA_STAGE]
     return [
         (
@@ -138,24 +139,28 @@ def collectible_achievements():
             "Gather 100 Wumpa fruit and watch them turn into an extra life.",
             build_wumpa_mem_addr(),
             WUMPA_POINTS,
+            Achievement.TYPE_NONE,
         ),
         (
             AKU_TITLE,
             "Hold three Aku Aku masks at once and become invincible.",
             build_aku_mem_addr(),
             CHALLENGE_POINTS,
+            Achievement.TYPE_NONE,
         ),
         (
             LIVES_TITLE,
             f"Stock up {MAX_LIVES} lives, the most the game can hold.",
             build_lives_mem_addr(),
             CHALLENGE_POINTS,
+            Achievement.TYPE_NONE,
         ),
         (
             NO_WUMPA_TITLE,
             f"Finish {NO_WUMPA_STAGE} without picking up a single Wumpa fruit.",
             build_no_wumpa_mem_addr(no_wumpa_level_id),
             CHALLENGE_POINTS,
+            Achievement.TYPE_NONE,
         ),
     ]
 
@@ -163,7 +168,7 @@ def collectible_achievements():
 class Command(BaseCommand):
     help = (
         "Seed the Crash Bandicoot 1 Wumpa, lives and Aku Aku achievements (idempotent); "
-        "existing rows, matched by title, get the current condition and description."
+        "existing rows, matched by title, get the current condition, description and type."
     )
 
     @transaction.atomic

@@ -13,9 +13,9 @@ The first six "finish the level" achievements, 5 points each, published as `comm
 
 `python manage.py seed_crash1_level_achievements` is idempotent:
 
-- a missing achievement is created (`community`, 5 points, author `ra-import`);
-- an existing one, **matched by title** within the Crash game, gets the current `mem_addr` and description,
-  so a fixed condition reaches databases seeded earlier; its status, points, author and unlocks are left
+- a missing achievement is created (`community`, 5 points, type `progression`, author `ra-import`);
+- an existing one, **matched by title** within the Crash game, gets the current `mem_addr`, description and
+  type, so a fixed condition reaches databases seeded earlier; its status, points, author and unlocks are left
   alone;
 - two achievements with the same title make the command fail without writing anything.
 

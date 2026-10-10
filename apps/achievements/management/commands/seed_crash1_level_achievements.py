@@ -2,6 +2,7 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 
 from apps.achievements.management.crash1 import seed_crash1_game, upsert_achievements
+from apps.achievements.models import Achievement
 
 ACHIEVEMENT_POINTS = 5
 # c1 `cur_lid_ro`: byte 1 of GOOL global 0 (`lid << 8`, set by `GoolInitLid`), the loaded level.
@@ -48,7 +49,7 @@ def build_description(title):
 class Command(BaseCommand):
     help = (
         "Seed the first six Crash Bandicoot 1 level-completion achievements (idempotent); "
-        "existing rows, matched by title, get the current condition and description."
+        "existing rows, matched by title, get the current condition, description and type."
     )
 
     @transaction.atomic
@@ -56,7 +57,13 @@ class Command(BaseCommand):
         game, author = seed_crash1_game()
 
         rows = [
-            (title, build_description(title), build_mem_addr(level_id), ACHIEVEMENT_POINTS)
+            (
+                title,
+                build_description(title),
+                build_mem_addr(level_id),
+                ACHIEVEMENT_POINTS,
+                Achievement.TYPE_PROGRESSION,
+            )
             for title, level_id in LEVEL_ACHIEVEMENTS
         ]
         created, updated = upsert_achievements(game, author, rows)

@@ -8,6 +8,7 @@ from apps.achievements.management.commands.seed_crash1_level_achievements import
     rcheevos_hex,
 )
 from apps.achievements.management.crash1 import seed_crash1_game, upsert_achievements
+from apps.achievements.models import Achievement
 
 # c1 `item_pool1`: the clear gems, one bit per map stage (`0x619c5`), stage n at bit n + 1
 # counted from this byte. The Stage Clear screen sets the bit when the box count reached the
@@ -98,9 +99,15 @@ def build_boss_mem_addr(level_id):
 
 
 def advanced_achievements():
-    """`(title, description, mem_addr, points)` of every advanced achievement."""
+    """`(title, description, mem_addr, points, type)` of every advanced achievement."""
     gems = [
-        (title, build_gem_description(stage), build_gem_mem_addr(map_index), points)
+        (
+            title,
+            build_gem_description(stage),
+            build_gem_mem_addr(map_index),
+            points,
+            Achievement.TYPE_NONE,
+        )
         for title, stage, map_index, points in GEM_ACHIEVEMENTS
     ]
     boss = (
@@ -108,6 +115,8 @@ def advanced_achievements():
         f"Defeat {BOSS_NAME}, the tribal chief guarding the way to Rolling Stones.",
         build_boss_mem_addr(PAPU_PAPU_LEVEL_ID),
         BOSS_POINTS,
+        # Papu Papu bars the way on, so beating him is part of finishing the game.
+        Achievement.TYPE_PROGRESSION,
     )
     return [*gems, boss]
 
@@ -115,7 +124,7 @@ def advanced_achievements():
 class Command(BaseCommand):
     help = (
         "Seed the Crash Bandicoot 1 clear gem and boss achievements (idempotent); existing "
-        "rows, matched by title, get the current condition and description."
+        "rows, matched by title, get the current condition, description and type."
     )
 
     @transaction.atomic

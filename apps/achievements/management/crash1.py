@@ -76,9 +76,9 @@ def _upsert_by_title(model, noun, game, rows, also_saved=()):
 def upsert_achievements(game, author, rows):
     """Create or update the seeded achievements of `game`; returns `(created, updated)`.
 
-    `rows` holds `(title, description, mem_addr, points)`. A missing title is created as
-    `community`; an existing one, matched by title, gets the current condition and description
-    while its status, points, author and unlocks are left alone. Raises `CommandError` on two
+    `rows` holds `(title, description, mem_addr, points, type)`. A missing title is created as
+    `community`; an existing one, matched by title, gets the current condition, description and
+    type while its status, points, author and unlocks are left alone. Raises `CommandError` on two
     achievements with one title: the caller's transaction then writes nothing.
     """
     return _upsert_by_title(
@@ -88,10 +88,10 @@ def upsert_achievements(game, author, rows):
         [
             (
                 title,
-                {"mem_addr": mem_addr, "description": description},
+                {"mem_addr": mem_addr, "description": description, "type": achievement_type},
                 {"author": author, "points": points, "status": Achievement.STATUS_COMMUNITY},
             )
-            for title, description, mem_addr, points in rows
+            for title, description, mem_addr, points, achievement_type in rows
         ],
         also_saved=["updated_at"],
     )

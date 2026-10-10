@@ -331,6 +331,7 @@ def test_seed_level_achievements_creates_community_set(seeded_game):
     for achievement in achievements:
         assert achievement.points == ACHIEVEMENT_POINTS
         assert achievement.status == Achievement.STATUS_COMMUNITY
+        assert achievement.type == Achievement.TYPE_PROGRESSION
         assert achievement.author.username == IMPORT_AUTHOR
 
 
@@ -372,6 +373,7 @@ def test_seed_level_achievements_updates_an_existing_condition_by_title(player_t
     stale = Achievement.objects.get(title="Jungle Rollers")
     stale.mem_addr = "0xH61998=1_d0xH61998=0"
     stale.description = "Complete Jungle Rollers."
+    stale.type = Achievement.TYPE_MISSABLE
     stale.points = EDITED_POINTS
     stale.status = Achievement.STATUS_VERIFIED
     stale.save()
@@ -382,6 +384,7 @@ def test_seed_level_achievements_updates_an_existing_condition_by_title(player_t
     updated = Achievement.objects.get(pk=stale.pk)
     assert updated.mem_addr == build_mem_addr(dict(LEVEL_ACHIEVEMENTS)["Jungle Rollers"])
     assert updated.description == build_description("Jungle Rollers")
+    assert updated.type == Achievement.TYPE_PROGRESSION
     assert (updated.points, updated.status) == (EDITED_POINTS, Achievement.STATUS_VERIFIED)
     assert UserUnlock.objects.filter(achievement=updated).count() == 1
     assert Achievement.objects.filter(game__title=GAME_TITLE).count() == LEVEL_COUNT
@@ -422,6 +425,7 @@ def test_patch_exposes_seeded_level_achievements(client, seeded_game, player_tok
     for achievement in achievements:
         assert achievement["Flags"] == ACHIEVEMENT_FLAGS_CORE
         assert achievement["Points"] == ACHIEVEMENT_POINTS
+        assert achievement["Type"] == Achievement.TYPE_PROGRESSION
         assert MEM_ADDR_PATTERN.match(achievement["MemAddr"]), achievement["MemAddr"]
 
 
@@ -879,12 +883,15 @@ def test_seed_collectible_achievements_creates_community_set(collectibles_game):
     assert {a.title: a.points for a in achievements} == COLLECTIBLE_POINTS
     for achievement in achievements:
         assert achievement.status == Achievement.STATUS_COMMUNITY
+        assert achievement.type == Achievement.TYPE_NONE
         assert achievement.author.username == IMPORT_AUTHOR
         assert achievement.description
 
 
 def test_collectible_mem_addrs_parse_in_rcheevos():
-    result = run_mem_addr_checker(*(mem_addr for _, _, mem_addr, _ in collectible_achievements()))
+    result = run_mem_addr_checker(
+        *(mem_addr for _, _, mem_addr, _, _ in collectible_achievements())
+    )
 
     assert result.returncode == 0, result.stdout + result.stderr
     assert result.stdout.count("VALID    ") == COLLECTIBLE_COUNT
@@ -950,7 +957,7 @@ def test_seed_collectible_achievements_updates_an_existing_condition_by_title(pl
     updated = Achievement.objects.get(pk=stale.pk)
     seeded = {
         title: (description, mem_addr)
-        for title, description, mem_addr, _ in (collectible_achievements())
+        for title, description, mem_addr, _, _ in collectible_achievements()
     }
     assert (updated.description, updated.mem_addr) == seeded[AKU_TITLE]
     assert (updated.points, updated.status) == (
@@ -1001,7 +1008,7 @@ def test_patch_exposes_seeded_collectible_achievements(client, collectibles_game
     assert data["Success"] is True
     served = {a["Title"]: (a["MemAddr"], a["Points"]) for a in data["PatchData"]["Achievements"]}
     assert served == {
-        title: (mem_addr, points) for title, _, mem_addr, points in collectible_achievements()
+        title: (mem_addr, points) for title, _, mem_addr, points, _ in collectible_achievements()
     }
 
 
@@ -1032,6 +1039,10 @@ def test_seed_advanced_achievements_creates_community_set(advanced_game):
     achievements = advanced_game.achievements.all()
 
     assert {a.title: a.points for a in achievements} == ADVANCED_POINTS
+    assert {a.title: a.type for a in achievements} == {
+        **{title: Achievement.TYPE_NONE for title, *_ in GEM_ACHIEVEMENTS},
+        BOSS_TITLE: Achievement.TYPE_PROGRESSION,
+    }
     for achievement in achievements:
         assert achievement.status == Achievement.STATUS_COMMUNITY
         assert achievement.author.username == IMPORT_AUTHOR
@@ -1039,7 +1050,7 @@ def test_seed_advanced_achievements_creates_community_set(advanced_game):
 
 
 def test_advanced_mem_addrs_parse_in_rcheevos():
-    result = run_mem_addr_checker(*(mem_addr for _, _, mem_addr, _ in advanced_achievements()))
+    result = run_mem_addr_checker(*(mem_addr for _, _, mem_addr, _, _ in advanced_achievements()))
 
     assert result.returncode == 0, result.stdout + result.stderr
     assert result.stdout.count("VALID    ") == ADVANCED_COUNT
@@ -1093,7 +1104,7 @@ def test_seed_advanced_achievements_updates_an_existing_condition_by_title(playe
     updated = Achievement.objects.get(pk=stale.pk)
     seeded = {
         title: (description, mem_addr)
-        for title, description, mem_addr, _ in advanced_achievements()
+        for title, description, mem_addr, _, _ in advanced_achievements()
     }
     assert (updated.description, updated.mem_addr) == seeded[BOSS_TITLE]
     assert (updated.points, updated.status) == (EDITED_ADVANCED_POINTS, Achievement.STATUS_VERIFIED)
@@ -1126,9 +1137,13 @@ def test_patch_exposes_seeded_advanced_achievements(client, advanced_game, playe
     ).json()
 
     assert data["Success"] is True
-    served = {a["Title"]: (a["MemAddr"], a["Points"]) for a in data["PatchData"]["Achievements"]}
+    served = {
+        a["Title"]: (a["MemAddr"], a["Points"], a["Type"])
+        for a in data["PatchData"]["Achievements"]
+    }
     assert served == {
-        title: (mem_addr, points) for title, _, mem_addr, points in advanced_achievements()
+        title: (mem_addr, points, achievement_type)
+        for title, _, mem_addr, points, achievement_type in advanced_achievements()
     }
 
 
