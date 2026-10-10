@@ -6,6 +6,7 @@ from django.db import transaction
 
 from apps.achievements.models import Achievement
 from apps.games.models import Console, Game, GameHash
+from apps.leaderboards.models import Leaderboard
 
 GAME_TITLE = "Crash Bandicoot"
 PS1_RA_ID = 12
@@ -74,6 +75,44 @@ def upsert_achievements(game, author, rows):
         else:
             raise CommandError(
                 f"{len(matches)} achievements of {game} are titled {title!r}; "
+                "cannot tell which one to update"
+            )
+    return created, updated
+
+
+def upsert_leaderboards(game, rows):
+    """Create or update the seeded leaderboards of `game`; returns `(created, updated)`.
+
+    `rows` holds `(title, description, mem_addr, format, lower_is_better)`. A missing title is
+    created; an existing one, matched by title, gets the whole current definition, since the
+    format and the ordering only make sense with the value its condition measures. Its entries
+    are left alone. Raises `CommandError` on two leaderboards with one title: the caller's
+    transaction then writes nothing.
+    """
+    created = updated = 0
+    for title, description, mem_addr, value_format, lower_is_better in rows:
+        fields = {
+            "description": description,
+            "mem_addr": mem_addr,
+            "format": value_format,
+            "lower_is_better": lower_is_better,
+        }
+        matches = list(Leaderboard.objects.filter(game=game, title=title))
+        if not matches:
+            Leaderboard.objects.create(game=game, title=title, **fields)
+            created += 1
+        elif len(matches) == 1:
+            row = matches[0]
+            if any(getattr(row, name) != value for name, value in fields.items()):
+                for name, value in fields.items():
+                    setattr(row, name, value)
+                row.save(update_fields=list(fields))
+                updated += 1
+            else:
+                pass  # Already current.
+        else:
+            raise CommandError(
+                f"{len(matches)} leaderboards of {game} are titled {title!r}; "
                 "cannot tell which one to update"
             )
     return created, updated

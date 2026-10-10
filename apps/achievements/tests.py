@@ -36,6 +36,14 @@ from apps.achievements.management.commands.seed_crash1_collectible_achievements 
     collectible_achievements,
     in_play,
 )
+from apps.achievements.management.commands.seed_crash1_leaderboards import (
+    INTRO,
+    LEADERBOARD_FORMAT,
+    SPIN_IN,
+    build_leaderboard_mem,
+    build_start,
+    leaderboards,
+)
 from apps.achievements.management.commands.seed_crash1_level_achievements import (
     ACHIEVEMENT_POINTS,
     LEVEL_ACHIEVEMENTS,
@@ -52,6 +60,7 @@ from apps.achievements.management.crash1 import (
 )
 from apps.achievements.models import Achievement, CodeNote, UserUnlock
 from apps.games.models import Console, Game, GameHash
+from apps.leaderboards.models import Leaderboard, LeaderboardEntry
 
 MEM_ADDR_PATTERN = re.compile(
     r"^d0xH6188d=h(?P<level_id>[0-9a-f]{2})S0xH6188d=h2dS0xH6188d=h19_0xH618d1=3$"
@@ -66,6 +75,7 @@ SEED_COMMANDS = (
     "seed_crash1_collectible_achievements",
     "seed_crash1_advanced_achievements",
     "seed_crash1_rich_presence",
+    "seed_crash1_leaderboards",
 )
 COLLECTIBLE_COUNT = len(collectible_achievements())
 COLLECTIBLE_POINTS = {
@@ -265,6 +275,7 @@ def test_seed_refuses_a_usa_disc_hash_that_belongs_to_another_game(command):
     assert not Game.objects.filter(title=GAME_TITLE).exists()
     assert not Achievement.objects.exists()
     assert not CodeNote.objects.exists()
+    assert not Leaderboard.objects.exists()
 
 
 @pytest.mark.django_db
@@ -788,4 +799,136 @@ def test_patch_exposes_seeded_advanced_achievements(client, advanced_game, playe
     served = {a["Title"]: (a["MemAddr"], a["Points"]) for a in data["PatchData"]["Achievements"]}
     assert served == {
         title: (mem_addr, points) for title, _, mem_addr, points in advanced_achievements()
+    }
+
+
+LEADERBOARD_COUNT = len(leaderboards())
+EDITED_SCORE = 1234
+# The four sections rcheevos' `rc_parse_lboard` reads, in order.
+LEADERBOARD_SECTIONS = ("STA", "CAN", "SUB", "VAL")
+
+
+@pytest.fixture
+def leaderboard_game(db):
+    call_command("seed_crash1_leaderboards", verbosity=0)
+    return Game.objects.get(title=GAME_TITLE)
+
+
+def leaderboard_sections(mem_addr):
+    """`STA:...::CAN:...` -> {"STA": ..., "CAN": ...}, in order."""
+    return dict(part.split(":", 1) for part in mem_addr.split("::"))
+
+
+@pytest.mark.django_db
+def test_seed_leaderboards_creates_frame_timers_where_lower_is_better(leaderboard_game):
+    seeded = {
+        title: (description, mem_addr) for title, description, mem_addr, _, _ in leaderboards()
+    }
+
+    rows = list(leaderboard_game.leaderboards.all())
+
+    assert {row.title: (row.description, row.mem_addr) for row in rows} == seeded
+    assert len(rows) == LEADERBOARD_COUNT
+    for row in rows:
+        assert (row.format, row.lower_is_better) == (LEADERBOARD_FORMAT, True)
+
+
+def test_leaderboards_submit_on_their_stage_clear_achievement_condition():
+    for _title, _description, mem_addr, level_id, opening in leaderboards():
+        sections = leaderboard_sections(mem_addr)
+        assert list(sections) == list(LEADERBOARD_SECTIONS)
+        assert sections["SUB"] == build_mem_addr(level_id)
+        assert mem_addr == build_leaderboard_mem(level_id, opening)
+
+
+def test_leaderboard_start_follows_how_the_stage_opens():
+    jungle_rollers_level_id = dict(LEVEL_ACHIEVEMENTS)["Jungle Rollers"]
+
+    assert build_start(NSANITY_BEACH_LEVEL_ID, INTRO).endswith("_0xH618a1=0_d0xH618d1!=1")
+    assert build_start(jungle_rollers_level_id, SPIN_IN).endswith(
+        "_0xH618a1=0_0xW566b4=d0xW566b4_I:0xW566b4_d0xT121=1_I:0xW566b4_0xT121!=1"
+    )
+    with pytest.raises(ValueError, match="unknown stage opening"):
+        build_start(NSANITY_BEACH_LEVEL_ID, "cutscene")
+
+
+def test_leaderboards_time_distinct_stages():
+    level_ids = [level_id for _, _, _, level_id, _ in leaderboards()]
+
+    assert len(set(level_ids)) == LEADERBOARD_COUNT
+    assert set(level_ids) <= set(dict(LEVEL_ACHIEVEMENTS).values())
+
+
+def test_leaderboards_parse_in_rcheevos():
+    result = run_mem_addr_checker(*(mem_addr for _, _, mem_addr, _, _ in leaderboards()))
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert result.stdout.count("VALID    ") == LEADERBOARD_COUNT
+
+
+@pytest.mark.django_db
+def test_seed_leaderboards_is_idempotent(leaderboard_game):
+    fields = ("pk", "title", "description", "mem_addr", "format", "lower_is_better")
+    seeded = list(leaderboard_game.leaderboards.values_list(*fields))
+    output = StringIO()
+
+    call_command("seed_crash1_leaderboards", stdout=output)
+
+    assert list(leaderboard_game.leaderboards.values_list(*fields)) == seeded
+    assert "0 created, 0 updated" in output.getvalue()
+
+
+@pytest.mark.django_db
+def test_seed_leaderboards_updates_an_existing_definition_by_title(leaderboard_game, player_token):
+    user, _ = player_token
+    title, description, mem_addr, _, _ = leaderboards()[0]
+    stale = leaderboard_game.leaderboards.get(title=title)
+    stale.description = "old"
+    stale.mem_addr = "STA:0xH61998=1::CAN:0=1::SUB:0xH61994=1::VAL:M:1=1"
+    stale.format = "SCORE"
+    stale.lower_is_better = False
+    stale.save()
+    LeaderboardEntry.objects.create(leaderboard=stale, user=user, score=EDITED_SCORE)
+
+    call_command("seed_crash1_leaderboards", verbosity=0)
+
+    updated = Leaderboard.objects.get(pk=stale.pk)
+    assert (updated.description, updated.mem_addr) == (description, mem_addr)
+    assert (updated.format, updated.lower_is_better) == (LEADERBOARD_FORMAT, True)
+    assert LeaderboardEntry.objects.get(leaderboard=updated).score == EDITED_SCORE
+    assert leaderboard_game.leaderboards.count() == LEADERBOARD_COUNT
+
+
+@pytest.mark.django_db
+def test_seed_leaderboards_refuses_two_rows_with_one_title(leaderboard_game):
+    first_title, last_title = leaderboards()[0][0], leaderboards()[-1][0]
+    first = leaderboard_game.leaderboards.get(title=first_title)
+    first.description = "old"
+    first.save()
+    Leaderboard.objects.create(
+        game=leaderboard_game, title=last_title, mem_addr="STA:0=1::CAN:0=1::SUB:0=1::VAL:M:1=1"
+    )
+
+    with pytest.raises(CommandError, match=f"2 leaderboards .* are titled '{last_title}'"):
+        call_command("seed_crash1_leaderboards", verbosity=0)
+
+    first.refresh_from_db()
+    assert first.description == "old"
+
+
+@pytest.mark.django_db
+def test_patch_serves_the_seeded_leaderboards(client, leaderboard_game, player_token):
+    _, token = player_token
+
+    data = client.post(
+        "/dorequest.php", {"r": "patch", "t": token, "g": leaderboard_game.pk}
+    ).json()
+
+    assert data["Success"] is True
+    served = {
+        lb["Title"]: (lb["Mem"], lb["Format"], lb["LowerIsBetter"])
+        for lb in data["PatchData"]["Leaderboards"]
+    }
+    assert served == {
+        title: (mem_addr, LEADERBOARD_FORMAT, True) for title, _, mem_addr, _, _ in leaderboards()
     }
