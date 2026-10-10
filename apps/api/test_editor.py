@@ -14,6 +14,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.utils import timezone
 from PIL import Image
 
+from apps.accounts.models import Friendship
 from apps.achievements.models import (
     MAX_BADGE_UPLOAD_BYTES,
     PLACEHOLDER_BADGE_NAME,
@@ -1060,7 +1061,24 @@ def test_achievementwondata_pages_by_o_and_c(client, player, won_achievement):
 
 
 @pytest.mark.django_db
-def test_achievementwondata_friends_only_is_empty(client, won_achievement):
+def test_achievementwondata_friends_only_lists_the_winners_the_user_follows(
+    client, player, other, staff, won_achievement
+):
+    Friendship.objects.create(user=player, friend=other)
+    Friendship.objects.create(user=staff, friend=player)
+
+    data = _raw(client, _with(RCHEEVOS_ACHIEVEMENT_WON_DATA, o="0"))
+
+    assert data["Response"]["RecentWinner"] == [_winner(other, won_achievement, hardcore=True)]
+    assert data["Response"]["NumEarned"] == 3
+
+
+@pytest.mark.django_db
+def test_achievementwondata_friends_only_pages_past_the_followed_winners(
+    client, player, other, won_achievement
+):
+    Friendship.objects.create(user=player, friend=other)
+
     data = _raw(client, RCHEEVOS_ACHIEVEMENT_WON_DATA)
 
     assert data["Response"]["RecentWinner"] == []

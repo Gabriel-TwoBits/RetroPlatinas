@@ -229,7 +229,8 @@ A refusal answers `access_denied` with `Status` 403, as RetroAchievements does.
 | `submitgametitle` | staff | links the hash to game `g`, or to the game titled `i` on console `c`, created if there is none |
 | `badgeiter` | anyone | the first badge number and the next one |
 | `uploadbadgeimage` | any user | multipart `u`, `t`, `file` (PNG, JPEG or GIF, at most 1 MiB and 1024 px a side); answers the new badge's name as `BadgeIter` |
-| `achievementwondata` | any user | the achievement's latest unlockers; the friends-only page (`f=1`) is empty |
+| `achievementwondata` | any user | the achievement's latest unlockers; the friends-only page (`f=1`) lists only those the user follows, while `NumEarned` still counts everyone |
+| `getfriendlist` | any user | the active users the user follows, most recently seen first, at most 100: avatar, hardcore points (`RAPoints`) and, from their latest play record, the rich presence (`LastSeen`, `Unknown` without one), when it was seen and the game; the last-seen fields are null for one who never played |
 | `latestclient` | anyone | answers `not_found`, which lets every emulator through |
 
 `uploadachievement` and `uploadleaderboard` carry a checksum `h`, the lowercase hex MD5 rcheevos

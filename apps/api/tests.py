@@ -65,6 +65,7 @@ IMPLEMENTED_ACTIONS = (
     "gameinfolist",
     "hashlibrary",
     "achievementwondata",
+    "getfriendlist",
     "latestclient",
 )
 STUB_ACTIONS = [k for k in HANDLERS if k not in IMPLEMENTED_ACTIONS]

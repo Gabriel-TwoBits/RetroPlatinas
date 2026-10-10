@@ -4,13 +4,13 @@ import secrets
 from datetime import UTC, timedelta
 from http import HTTPStatus
 
-from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate, get_user_model
 from django.db import transaction
-from django.db.models import Count, Min, Q, Sum
+from django.db.models import Count, F, Min, OuterRef, Q, Subquery, Sum
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 
-from apps.accounts.models import API_TOKEN_BYTES
+from apps.accounts.models import API_TOKEN_BYTES, Friendship
 from apps.achievements.models import Achievement, UserUnlock
 from apps.anticheat.detection import (
     award_rate_exceeded,
@@ -918,8 +918,11 @@ def handle_achievementwondata(request):
         return _ACHIEVEMENT_NOT_FOUND
 
     winners = _achievement_winners(achievement)
-    # There is no friends model, so a friends-only page is empty.
-    page = [] if friends_only else winners[offset : offset + count]
+    if friends_only:
+        listed = winners.filter(user__in=Friendship.objects.filter(user=user).values("friend"))
+    else:
+        listed = winners
+    page = listed[offset : offset + count]
     return {
         "Success": True,
         "AchievementID": achievement.pk,
@@ -936,6 +939,85 @@ def handle_achievementwondata(request):
                 for winner in page
             ],
         },
+    }
+
+
+# RAWeb's cap: only the most recently seen of the users followed.
+FRIEND_LIST_MAX = 100
+# What RAWeb answers as `LastSeen` when it knows no rich presence.
+LAST_SEEN_UNKNOWN = "Unknown"
+
+
+def _seen_at():
+    """When a play record last saw its player: the latest ping, else the session start."""
+    return Coalesce("last_ping_at", "last_played_at")
+
+
+def _followed_users(user):
+    """The active users `user` follows, most recently seen first, at most `FRIEND_LIST_MAX`."""
+    last_seen_at = (
+        PlayerGame.objects.filter(user=OuterRef("pk"))
+        .annotate(seen_at=_seen_at())
+        .order_by("-seen_at")
+        .values("seen_at")[:1]
+    )
+    return (
+        get_user_model()
+        .objects.filter(followed_by__user=user, is_active=True)
+        .annotate(last_seen_at=Subquery(last_seen_at))
+        .order_by(F("last_seen_at").desc(nulls_last=True), "-hardcore_points", "username")
+    )[:FRIEND_LIST_MAX]
+
+
+def _latest_play_records(users):
+    """Each user's most recently seen play record, by user id."""
+    records = (
+        PlayerGame.objects.filter(user__in=users)
+        .annotate(seen_at=_seen_at())
+        .select_related("game")
+        .order_by("user_id", "-seen_at", "-id")
+        .distinct("user_id")
+    )
+    return {record.user_id: record for record in records}
+
+
+def _friend_entry(request, friend, record):
+    """`rc_api_followed_user_t`: the last-seen fields come from the latest play record, null
+    when the friend never played."""
+    entry = {
+        "Friend": friend.username,
+        "AvatarUrl": _user_avatar_url(request, friend.username),
+        "RAPoints": friend.hardcore_points,
+    }
+    if record is None:
+        return {
+            **entry,
+            "LastSeen": LAST_SEEN_UNKNOWN,
+            "LastSeenTime": None,
+            "LastGameId": None,
+            "LastGameTitle": None,
+            "LastGameIconUrl": None,
+        }
+    else:
+        return {
+            **entry,
+            "LastSeen": record.last_rich_presence or LAST_SEEN_UNKNOWN,
+            "LastSeenTime": int(record.seen_at.timestamp()),
+            "LastGameId": record.game_id,
+            "LastGameTitle": record.game.title,
+            "LastGameIconUrl": _game_icon_url(request, record.game),
+        }
+
+
+def handle_getfriendlist(request):
+    user, error = _authenticate(request)
+    if error is not None:
+        return error
+    friends = list(_followed_users(user))
+    records = _latest_play_records(friends)
+    return {
+        "Success": True,
+        "Friends": [_friend_entry(request, friend, records.get(friend.pk)) for friend in friends],
     }
 
 
@@ -963,5 +1045,6 @@ HANDLERS = {
     "gameinfolist": handle_gameinfolist,
     "hashlibrary": handle_hashlibrary,
     "achievementwondata": handle_achievementwondata,
+    "getfriendlist": handle_getfriendlist,
     "latestclient": handle_latestclient,
 }
