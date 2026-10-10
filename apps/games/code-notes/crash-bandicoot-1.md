@@ -1,7 +1,11 @@
 # Crash Bandicoot 1 — Memory Map (Code Notes)
 
 > **Source:** RetroAchievements code notes for *Crash Bandicoot* (PlayStation), game id 10434 — <https://retroachievements.org/codenotes.php?g=10434>  
-> **Community authors:** matheus2653, CySlaytor, Alfex, msdmario, TheJediSonic.
+> **Community authors:** matheus2653, CySlaytor, Alfex, msdmario, TheJediSonic.  
+> **Also used:** the wurlyfox/c1 decompilation of Crash Bandicoot — <https://github.com/wurlyfox/c1>; the
+> CBHacks Crash 1 memory map — <https://wiki.cbhacks.com/w/Memory_Map>; DuckStation's cheat database for
+> SCUS-94900 — <https://github.com/duckstation/chtdb/blob/master/cheats/SCUS-94900.cht>; the Crash Bandicoot
+> Wiki (Fandom) — <https://crashbandicoot.fandom.com/>.
 
 RetroAchievements maps system memory at `$00000000` immediately followed by cartridge memory, so the addresses below may not correspond to real-hardware addresses. The `Type` column is inferred from each note's text and is best-effort. Seed these notes into the database as `CodeNote` rows with `python manage.py seed_crash1_code_notes` (idempotent).
 
@@ -14,7 +18,8 @@ Target ROM: **NTSC-US, SCUS-94900**.
   written and tested against the USA ROM only, so every address the set actually uses is, by definition, a
   USA address.
 - **Untagged notes = the canonical USA map.** This is where the `0x619xx` block lives — the block validated
-  in-game, whose four addresses the code notes agree with.
+  in game and in the headless harness; **Validated addresses** lists the notes that validation corrected
+  (`0x61998`, `0x618cc`).
 - **`(EU)`-tagged notes are out of scope.** They are annotations for a different ROM left in the shared
   code-note file; they are not our target (NTSC-US, SCUS-94900) and are **not addresses to validate** —
   rechecking them makes no sense. They are kept in the raw dump below only as a record that they exist and
@@ -27,48 +32,70 @@ Target ROM: **NTSC-US, SCUS-94900**.
 
 - **The public API does not expose achievement conditions.** `API_GetGameExtended` returns `MemAddr` as an
   **MD5 hash** for non-authors, so no address here is inferred from the working RA condition logic — every
-  entry is sourced from a **code note** or from **in-game validation**, never from the set's `MemAddr`.
+  entry is sourced from a **code note**, from the **c1 decompilation**, or from **validation** (in game or in
+  the headless harness), never from the set's `MemAddr`.
 - **Only untagged notes describe the USA target.** `(EU)`-tagged notes belong to another ROM and are out of
   scope (see **Scope** above); the canonical USA map is the untagged `0x619xx` family.
-- **Console RAM is zeroed at reset,** so `0` means "not initialised yet" as often as it means "state 0".
-  Guard any `0`-valued read with the pointer at `0x618cc` (`0xW618cc!=0`), which is provably non-zero only
-  while a game is actually running.
+- **The `0x6188c`–`0x61a67` block is the engine's GOOL globals array** (`gool_globals` at `0x8006188C` in the
+  [wurlyfox/c1](https://github.com/wurlyfox/c1) decompilation, `src/globals.h`): global *n* lives at
+  `0x6188c + 4n`, and most counters are 24.8 fixed point, so the integer is the second byte. That is why the
+  notes point at odd addresses (`0x618ed` lives, `0x61985` boxes, `0x619c5` stage).
+- **Console RAM is zeroed at reset,** so `0` means "not initialised yet" as often as it means "state 0". The
+  level id at `0x6188d` is the reliable context: it names the level file the engine has loaded, from the boot
+  logos to the Stage Clear screen. The Aku Aku pointer at `0x618cc` is **not** a "game running" guard (see
+  below).
 
-## Validated addresses (in-game, by maintainer)
+## Validated addresses
 
-These four are confirmed on SCUS-94900. **The code notes agree** with all four (same address, same meaning) —
-no disagreement to flag.
+Validated on SCUS-94900, in game (DuckStation, by the maintainer) or in the headless harness
+(`tools/achievement-harness/`: the real disc on a libretro core with the rcheevos runtime judging every frame).
+The c1 name is the global's name in the decompilation.
 
-| Address (rcheevos) | Size | Meaning | Code note | Status |
+| Address (rcheevos) | Size | Meaning | Source | Status |
 | --- | --- | --- | --- | --- |
-| `0xW618cc` | 24-bit ptr | Aku Aku struct pointer (shield level at `+0x189`). Use `!=0` as the "game running" guard. | `0x618cc` [24-bit Pointer] | **VALIDATED** ✓ (notes agree) |
-| `0xH61994` | 8-bit | Overworld status: `00` in a stage · `01` on the map · `05` going to prev world · `06` going to next world | `0x61994` Overworld Status | **VALIDATED** ✓ (notes agree) |
-| `0xH619c5` | 8-bit | Current stage / stage-select id (`00`=N.Sanity Beach … `20`=Whole Hog; full table below) | `0x619c5` Stage Select/Current Stage | **VALIDATED** ✓ (notes agree) |
-| `0xH61998` | 8-bit | On results screen (non-zero on the end-of-stage tally) | `0x61998` On Results Screen | **VALIDATED** ✓ (notes agree) |
+| `0xH6188d` | 8-bit | Level id (c1 `cur_lid_ro`, GOOL global 0 set by `GoolInitLid`; `LID_*` in `src/common.h`): `19` title, menus and island map · `09` N. Sanity Beach · `0c` Jungle Rollers · `12` The Great Gate · `0e` Boulders · `0f` Upstream · `15` Rolling Stones · `2d` Stage Clear screen (`LID_LEVELEND`). A clear moves it from the stage's id to `2d`, or straight to `19` (game state `03`) when it follows a death past a checkpoint; a boss win moves it from the fight's id straight to `19` (game state `03`); a death respawns in place; a game over and a pause → quit move it to `19`; the attract demos go stage id → `19` | c1 + harness | **VALIDATED** (harness) |
+| `0xH618d1` | 8-bit | Game state (c1 `game_state >> 8`): `00` cutscene / menus · `01` playing (an attract demo too, while `0x61a30` is non-zero) · `02` game over · `03` leaving the Stage Clear screen, or a level won straight to the map (a boss beaten; a stage cleared after a death past a checkpoint, which skips Stage Clear) · `04` quitting from the pause menu · `05` stage cleared (c1 `GAME_STATE_NEW_GEM`, gem or not, unless a death past a checkpoint made it `03`) · `06` title / demo ending. On a clear it reads `05` for about 90 frames, then `01` from the frame `0x6188d` becomes `2d` | c1 + harness | **VALIDATED** (harness) |
+| `0xH61a30` | 8-bit | Attract-demo playback (c1 `pbak_state`): `03` demo picked · `02` demo playing · `00` in normal play. Leaves `02` about 55 frames and is back to `00` about 15–18 frames **before** a demo's level switches back to `19` | c1 + harness | **VALIDATED** (harness) |
+| `0xH618d4` | 8-bit | Title screen (c1 `title_state`, `src/title.c`), meaningful while `0x6188d` is `19`: `0a`/`07` the Sony and Universal screens · `08` Naughty Dog · `05` main menu · `06` options · `0c` game over · `0d`/`0e` password / load game · `0f` island map. Keeps its last value inside a stage | c1 + harness (`0a`, `07`, `08`, `05`, `0c`, `0f`) | **VALIDATED** (harness) |
+| `0xW566b4` +`0x165` | 8-bit (via ptr) | Lives: integer byte of the player object's 24.8 lives at `+0x164`. Changes on the fatal hit; holds leftovers of the previous level for 1–2 frames after a level loads. The pointer reads `0` (object freed) from a pause → quit, and about 70 frames before the Stage Clear screen, until the level changes. **Capped at 99**: an extra life at 99 keeps 99, and the next extra life clamps a poked 150 to 99 (measured by a RAM poke, secondary evidence) | harness | **VALIDATED** (harness) |
+| `0xW566b4` +`0x161` | 8-bit (via ptr) | Wumpa: integer byte of the player object's 24.8 Wumpa at `+0x160` (lives sit right after it). Several fruit can land on one frame (+6 from one crate). Passing 100 subtracts 100 (95 + 6 → 1) and the game adds an extra life about 110 frames later; deaths and checkpoints never lower it. The Wumpa HUD (`0x618a4` chain) only counts up towards it, one fruit per 8 frames | harness | **VALIDATED** (harness) |
+| `0xH618a1` | 8-bit | Respawn counter (c1 `respawn_count`, 24.8): `+1` on every in-stage respawn, kept through Stage Clear; back to `0` whenever the title level `19` loads (game over, pause → quit, Stage Clear → map, a demo ending), and 2 frames into a clear that goes straight to the map | c1 + harness | **VALIDATED** (harness) |
+| `0xH61948` | 8-bit | Stages unlocked on the island map (c1 `levels_unlocked`): the map spawns the paths and stage markers up to this count when it loads; `1` on a new game, `2` once N. Sanity Beach is cleared | c1 + harness | **VALIDATED** (harness) |
+| `0xH61994` | 8-bit | Overworld status (c1 `island_cam_state`): `00` in a stage (and before the map first shows) · `01` on the map · `05` going to prev world · `06` going to next world. `ff` for one frame when the map appears; deaths do not change it | code note + harness | **VALIDATED** (notes agree) |
+| `0xH619c5` | 8-bit | Stage under the map cursor (`00`=N. Sanity Beach … `20`=Whole Hog; table below). Stays set inside the stage; `00` until the cursor first moves and in every attract demo | code note + harness | **VALIDATED** (notes agree) |
+| `0xH61998` | 8-bit | c1 `is_first_zone`, **not** a results flag: `0→1` on every level-file load (boot logos, title, demos, stages, map, Stage Clear) and on every respawn; back to `0` when Crash leaves the first zone | c1 + harness | **CORRECTED** (the note says "On Results Screen") |
+| `0xW618cc` | 24-bit ptr | Aku Aku object pointer (shield level at `+0x189`). `0` only until the first level or demo loads after power-on, **never cleared** afterwards: it means "something loaded since power-on", not "a stage is loaded" | code note + harness | **CORRECTED** (not a "game running" guard) |
+| `0xH61985` | 8-bit | Box count (c1 `box_count`, 24.8 at `0x61984`): `+1` per box broken in the stage; a death sets it back to `0` (then `1` three frames after a respawn at a checkpoint), and so does every level load. On the Stage Clear screen (`2d`) it counts the missed boxes up, one per 18 frames. Measured totals: N. Sanity Beach 49, Jungle Rollers 38 | c1 + harness | **VALIDATED** (harness) |
+| `0xN61988`, `0xO61988` | bit | Clear gems of N. Sanity Beach and Jungle Rollers (c1 `item_pool1`; bit *n* + 1 is map stage *n* of `0x619c5`). Set by the Stage Clear screen about 280 frames after it loads, when the box count reached the stage's boxes (one short leaves it clear); kept through the map and the next stages. Seen only with the box count poked to the total (secondary evidence) | harness | **VALIDATED** (harness, poked count) |
+| `0xW60ddc` +`0x105` | 8-bit (via ptr) | Papu Papu's health: integer byte of the boss object's 24.8 health at `+0x104`. `3` at the start of the fight, `-1` per hit; after the last hit (1 → 0) it reads `ff` and the fight goes straight to the island map (game state `03`, `0a` → `19`, no Stage Clear). A respawn allocates a new object at `3`, the pointer reading `0` for two frames | code note + harness | **VALIDATED** (harness) |
+| `0xH56400` | 8-bit | Pause menu (c1 `paused`, `src/main.c`): `01` while the pause menu is open, the stage frozen; back to `00` when it closes or a pause → quit leaves the stage. Never changed by a death, a clear or a game over (harness) | c1 + harness | **VALIDATED** (harness) |
+| `0xW566b4` +`0x121` bit 7 | bit (via ptr) | Bit 15 of the player object's state flags (c1 `state_flags` at `+0x120`, copied from the current GOOL state; c1 leaves the bit unnamed): set by the states that open a stage. Jungle Rollers' spin-in (GOOL state `28`, 83 frames from the level load, the game state already `01`) clears it on the frame Crash can move; N. Sanity Beach's wake-up (state `22`) keeps it after the intro hands over (game state `00` → `01`) until the first button. The pointer is null on the map, and the object new on the frame a stage loads | c1 + harness | **VALIDATED** (harness, N. Sanity Beach and Jungle Rollers) |
+| `0xW618cc` +`0x189` | 8-bit (via ptr) | Aku Aku masks: integer byte of the Aku object's 24.8 level at `+0x188`, `0` none, `1`–`3` masks. The first mask spawns him at `1` (a value written before that is overwritten); the third (2 → 3) turns Crash invincible; a hit takes one, a death all. The object is reallocated per level and holds the previous value for about 20 frames after a load | harness | **VALIDATED** (harness) |
 
-## Key addresses (code note only — NOT yet validated in game)
+## Key addresses (code notes; partial harness observations marked)
 
-Same `0x619xx` block as the validated four, so high confidence for NTSC-US, but each still needs an in-game
-check before shipping a condition against it.
+Same `0x619xx` block as the validated addresses, so high confidence for NTSC-US, but each still needs a check
+before shipping a condition against it. A row marked *(harness)* records one behaviour the headless harness
+observed, not a full validation of the address.
 
 | Address | Size | Meaning | Notes |
 | --- | --- | --- | --- |
-| `0x61988`–`0x6198b` | bitfield ×4 | Gems collected, 1 bit per stage (see 100% table) | Core of the 26-gem tracking |
+| `0x61988`–`0x6198b` | bitfield ×4 | Gems collected: bit *n*+1 counted from `0x61988` is stage *n* of the `0x619c5` table | Core of the 26-gem tracking |
 | `0x619ad` | bitfield | Key/Gem pt1: bit0 Fumbling-in-the-Dark gem, bit2 Jaws-of-Darkness **key** | Secret / key-gated |
 | `0x619ae` | bitfield | Key/Gem pt2: bit2 Whole Hog gem, bit4 Sunset Vista **key** | Secret / key-gated |
-| `0x61985` | 8-bit | Boxes destroyed/missed (running counter, per stage) | The USA note; its `(EU)` twin `0x61665` is out of scope |
 | `0x6197c` | 8-bit | Current bonus stage id (Tawna/Brio/Cortex) | Bonus-round identity, not token count |
 | `0x61974` | 8-bit | Game progress — **updates only while the progress screen is shown** | Laggy; not a live counter |
 | `0x61a10` | 8-bit | Gems total — **updates only while the progress screen is shown** | Laggy aggregate |
-| `0x61a68` | 8-bit | `FF` = finished/quit a level (approx) | "Kinda", per author |
-| `0x618a4` | 24-bit ptr | Wumpa fruit count (deref `+0x6c → +0xe4 → +0x0c`) | In-stage Wumpa |
-| `0x618a8` | 24-bit ptr | Lives counter (deref `+0x06 → +0xe4 → +0x0c`) | In-stage lives |
-| `0x618ed` / `0x618f1` / `0x618f5` | 8-bit | Lives / Aku Aku / Wumpas — **map screen** copies | Map-side mirror |
-| `0x60ddc` | 24-bit ptr | Boss health (Papu/Ripper/Pinstripe/Cortex/Brio via offsets) | Hit-counter semantics, see raw dump |
+| `0x618a4` | 24-bit ptr | Wumpa fruit count (deref `+0x6c → +0xe4 → +0x0c`) | In-stage Wumpa, live (harness); holds leftovers of the previous level for up to about 20 frames after a level loads (harness); the pointer reads `0` until the first stage after power-on loads, then keeps the last stage's HUD on the map (harness) |
+| `0x618a8` | 24-bit ptr | Lives counter (deref `+0x6c → +0xe4 → +0x0c`) | The note's `+0x06` first hop always reads 2 (harness); `+0x6c` reads the lives |
+| `0x618ed` / `0x618f1` / `0x618f5` | 8-bit | Lives / Aku Aku / Wumpas — committed copies: written from the player on a clear (the frame `0x618d1` becomes `05`) and on a pause → quit, handed to the player when the next stage starts; deaths and checkpoints leave them alone (harness) | Map-side mirror; a quit keeps the Wumpa and masks collected |
+| `0x60ddc` | 24-bit ptr | Boss health (Papu/Ripper/Pinstripe/Cortex/Brio via offsets) | Hit-counter semantics, see raw dump; Papu Papu's `+0x105` is validated above |
 | `0x61898` | 24-bit ptr | Koala Kong health (deref `+0x6c → +0x105`) | |
-| `0x54b84` | 8-bit | Frame counter | For the timed-boss achievements |
-| `0x56400` | 8-bit | `01` = game paused | Pause guard for timed runs |
-| `0x5e720` / `0x5e721` | bitfield | Controller inputs pt1/pt2 (buttons + dpad) | For "without jumping / without pressing up" achievements |
+| `0x54b84` | 8-bit | Frame counter; keeps counting while paused (harness) | For the timed-boss achievements |
+| `0x5e720` / `0x5e721` | bitfield | Controller inputs pt1/pt2 (buttons + dpad); during a demo they show the recorded inputs (harness) | For "without jumping / without pressing up" achievements |
+
+`0x61a68` ("FF = finished/quit a level" in the notes) is **not usable**: it is sound-library data
+(`_svm_okof1` in c1), not a game flag.
 
 The boss-specific and per-stage `0x9xxxx` notes below (Aku-Aku-per-stage, per-stage lives counters, boss "First
 Try" health) are **untagged USA addresses but unvalidated** — check them in game before building against them.
@@ -81,22 +108,30 @@ Their `(EU)`-tagged siblings in the same dump are out of scope (see **Scope**), 
 `0A` Ripper Roo · `0B` The Lost City · `0C` Temple Ruins · `0D` Road To Nowhere · `0E` Boulder Dash ·
 `0F` Sunset Vista · `10` Koala Kong · `11` Heavy Machinery · `12` Cortex Power · `13` Generator Room ·
 `14` Toxic Waste · `15` Pinstripe · `16` The High Road · `17` Slippery Climb · `18` Lights Out ·
-`19` Jaws of Darkness · `1A` Castle Machinery · `1B` Nitrus Brio · `1C` The Lab · `1D` The Great Wall ·
+`19` Jaws of Darkness · `1A` Castle Machinery · `1B` Nitrus Brio · `1C` The Lab · `1D` The Great Hall ·
 `1E` Dr. Neo Cortex · `1F` Fumbling In The Dark · `20` Whole Hog.
+
+This is the map cursor, **not** the level id: `0x6188d` uses the engine's `LID_*` numbering (N. Sanity Beach is
+`09` there, `00` here). The code note calls `1D` "The Great Wall"; the stage is The Great Hall.
 
 ## Traps
 
-- **`0x61998` spikes on death.** The results-screen flag also pulses during the death/back-to-map sequence, so
-  a bare `0xH61998=1` will fire on a death, not only on a real clear. Use a rising edge and gate it on a genuine
-  stage clear (`0xH61998=1_d0xH61998=0`, plus a guard that a gem/box condition actually completed).
+- **`0x61998` is `is_first_zone`, not a results flag.** It rises `0→1` on every level load and every respawn, so
+  any condition built on its edge fires on a death (the original bug of the level-completion achievements),
+  on a pause → quit, and on the title screen when an attract demo hands back to it. A stage clear is the level
+  id `0x6188d` changing from the stage's id to `2d` — see `apps/achievements/crash-bandicoot-1-level-achievements.md`.
+- **`0x618cc` is not a "stage loaded" guard.** It is null only until the first level loads after power-on, so
+  `0xW618cc!=0` separates the boot sequence from everything else and nothing more; `R:0xW618cc=0` never fires
+  once the game has started.
 - **Load-out vs. map.** `0xH61994` passes through `05`/`06` ("going to prev/next world") during the map
   transition, and stage RAM is unloaded/reloaded across it. A timer or counter read during this window sees
   stale/zeroed RAM — pause any timing and don't sample stage addresses until `0xH61994` settles to `01` (map)
-  or `00` (in stage). (This is exactly the leaderboard-timer bug fixed in recent commits.)
-- **Demo mode / attract loop.** The title-screen demo boots a stage and runs the game engine, so `0xH61994`
-  can read `00` (in a stage) with no player present. **No code note documents a demo-mode flag** → the reliable
-  guard is still the pointer (`0xW618cc!=0`) *plus* confirming the player actually has control; a real
-  demo-mode discriminator is an **in-game TODO**.
+  or `00` (in stage).
+- **Demo mode / attract loop.** From the title screen the game replays demos of real stages (measured over 15
+  minutes: Jungle Rollers, The Great Gate, Boulders, Papu Papu, The Lost City, Jaws of Darkness, The Lab) with
+  no player: `0x6188d` holds the stage id, `0x61994` reads `00` and `0x619c5` reads `00`. `0x61a30` is
+  non-zero while a demo plays, but drops to `00` before the demo's level switches back to the title, so it
+  cannot guard that switch; demos never load the Stage Clear level `2d`.
 
 ## 100% (secret ending) — what the data covers
 
@@ -104,39 +139,47 @@ Achievement set target: **26 gems + secret ending** (`A Shining Ending`), plus p
 both **keys**, and the three bonus rounds.
 
 "Destroy all boxes and collect the gem" is stored as the stage's **gem bit** (the game only awards the gem when
-every box is broken and you reach the end without dying), so the per-stage box achievements map onto these bits
-— there is no need for a separate per-stage box total.
+every box is broken and you reach the end without dying after the first checkpoint), so the per-stage box
+achievements map onto these bits — there is no need for a separate per-stage box total.
 
 | Byte | Bit → stage (gem) |
 | --- | --- |
-| `0x61988` | b1 N.Sanity Beach · b2 Jungle Rollers · b3 The Great Gate · b4 Boulders · b5 Upstream · b7 Rolling Stones · *(b0 = ??? unmapped, b6 Papu Papu = NO GEM)* |
+| `0x61988` | b1 N.Sanity Beach · b2 Jungle Rollers · b3 The Great Gate · b4 Boulders · b5 Upstream · b7 Rolling Stones · *(b0 = no stage, b6 Papu Papu = NO GEM)* |
 | `0x61989` | b0 Hog Wild · b1 Native Fortress · b2 Up The Creek · b4 The Lost City **(Green)** · b5 Temple Ruins · b6 Road To Nowhere · b7 Boulder Dash · *(b3 Ripper Roo = NO GEM)* |
 | `0x6198a` | b0 Sunset Vista · b2 Heavy Machinery · b3 Cortex Power · b4 Generator Room **(Orange)** · b5 Toxic Waste **(Blue)** · b7 The High Road · *(b1 Koala Kong, b6 Pinstripe = NO GEM)* |
-| `0x6198b` | b0 Slippery Climb **(Red)** · b1 Lights Out **(Purple)** · b2 Fumbling In The Dark · b3 Castle Machinery · b5 The Lab **(Yellow)** · *(b4 Nitrus Brio = NO GEM)* |
+| `0x6198b` | b0 Slippery Climb **(Red)** · b1 Lights Out **(Purple)** · b2 Jaws of Darkness · b3 Castle Machinery · b5 The Lab **(Yellow)** · *(b4 Nitrus Brio = NO GEM)* |
 | `0x619ad` | b0 Fumbling in the Dark gem · **b2 Jaws of Darkness KEY** |
 | `0x619ae` | **b2 Whole Hog gem** · **b4 Sunset Vista KEY** |
+
+The code note puts Fumbling In The Dark at `0x6198b` bit2. By the bit-per-stage rule (bit *n*+1 from `0x61988`
+is stage *n*) that bit is stage `19`, Jaws of Darkness; Fumbling In The Dark's gem is only `0x619ad` bit0. The
+DuckStation all-gems cheat for SCUS-94900 writes `0x2FBDF7BE` at `0x61988` and `0x00140500` at `0x619ac`, which
+is exactly the 26 gems with this mapping.
 
 Colored gems (6 named in notes): Green (Lost City), Orange (Generator Room), Blue (Toxic Waste), Red (Slippery
 Climb), Purple (Lights Out), Yellow (The Lab). **Keys:** Sunset Vista → `0x619ae` bit4; Jaws of Darkness →
 `0x619ad` bit2.
 
-### What the data does NOT cover — in-game discovery required
+### What the data does NOT cover — discovery required
 
 1. **Bonus-round token count.** Achievements need "collect 3 Tawna / 3 Brio tokens". `0x6197c` gives the
-   bonus-stage **identity** but **no note documents the token counter**. → find the token count address in game.
-2. **Per-stage box totals.** Only a single running "boxes destroyed/missed" counter (`0x61985`) exists — no
-   per-stage "X of Y" totals. Fine for standard 100% (gem bit = all boxes); any "N of M boxes" achievement needs
-   the per-stage total discovered in game. The missed-vs-broken semantics of `0x61985` also need confirming.
-3. **Gem-bitfield redundancy / gaps.** `0x61988` bit0 is unmapped (`???`); Fumbling-in-the-Dark appears at both
-   `0x6198b` bit2 **and** `0x619ad` bit0; Whole Hog lives only in `0x619ae`. Which bit the game actually sets on
-   collection (and whether both mirror) must be confirmed in game before a 26-gem "all set" mask is trusted.
+   bonus-stage **identity** but **no note documents the token counter**. c1 names a `tawna_count` global at
+   `0x61900` (24.8); Cortex and Brio have `0x618f8` / `0x618fc`. Unvalidated.
+2. **Per-stage box totals.** Only a single running box counter (`0x61985`) exists — no per-stage "X of Y"
+   totals in RAM. Fine for standard 100% (gem bit = all boxes); N. Sanity Beach (49) and Jungle Rollers (38)
+   are measured, any other "N of M boxes" achievement needs its stage's total measured.
+3. **Gem bit timing — measured:** the Stage Clear screen sets it (see **Validated addresses**).
 4. **The 26-gem completion mask.** `0x61a10` ("gems total") only updates on the progress screen, so it is not a
    reliable live "26/26" trigger. A robust all-gems condition has to AND the individual bits above — build the
    exact mask and verify the total lands at 26 in game.
-5. **Demo-mode discriminator** (see Traps) — no documented flag.
-6. **`0x61a68` "finished/quit" semantics** are approximate ("kinda") — confirm before relying on it.
+5. **Generator Room's Tawna bonus id.** The note lists `0B` for both Up the Creek and Generator Room; research
+   against the c1 decompilation and the CBHacks map gives `02` for Generator Room. Unvalidated.
+6. **Boss hit counts.** The `0x60ddc` note caps Nitrus Brio at 5 hits; the Crash wiki says 9. Unvalidated.
 
-## All code notes (108)
+## All code notes (113)
+
+The 108 RetroAchievements code notes, verbatim, with a *RetroPlatinas correction* appended where research or
+validation contradicts them, plus five addresses marked *RetroPlatinas* that the notes do not cover.
 
 | Address | Type | Note |
 | --- | --- | --- |
@@ -148,30 +191,35 @@ Climb), Purple (Lights Out), Yellow (The Lab). **Keys:** Sunset Vista → `0x619
 | `0x60e1a` | 8-bit | Big TNT moving pattern (left column moves down, ?) |
 | `0x61665` | 8-bit | Number of crates broken/missed (EU) |
 | `0x61678` | enum/flag | 01: On results screen/you died after first checkpoint (EU) |
+| `0x6188d` | 8-bit | Level id (RetroPlatinas; c1 cur_lid_ro, GOOL global 0, validated in the headless harness):<br>19 - Title, menus and island map<br>09 - N. Sanity Beach<br>0C - Jungle Rollers<br>0E - Boulders<br>0F - Upstream<br>12 - The Great Gate<br>15 - Rolling Stones<br>2D - Stage Clear screen<br>A stage clear changes it from the stage's id to 2D. |
 | `0x61898` | pointer | [24-bit Pointer]<br>+0x6c \|<br>.+0x105 \| Koala Kong Health |
+| `0x618a1` | 8-bit | Respawn counter (RetroPlatinas; c1 respawn_count, validated in the headless harness): +1 on every in-stage respawn, back to 0 whenever the title level (19) loads: game over, pause → quit, Stage Clear → map. |
 | `0x618a4` | pointer | [24-bit Pointer]<br>+0x6c \|<br>.+0xe4 \|<br>..+0x0c \| [8-bit] Wumpa Fruits |
-| `0x618a8` | pointer | [24-bit Pointer]<br>+0x06 \|<br>.+0xe4 \|<br>..+0x0c \| [8-bit] Live Counter |
-| `0x618cc` | pointer | [24-bit Pointer]<br>+0x80 \| [32-bit] Aku Aku's X Position<br>+0x84 \| [32-bit] Aku Aku's Y Position<br>+0x88 \| [32-bit] Aku Aku's Z Position<br><br>+0x189 \| Aku Aku Shield Level<br>0x01 = Level 1<br><br>----- Debug -----<br>+0xe0 \| [32-bit] Invincible Crash (freeze this value after acquiring Aku Aku shield, unfreeze upon finishing the level) |
+| `0x618a8` | pointer | [24-bit Pointer]<br>+0x06 \|<br>.+0xe4 \|<br>..+0x0c \| [8-bit] Live Counter<br><br>RetroPlatinas correction: the first hop is +0x6c, not +0x06 (+0x06 always reads 2; validated in the headless harness). |
+| `0x618cc` | pointer | [24-bit Pointer]<br>+0x80 \| [32-bit] Aku Aku's X Position<br>+0x84 \| [32-bit] Aku Aku's Y Position<br>+0x88 \| [32-bit] Aku Aku's Z Position<br><br>+0x189 \| Aku Aku Shield Level<br>0x01 = Level 1<br><br>----- Debug -----<br>+0xe0 \| [32-bit] Invincible Crash (freeze this value after acquiring Aku Aku shield, unfreeze upon finishing the level)<br><br>RetroPlatinas correction: null only until the first level loads after power-on and never cleared afterwards, so it is not a "stage loaded" guard (validated in the headless harness). |
+| `0x618d1` | enum/flag | Game state (RetroPlatinas; c1 game_state, validated in the headless harness):<br>00 - Cutscene / menus<br>01 - Playing<br>02 - Game over<br>03 - Leaving the Stage Clear screen, or a level won straight to the map (boss beaten, stage cleared after a death past a checkpoint)<br>04 - Quitting from the pause menu<br>05 - Stage cleared<br>06 - Title / demo ending |
 | `0x618ed` | 8-bit | Lives Countrer (Map) |
 | `0x618f1` | 8-bit | Aku Aku (Map) |
 | `0x618f5` | 8-bit | Wumpas (Map) |
 | `0x61920` | 32-bit | Camera Position X (32-Bit) |
 | `0x61924` | 32-bit | Camera Position Y (32-Bit) |
 | `0x61930` | 8-bit | Something Cutscene Related? |
+| `0x61948` | 8-bit | Stages unlocked on the island map (RetroPlatinas; c1 levels_unlocked, validated in the headless harness): the map spawns the stages up to this count when it loads. |
 | `0x61974` | 8-bit | Game Progress (Value only changes when Game Progress is show on screen) |
-| `0x6197c` | enum/flag | Current Bonus Stage:<br>00 - Tawna Bonus Stage 1 (Jungle Rollers)<br>04 - Tawna Bonus Stage 2 (The Great Gate)<br>0A - Tawna Bonus Stage 3 (Upstream)<br>08 - Tawna Bonus Stage 4 (Rolling Stones)<br>01 - Tawna Bonus Stage 5 (Native Fortress)<br>0B - Tawna Bonus Stage 6 (Up the Creek)<br>0C - Tawna Bonus Stage 7 (The Lost City)<br>0D - Tawna Bonus Stage 8 (Road To Nowhere)<br>05 - Tawna Bonus Stage 9 (Sunset Vista)<br>12 - Tawna Bonus Stage 10 (Heavy Machinery)<br>0B - Tawna Bonus Stage 11 (Generator Room)<br>06 - Tawna Bonus Stage 12 (Toxic Waste)<br>03 - Tawna Bonus Stage 13 (The High Road)<br>11 - Tawna Bonus Stage 14 (Jaws of Darkness)<br>13 - Tawna Bonus Stage 15 (The Lab)<br><br>0E - Brio Bonus Stage 1 (Rolling Stones)<br>07 - Brio Bonus Stage 2 (The Lost City)<br>15 - Brio Bonus Stage 3 (Heavy Machinery)<br>14 - Brio Bonus Stage 4 (Slippery Climb)<br><br>09 - Cortex Bonus Stage 1 (Sunset Vista)<br>0F - Cortex Bonus Stage 2 (Jaws Of Darkness) |
+| `0x6197c` | enum/flag | Current Bonus Stage:<br>00 - Tawna Bonus Stage 1 (Jungle Rollers)<br>04 - Tawna Bonus Stage 2 (The Great Gate)<br>0A - Tawna Bonus Stage 3 (Upstream)<br>08 - Tawna Bonus Stage 4 (Rolling Stones)<br>01 - Tawna Bonus Stage 5 (Native Fortress)<br>0B - Tawna Bonus Stage 6 (Up the Creek)<br>0C - Tawna Bonus Stage 7 (The Lost City)<br>0D - Tawna Bonus Stage 8 (Road To Nowhere)<br>05 - Tawna Bonus Stage 9 (Sunset Vista)<br>12 - Tawna Bonus Stage 10 (Heavy Machinery)<br>0B - Tawna Bonus Stage 11 (Generator Room)<br>06 - Tawna Bonus Stage 12 (Toxic Waste)<br>03 - Tawna Bonus Stage 13 (The High Road)<br>11 - Tawna Bonus Stage 14 (Jaws of Darkness)<br>13 - Tawna Bonus Stage 15 (The Lab)<br><br>0E - Brio Bonus Stage 1 (Rolling Stones)<br>07 - Brio Bonus Stage 2 (The Lost City)<br>15 - Brio Bonus Stage 3 (Heavy Machinery)<br>14 - Brio Bonus Stage 4 (Slippery Climb)<br><br>09 - Cortex Bonus Stage 1 (Sunset Vista)<br>0F - Cortex Bonus Stage 2 (Jaws Of Darkness)<br><br>RetroPlatinas correction: 0B is Up the Creek; Generator Room is 02 (c1 decompilation and CBHacks research, not validated). |
 | `0x61985` | 8-bit | Ammount of boxes destroyed/missed |
 | `0x61988` | bitfield | Gems Collected Part 1:<br>Bit0 - ???<br>Bit1 - N. Sanity Beach<br>Bit2 - Jungle Rollers<br>Bit3 - The Great Gate<br>Bit4 - Boulders<br>Bit5 - Upstream<br>Bit6 - Papu Papu (NO GEM)<br>Bit7 - Rolling Stones |
 | `0x61989` | bitfield | Gems Collected Part 2:<br>Bit0 - Hog Wild<br>Bit1 - Native Fortress<br>Bit2 - Up The Creek<br>Bit3 - Ripper Roo (NO GEM)<br>Bit4 - The Lost City (Green Gem)<br>Bit5 - Temple Ruins<br>Bit6 - Road To Nowhere<br>Bit7 - Boulder Dash |
 | `0x6198a` | bitfield | Gems Collected Part 3:<br>Bit0 - Sunset Vista<br>Bit1 - Koala Kong (NO GEM)<br>Bit2 - Heavy Machinery<br>Bit3 - Cortex Power<br>Bit4 - Generator Room (Orange Gem)<br>Bit5 - Toxic Waste (Blue Gem)<br>Bit6 - Pinstripe (NO GEM)<br>Bit7 - The High Road |
-| `0x6198b` | bitfield | Gems Collected Part 4:<br>Bit0 - Slippery Climb (Red)<br>Bit1 - Lights Out (Purple)<br>Bit2 - Flumbling In The Dark<br>Bit3 - Castle Machinery<br>Bit4 - Nitrus Brio (NO GEM)<br>Bit5 - The Lab (Yellow) |
+| `0x6198b` | bitfield | Gems Collected Part 4:<br>Bit0 - Slippery Climb (Red)<br>Bit1 - Lights Out (Purple)<br>Bit2 - Flumbling In The Dark<br>Bit3 - Castle Machinery<br>Bit4 - Nitrus Brio (NO GEM)<br>Bit5 - The Lab (Yellow)<br><br>RetroPlatinas correction: Bit2 is Jaws of Darkness; the Fumbling In The Dark gem is 0x619ad Bit0. |
 | `0x61994` | enum/flag | Overworld Status:<br>00 - In a Stage<br>01 - On the Map<br>05 - Going To The Previous World<br>06 - Going To The Next World |
-| `0x61998` | 8-bit | On Results Screen |
+| `0x61998` | 8-bit | On Results Screen<br><br>RetroPlatinas correction: this is the engine's is_first_zone flag (c1): 0 -> 1 on every level load and every respawn, 0 once Crash leaves the first zone. Not a results flag (validated in the headless harness). |
 | `0x619ad` | bitfield | Key/Gem Collected Part 1:<br>Bit0 - Fumbling in the Dark Gem<br>Bit2 - Jaws Of Darkness Key |
 | `0x619ae` | bitfield | Key/Gem Collected Part 2:<br>Bit 2 - Whole Hog Gem<br>Bit4 - Sunset Vista Key |
-| `0x619c5` | enum/flag | Stage Select/Current Stage:<br>00 - N. Sanity Beach<br>01 - Jungle Rollers<br>02 - The Great Gate<br>03 - Boulders<br>04 - Upstream<br>05 - Papu Papu<br>06 - Rolling Stones<br>07 - Hog Wild<br>08 - Native Fortress<br>09 - Up The Creek<br>0A - Ripper Roo<br>0B - The Lost City<br>0C - Temple Ruins<br>0D - Road To Nowhere<br>0E - Boulder Dash<br>0F - Sunset Vista<br>10 - Koala Kong<br>11 - Heavy Machinery<br>12 - Cortex Power<br>13 - Generator Room<br>14 - Toxic Waste<br>15 - Pinstripe<br>16 - The High Road<br>17 - Slippery Climb<br>18 - Lights Out<br>19 - Jaws of Darkness<br>1A - Castle Machinery<br>1B - Nitrus Brio<br>1C - The Lab<br>1D - The Great Wall<br>1E - Dr. Neo Cortex<br>1F - Flumbling In The Dark<br>20 - Whole Hog |
+| `0x619c5` | enum/flag | Stage Select/Current Stage:<br>00 - N. Sanity Beach<br>01 - Jungle Rollers<br>02 - The Great Gate<br>03 - Boulders<br>04 - Upstream<br>05 - Papu Papu<br>06 - Rolling Stones<br>07 - Hog Wild<br>08 - Native Fortress<br>09 - Up The Creek<br>0A - Ripper Roo<br>0B - The Lost City<br>0C - Temple Ruins<br>0D - Road To Nowhere<br>0E - Boulder Dash<br>0F - Sunset Vista<br>10 - Koala Kong<br>11 - Heavy Machinery<br>12 - Cortex Power<br>13 - Generator Room<br>14 - Toxic Waste<br>15 - Pinstripe<br>16 - The High Road<br>17 - Slippery Climb<br>18 - Lights Out<br>19 - Jaws of Darkness<br>1A - Castle Machinery<br>1B - Nitrus Brio<br>1C - The Lab<br>1D - The Great Wall<br>1E - Dr. Neo Cortex<br>1F - Flumbling In The Dark<br>20 - Whole Hog<br><br>RetroPlatinas correction: 1D is The Great Hall. |
 | `0x61a10` | 8-bit | Gems (Value only changes when Game Progress is show on screen) |
-| `0x61a68` | enum/flag | FF - Finished/Quited a Level (Kinda) |
+| `0x61a30` | enum/flag | Attract-demo playback (RetroPlatinas; c1 pbak_state, validated in the headless harness):<br>00 - Normal play<br>02 - Demo playing<br>03 - Demo picked<br>Back to 00 before the demo's level switches to the title. |
+| `0x61a68` | enum/flag | FF - Finished/Quited a Level (Kinda)<br><br>RetroPlatinas correction: sound-library data (c1 _svm_okof1), not a game flag. |
 | `0x90501` | 8-bit | Pinstripe's health (EU) |
 | `0x9069d` | 8-bit | Papu Papu's health (EU) |
 | `0x9080d` | 8-bit | Pinstripe Potoroo Gun Shoots Thing (First Try) |

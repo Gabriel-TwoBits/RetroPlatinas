@@ -1,77 +1,68 @@
-from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
+from django.db import transaction
 
-from apps.achievements.models import Achievement
-from apps.games.models import Console, Game
-
-GAME_TITLE = "Crash Bandicoot"
-PS1_RA_ID = 12
-IMPORT_AUTHOR = "ra-import"
+from apps.achievements.management.crash1 import seed_crash1_game, upsert_achievements
 
 ACHIEVEMENT_POINTS = 5
-STAGE_LOADED = "0xW618cc!=0"
-NO_STAGE_LOADED = "0xW618cc=0"
-INSIDE_STAGE = "0xH61994=0"
-ON_THE_MAP = "0xH61994=1"
-CURRENT_STAGE_ADDRESS = "0xH619c5"
-RESULTS_SCREEN_OFF = "0xH61998=0"
-RESULTS_SCREEN_RISING_EDGE = "0xH61998=1_d0xH61998=0"
-FRAMES_OF_PLAY_BEFORE_ARMED = 300
+# c1 `cur_lid_ro`: byte 1 of GOOL global 0 (`lid << 8`, set by `GoolInitLid`), the loaded level.
+LEVEL_ID_ADDRESS = "0xH6188d"
+# c1 `LID_LEVELEND`: the Stage Clear screen, loaded only when a stage is finished.
+STAGE_CLEAR_LEVEL_ID = 0x2D
+TITLE_LEVEL_ID = 0x19  # title screens, menus, game over screen and island map
+# c1 `game_state >> 8`: 3 (`GAME_STATE_CONTINUE`) when a stage is cleared after a death past a
+# checkpoint, which skips Stage Clear and loads the map; a quit is 4, a game over 2.
+GAME_STATE_ADDRESS = "0xH618d1"
+GAME_STATE_LEVEL_WON = 3
 
+# (title, c1 level id), in map order.
 LEVEL_ACHIEVEMENTS = [
-    ("N. Sanity Beach", 0),
-    ("Jungle Rollers", 1),
-    ("The Great Gate", 2),
-    ("Boulders", 3),
-    ("Upstream", 4),
-    ("Rolling Stones", 6),
+    ("N. Sanity Beach", 0x09),
+    ("Jungle Rollers", 0x0C),
+    ("The Great Gate", 0x12),
+    ("Boulders", 0x0E),
+    ("Upstream", 0x0F),
+    ("Rolling Stones", 0x15),
 ]
 
 
-def build_mem_addr(stage_id):
-    this_stage = f"{CURRENT_STAGE_ADDRESS}={stage_id}"
-    armed_after_playing = (
-        f"N:{STAGE_LOADED}_N:{INSIDE_STAGE}_N:{this_stage}_"
-        f"{RESULTS_SCREEN_OFF}.{FRAMES_OF_PLAY_BEFORE_ARMED}."
-    )
-    disarmed_when_out_of_the_stage = f"R:{ON_THE_MAP}_R:{NO_STAGE_LOADED}"
+def rcheevos_hex(value):
+    """A constant in rcheevos syntax: a bare `0x2d` would be a memory read."""
+    return f"h{value:02x}"
+
+
+def build_mem_addr(level_id):
+    """Fires on the frame the loaded level changes from this stage to the Stage Clear screen
+    (alt 1), or straight to the map on a clear that skips it (alt 2)."""
     return (
-        f"{armed_after_playing}_{disarmed_when_out_of_the_stage}_"
-        f"{RESULTS_SCREEN_RISING_EDGE}_{this_stage}_{INSIDE_STAGE}"
+        f"d{LEVEL_ID_ADDRESS}={rcheevos_hex(level_id)}"
+        f"S{LEVEL_ID_ADDRESS}={rcheevos_hex(STAGE_CLEAR_LEVEL_ID)}"
+        f"S{LEVEL_ID_ADDRESS}={rcheevos_hex(TITLE_LEVEL_ID)}_"
+        f"{GAME_STATE_ADDRESS}={GAME_STATE_LEVEL_WON}"
     )
+
+
+def build_description(title):
+    return f"Finish {title}."
 
 
 class Command(BaseCommand):
-    help = "Seed the first six Crash Bandicoot 1 level-completion achievements (idempotent)."
+    help = (
+        "Seed the first six Crash Bandicoot 1 level-completion achievements (idempotent); "
+        "existing rows, matched by title, get the current condition and description."
+    )
 
+    @transaction.atomic
     def handle(self, *args, **options):
-        console, _ = Console.objects.get_or_create(
-            ra_id=PS1_RA_ID, defaults={"name": "PlayStation", "short_name": "PS1"}
-        )
-        game, _ = Game.objects.get_or_create(title=GAME_TITLE, defaults={"console": console})
-        author, _ = get_user_model().objects.get_or_create(
-            username=IMPORT_AUTHOR, defaults={"is_active": False}
-        )
+        game, author = seed_crash1_game()
 
-        existing = set(Achievement.objects.filter(game=game).values_list("title", flat=True))
-        created = Achievement.objects.bulk_create(
-            [
-                Achievement(
-                    game=game,
-                    author=author,
-                    title=title,
-                    description=f"Complete {title}.",
-                    points=ACHIEVEMENT_POINTS,
-                    mem_addr=build_mem_addr(stage_id),
-                    status=Achievement.STATUS_COMMUNITY,
-                )
-                for title, stage_id in LEVEL_ACHIEVEMENTS
-                if title not in existing
-            ]
-        )
+        rows = [
+            (title, build_description(title), build_mem_addr(level_id), ACHIEVEMENT_POINTS)
+            for title, level_id in LEVEL_ACHIEVEMENTS
+        ]
+        created, updated = upsert_achievements(game, author, rows)
         self.stdout.write(
             self.style.SUCCESS(
-                f"Seeded {len(created)} level achievements "
-                f"({len(LEVEL_ACHIEVEMENTS)} total, {len(existing)} already present)."
+                f"Seeded {len(LEVEL_ACHIEVEMENTS)} level achievements: "
+                f"{created} created, {updated} updated."
             )
         )

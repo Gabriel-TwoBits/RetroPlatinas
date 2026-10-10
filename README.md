@@ -60,6 +60,44 @@ podman-compose exec web uv add package-name
 
 http://localhost:8000/admin/ → log in with the superuser created above.
 
+## Playing with DuckStation
+
+The official DuckStation build works as is: it sends its achievement requests to the host set in
+`[Cheevos] Host` of its `settings.ini`. No fork or patched binary is needed.
+
+1. Seed the game, so the server recognises the disc (idempotent):
+
+   ```bash
+   podman-compose exec web python manage.py seed_crash1_level_achievements
+   podman-compose exec web python manage.py seed_crash1_collectible_achievements
+   podman-compose exec web python manage.py seed_crash1_advanced_achievements
+   podman-compose exec web python manage.py seed_crash1_rich_presence
+   podman-compose exec web python manage.py seed_crash1_leaderboards
+   ```
+
+   They register *Crash Bandicoot (USA)* (SCUS-94900, rcheevos hash
+   `35386fd0891e594c9b6d8a4a5baa0027`) with its achievements, its rich presence script and its
+   leaderboards (rcheevos runs leaderboards in hardcore mode). Any other disc is an unknown game.
+2. With DuckStation closed, edit the `[Cheevos]` section of its `settings.ini` (on Linux,
+   `~/.local/share/duckstation/settings.ini`):
+
+   ```ini
+   [Cheevos]
+   Enabled = true
+   Host = http://localhost:8000
+   ```
+
+3. Register on the site (http://localhost:8000/register/), then log in from DuckStation:
+   *Settings → Achievements → Login*. DuckStation encrypts the stored token with a per-machine key,
+   so a token cannot be pasted into `settings.ini`: log in through the GUI on every machine.
+
+Other keys of the same section:
+
+| Key | Setting | When |
+| --- | --- | --- |
+| `UnofficialTestMode = true` | Test Unofficial Achievements | Only for an author testing their own `draft` achievements, which are served to that author alone, as unofficial, and never awarded. Published (`community`, `verified`) achievements load without it. |
+| `ChallengeMode = true` | Hardcore mode | Save states are blocked; turning it on requires a reset. Each unlock reports its mode, and a hardcore unlock counts for both the hardcore and the softcore totals. |
+
 ## Badges, game icons and avatars
 
 Badges are uploaded images named after their sequential number, as RetroAchievements names them

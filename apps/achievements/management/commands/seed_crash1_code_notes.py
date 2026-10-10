@@ -1,15 +1,10 @@
 import re
 from pathlib import Path
 
-from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
 
+from apps.achievements.management.crash1 import seed_crash1_game
 from apps.achievements.models import CodeNote
-from apps.games.models import Console, Game
-
-GAME_TITLE = "Crash Bandicoot"
-PS1_RA_ID = 12
-IMPORT_AUTHOR = "ra-import"
 
 CODE_NOTES_PATH = (
     Path(__file__).resolve().parents[3] / "games" / "code-notes" / "crash-bandicoot-1.md"
@@ -47,13 +42,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         code_notes = load_code_notes()
-        console, _ = Console.objects.get_or_create(
-            ra_id=PS1_RA_ID, defaults={"name": "PlayStation", "short_name": "PS1"}
-        )
-        game, _ = Game.objects.get_or_create(title=GAME_TITLE, defaults={"console": console})
-        author, _ = get_user_model().objects.get_or_create(
-            username=IMPORT_AUTHOR, defaults={"is_active": False}
-        )
+        game, author = seed_crash1_game()
 
         existing = set(CodeNote.objects.filter(game=game).values_list("address", flat=True))
         created = CodeNote.objects.bulk_create(
