@@ -109,7 +109,7 @@ def test_docs_pages_refuse_a_post(client, path):
 
 
 @pytest.mark.django_db
-def test_header_and_footer_link_the_docs(client):
+def test_footer_links_the_docs(client):
     body = client.get("/", HTTP_ACCEPT_LANGUAGE="en").content.decode()
     footer = body[body.index("<footer") : body.index("</footer>")]
     assert f'href="{DOCS}"' in footer
