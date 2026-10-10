@@ -38,8 +38,8 @@ MAX_SHOT_LABEL_CHARS = 80
 FRAME_DIGITS = 6
 MASK_HEX_DIGITS = 4
 RICH_PRESENCE = "rich_presence"
-NO_DEMO = 0
-NO_RESPAWN = 0
+NO_DEMO = achievements.leaderboard_seed().NO_DEMO
+NO_RESPAWN = achievements.leaderboard_seed().NO_RESPAWN
 INTRO = achievements.leaderboard_seed().INTRO
 SPIN_IN = achievements.leaderboard_seed().SPIN_IN
 # rcheevos leaderboard events, by the name the event log uses; UPDATED fires on nearly every frame
