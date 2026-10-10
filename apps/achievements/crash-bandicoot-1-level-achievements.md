@@ -7,16 +7,17 @@
 > **Validated** in the headless harness (`tools/achievement-harness/`) against `SCUS-94900 — Crash
 > Bandicoot (USA)`; see **Validation** for exactly what, and what still needs the in-game check.
 
-The first six "finish the level" achievements, 5 points each, published as `community`.
+The first six "finish the level" achievements, 5 points each, created as `official` in the core set.
 
 ## Seeding
 
 `python manage.py seed_crash1_level_achievements` is idempotent:
 
-- a missing achievement is created (`community`, 5 points, type `progression`, author `ra-import`);
-- an existing one, **matched by title** within the Crash game, gets the current `mem_addr`, description and
-  type, so a fixed condition reaches databases seeded earlier; its status, points, author and unlocks are left
-  alone;
+- a missing achievement is created in the core set (`official`, 5 points, type `progression`, author
+  `ra-import`);
+- an existing one, **matched by title** in any set of the Crash game (the core set or a subset), moves to the
+  core set and gets the current `mem_addr`, description and type, so a fixed condition reaches databases seeded
+  earlier; its id, status, points, author and unlocks are left alone;
 - two achievements with the same title make the command fail without writing anything.
 
 Every Crash seed command (this one, `seed_crash1_collectible_achievements`,

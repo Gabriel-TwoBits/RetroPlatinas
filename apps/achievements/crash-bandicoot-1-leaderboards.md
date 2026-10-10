@@ -24,9 +24,10 @@ The other first-island stages are left out: the harness has no clear of them (se
 
 `python manage.py seed_crash1_leaderboards` is idempotent:
 
-- a missing leaderboard is created (`FRAMES`, lower is better, author `ra-import`);
-- an existing one, **matched by title** within the Crash game, gets the whole current definition (description,
-  `mem_addr`, format, lower is better): the format and the order only mean something with the value its
+- a missing leaderboard is created on the core set (`FRAMES`, lower is better, author `ra-import`); the
+  bonus subset has no leaderboards;
+- an existing one, **matched by title** in any set of the Crash game, moves to the core set and gets the whole
+  current definition (description, `mem_addr`, format, lower is better): the format and the order only mean something with the value its
   condition counts. Its author and entries are left alone;
 - two leaderboards with the same title make the command fail without writing anything.
 
