@@ -89,6 +89,7 @@ GAME_STATE_GAME_OVER = 0x200
 # c1 `GAME_STATE_CONTINUE`: leaving the Stage Clear screen, or a level won straight to the map
 # without it (a boss beaten, a stage cleared after a death past a checkpoint).
 GAME_STATE_LEVEL_WON = 0x300
+GAME_STATE_QUIT = 0x400  # pause -> quit picked, until the title/map level loads
 GAME_STATE_STAGE_CLEARED = 0x500  # c1 `GAME_STATE_NEW_GEM`: a stage cleared, Stage Clear next
 TITLE_STATE_MAIN_MENU = 5
 TITLE_STATE_WORLD_MAP = 0xF

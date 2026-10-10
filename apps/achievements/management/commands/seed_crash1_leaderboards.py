@@ -7,7 +7,6 @@ from apps.achievements.management.commands.seed_crash1_collectible_achievements 
 )
 from apps.achievements.management.commands.seed_crash1_level_achievements import (
     GAME_STATE_ADDRESS,
-    GAME_STATE_LEVEL_WON,
     LEVEL_ACHIEVEMENTS,
     LEVEL_ID_ADDRESS,
     STAGE_CLEAR_LEVEL_ID,
@@ -17,10 +16,13 @@ from apps.achievements.management.commands.seed_crash1_level_achievements import
 )
 from apps.achievements.management.commands.seed_crash1_rich_presence import (
     DEMO_PLAYBACK_ADDRESS,
+    GAME_STATE_GAME_OVER,
     PLAYER_POINTER_ADDRESS,
 )
 from apps.achievements.management.crash1 import seed_crash1_game, upsert_leaderboards
 
+# c1 `game_state >> 8` from the frame pause -> quit is picked until the title/map level loads.
+GAME_STATE_QUIT = 4
 # rcheevos `RC_FORMAT_FRAMES`: the value counts 60 Hz frames and shows as a time.
 LEADERBOARD_FORMAT = "FRAMES"
 LOWER_IS_BETTER = True
@@ -91,20 +93,26 @@ def build_start(level_id, opening):
 
 
 def build_cancel():
-    """The title/map level loads without a win: a pause -> quit, a game over or a reset."""
-    return (
-        f"{LEVEL_ID_ADDRESS}={rcheevos_hex(TITLE_LEVEL_ID)}_"
-        f"{GAME_STATE_ADDRESS}!={GAME_STATE_LEVEL_WON}"
-    )
+    """The frame the run is lost, still in the stage: pause -> quit or a game over (an empty core,
+    one alternative per game state).
+
+    Not "the title/map level loads": a Tawna bonus round's save screen is on that level and
+    returns to the stage, where a cancel would let the spin-in start a second run mid-stage
+    (`respawn_count` is back to 0). A console reset is the emulator's: `rc_client_reset` puts
+    every leaderboard back to waiting.
+    """
+    return f"S{GAME_STATE_ADDRESS}={GAME_STATE_QUIT}S{GAME_STATE_ADDRESS}={GAME_STATE_GAME_OVER}"
 
 
 def build_value():
     """Counts the frames of play: paused while the game state is not playing (the clear, a quit,
-    a game over), on the Stage Clear level (where the state is playing again) and while the
-    pause menu is open. Deaths keep the state playing, so they count."""
+    a game over), on the Stage Clear level (where the state is playing again on the submit
+    frame), on the title/map level (a bonus round's save screen) and while the pause menu is
+    open. Deaths keep the state playing, so they count."""
     return (
         f"P:{GAME_STATE_ADDRESS}!={GAME_STATE_PLAYING}_"
         f"P:{LEVEL_ID_ADDRESS}={rcheevos_hex(STAGE_CLEAR_LEVEL_ID)}_"
+        f"P:{LEVEL_ID_ADDRESS}={rcheevos_hex(TITLE_LEVEL_ID)}_"
         f"P:{PAUSED_ADDRESS}={PAUSED}_"
         "M:1=1"
     )

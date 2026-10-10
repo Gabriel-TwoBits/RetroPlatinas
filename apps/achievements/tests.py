@@ -841,6 +841,14 @@ def test_leaderboards_submit_on_their_stage_clear_achievement_condition():
         assert mem_addr == build_leaderboard_mem(level_id, opening)
 
 
+def test_leaderboards_cancel_on_a_quit_or_a_game_over_not_on_the_title_level():
+    """A Tawna bonus round's save screen is on the title/map level and returns to the stage."""
+    for _title, _description, mem_addr, _level_id, _opening in leaderboards():
+        sections = leaderboard_sections(mem_addr)
+        assert sections["CAN"] == "S0xH618d1=4S0xH618d1=2"
+        assert "_P:0xH6188d=h19_" in sections["VAL"]
+
+
 def test_leaderboard_start_follows_how_the_stage_opens():
     jungle_rollers_level_id = dict(LEVEL_ACHIEVEMENTS)["Jungle Rollers"]
 

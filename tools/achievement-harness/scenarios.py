@@ -2,14 +2,13 @@
 leaderboards and rich presence.
 
 Each scenario states which achievements must trigger and the level (lid) the game must show when
-they do (usually none: a death, a quit or the attract demo must never unlock anything), and
-exits non-zero when a trigger is missing, repeated, unexpected or fires on another level. It
-states every leaderboard attempt it plays and how each ends (submitted, canceled, reset by a state
-load or still running), and fails on an attempt that starts anywhere but where the stage hands
-Crash to the player, on a submitted or shown time that is not the frames played, and on a cancel
-off the title level. It also lists the rich presence strings the game must show on the way
-(regular expressions), and fails when one never shows or when a string names an unknown macro or
-level.
+they do (usually none: a death, a quit or the attract demo must never unlock anything), and exits
+non-zero when a trigger is missing, repeated, unexpected or fires on another level. It states every
+leaderboard attempt it plays and how each ends (submitted, canceled, reset by a state load or still
+running), and fails on an attempt that starts anywhere but where the stage hands Crash to the
+player, on a submitted or shown time that is not the frames played, and on a cancel without a quit
+or a game over. It also lists the rich presence strings the game must show on the way (regular
+expressions), and fails when one never shows or when a string names an unknown macro or level.
 
     python tools/achievement-harness/scenarios.py [--core CORE] NAME [NAME ...] | all
 
@@ -39,6 +38,7 @@ from probes import (
     GAME_STATE,
     GAME_STATE_GAME_OVER,
     GAME_STATE_PLAYING,
+    GAME_STATE_QUIT,
     HUD_COUNT_OFFSET,
     LID_STAGE_CLEAR,
     LID_TITLE,
@@ -131,6 +131,7 @@ RESET = "reset"  # cut short by a state load
 LEADERBOARD_TITLES = {lb.level_id: lb.title for lb in achievements.leaderboard_definitions()}
 LEADERBOARD_OPENINGS = {lb.level_id: lb.opening for lb in achievements.leaderboard_definitions()}
 SUBMIT_LIDS = (LID_STAGE_CLEAR, LID_TITLE)
+CANCEL_GAME_STATES = (GAME_STATE_QUIT, GAME_STATE_GAME_OVER)
 
 
 def demo_of(name):
@@ -1004,7 +1005,7 @@ def attempts(events):
 def attempt_problems(title, attempt, level_id, opening, session):
     """What is wrong with one attempt: a start anywhere but where the player gains control of the
     stage, a time shown or submitted that is not the frames played since the start, a cancel
-    off the title level or a submit off Stage Clear and the map."""
+    without a quit or a game over, or a submit off Stage Clear and the map."""
     if attempt.start is None:
         return [f"{title}: {attempt.last.kind} at clock {attempt.last.clock} with no start"]
     problems = []
@@ -1025,12 +1026,15 @@ def attempt_problems(title, attempt, level_id, opening, session):
         )
     else:
         pass  # The clock counted exactly the frames played.
-    if attempt.outcome == CANCELED and attempt.end.level_id != LID_TITLE:
-        problems.append(f"{title}: canceled on lid {attempt.end.level_id:#x}, not the title level")
+    if attempt.outcome == CANCELED and attempt.end.game_state not in CANCEL_GAME_STATES:
+        problems.append(
+            f"{title}: canceled with the game state {attempt.end.game_state:#x}, "
+            "neither a quit nor a game over"
+        )
     elif attempt.outcome == SUBMITTED and attempt.end.level_id not in SUBMIT_LIDS:
         problems.append(f"{title}: submitted on lid {attempt.end.level_id:#x}")
     else:
-        pass  # Running, or ended on the expected level.
+        pass  # Running, cut short by a state load, or ended as expected.
     return problems
 
 

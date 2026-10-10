@@ -162,20 +162,20 @@ while the others keep their hits, as in a live session.
 | `<stage>-timed-pause-quit` | `map` / `map-unlocked` | nothing; the stage's leaderboard canceled | The stage entered holding its heading from the frame its level loads: the leaderboard must start once, with Crash still on the ground until then and moving within 4 frames after; then the pause menu open 300 frames (left out of the time) and a quit. Only for a stage with a leaderboard |
 | `<stage>-timed-clear` | `map` / `map-unlocked` | the stage's achievement on Stage Clear; its leaderboard submitted | The stage entered from the map, then as `<stage>-clear`: the submitted time must be the frames played from the start to the win; the next stage's leaderboard, if any, canceled by its quit |
 | `<stage>-timed-checkpoint-death` | `map` | as `<stage>-checkpoint-death`; the leaderboard submitted on the map | The stage entered from the map, then as `<stage>-checkpoint-death` without the state reload after the death, so the death stays in the timed run |
-| `nsanity-beach-timed-game-over` | `map` | nothing; the leaderboard canceled | N. Sanity Beach entered from the map, then as `game-over`: one attempt through every death, canceled only when the title level loads |
+| `nsanity-beach-timed-game-over` | `map` | nothing; the leaderboard canceled | N. Sanity Beach entered from the map, then as `game-over`: one attempt through every death, canceled only by the game over |
 
 Every scenario also lists its leaderboard attempts (`leaderboards`: per title, how each attempt
 ends, `submitted`, `canceled`, `reset` by a state load, or still `running` at the end; the farming
-plans' quit-and-reenter moves each play one, `scenarios.farming_attempts`) and the judge checks
-each one: it must
-start on a frame where its stage's opening hands Crash to the player, before any respawn and with
-no demo (`session.handovers`): an intro when the game state turns playing, a spin-in when the same
-player object leaves its opening state (state flags bit 15, `probes.NO_CONTROL_STATE_FLAG`); the value it last showed or submitted must equal the frames of play since then (in a
-stage, game state playing, pause menu closed: `session.player_in_play`); a cancel must come on the
-title level and a submit on Stage Clear or the map. The verdict prints a line per attempt. The
-independent evidence of the start frame is the movement measured by `<stage>-timed-pause-quit`.
-`<stage>-start` states are saved inside a spin-in, so a scenario from one plays an attempt that
-starts when it ends (`scenarios.opening_attempt`).
+plans' quit-and-reenter moves each play one, `scenarios.farming_attempts`) and the judge checks each
+one: it must start on a frame where its stage's opening hands Crash to the player, before any
+respawn and with no demo (`session.handovers`): an intro when the game state turns playing, a
+spin-in when the same player object leaves its opening state (state flags bit 15,
+`probes.NO_CONTROL_STATE_FLAG`); the value it last showed or submitted must equal the frames of play
+since then (in a stage, game state playing, pause menu closed: `session.player_in_play`); a cancel
+must come with the game state quit (`0x400`) or game over (`0x200`) and a submit on Stage Clear or
+the map. The verdict prints a line per attempt. The independent evidence of the start frame is the
+movement measured by `<stage>-timed-pause-quit`. `<stage>-start` states are saved inside a spin-in,
+so a scenario from one plays an attempt that starts when it ends (`scenarios.opening_attempt`).
 
 Every scenario also lists the rich presence strings the game must show on the way (`presence`,
 regular expressions matched in full): the title and demo strings in `cold-boot`, `attract` and
