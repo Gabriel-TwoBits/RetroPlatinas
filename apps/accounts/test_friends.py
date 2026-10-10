@@ -147,12 +147,22 @@ def test_follow_404s_for_an_unknown_or_inactive_user(client, alice, path):
 
 @pytest.mark.django_db
 @pytest.mark.parametrize("path", [FOLLOW_PATH, UNFOLLOW_PATH])
-def test_follow_and_unfollow_send_an_anonymous_visitor_to_log_in(client, bob, path):
-    resp = _post(client, path)
+def test_follow_and_unfollow_send_an_anonymous_visitor_to_log_in_and_back_to_the_profile(
+    client, bob, path
+):
+    resp = _post(client, path, HTTP_REFERER=f"http://testserver{PROFILE_PATH}")
 
     assert resp.status_code == HTTPStatus.FOUND
-    assert resp.url == f"/login/?next={path}"
+    assert resp.url == f"/login/?next={PROFILE_PATH}"
     assert not Friendship.objects.exists()
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("path", [FOLLOW_PATH, UNFOLLOW_PATH])
+def test_an_anonymous_post_from_another_site_logs_in_back_to_the_endpoint(client, bob, path):
+    resp = _post(client, path, HTTP_REFERER=f"https://elsewhere.example{PROFILE_PATH}")
+
+    assert resp.url == f"/login/?next={path}"
 
 
 @pytest.mark.django_db

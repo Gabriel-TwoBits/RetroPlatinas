@@ -11,23 +11,43 @@ def is_htmx(request):
     return request.headers.get("HX-Request") == "true"
 
 
-def _current_page(request):
-    """The path and query of the page that sent an htmx request, `""` when unknown."""
-    url = urlsplit(request.headers.get("HX-Current-URL", ""))
+def _path_and_query(url):
     if url.query:
         return f"{url.path}?{url.query}"
     else:
         return url.path
 
 
+def _current_page(request):
+    """The path and query of the page that sent an htmx request, `""` when unknown."""
+    return _path_and_query(urlsplit(request.headers.get("HX-Current-URL", "")))
+
+
+def _referring_page(request):
+    """The path and query of the page on this site that sent a plain form, `""` when unknown."""
+    url = urlsplit(request.headers.get("Referer", ""))
+    if url.netloc == request.get_host():
+        return _path_and_query(url)
+    else:
+        return ""
+
+
 def login_redirect(request, fragment=""):
     """Sends the visitor to log in and back. For htmx, `HX-Redirect` returns to the page (plus
-    `fragment`): the XHR would follow a 302 and swap the whole login page into the target."""
-    page = _current_page(request)
+    `fragment`): the XHR would follow a 302 and swap the whole login page into the target. A
+    plain form post returns to the page that sent it, as its own URL only answers POST."""
+    if is_htmx(request):
+        page = _current_page(request)
+    elif request.method == "POST":
+        page = _referring_page(request)
+    else:
+        page = ""
     if is_htmx(request) and page:
         response = HttpResponse()
         response["HX-Redirect"] = redirect_to_login(f"{page}{fragment}")["Location"]
         return response
+    elif page:
+        return redirect_to_login(f"{page}{fragment}")
     else:
         return redirect_to_login(request.get_full_path())
 

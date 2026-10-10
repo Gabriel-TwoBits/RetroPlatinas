@@ -238,9 +238,15 @@ def test_adding_an_achievement_comment_shows_it_on_its_page_only(client, other, 
 
 @pytest.mark.django_db
 def test_adding_a_comment_requires_login(client, game):
-    response = _post(client, _game_add_url(game), {"content": "Anonymous"})
+    response = _post(
+        client,
+        _game_add_url(game),
+        {"content": "Anonymous"},
+        htmx=False,
+        HTTP_REFERER=f"http://testserver/games/{game.pk}/",
+    )
     assert response.status_code == HTTPStatus.FOUND
-    assert response["Location"].startswith("/login/")
+    assert response["Location"] == f"/login/?next=/games/{game.pk}/%23comments"
     assert not Comment.objects.exists()
 
 
