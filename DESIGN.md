@@ -142,6 +142,8 @@ The desktop recent-game card is a genuinely different structure from `game-card.
   *Menu*. Opening it drops a full-width panel under the header with the same nav stacked,
   then the account links and the language select. No JavaScript.
 - Both are the same `site-menu.html`, so a link is added once.
+- **Notification bell** — for a logged-in user, at the right of the header on every width,
+  beside *Menu* below `lg` (see *Notifications*).
 - At 380px nothing overflows horizontally; the language select lives in the menu there.
 
 ## Profile screen
@@ -333,6 +335,28 @@ the game page and of the achievement page, as `<section id="comments">`.
   to the login page, which returns to the section.
 - **Moderation** — staff also delete comments in the admin, the only path for one on an
   achievement moved back to draft, whose page only its author opens.
+
+## Notifications
+
+The bell (`templates/notifications/partials/bell.html`, rendered by `{% notification_bell %}`)
+and `/notifications/` (`templates/notifications/list.html`), built by
+`apps/notifications/display.py`. An achievement's author is notified when someone else comments
+on it, unlocks it (a player's first unlock only) or changes its status; the message is rendered
+in the reader's language when shown.
+
+- **Bell** — a native `<details id="notification-menu">`: an outlined bell icon with the unread
+  count in mono `brand` (none when everything is read). The count polls
+  `/notifications/unread/` every `POLL_SECONDS` (60 s); once the session is gone it answers 286
+  and htmx stops polling. Opening the bell fetches `/notifications/menu/` (the latest 10) into
+  the panel, a ruled section with a *See all notifications* link; full width under the header
+  below `lg`, a `w-96` panel under the bell from `lg`.
+- **Rows** (`partials/row.html`, shared by the menu and the page) — split by hairlines: a dot
+  (`brand` unread, `line` read), the message (`txt` unread, `txt-muted` read) and the relative
+  time on a mono line. Each row is a form: posting it to `/notifications/<id>/read/` marks it
+  read and opens what it is about.
+- **Page** — a ruled header with the title and, when something is unread, an outlined *Mark all
+  as read* button (`POST /notifications/read/`); the rows newest first, 50 a page, with the
+  ranking's previous/next links. Empty, it shows the empty state.
 
 ## Achievement editor
 

@@ -203,6 +203,15 @@ characters); only its author or staff delete it with `POST /comments/<id>/delete
 user gets 403. A draft's page and comments exist only for its author; staff moderate every
 comment, including those on a draft, in the admin.
 
+## Notifications
+
+An achievement's author is notified when another user comments on it, unlocks it for the first
+time, or changes its status (in the web editor, a revert or the admin, bulk actions included);
+nobody is notified of their own action. Notifications store their kind and parameters, so each
+reader sees the message in their own language. The header's bell shows the unread count, refreshed
+every 60 seconds, and the latest 10; `/notifications/` lists them all. Opening one marks it read,
+and *Mark all as read* clears the count.
+
 ## Editing sets from RAIntegration
 
 RAIntegration writes sets through `POST /dorequest.php` (the badge upload goes to
