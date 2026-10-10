@@ -17,5 +17,7 @@
     </form>
   {% elif follow_action == "login" %}
     <a href="{% url 'login' %}?next={{ request.path|urlencode }}" class="rounded-card bg-brand px-4 py-2 font-display text-sm font-bold text-brand-ink no-underline hover:no-underline">{% trans "Follow" %}</a>
+  {% else %}
+    {# No button: the owner, or an inactive profile the viewer does not follow. #}
   {% endif %}
 </div>
