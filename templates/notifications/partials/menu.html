@@ -1,0 +1,10 @@
+{% load i18n %}
+{% comment %}
+  The bell menu's rows, swapped into #notification-menu-list. Args:
+    rows : apps.notifications.display.menu_rows
+{% endcomment %}
+{% for row in rows %}
+  {% include "notifications/partials/row.html" %}
+{% empty %}
+  <li>{% include "components/empty-state.html" with title=_("No notifications yet") %}</li>
+{% endfor %}

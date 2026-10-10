@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Notifications" %} — RetroPlatinas{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-3xl px-4 py-6 sm:py-8">
+  <section class="flex flex-wrap items-end justify-between gap-3 border-b border-line2 pb-6">
+    <h1 class="font-display text-2xl font-bold leading-tight text-txt sm:text-3xl">{% trans "Notifications" %}</h1>
+    {% if has_unread %}
+      <form method="post" action="{% url 'notification_read_all' %}">
+        {% csrf_token %}
+        <button type="submit" class="rounded-card border border-line2 px-3 py-1.5 font-mono text-xs text-txt-muted hover:border-brand hover:text-brand-hi">{% trans "Mark all as read" %}</button>
+      </form>
+    {% endif %}
+  </section>
+
+  <ol class="mt-2">
+    {% for row in rows %}
+      {% include "notifications/partials/row.html" %}
+    {% empty %}
+      <li>{% include "components/empty-state.html" with title=_("No notifications yet") body=_("Comments on your achievements, their unlocks and their status changes show up here.") %}</li>
+    {% endfor %}
+  </ol>
+
+  {% if page.has_other_pages %}
+    <nav aria-label="{% trans 'Notification pages' %}" class="mt-4 flex items-center justify-between gap-3 border-t border-line2 pt-4 font-mono text-xs">
+      {% if page.has_previous %}
+        <a href="{% url 'notification_list' %}?page={{ page.previous_page_number }}" class="text-brand hover:text-brand-hi">← {% trans "Previous" %}</a>
+      {% else %}
+        <span></span>
+      {% endif %}
+      <span class="text-txt-faint">{% blocktrans with number=page.number total=page.paginator.num_pages %}Page {{ number }} of {{ total }}{% endblocktrans %}</span>
+      {% if page.has_next %}
+        <a href="{% url 'notification_list' %}?page={{ page.next_page_number }}" class="text-brand hover:text-brand-hi">{% trans "Next" %} →</a>
+      {% else %}
+        <span></span>
+      {% endif %}
+    </nav>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% load i18n %}
+{% comment %}
+  The header's notification bell, for a logged-in user: the unread count, polled every
+  poll_seconds, and a menu with the latest notifications, fetched each time it opens. Args:
+    unread, poll_seconds
+{% endcomment %}
+<details id="notification-menu" class="lg:relative"
+         hx-get="{% url 'notification_menu' %}" hx-trigger="toggle[target.open]" hx-target="#notification-menu-list">
+  <summary class="rp-summary flex items-center gap-1 rounded-card border border-line2 px-2 py-1 text-txt-muted hover:text-brand-hi">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 shrink-0" aria-hidden="true">
+      <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
+      <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+    </svg>
+    <span class="sr-only">{% trans "Notifications" %}</span>
+    <span hx-get="{% url 'notification_unread_count' %}" hx-trigger="every {{ poll_seconds }}s" hx-target="this" hx-swap="innerHTML">{% include "notifications/partials/unread-count.html" %}</span>
+  </summary>
+  <div class="absolute inset-x-0 top-full border-b border-line bg-bg px-4 py-4 lg:left-auto lg:right-0 lg:w-96 lg:border lg:border-line2">
+    {% include "components/section-heading.html" with title=_("Notifications") %}
+    <ol id="notification-menu-list"></ol>
+    <a href="{% url 'notification_list' %}" class="mt-2 inline-block font-mono text-xs text-brand">{% trans "See all notifications →" %}</a>
+  </div>
+</details>

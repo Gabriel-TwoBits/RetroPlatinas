@@ -1,0 +1,20 @@
+{% load i18n humanize %}
+{% comment %}
+  One notification as a list item: posting it marks it read and opens what it is about. Args:
+    row : an item of apps.notifications.display.rows
+{% endcomment %}
+{% with notification=row.notification %}
+  <li class="border-t border-line first:border-t-0">
+    <form method="post" action="{% url 'notification_read' notification.pk %}">
+      {% csrf_token %}
+      <button type="submit" class="group flex w-full items-start gap-3 py-3 text-left">
+        <span class="mt-1.5 h-2 w-2 shrink-0 rounded-full {% if notification.read %}bg-line{% else %}bg-brand{% endif %}" aria-hidden="true"></span>
+        <span class="min-w-0 flex-1">
+          {% if not notification.read %}<span class="sr-only">{% trans "Unread:" %}</span>{% endif %}
+          <span class="block break-words text-sm leading-snug group-hover:text-brand-hi {% if notification.read %}text-txt-muted{% else %}text-txt{% endif %}">{{ row.message }}</span>
+          <time datetime="{{ notification.created_at|date:'c' }}" class="mt-1 block font-mono text-xs text-txt-faint">{{ notification.created_at|naturaltime }}</time>
+        </span>
+      </button>
+    </form>
+  </li>
+{% endwith %}

@@ -1,0 +1,2 @@
+{% load i18n %}
+{% if unread %}<span class="font-mono text-xs font-bold text-brand" aria-hidden="true">{{ unread }}</span><span class="sr-only">{% blocktrans count unread=unread %}{{ unread }} unread notification{% plural %}{{ unread }} unread notifications{% endblocktrans %}</span>{% endif %}
