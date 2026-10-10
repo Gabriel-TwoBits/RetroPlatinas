@@ -8,7 +8,7 @@
         {% if profile_user.bio %}
           <p class="mt-2 max-w-lg whitespace-pre-line break-words text-sm leading-relaxed text-txt-muted">{{ profile_user.bio }}</p>
         {% endif %}
-        <div class="mt-1 font-mono text-xs text-txt-faint">
+        <div class="mt-1 font-data text-xs text-txt-faint">
           {% blocktrans with date=profile_user.date_joined|date:"YEAR_MONTH_FORMAT" %}member since {{ date }}{% endblocktrans %}
         </div>
         {% include "accounts/partials/follow-control.html" %}
@@ -20,9 +20,9 @@
 
     <div class="flex gap-6 sm:text-right">
       <div>
-        <div class="font-mono text-xs uppercase tracking-wide text-state-hardcore">{% trans "Hardcore" %}</div>
-        <div class="font-mono text-2xl font-bold leading-tight text-gold">{{ points.hardcore|intcomma }}</div>
-        <div class="font-mono text-xs text-txt-faint">
+        <div class="font-data text-xs uppercase tracking-wide text-state-hardcore">{% trans "Hardcore" %}</div>
+        <div class="font-data text-2xl font-bold leading-tight text-gold">{{ points.hardcore|intcomma }}</div>
+        <div class="font-data text-xs text-txt-faint">
           {% if ranks.hardcore %}
             {% blocktrans with rank=ranks.hardcore|intcomma players=ranked_players.hardcore|intcomma %}#{{ rank }} of {{ players }}{% endblocktrans %}
           {% else %}
@@ -31,9 +31,9 @@
         </div>
       </div>
       <div class="border-l border-line pl-6">
-        <div class="font-mono text-xs uppercase tracking-wide text-state-softcore">{% trans "Softcore" %}</div>
-        <div class="font-mono text-2xl font-bold leading-tight text-gold">{{ points.softcore|intcomma }}</div>
-        <div class="font-mono text-xs text-txt-faint">
+        <div class="font-data text-xs uppercase tracking-wide text-state-softcore">{% trans "Softcore" %}</div>
+        <div class="font-data text-2xl font-bold leading-tight text-gold">{{ points.softcore|intcomma }}</div>
+        <div class="font-data text-xs text-txt-faint">
           {% if ranks.softcore %}
             {% blocktrans with rank=ranks.softcore|intcomma players=ranked_players.softcore|intcomma %}#{{ rank }} of {{ players }}{% endblocktrans %}
           {% else %}
@@ -49,22 +49,22 @@
       <div class="mt-5 flex items-center gap-3 border-t border-line pt-4">
         <div class="rp-hatch flex h-11 w-11 shrink-0 items-center justify-center rounded-tile font-display font-bold text-brand">{{ current_game.initials }}</div>
         <div class="min-w-0 flex-1">
-          <div class="font-mono text-xs uppercase tracking-wide text-txt-faint">
+          <div class="font-data text-xs uppercase tracking-wide text-txt-faint">
             {% if current_game.live %}{% trans "Playing now" %}{% else %}{% trans "Last played" %}{% endif %}
           </div>
           <div class="truncate font-display text-base font-semibold text-txt"><a href="{% url 'game_detail' played.game.pk %}" class="text-txt hover:text-brand-hi">{{ played.game.title }}</a>
-            <span class="font-mono text-xs font-normal text-txt-faint">· {{ played.game.console.short_name }}</span>
+            <span class="font-data text-xs font-normal text-txt-faint">· {{ played.game.console.short_name }}</span>
           </div>
           {% if current_game.live and played.last_rich_presence %}
             <div class="truncate text-sm text-txt-muted">{{ played.last_rich_presence }}</div>
           {% endif %}
         </div>
         {% if current_game.live %}
-          <span class="flex shrink-0 items-center gap-2 font-mono text-xs {% if played.hardcore %}text-state-hardcore{% else %}text-state-softcore{% endif %}">
+          <span class="flex shrink-0 items-center gap-2 font-data text-xs {% if played.hardcore %}text-state-hardcore{% else %}text-state-softcore{% endif %}">
             <span class="h-2 w-2 rounded-full bg-brand animate-rp-pulse"></span>{% if played.hardcore %}{% trans "hardcore" %}{% else %}{% trans "softcore" %}{% endif %}
           </span>
         {% else %}
-          <span class="shrink-0 font-mono text-xs text-txt-faint">{{ played.last_played_at|naturaltime }}</span>
+          <span class="shrink-0 font-data text-xs text-txt-faint">{{ played.last_played_at|naturaltime }}</span>
         {% endif %}
       </div>
     {% endwith %}

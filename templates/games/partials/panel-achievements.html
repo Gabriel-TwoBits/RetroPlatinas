@@ -3,7 +3,7 @@
   <div role="group" aria-label="{% trans 'Show achievements by status' %}" class="flex flex-wrap gap-2">
     {% for slug, label in show_options %}
       <button type="button" aria-pressed="{% if slug == show %}true{% else %}false{% endif %}"
-              class="rounded-chip border px-3 py-1 font-mono text-xs {% if slug == show %}border-brand text-brand{% else %}border-line2 text-txt-muted hover:text-brand-hi{% endif %}"
+              class="rounded-chip border px-3 py-1 font-data text-xs {% if slug == show %}border-brand text-brand{% else %}border-line2 text-txt-muted hover:text-brand-hi{% endif %}"
               hx-get="{% url 'game_panel' game.pk 'achievements' %}?show={{ slug }}&amp;filter={{ achievement_filter }}" hx-target="#game-tabs">{{ label }}</button>
     {% endfor %}
   </div>
@@ -11,7 +11,7 @@
     <div role="group" aria-label="{% trans 'Filter achievements' %}" class="flex flex-wrap gap-2">
       {% for slug, label in filters %}
         <button type="button" aria-pressed="{% if slug == achievement_filter %}true{% else %}false{% endif %}"
-                class="rounded-chip border px-3 py-1 font-mono text-xs {% if slug == achievement_filter %}border-brand text-brand{% else %}border-line2 text-txt-muted hover:text-brand-hi{% endif %}"
+                class="rounded-chip border px-3 py-1 font-data text-xs {% if slug == achievement_filter %}border-brand text-brand{% else %}border-line2 text-txt-muted hover:text-brand-hi{% endif %}"
                 hx-get="{% url 'game_panel' game.pk 'achievements' %}?show={{ show }}&amp;filter={{ slug }}" hx-target="#game-tabs">{{ label }}</button>
       {% endfor %}
     </div>
@@ -34,13 +34,13 @@
                 </div>
                 <div class="mt-1 break-words text-xs leading-snug {% if row.state == 'locked' %}text-txt-faint{% else %}text-txt-muted{% endif %}">{{ achievement.description }}</div>
                 {% if row.unlocked_at %}
-                  <div class="mt-1 font-mono text-xs text-state-{{ row.state }}">
+                  <div class="mt-1 font-data text-xs text-state-{{ row.state }}">
                     {% if row.state == "hardcore" %}{% trans "hardcore" %}{% else %}{% trans "softcore" %}{% endif %}
                     · <time datetime="{{ row.unlocked_at|date:'c' }}">{{ row.unlocked_at|date:"SHORT_DATETIME_FORMAT" }}</time>
                   </div>
                 {% endif %}
               </div>
-              <div class="flex shrink-0 flex-col items-end gap-1 font-mono text-xs">
+              <div class="flex shrink-0 flex-col items-end gap-1 font-data text-xs">
                 <span class="{% if row.state == 'locked' %}text-txt-faint{% else %}text-gold{% endif %}">{% blocktrans count points=achievement.points %}{{ points }} pt{% plural %}{{ points }} pts{% endblocktrans %}</span>
                 {% if row.editable %}
                   <a href="{% url 'achievement_edit' game.pk achievement.pk %}" class="text-brand">{% trans "Edit" %}</a>

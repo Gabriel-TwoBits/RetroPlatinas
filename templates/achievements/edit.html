@@ -12,7 +12,7 @@
 
   {% with achievement=form.instance %}
     {% if achievement.pk %}
-      <dl class="mt-4 font-mono text-xs text-txt-faint">
+      <dl class="mt-4 font-data text-xs text-txt-faint">
         <div class="flex gap-2 border-b border-line py-2">
           <dt>{% trans "Author" %}</dt>
           <dd><a href="{% url 'user_detail' achievement.author.username %}" class="text-brand">{{ achievement.author.username }}</a></dd>

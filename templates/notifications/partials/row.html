@@ -12,7 +12,7 @@
         <span class="min-w-0 flex-1">
           {% if not notification.read %}<span class="sr-only">{% trans "Unread:" %}</span>{% endif %}
           <span class="block break-words text-sm leading-snug group-hover:text-brand-hi {% if notification.read %}text-txt-muted{% else %}text-txt{% endif %}">{{ row.message }}</span>
-          <time datetime="{{ notification.created_at|date:'c' }}" class="mt-1 block font-mono text-xs text-txt-faint">{{ notification.created_at|naturaltime }}</time>
+          <time datetime="{{ notification.created_at|date:'c' }}" class="mt-1 block font-data text-xs text-txt-faint">{{ notification.created_at|naturaltime }}</time>
         </span>
       </button>
     </form>

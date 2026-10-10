@@ -10,7 +10,7 @@
     {% if has_unread %}
       <form method="post" action="{% url 'notification_read_all' %}">
         {% csrf_token %}
-        <button type="submit" class="rounded-card border border-line2 px-3 py-1.5 font-mono text-xs text-txt-muted hover:border-brand hover:text-brand-hi">{% trans "Mark all as read" %}</button>
+        <button type="submit" class="rounded-card border border-line2 px-3 py-1.5 font-data text-xs text-txt-muted hover:border-brand hover:text-brand-hi">{% trans "Mark all as read" %}</button>
       </form>
     {% endif %}
   </section>
@@ -24,7 +24,7 @@
   </ol>
 
   {% if page.has_other_pages %}
-    <nav aria-label="{% trans 'Notification pages' %}" class="mt-4 flex items-center justify-between gap-3 border-t border-line2 pt-4 font-mono text-xs">
+    <nav aria-label="{% trans 'Notification pages' %}" class="mt-4 flex items-center justify-between gap-3 border-t border-line2 pt-4 font-data text-xs">
       {% if page.has_previous %}
         <a href="{% url 'notification_list' %}?page={{ page.previous_page_number }}" class="text-brand hover:text-brand-hi">← {% trans "Previous" %}</a>
       {% else %}

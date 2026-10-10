@@ -8,7 +8,7 @@
           <div class="mt-1 break-words text-xs leading-snug text-txt-muted">{{ leaderboard.description }}</div>
         {% endif %}
       </div>
-      <div class="shrink-0 font-mono text-xs text-txt-faint">
+      <div class="shrink-0 font-data text-xs text-txt-faint">
         {% blocktrans count entries=leaderboard.entry_count with shown=leaderboard.entry_count|intcomma %}{{ shown }} entry{% plural %}{{ shown }} entries{% endblocktrans %}
       </div>
     </div>

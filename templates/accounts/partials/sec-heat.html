@@ -6,7 +6,7 @@
       <div class="flex-1 rounded-sm {% if b.on %}bg-brand{% else %}bg-elevated{% endif %}" style="height:{{ b.height }}px;opacity:{{ b.opacity }}"></div>
     {% endfor %}
   </div>
-  <div class="mt-2 flex justify-between font-mono text-xs text-txt-faint">
+  <div class="mt-2 flex justify-between font-data text-xs text-txt-faint">
     <span>{% blocktrans count days=heat_oldest_days_ago %}{{ days }}d ago{% plural %}{{ days }}d ago{% endblocktrans %}</span>
     <span class="text-brand">{% blocktrans count points=heat_points with shown=heat_points|intcomma %}{{ shown }} pt{% plural %}{{ shown }} pts{% endblocktrans %}</span>
     <span>{% trans "today" %}</span>

@@ -6,7 +6,7 @@
 {% block content %}
 <div class="mx-auto max-w-3xl px-4 py-6 sm:py-8">
   <section class="border-b border-line2 pb-6">
-    <a href="{% url 'game_detail' game.pk %}" class="font-mono text-xs text-brand hover:text-brand-hi">← {{ game.title }}</a>
+    <a href="{% url 'game_detail' game.pk %}" class="font-data text-xs text-brand hover:text-brand-hi">← {{ game.title }}</a>
     <div class="mt-3 flex gap-4">
       <img src="{{ badge_url }}" alt="" width="64" height="64" class="h-16 w-16 shrink-0 rounded-tile border border-line2 bg-surface">
       <div class="min-w-0">
@@ -14,7 +14,7 @@
           <h1 class="break-words font-display text-2xl font-bold leading-tight text-txt sm:text-3xl">{{ achievement.title }}</h1>
           {% include "components/status-chip.html" %}
         </div>
-        <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-xs text-txt-faint">
+        <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 font-data text-xs text-txt-faint">
           <span class="text-gold">{% blocktrans count points=achievement.points %}{{ points }} pt{% plural %}{{ points }} pts{% endblocktrans %}</span>
           {% if achievement.type %}<span>{{ achievement.get_type_display }}</span>{% endif %}
           <span>{% trans "by" context "achievement author" %} <a href="{% url 'user_detail' achievement.author.username %}" class="text-brand">{{ achievement.author.username }}</a></span>

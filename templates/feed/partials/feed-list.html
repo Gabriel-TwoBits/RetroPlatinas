@@ -10,7 +10,7 @@
             {% trans "unlocked" %} <span class="text-gold">“{{ achievement.title }}”</span>
             {% translate "in" context "achievement unlocked in a game" %} <a href="{% url 'game_detail' achievement.game.pk %}" class="text-txt hover:text-brand-hi">{{ achievement.game.title }}</a>
           </div>
-          <div class="mt-1 font-mono text-xs text-txt-faint">
+          <div class="mt-1 font-data text-xs text-txt-faint">
             {{ achievement.game.console.short_name }} · <time datetime="{{ unlock.unlocked_at|date:'c' }}">{{ unlock.unlocked_at|naturaltime }}</time>{% if unlock.hardcore %} · <span class="text-state-hardcore">{% trans "hardcore" %}</span>{% endif %}
           </div>
         </div>

@@ -13,7 +13,7 @@
           <img src="{{ row.avatar_url }}" alt="" width="32" height="32" class="h-8 w-8 shrink-0 rounded-card border border-line2">
           <div class="min-w-0 flex-1">
             <div class="flex flex-wrap items-baseline justify-between gap-2">
-              <div class="min-w-0 font-mono text-xs text-txt-faint">
+              <div class="min-w-0 font-data text-xs text-txt-faint">
                 <a href="{% url 'user_detail' comment.author.username %}" class="font-display text-sm font-semibold text-txt">{{ comment.author.username }}</a>
                 · <time datetime="{{ comment.created_at|date:'c' }}">{{ comment.created_at|date:"SHORT_DATETIME_FORMAT" }}</time>
               </div>
@@ -21,7 +21,7 @@
                 <form method="post" action="{{ row.delete_url }}" hx-post="{{ row.delete_url }}" hx-target="#comments" hx-swap="outerHTML"
                       hx-confirm="{% trans 'Delete this comment?' %}" class="shrink-0">
                   {% csrf_token %}
-                  <button type="submit" class="font-mono text-xs text-danger">{% trans "Delete" %}</button>
+                  <button type="submit" class="font-data text-xs text-danger">{% trans "Delete" %}</button>
                 </form>
               {% endif %}
             </div>
@@ -41,6 +41,6 @@
       <button type="submit" class="rounded-tile bg-brand px-4 py-2 font-display text-sm font-bold text-brand-ink">{% trans "Post comment" %}</button>
     </form>
   {% else %}
-    <a href="{% url 'login' %}?next={{ thread.page_url|urlencode }}%23comments" class="mt-4 inline-block font-mono text-xs text-brand">{% trans "Log in to comment" %}</a>
+    <a href="{% url 'login' %}?next={{ thread.page_url|urlencode }}%23comments" class="mt-4 inline-block font-data text-xs text-brand">{% trans "Log in to comment" %}</a>
   {% endif %}
 </section>

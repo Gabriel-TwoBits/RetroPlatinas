@@ -6,7 +6,7 @@
 {% block content %}
 <div class="mx-auto max-w-3xl px-4 py-6 sm:py-8">
   <section class="border-b border-line2 pb-6">
-    <a href="{% url 'game_detail' game.pk %}" class="font-mono text-xs text-brand hover:text-brand-hi">← {{ game.title }}</a>
+    <a href="{% url 'game_detail' game.pk %}" class="font-data text-xs text-brand hover:text-brand-hi">← {{ game.title }}</a>
     <h1 class="mt-2 font-display text-2xl font-bold leading-tight text-txt sm:text-3xl">{% trans "Code notes" %}</h1>
     <p class="mt-2 text-sm leading-relaxed text-txt-muted">{% trans "What the community found at each memory address of the game. RAIntegration loads these same notes." %}</p>
     {% if user.is_authenticated %}
@@ -34,11 +34,11 @@
         <div class="flex items-baseline justify-between gap-3">
           <code class="font-mono text-sm font-bold text-brand">{{ row.address }}</code>
           {% if row.editable %}
-            <a href="{% url 'code_note_edit' game.pk row.note.pk %}" class="shrink-0 font-mono text-xs text-brand hover:text-brand-hi">{% trans "Edit" %}</a>
+            <a href="{% url 'code_note_edit' game.pk row.note.pk %}" class="shrink-0 font-data text-xs text-brand hover:text-brand-hi">{% trans "Edit" %}</a>
           {% endif %}
         </div>
         <p class="mt-1 whitespace-pre-wrap break-words font-mono text-xs leading-relaxed text-txt">{{ row.note.note }}</p>
-        <div class="mt-1 font-mono text-xs text-txt-faint">
+        <div class="mt-1 font-data text-xs text-txt-faint">
           {% trans "by" context "code note author" %} <a href="{% url 'user_detail' row.note.author.username %}" class="text-brand">{{ row.note.author.username }}</a>
           {% if row.note.updated_by %}
             · {% trans "last edited by" %} <a href="{% url 'user_detail' row.note.updated_by.username %}" class="text-brand">{{ row.note.updated_by.username }}</a>

@@ -7,7 +7,7 @@
 <div class="mx-auto max-w-5xl px-4 py-6 sm:py-8">
   <section class="border-b border-line2 pb-6">
     <h1 class="break-all font-display text-2xl font-bold leading-tight text-txt sm:text-3xl">{% blocktrans with username=profile_user.username %}{{ username }}'s friends{% endblocktrans %}</h1>
-    <a href="{% url 'user_detail' profile_user.username %}" class="mt-2 inline-block font-mono text-xs text-brand">← {% trans "Back to the profile" %}</a>
+    <a href="{% url 'user_detail' profile_user.username %}" class="mt-2 inline-block font-data text-xs text-brand">← {% trans "Back to the profile" %}</a>
   </section>
 
   <div class="mt-6 grid gap-8 lg:grid-cols-2">

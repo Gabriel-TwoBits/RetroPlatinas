@@ -1,7 +1,7 @@
 {% load i18n %}
 <section>
   {% include "components/section-heading.html" with title=_("Completion progress") %}
-  <div class="hidden gap-4 py-2 font-mono text-xs uppercase tracking-wide text-txt-faint sm:flex">
+  <div class="hidden gap-4 py-2 font-data text-xs uppercase tracking-wide text-txt-faint sm:flex">
     <span class="flex-1">{% trans "Game" %}</span>
     <span class="w-16">{% trans "Console" %}</span>
     <span class="w-24 text-right">{% trans "Achievements" %}</span>
@@ -13,13 +13,13 @@
         <div class="rp-hatch flex h-7 w-7 shrink-0 items-center justify-center rounded-card font-display text-xs font-bold text-brand">{{ g.initials }}</div>
         <a href="{% url 'game_detail' g.game.pk %}" class="truncate text-sm font-medium text-txt hover:text-brand-hi">{{ g.game.title }}</a>
       </div>
-      <span class="font-mono text-xs text-txt-muted sm:w-16">{{ g.tag }}</span>
-      <span class="font-mono text-xs text-state-{{ g.state }} sm:w-24 sm:text-right">{{ g.unlocked.softcore }} / {{ g.achievements }}</span>
+      <span class="font-data text-xs text-txt-muted sm:w-16">{{ g.tag }}</span>
+      <span class="font-data text-xs text-state-{{ g.state }} sm:w-24 sm:text-right">{{ g.unlocked.softcore }} / {{ g.achievements }}</span>
       <div class="flex items-center gap-2 sm:w-36 sm:justify-end">
         <div class="h-1.5 w-20 overflow-hidden rounded-full bg-elevated">
           <div class="h-full bg-state-{{ g.state }}" style="width:{{ g.pct }}%"></div>
         </div>
-        <span class="w-9 text-right font-mono text-xs text-txt-faint">{{ g.pct }}%</span>
+        <span class="w-9 text-right font-data text-xs text-txt-faint">{{ g.pct }}%</span>
       </div>
     </div>
   {% endfor %}

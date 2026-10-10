@@ -20,7 +20,7 @@
     <nav aria-label="{% trans 'Feed filter' %}" class="flex flex-wrap gap-2">
       {% for slug, label in filters %}
         <a href="{% url 'feed' %}{% if slug != 'all' %}?filter={{ slug }}{% endif %}"{% if slug == feed_filter %} aria-current="page"{% endif %}
-           class="rounded-chip border px-3 py-1 font-mono text-xs no-underline hover:no-underline {% if slug == feed_filter %}border-brand text-brand{% else %}border-line2 text-txt-muted hover:text-brand-hi{% endif %}">{{ label }}</a>
+           class="rounded-chip border px-3 py-1 font-data text-xs no-underline hover:no-underline {% if slug == feed_filter %}border-brand text-brand{% else %}border-line2 text-txt-muted hover:text-brand-hi{% endif %}">{{ label }}</a>
       {% endfor %}
     </nav>
 

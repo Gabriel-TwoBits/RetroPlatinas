@@ -82,7 +82,7 @@ def _page(client, achievement):
 def _stat(body, label):
     """The value of the stat line labelled `label`."""
     start = body.index(f">{label}</div>")
-    value_start = body.index('<span class="font-mono text-base font-bold text-txt">', start)
+    value_start = body.index('<span class="font-data text-base font-bold text-txt">', start)
     value_start = body.index(">", value_start) + 1
     return body[value_start : body.index("</span>", value_start)]
 

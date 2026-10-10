@@ -13,7 +13,7 @@
   <a class="text-txt-muted no-underline hover:text-brand-hi hover:no-underline" href="{% url 'docs' %}">{% trans "Docs" %}</a>
 </nav>
 
-<div class="{{ account_class }} font-mono">
+<div class="{{ account_class }} font-data">
   {% if user.is_authenticated %}
     <a class="text-txt no-underline hover:text-brand-hi" href="{% url 'user_detail' user.username %}">{{ user.username }}</a>
     <a class="text-txt-muted no-underline hover:text-brand-hi" href="{% url 'password_change' %}">{% trans "Change password" %}</a>

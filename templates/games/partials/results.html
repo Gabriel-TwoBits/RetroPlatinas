@@ -16,7 +16,7 @@
                 <img src="{{ card.icon_url }}" alt="" width="56" height="56" class="h-14 w-14 shrink-0 rounded-tile border border-line2">
                 <div class="min-w-0 flex-1">
                   <div class="break-words font-display text-base font-semibold text-txt group-hover:text-brand-hi">{{ game.title }}</div>
-                  <div class="mt-2 flex flex-wrap items-center gap-2 font-mono text-xs text-txt-faint">
+                  <div class="mt-2 flex flex-wrap items-center gap-2 font-data text-xs text-txt-faint">
                     {% include "components/console-tag.html" with label=game.console.short_name %}
                     <span>{% blocktrans count achievements=game.published_achievements with shown=game.published_achievements|intcomma %}{{ shown }} achievement{% plural %}{{ shown }} achievements{% endblocktrans %}</span>
                   </div>
@@ -35,7 +35,7 @@
   </section>
 
   {% if page.has_other_pages %}
-    <nav aria-label="{% trans 'Games pages' %}" class="flex items-center justify-between gap-3 border-t border-line2 pt-4 font-mono text-xs">
+    <nav aria-label="{% trans 'Games pages' %}" class="flex items-center justify-between gap-3 border-t border-line2 pt-4 font-data text-xs">
       {% if page.has_previous %}
         <a href="{% url 'games_list' %}?{% if query %}{{ query }}&amp;{% endif %}page={{ page.previous_page_number }}" class="text-brand hover:text-brand-hi"
            hx-get="{% url 'games_results' %}?{% if query %}{{ query }}&amp;{% endif %}page={{ page.previous_page_number }}" hx-target="#games-results" hx-swap="outerHTML show:top">← {% trans "Previous" %}</a>

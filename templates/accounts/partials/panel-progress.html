@@ -16,7 +16,7 @@
             {% endif %}
           </div>
           {% include "components/progress-bar-segmented.html" with not_pct=c.not_pct beaten_pct=c.beaten_pct plat_pct=c.plat_pct height="h-3" %}
-          <div class="mt-2 flex flex-wrap gap-x-3 font-mono text-xs text-txt-faint">
+          <div class="mt-2 flex flex-wrap gap-x-3 font-data text-xs text-txt-faint">
             <span>{% blocktrans count n=c.not_done %}{{ n }} open{% plural %}{{ n }} open{% endblocktrans %}</span>
             <span class="text-state-beaten">{% blocktrans count n=c.beaten %}{{ n }} beaten{% plural %}{{ n }} beaten{% endblocktrans %}</span>
             <span class="text-state-platinum">{% blocktrans count n=c.plat %}{{ n }} platinum{% plural %}{{ n }} platinum{% endblocktrans %}</span>
@@ -35,10 +35,10 @@
           <div class="min-w-0 flex-1">
             <div class="flex justify-between gap-2">
               <a href="{% url 'game_detail' g.game.pk %}" class="truncate text-sm font-semibold text-txt hover:text-brand-hi">{{ g.game.title }}</a>
-              <span class="shrink-0 font-mono text-xs text-state-{{ g.state }}">{{ g.unlocked.softcore }}/{{ g.achievements }}</span>
+              <span class="shrink-0 font-data text-xs text-state-{{ g.state }}">{{ g.unlocked.softcore }}/{{ g.achievements }}</span>
             </div>
             <div class="mt-1 flex items-center gap-2">
-              <span class="font-mono text-xs text-txt-faint">{{ g.tag }}</span>
+              <span class="font-data text-xs text-txt-faint">{{ g.tag }}</span>
               <div class="h-1 flex-1 overflow-hidden rounded-sm bg-elevated">
                 <div class="h-full bg-state-{{ g.state }}" style="width:{{ g.pct }}%"></div>
               </div>

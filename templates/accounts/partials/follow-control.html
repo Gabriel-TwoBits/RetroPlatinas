@@ -1,7 +1,7 @@
 {% load i18n humanize %}
 {# Swapped whole after a follow or an unfollow, so the follower count stays current. #}
 <div id="follow-control" class="mt-3 flex flex-wrap items-center gap-3">
-  <a href="{% url 'user_friends' profile_user.username %}" class="font-mono text-xs text-txt-muted no-underline hover:text-brand-hi">
+  <a href="{% url 'user_friends' profile_user.username %}" class="font-data text-xs text-txt-muted no-underline hover:text-brand-hi">
     {# pt-BR plural rules treat 0 as singular, which reads "0 seguidor". #}
     {% if follower_count == 0 %}{% trans "0 followers" %}{% else %}{% blocktrans count n=follower_count with shown=follower_count|intcomma %}{{ shown }} follower{% plural %}{{ shown }} followers{% endblocktrans %}{% endif %}
     · {% blocktrans with shown=following_count|intcomma %}{{ shown }} following{% endblocktrans %}

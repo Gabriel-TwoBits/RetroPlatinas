@@ -50,9 +50,11 @@ module.exports = {
         danger: "#e0552f",
       },
       fontFamily: {
-        display: ["'Arial Narrow'", "'Roboto Condensed'", "Arial", "sans-serif"],
-        sans: ["Arial", "Helvetica", "sans-serif"],
-        mono: ["'Courier New'", "Courier", "monospace"],
+        // Self-hosted from static/fonts (OFL); see the @font-face rules in input.css.
+        display: ["Oxanium", "Arial", "sans-serif"],
+        sans: ["'Atkinson Hyperlegible Next'", "Arial", "Helvetica", "sans-serif"],
+        // Tabular figures so points, ranks and counts line up in columns.
+        data: [["Oxanium", "Arial", "sans-serif"], { fontFeatureSettings: '"tnum"' }],
       },
       width: {
         // Accent strip on the left of a section heading.

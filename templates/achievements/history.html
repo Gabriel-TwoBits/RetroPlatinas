@@ -6,7 +6,7 @@
 {% block content %}
 <div class="mx-auto max-w-3xl px-4 py-6 sm:py-8">
   <section class="border-b border-line2 pb-6">
-    <a href="{% url 'game_detail' game.pk %}" class="font-mono text-xs text-brand hover:text-brand-hi">← {{ game.title }}</a>
+    <a href="{% url 'game_detail' game.pk %}" class="font-data text-xs text-brand hover:text-brand-hi">← {{ game.title }}</a>
     <h1 class="mt-2 break-words font-display text-2xl font-bold leading-tight text-txt sm:text-3xl">{{ achievement.title }}</h1>
     <p class="mt-2 text-sm leading-relaxed text-txt-muted">{% trans "Every change to the achievement, newest first, with what it changed. Reverting adds a new revision; earlier ones stay." %}</p>
     {% if editable %}
@@ -20,7 +20,7 @@
     {% for entry in entries %}
       <article class="border-t border-line py-4 first:border-t-0">
         <div class="flex flex-wrap items-baseline justify-between gap-3">
-          <div class="font-mono text-xs text-txt-faint">
+          <div class="font-data text-xs text-txt-faint">
             <span class="font-bold text-txt">#{{ entry.number }}</span>
             · <time datetime="{{ entry.revision.created_at|date:'c' }}">{{ entry.revision.created_at|date:"SHORT_DATETIME_FORMAT" }}</time>
             ·

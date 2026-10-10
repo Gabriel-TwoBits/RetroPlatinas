@@ -9,14 +9,14 @@
           <div class="min-w-0 flex-1">
             <div class="flex items-start justify-between gap-3">
               <a href="{% url 'game_detail' g.game.pk %}" class="font-display text-base font-semibold text-txt hover:text-brand-hi">{{ g.game.title }}</a>
-              <span class="whitespace-nowrap font-mono text-xs text-state-{{ g.state }}">{{ g.state_label }}</span>
+              <span class="whitespace-nowrap font-data text-xs text-state-{{ g.state }}">{{ g.state_label }}</span>
             </div>
-            <div class="mb-3 mt-1 font-mono text-xs text-txt-faint">{{ g.meta }}</div>
+            <div class="mb-3 mt-1 font-data text-xs text-txt-faint">{{ g.meta }}</div>
             <div class="flex items-center gap-3">
               <div class="h-1.5 flex-1 overflow-hidden rounded-full bg-elevated">
                 <div class="h-full bg-state-{{ g.state }}" style="width:{{ g.pct }}%"></div>
               </div>
-              <span class="font-mono text-xs text-txt-muted">{{ g.pct }}%</span>
+              <span class="font-data text-xs text-txt-muted">{{ g.pct }}%</span>
             </div>
           </div>
         </div>
@@ -26,7 +26,7 @@
               <div class="aspect-square rounded-chip {% if c.unlocked %}bg-gold{% else %}border border-line opacity-45{% endif %}"></div>
             {% endfor %}
             {% if g.grid.more %}
-              <div class="flex aspect-square items-center justify-center font-mono text-xs text-txt-muted">+{{ g.grid.more }}</div>
+              <div class="flex aspect-square items-center justify-center font-data text-xs text-txt-muted">+{{ g.grid.more }}</div>
             {% endif %}
           </div>
         {% endif %}

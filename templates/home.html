@@ -18,8 +18,8 @@
       <div class="max-w-xl">
         <h1 class="font-display text-xl font-bold leading-tight tracking-tight text-txt sm:text-2xl">{% trans "Achievements for retro games, truly open." %}</h1>
         <p class="mt-2 text-sm leading-relaxed text-txt-muted">{% trans "RetroPlatinas adds achievements to classics running on an emulator. Play, unlock and show up on the board." %}</p>
-        <p class="mt-3 font-mono text-xs text-txt-faint"><span class="text-brand">{% trans "New project · under construction" %}</span> · AGPL-3.0 · Codeberg</p>
-        <p class="mt-1 font-mono text-xs leading-relaxed text-txt-faint">{% trans "We're new: every number on this page is real, however small." %}</p>
+        <p class="mt-3 font-data text-xs text-txt-faint"><span class="text-brand">{% trans "New project · under construction" %}</span> · AGPL-3.0 · Codeberg</p>
+        <p class="mt-1 font-data text-xs leading-relaxed text-txt-faint">{% trans "We're new: every number on this page is real, however small." %}</p>
       </div>
       <div class="flex shrink-0 flex-wrap gap-3">
         <a href="{{ register_url }}" class="rounded-tile bg-brand px-4 py-2.5 font-display text-sm font-bold text-brand-ink no-underline hover:no-underline">{% trans "Create account" %}</a>
@@ -38,18 +38,18 @@
         <div>
           {% if sets %}
             <div class="border-t border-line py-3 first:border-t-0">
-              <span class="font-mono text-xs text-gold">{% trans "New set" %}</span>
+              <span class="font-data text-xs text-gold">{% trans "New set" %}</span>
               <div class="mt-1 font-display text-sm font-semibold text-txt">{% trans "First set: Crash Bandicoot (PS1)" %}</div>
               <div class="mt-1 text-xs leading-snug text-txt-muted">{% trans "Our first set, with hardcore and softcore seals." %}</div>
             </div>
           {% endif %}
           <div class="border-t border-line py-3 first:border-t-0">
-            <span class="font-mono text-xs text-brand">{% trans "Platform" %}</span>
+            <span class="font-data text-xs text-brand">{% trans "Platform" %}</span>
             <div class="mt-1 font-display text-sm font-semibold text-txt">{% trans "Hardcore & softcore" %}</div>
             <div class="mt-1 text-xs leading-snug text-txt-muted">{% trans "Unlocks without save states get the hardcore seal, shown apart from softcore ones." %}</div>
           </div>
           <div class="border-t border-line py-3 first:border-t-0">
-            <span class="font-mono text-xs text-state-platinum">{% trans "Community" %}</span>
+            <span class="font-data text-xs text-state-platinum">{% trans "Community" %}</span>
             <div class="mt-1 font-display text-sm font-semibold text-txt">{% trans "Open source on Codeberg" %}</div>
             <div class="mt-1 text-xs leading-snug text-txt-muted">{% trans "RetroPlatinas is AGPL-3.0. Issues and roadmap are public." %}</div>
           </div>
@@ -64,12 +64,12 @@
               <img src="{{ s.icon_url }}" alt="" width="56" height="56" class="h-14 w-14 shrink-0 rounded-tile border border-line2">
               <div class="min-w-0 flex-1">
                 <div class="font-display text-base font-semibold text-txt group-hover:text-brand-hi">{{ s.game.title }}</div>
-                <div class="my-2 flex flex-wrap items-center gap-2 font-mono text-xs">
+                <div class="my-2 flex flex-wrap items-center gap-2 font-data text-xs">
                   {% include "components/console-tag.html" with label=s.game.console.short_name %}
                   <span class="text-state-hardcore">{% trans "hardcore" %}</span>
                   <span class="text-state-softcore">{% trans "softcore" %}</span>
                 </div>
-                <div class="font-mono text-xs text-txt-faint">
+                <div class="font-data text-xs text-txt-faint">
                   {% blocktrans count achievements=s.achievements with shown=s.achievements|intcomma %}{{ shown }} achievement{% plural %}{{ shown }} achievements{% endblocktrans %}
                   · {% blocktrans count points=s.points with shown=s.points|intcomma %}{{ shown }} pt{% plural %}{{ shown }} pts{% endblocktrans %}
                   · {% blocktrans count players=s.players with shown=s.players|intcomma %}{{ shown }} player{% plural %}{{ shown }} players{% endblocktrans %}
@@ -86,14 +86,14 @@
         {% include "components/section-heading.html" with title=_("How to contribute") accent="gold" %}
         <ol class="mt-3 flex flex-col gap-4 border-l-2 border-brand-dim pl-4">
           <li>
-            <div class="font-display text-sm font-semibold text-txt"><span class="mr-2 font-mono text-brand">1</span>{% trans "Create achievement sets" %}</div>
+            <div class="font-display text-sm font-semibold text-txt"><span class="mr-2 font-data text-brand">1</span>{% trans "Create achievement sets" %}</div>
             <div class="mt-1 text-xs leading-snug text-txt-muted">{% trans "Pick a game, design the achievements and publish a set. No gatekeeping." %}</div>
-            <a href="{{ register_url }}" class="mt-1 inline-block font-mono text-xs text-brand">{% trans "Create account →" %}</a>
+            <a href="{{ register_url }}" class="mt-1 inline-block font-data text-xs text-brand">{% trans "Create account →" %}</a>
           </li>
           <li>
-            <div class="font-display text-sm font-semibold text-txt"><span class="mr-2 font-mono text-brand">2</span>{% trans "Contribute code" %}</div>
+            <div class="font-display text-sm font-semibold text-txt"><span class="mr-2 font-data text-brand">2</span>{% trans "Contribute code" %}</div>
             <div class="mt-1 text-xs leading-snug text-txt-muted">{% trans "AGPL-3.0 on Codeberg. Bugs, features and roadmap are open." %}</div>
-            <a href="{{ codeberg_url }}" target="_blank" rel="noopener" class="mt-1 inline-block font-mono text-xs text-brand">{% trans "See the repository →" %}</a>
+            <a href="{{ codeberg_url }}" target="_blank" rel="noopener" class="mt-1 inline-block font-data text-xs text-brand">{% trans "See the repository →" %}</a>
           </li>
         </ol>
       </section>
@@ -104,12 +104,12 @@
       <section class="order-first md:order-none">
         {% include "components/section-heading.html" with title=_("How to start playing") accent="gold" %}
         <ol class="mt-3 flex flex-col gap-2 border-l-2 border-brand-dim pl-4 text-xs leading-snug text-txt-muted">
-          <li><span class="mr-2 font-mono text-brand">1</span>{% trans "Get a compatible emulator (DuckStation)" %}</li>
-          <li><span class="mr-2 font-mono text-brand">2</span>{% trans "Create your account and sign in from the emulator" %}</li>
-          <li><span class="mr-2 font-mono text-brand">3</span>{% trans "Load the game and start unlocking" %}</li>
+          <li><span class="mr-2 font-data text-brand">1</span>{% trans "Get a compatible emulator (DuckStation)" %}</li>
+          <li><span class="mr-2 font-data text-brand">2</span>{% trans "Create your account and sign in from the emulator" %}</li>
+          <li><span class="mr-2 font-data text-brand">3</span>{% trans "Load the game and start unlocking" %}</li>
         </ol>
-        <p class="mt-3 font-mono text-xs leading-relaxed text-txt-faint">{% trans "Today: PlayStation (PS1). More consoles as sets arrive." %}</p>
-        <a href="{% url 'getting_started' %}" class="mt-2 inline-block font-mono text-xs text-brand">{% trans "Step-by-step guide →" %}</a>
+        <p class="mt-3 font-data text-xs leading-relaxed text-txt-faint">{% trans "Today: PlayStation (PS1). More consoles as sets arrive." %}</p>
+        <a href="{% url 'getting_started' %}" class="mt-2 inline-block font-data text-xs text-brand">{% trans "Step-by-step guide →" %}</a>
       </section>
 
       <section class="order-first md:order-none">
@@ -132,19 +132,19 @@
                   <img src="{{ p.avatar_url }}" alt="" width="32" height="32" class="h-8 w-8 shrink-0 rounded-card border border-line2">
                   <div class="min-w-0 flex-1">
                     <a href="{% url 'user_detail' played.user.username %}" class="block truncate font-display text-xs font-semibold leading-tight text-txt">{{ played.user.username }}</a>
-                    <div class="mt-1 truncate font-mono text-xs text-txt-faint"><a href="{% url 'game_detail' played.game.pk %}" class="text-txt-faint hover:text-brand-hi">{{ played.game.title }}</a> · {{ played.game.console.short_name }}</div>
+                    <div class="mt-1 truncate font-data text-xs text-txt-faint"><a href="{% url 'game_detail' played.game.pk %}" class="text-txt-faint hover:text-brand-hi">{{ played.game.title }}</a> · {{ played.game.console.short_name }}</div>
                     {% if played.last_rich_presence %}
                       <div class="mt-1 truncate text-xs text-txt-muted">{{ played.last_rich_presence }}</div>
                     {% endif %}
                   </div>
-                  <span class="flex shrink-0 items-center gap-2 font-mono text-xs {% if played.hardcore %}text-state-hardcore{% else %}text-state-softcore{% endif %}">
+                  <span class="flex shrink-0 items-center gap-2 font-data text-xs {% if played.hardcore %}text-state-hardcore{% else %}text-state-softcore{% endif %}">
                     <span class="h-2 w-2 rounded-full bg-brand animate-rp-pulse"></span>{% if played.hardcore %}{% trans "hardcore" %}{% else %}{% trans "softcore" %}{% endif %}
                   </span>
                 </div>
               {% endwith %}
             {% endfor %}
             {% if playing_now.total > playing_now.sessions|length %}
-              <div class="border-t border-line py-2 font-mono text-xs text-txt-faint">
+              <div class="border-t border-line py-2 font-data text-xs text-txt-faint">
                 {% blocktrans with total=playing_now.total|intcomma %}{{ total }} playing in all{% endblocktrans %}
               </div>
             {% endif %}
@@ -161,9 +161,9 @@
                 <img src="{{ a.badge_url }}" alt="" width="32" height="32" class="h-8 w-8 shrink-0 rounded-card border {% if unlock.hardcore %}border-state-hardcore{% else %}border-line2{% endif %}">
                 <div class="min-w-0 flex-1">
                   <div class="text-xs leading-tight text-txt"><a href="{% url 'user_detail' unlock.user.username %}" class="font-display font-semibold text-txt">{{ unlock.user.username }}</a> {% trans "unlocked" %} <span class="text-gold">“{{ achievement.title }}”</span></div>
-                  <div class="mt-1 font-mono text-xs text-txt-faint"><a href="{% url 'game_detail' achievement.game.pk %}" class="text-txt-faint hover:text-brand-hi">{{ achievement.game.title }}</a> · {{ achievement.game.console.short_name }} · <time datetime="{{ unlock.unlocked_at|date:'c' }}">{{ unlock.unlocked_at|naturaltime }}</time></div>
+                  <div class="mt-1 font-data text-xs text-txt-faint"><a href="{% url 'game_detail' achievement.game.pk %}" class="text-txt-faint hover:text-brand-hi">{{ achievement.game.title }}</a> · {{ achievement.game.console.short_name }} · <time datetime="{{ unlock.unlocked_at|date:'c' }}">{{ unlock.unlocked_at|naturaltime }}</time></div>
                 </div>
-                {% if unlock.hardcore %}<span class="shrink-0 font-mono text-xs text-state-hardcore">{% trans "HC" %}</span>{% endif %}
+                {% if unlock.hardcore %}<span class="shrink-0 font-data text-xs text-state-hardcore">{% trans "HC" %}</span>{% endif %}
               </div>
             {% endwith %}
           {% empty %}
@@ -176,12 +176,12 @@
         {% include "components/section-heading.html" with title=_("Open source") accent="state-platinum" %}
         <div>
           <a href="{{ codeberg_url }}" target="_blank" rel="noopener" class="flex items-center gap-3 border-t border-line py-3 text-txt no-underline first:border-t-0 hover:text-txt hover:no-underline">
-            <span class="w-4 font-mono text-xs text-txt-faint">⌥</span>
+            <span class="w-4 font-data text-xs text-txt-faint">⌥</span>
             <span class="flex-1 text-xs">{% trans "Codeberg — repository" %}</span>
-            <span class="font-mono text-xs text-brand">↗</span>
+            <span class="font-data text-xs text-brand">↗</span>
           </a>
           <div class="flex items-center gap-3 border-t border-line py-3 text-txt">
-            <span class="w-4 font-mono text-xs text-txt-faint">§</span>
+            <span class="w-4 font-data text-xs text-txt-faint">§</span>
             <span class="flex-1 text-xs">{% trans "Licensed under AGPL-3.0" %}</span>
           </div>
         </div>

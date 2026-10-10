@@ -18,9 +18,9 @@
         {% else %}
           <div class="font-display text-sm font-semibold text-txt">{{ title }}</div>
         {% endif %}
-        <span class="whitespace-nowrap font-mono text-xs text-state-{{ state }}">{{ state_label }}</span>
+        <span class="whitespace-nowrap font-data text-xs text-state-{{ state }}">{{ state_label }}</span>
       </div>
-      <div class="mb-2 mt-1 font-mono text-xs text-txt-faint">{{ meta }}</div>
+      <div class="mb-2 mt-1 font-data text-xs text-txt-faint">{{ meta }}</div>
       <div class="h-1.5 overflow-hidden rounded-card bg-elevated">
         <div class="h-full bg-state-{{ state }}" style="width:{{ pct }}%"></div>
       </div>
@@ -34,7 +34,7 @@
         {% endfor %}
       </div>
       {% if icons_more %}
-        <div class="shrink-0 px-1 font-mono text-xs text-txt-muted">+{{ icons_more }}</div>
+        <div class="shrink-0 px-1 font-data text-xs text-txt-muted">+{{ icons_more }}</div>
       {% endif %}
     </div>
   {% endif %}

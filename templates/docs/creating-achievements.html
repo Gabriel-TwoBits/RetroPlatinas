@@ -9,27 +9,27 @@
     {% include "components/section-heading.html" with title=_("From draft to published") accent="gold" %}
     <ol class="mt-4 flex flex-col gap-6 border-l-2 border-brand-dim pl-4">
       <li>
-        <h3 class="font-display text-base font-semibold text-txt"><span class="mr-2 font-mono text-brand">1</span>{% trans "Open the editor" %}</h3>
+        <h3 class="font-display text-base font-semibold text-txt"><span class="mr-2 font-data text-brand">1</span>{% trans "Open the editor" %}</h3>
         <p class="mt-1 text-sm leading-relaxed text-txt-muted">{% trans "Log in, open the game's page and press New achievement. The editor asks for a title, a description, the points, the type, a badge image, the condition and the status." %}</p>
-        <a href="{% url 'games_list' %}" class="mt-1 inline-block font-mono text-xs text-brand">{% trans "See the games →" %}</a>
+        <a href="{% url 'games_list' %}" class="mt-1 inline-block font-data text-xs text-brand">{% trans "See the games →" %}</a>
       </li>
       <li>
-        <h3 class="font-display text-base font-semibold text-txt"><span class="mr-2 font-mono text-brand">2</span>{% trans "Write the condition" %}</h3>
+        <h3 class="font-display text-base font-semibold text-txt"><span class="mr-2 font-data text-brand">2</span>{% trans "Write the condition" %}</h3>
         <p class="mt-1 text-sm leading-relaxed text-txt-muted">{% trans "The condition (mem_addr) tells the emulator which memory values unlock the achievement. The syntax is the same as on RetroAchievements; the pointers below cover the basics." %}</p>
       </li>
       <li>
-        <h3 class="font-display text-base font-semibold text-txt"><span class="mr-2 font-mono text-brand">3</span>{% trans "Save it as a draft" %}</h3>
+        <h3 class="font-display text-base font-semibold text-txt"><span class="mr-2 font-data text-brand">3</span>{% trans "Save it as a draft" %}</h3>
         <p class="mt-1 text-sm leading-relaxed text-txt-muted">{% trans "On save, the editor checks the condition with the same rcheevos parser the emulators run and refuses a malformed one, showing the parser's reason. A condition that parses can still be wrong: only the game proves it." %}</p>
       </li>
       <li>
-        <h3 class="font-display text-base font-semibold text-txt"><span class="mr-2 font-mono text-brand">4</span>{% trans "Test it in DuckStation" %}</h3>
+        <h3 class="font-display text-base font-semibold text-txt"><span class="mr-2 font-data text-brand">4</span>{% trans "Test it in DuckStation" %}</h3>
         <p class="mt-1 text-sm leading-relaxed text-txt-muted">{% trans "Log in to DuckStation as the draft's author, turn on Test Unofficial Achievements in Settings → Achievements, then close the game and open it again: the emulator only fetches the achievements when a game loads." %}</p>
         <p class="mt-2 text-sm leading-relaxed text-txt-muted">{% trans "Drafts appear in the achievement list marked (Unofficial); the pause screen's counter only counts official ones. The pop-up fires when the condition is met, which proves it works, but a draft is never recorded or worth points." %}</p>
       </li>
       <li>
-        <h3 class="font-display text-base font-semibold text-txt"><span class="mr-2 font-mono text-brand">5</span>{% trans "Publish it" %}</h3>
+        <h3 class="font-display text-base font-semibold text-txt"><span class="mr-2 font-data text-brand">5</span>{% trans "Publish it" %}</h3>
         <p class="mt-1 text-sm leading-relaxed text-txt-muted">{% trans "Back in the editor, set the status to Community. Every player then receives it as an official achievement, and unlocking it counts and scores." %}</p>
-        <a href="{{ statuses_url }}" class="mt-1 inline-block font-mono text-xs text-brand">{% trans "What each status means →" %}</a>
+        <a href="{{ statuses_url }}" class="mt-1 inline-block font-data text-xs text-brand">{% trans "What each status means →" %}</a>
       </li>
     </ol>
   </div>
@@ -66,7 +66,7 @@
     <p class="mt-3 text-sm leading-relaxed text-txt-muted">{% trans "For example, this condition fires on the frame the byte at 0x61998 changes from 0 to 1:" %}</p>
     <pre class="mt-2 overflow-x-auto rounded-card border border-line px-3 py-2 font-mono text-sm text-txt">0xH61998=1_d0xH61998=0</pre>
     <p class="mt-3 text-sm leading-relaxed text-txt-muted">{% trans "RetroAchievements' developer documentation covers every size, prefix and flag:" %}</p>
-    <ul class="mt-2 flex flex-col gap-1 font-mono text-xs">
+    <ul class="mt-2 flex flex-col gap-1 font-data text-xs">
       <li><a href="https://docs.retroachievements.org/developer-docs/condition-syntax.html" target="_blank" rel="noopener" class="text-brand">{% trans "Condition syntax" %} ↗</a></li>
       <li><a href="https://docs.retroachievements.org/developer-docs/why-delta.html" target="_blank" rel="noopener" class="text-brand">{% trans "Why delta" %} ↗</a></li>
       <li><a href="https://docs.retroachievements.org/developer-docs/hit-counts.html" target="_blank" rel="noopener" class="text-brand">{% trans "Hit counts" %} ↗</a></li>

@@ -6,7 +6,7 @@
   The branded SVG console-icon system is a deferred component (see DESIGN.md).
 {% endcomment %}
 {% if variant == "table" %}
-  <span class="inline-block min-w-10 rounded-chip border border-line2 px-1.5 py-0.5 text-center font-mono text-xs {{ tone|default:'text-txt-muted' }}">{{ label }}</span>
+  <span class="inline-block min-w-10 rounded-chip border border-line2 px-1.5 py-0.5 text-center font-data text-xs {{ tone|default:'text-txt-muted' }}">{{ label }}</span>
 {% else %}
-  <span class="inline-block rounded-chip border border-line2 px-2 py-0.5 font-mono text-xs text-txt-muted">{{ label }}</span>
+  <span class="inline-block rounded-chip border border-line2 px-2 py-0.5 font-data text-xs text-txt-muted">{{ label }}</span>
 {% endif %}

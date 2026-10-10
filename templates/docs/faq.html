@@ -13,7 +13,7 @@
         <li class="border-t border-line py-3 first:border-t-0">
           <div class="flex flex-wrap items-baseline gap-x-2">
             <a href="{% url 'game_detail' disc.game.pk %}" class="font-display text-sm font-semibold text-brand">{{ disc.game.title }}</a>
-            <span class="font-mono text-xs text-txt-faint">{{ disc.game.console.short_name }}</span>
+            <span class="font-data text-xs text-txt-faint">{{ disc.game.console.short_name }}</span>
           </div>
           <div class="mt-1 text-sm text-txt-muted">{{ disc.label }}</div>
           <div class="mt-1 break-all font-mono text-xs text-txt-faint">{{ disc.md5 }}</div>
