@@ -21,7 +21,7 @@ from apps.api.handlers import (
     ACHIEVEMENT_FLAGS_UNOFFICIAL,
     API_TOKEN_LIFETIME,
 )
-from apps.games.models import Console, Game
+from apps.games.models import SET_TYPE_BONUS, SET_TYPE_CHALLENGE, Console, Game
 from apps.images.catalog import badge_path
 from apps.images.rendering import BADGE_SIZE_PX
 
@@ -222,7 +222,7 @@ def test_new_achievement_for_an_unknown_game_is_not_found(client, author):
 def test_creating_an_achievement_saves_it_unofficial_by_its_author(client, author, game):
     client.force_login(author)
 
-    response = _post(client, _new_url(game))
+    response = _post(client, _new_url(game), set=game.pk)
 
     achievement = Achievement.objects.get()
     assert response.status_code == HTTPStatus.FOUND
@@ -239,7 +239,7 @@ def test_creating_an_achievement_saves_it_unofficial_by_its_author(client, autho
 def test_an_author_may_create_an_achievement_already_official(client, author, other, game):
     client.force_login(author)
 
-    _post(client, _new_url(game), status=Achievement.STATUS_OFFICIAL)
+    _post(client, _new_url(game), set=game.pk, status=Achievement.STATUS_OFFICIAL)
 
     achievement = Achievement.objects.get()
     assert achievement.status == Achievement.STATUS_OFFICIAL
@@ -251,7 +251,7 @@ def test_an_author_may_create_an_achievement_already_official(client, author, ot
 @pytest.mark.django_db
 def test_a_created_achievement_is_listed_on_the_game_page_for_everyone(client, author, other, game):
     client.force_login(author)
-    _post(client, _new_url(game))
+    _post(client, _new_url(game), set=game.pk)
     panel = reverse("game_panel", args=[game.pk, "achievements"])
 
     authors_view = client.get(panel, HTTP_ACCEPT_LANGUAGE="en")
@@ -265,7 +265,7 @@ def test_a_created_achievement_is_listed_on_the_game_page_for_everyone(client, a
 @pytest.mark.django_db
 def test_a_created_achievement_reaches_everyone_as_unofficial(client, author, other, game):
     client.force_login(author)
-    _post(client, _new_url(game))
+    _post(client, _new_url(game), set=game.pk)
     achievement = Achievement.objects.get()
 
     for user, token in ((author, AUTHOR_TOKEN), (other, OTHER_TOKEN)):
@@ -278,7 +278,7 @@ def test_a_created_achievement_reaches_everyone_as_unofficial(client, author, ot
 def test_creating_rejects_a_condition_rcheevos_cannot_parse(client, author, game):
     client.force_login(author)
 
-    response = _post(client, _new_url(game), mem_addr=INVALID_TRIGGER)
+    response = _post(client, _new_url(game), set=game.pk, mem_addr=INVALID_TRIGGER)
 
     assert response.status_code == HTTPStatus.OK
     assert response.context["form"].has_error("mem_addr", code="invalid_trigger")
@@ -290,7 +290,7 @@ def test_creating_rejects_a_condition_rcheevos_cannot_parse(client, author, game
 def test_creating_rejects_a_leaderboard_definition(client, author, game):
     client.force_login(author)
 
-    response = _post(client, _new_url(game), mem_addr=LEADERBOARD_DEFINITION)
+    response = _post(client, _new_url(game), set=game.pk, mem_addr=LEADERBOARD_DEFINITION)
 
     assert response.context["form"].has_error("mem_addr", code="not_a_trigger")
     assert not Achievement.objects.exists()
@@ -300,7 +300,7 @@ def test_creating_rejects_a_leaderboard_definition(client, author, game):
 def test_creating_rejects_points_off_the_scale(client, author, game):
     client.force_login(author)
 
-    response = _post(client, _new_url(game), points=OFF_SCALE_POINTS)
+    response = _post(client, _new_url(game), set=game.pk, points=OFF_SCALE_POINTS)
 
     assert response.context["form"].has_error("points")
     assert not Achievement.objects.exists()
@@ -311,7 +311,7 @@ def test_creating_rejects_points_off_the_scale(client, author, game):
 def test_creating_rejects_a_status_other_than_official_or_unofficial(client, author, game, status):
     client.force_login(author)
 
-    response = _post(client, _new_url(game), status=status)
+    response = _post(client, _new_url(game), set=game.pk, status=status)
 
     assert response.context["form"].has_error("status")
     assert not Achievement.objects.exists()
@@ -323,7 +323,7 @@ def test_creating_with_a_badge_upload_names_the_achievement_after_the_new_badge(
 ):
     client.force_login(author)
 
-    client.post(_new_url(game), {**_fields(), "badge": _png()})
+    client.post(_new_url(game), {**_fields(set=game.pk), "badge": _png()})
 
     badge = Badge.objects.get()
     assert badge.uploaded_by == author
@@ -335,7 +335,7 @@ def test_creating_rejects_a_badge_that_is_not_an_image(client, author, game):
     client.force_login(author)
     not_an_image = SimpleUploadedFile("badge.png", b"not an image", content_type="image/png")
 
-    response = client.post(_new_url(game), {**_fields(), "badge": not_an_image})
+    response = client.post(_new_url(game), {**_fields(set=game.pk), "badge": not_an_image})
 
     assert response.context["form"].has_error("badge", code="invalid_image")
     assert not Badge.objects.exists()
@@ -543,3 +543,106 @@ def test_game_page_offers_staff_edit_on_every_achievement(client, author, staff,
     body = client.get(reverse("game_detail", args=[game.pk])).content.decode()
 
     assert _edit_url(achievement) in body
+
+
+# --- sets ---
+
+
+def _subset(core, set_title, set_type=SET_TYPE_BONUS):
+    return Game.objects.create(
+        title=f"{core.title} [Subset - {set_title}]",
+        console=core.console,
+        parent_game=core,
+        set_type=set_type,
+        set_title=set_title,
+    )
+
+
+@pytest.fixture
+def bonus(game):
+    return _subset(game, "Bonus")
+
+
+@pytest.mark.django_db
+def test_a_new_achievement_chooses_the_core_set_or_one_of_its_subsets(client, author, game, bonus):
+    challenge = _subset(game, "Deathless", SET_TYPE_CHALLENGE)
+    other_core = Game.objects.create(title="Spyro", console=game.console)
+    _subset(other_core, "Elsewhere")
+    client.force_login(author)
+
+    form = client.get(_new_url(game), HTTP_ACCEPT_LANGUAGE="en").context["form"]
+
+    assert list(form.fields)[0] == "set"
+    assert form["set"].value() == game.pk
+    assert list(form.fields["set"].choices) == [
+        (game.pk, "Core set"),
+        (bonus.pk, "Bonus (Bonus subset)"),
+        (challenge.pk, "Deathless (Challenge subset)"),
+    ]
+
+
+@pytest.mark.django_db
+def test_a_new_achievement_from_a_subset_starts_in_that_subset(client, author, game, bonus):
+    client.force_login(author)
+
+    response = client.get(_new_url(bonus), HTTP_ACCEPT_LANGUAGE="en")
+
+    assert response.context["form"]["set"].value() == bonus.pk
+    assert f'href="/games/{game.pk}/"' in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_creating_an_achievement_in_a_subset_saves_it_there(client, author, game, bonus):
+    client.force_login(author)
+
+    response = _post(client, _new_url(game), set=bonus.pk)
+
+    achievement = Achievement.objects.get()
+    assert achievement.game == bonus
+    assert response.url == _edit_url(achievement)
+
+
+@pytest.mark.django_db
+def test_a_new_achievement_takes_no_set_of_another_game(client, author, game, bonus):
+    other_core = Game.objects.create(title="Spyro", console=game.console)
+    elsewhere = _subset(other_core, "Elsewhere")
+    client.force_login(author)
+
+    for chosen in (other_core.pk, elsewhere.pk, ""):
+        response = _post(client, _new_url(game), set=chosen)
+        assert response.status_code == HTTPStatus.OK
+        assert response.context["form"].errors["set"]
+    assert not Achievement.objects.exists()
+
+
+@pytest.mark.django_db
+def test_editing_keeps_the_achievement_in_its_set(client, author, game, bonus):
+    achievement = _achievement(bonus, author)
+    client.force_login(author)
+
+    form = client.get(_edit_url(achievement), HTTP_ACCEPT_LANGUAGE="en").context["form"]
+    _post(client, _edit_url(achievement), set=game.pk)
+
+    assert "set" not in form.fields
+    achievement.refresh_from_db()
+    assert achievement.game == bonus
+
+
+@pytest.mark.django_db
+def test_the_editor_of_a_subset_achievement_names_its_subset(client, author, game, bonus):
+    achievement = _achievement(bonus, author)
+    client.force_login(author)
+
+    body = client.get(_edit_url(achievement), HTTP_ACCEPT_LANGUAGE="en").content.decode()
+
+    assert f'href="/games/{game.pk}/#set-{bonus.pk}"' in body
+    assert ">Bonus subset</span>" in body
+
+
+@pytest.mark.django_db
+def test_game_page_offers_a_new_achievement_in_each_subset(client, author, game, bonus):
+    client.force_login(author)
+
+    body = client.get(reverse("game_detail", args=[game.pk])).content.decode()
+
+    assert f'href="{_new_url(bonus)}"' in body

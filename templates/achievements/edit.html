@@ -7,7 +7,13 @@
 <div class="mx-auto max-w-2xl px-4 py-10">
   <div class="border-b border-line2 pb-3">
     <h1 class="font-display text-2xl font-bold text-txt">{% if form.instance.pk %}{% trans "Edit achievement" %}{% else %}{% trans "New achievement" %}{% endif %}</h1>
-    <a href="{% url 'game_detail' game.pk %}" class="mt-1 inline-block text-sm text-brand">{{ game.title }}</a>
+    <div class="mt-1 flex flex-wrap items-baseline gap-x-2 text-sm">
+      {% if form.instance.pk %}
+        {% include "components/set-game-link.html" with link_class="text-brand" %}
+      {% else %}
+        <a href="{{ game.core_game.get_absolute_url }}" class="text-brand">{{ game.core_game.title }}</a>
+      {% endif %}
+    </div>
   </div>
 
   {% with achievement=form.instance %}
@@ -40,7 +46,7 @@
     <button type="submit" class="mt-2 w-full rounded-tile bg-brand px-4 py-2.5 font-display text-sm font-bold text-brand-ink">{% trans "Save achievement" %}</button>
   </form>
   <div class="mt-6 border-t border-line pt-4 text-sm text-txt-muted">
-    <a href="{% url 'game_detail' game.pk %}" class="text-brand">{% trans "Back to the game" %}</a>
+    <a href="{{ game.get_absolute_url }}" class="text-brand">{% trans "Back to the game" %}</a>
     {% if form.instance.pk %}
       · <a href="{% url 'achievement_history' game.pk form.instance.pk %}" class="text-brand">{% trans "History" %}</a>
     {% endif %}
