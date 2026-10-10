@@ -27,6 +27,9 @@ PLAYSTATION_RA_ID = 12
 HARDCORE_POINTS = 1234
 SOFTCORE_POINTS = 2345
 SMALL_CAP = 2
+# Ages of play records, in minutes.
+EARLIER_MINUTES_AGO = 30
+LATEST_MINUTES_AGO = 5
 # Every key rcheevos reads from a `Friends` entry.
 FRIEND_FIELDS = {
     "Friend",
@@ -110,8 +113,10 @@ def test_getfriendlist_serves_each_followed_user_with_the_latest_play(client, pl
     friend = _friend(
         player, "friend", hardcore_points=HARDCORE_POINTS, softcore_points=SOFTCORE_POINTS
     )
-    _play(friend, crash, minutes_ago=30, rich_presence="Old presence")
-    latest = _play(friend, spyro, minutes_ago=5, rich_presence="Stone Hill, 3 dragons")
+    _play(friend, crash, minutes_ago=EARLIER_MINUTES_AGO, rich_presence="Old presence")
+    latest = _play(
+        friend, spyro, minutes_ago=LATEST_MINUTES_AGO, rich_presence="Stone Hill, 3 dragons"
+    )
 
     data = _friend_list(client)
 
@@ -152,7 +157,7 @@ def test_getfriendlist_dates_a_session_without_pings_by_its_start_and_unknown_pr
     client, player, crash
 ):
     friend = _friend(player, "friend")
-    record = _play(friend, crash, minutes_ago=5, pinged=False)
+    record = _play(friend, crash, minutes_ago=LATEST_MINUTES_AGO, pinged=False)
 
     entry = _friend_list(client)["Friends"][0]
 
@@ -165,7 +170,7 @@ def test_getfriendlist_dates_a_session_without_pings_by_its_start_and_unknown_pr
 def test_getfriendlist_orders_by_last_seen_then_hardcore_points(client, player, crash):
     _friend(player, "never-low")
     _friend(player, "never-high", hardcore_points=HARDCORE_POINTS)
-    _play(_friend(player, "earlier"), crash, minutes_ago=30)
+    _play(_friend(player, "earlier"), crash, minutes_ago=EARLIER_MINUTES_AGO)
     _play(_friend(player, "latest"), crash, minutes_ago=1)
 
     assert _names(_friend_list(client)) == ["latest", "earlier", "never-high", "never-low"]

@@ -16,6 +16,9 @@ User = get_user_model()
 PASSWORD = "pw-secret-123"
 HARDCORE_POINTS = 1234
 SOFTCORE_POINTS = 2345
+# Follow ages, in days, that order the friends page lists.
+OLDER_FOLLOW_DAYS_AGO = 2
+OLD_FOLLOW_DAYS_AGO = 1
 PROFILE_PATH = "/users/bob/"
 FOLLOW_PATH = "/users/bob/follow/"
 UNFOLLOW_PATH = "/users/bob/unfollow/"
@@ -72,7 +75,10 @@ def test_a_user_follows_another_once(alice, bob):
 def test_following_is_one_way(alice, bob):
     Friendship.objects.create(user=alice, friend=bob)
     Friendship.objects.create(user=bob, friend=alice)
-    assert Friendship.objects.count() == 2
+    assert set(Friendship.objects.values_list("user", "friend")) == {
+        (alice.pk, bob.pk),
+        (bob.pk, alice.pk),
+    }
 
 
 @pytest.mark.django_db
@@ -287,10 +293,10 @@ def test_follow_control_renders_in_brazilian_portuguese(client, alice, bob):
 def test_friends_page_lists_following_and_followers_newest_first(client, alice, bob):
     carol = _user("carol", hardcore_points=HARDCORE_POINTS, softcore_points=SOFTCORE_POINTS)
     dave = _user("dave")
-    _follow(alice, bob, days_ago=2)
-    _follow(alice, carol, days_ago=1)
-    _follow(dave, alice, days_ago=1)
-    _follow(bob, alice, days_ago=0)
+    _follow(alice, bob, days_ago=OLDER_FOLLOW_DAYS_AGO)
+    _follow(alice, carol, days_ago=OLD_FOLLOW_DAYS_AGO)
+    _follow(dave, alice, days_ago=OLD_FOLLOW_DAYS_AGO)
+    _follow(bob, alice)
     _follow(bob, carol)
 
     resp = _get(client, FRIENDS_PATH)
@@ -302,8 +308,8 @@ def test_friends_page_lists_following_and_followers_newest_first(client, alice, 
     assert "alice's friends" in body
     assert 'href="/users/carol/"' in body
     assert f'src="{avatar_path("carol")}"' in body
-    assert "1,234 hardcore pts" in body
-    assert "2,345 softcore pts" in body
+    assert f"{HARDCORE_POINTS:,} hardcore pts" in body
+    assert f"{SOFTCORE_POINTS:,} softcore pts" in body
 
 
 @pytest.mark.django_db
