@@ -30,7 +30,8 @@ in `apps/achievements/management/crash1.py`: parent the core game, type `bonus`,
 of its own; the emulator loads it with the core game's disc). A missing title is then created in its set
 (`official`, author `ra-import`); an existing one, matched by title in any set of the game, moves to its set
 and gets the current `mem_addr`, description and type (standard, `""`), keeping its id, status, points, author
-and unlocks, so a database seeded before the split gets the two challenges moved, not duplicated. Two rows
+and unlocks, so a database seeded before the split gets the two challenges moved, not duplicated; their
+unlockers get a play record of the subset, as an award records one, so its rarity counts them. Two rows
 with one title in the game's sets fail the command without writing anything. Every Crash achievement seed
 shares `upsert_achievements` in `apps/achievements/management/crash1.py`; `BONUS_SUBSET_TITLES` in the command
 picks the set. The conditions are built by the command's

@@ -3,11 +3,11 @@
 from django.contrib.auth import get_user_model
 from django.core.management.base import CommandError
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Max, Min, Q
 
-from apps.achievements.models import Achievement
+from apps.achievements.models import Achievement, UserUnlock
 from apps.games.forms import SUBSET_GAME_TITLE
-from apps.games.models import SET_TYPE_BONUS, Console, Game, GameHash
+from apps.games.models import SET_TYPE_BONUS, Console, Game, GameHash, PlayerGame
 from apps.leaderboards.models import Leaderboard
 
 GAME_TITLE = "Crash Bandicoot"
@@ -105,7 +105,7 @@ def upsert_achievements(game, author, rows):
     are left alone. Raises `CommandError` on two achievements with one title: the caller's
     transaction then writes nothing.
     """
-    return _upsert_by_title(
+    counts = _upsert_by_title(
         Achievement,
         "achievements",
         game,
@@ -118,6 +118,31 @@ def upsert_achievements(game, author, rows):
             for title, description, mem_addr, points, achievement_type in rows
         ],
         also_saved=["updated_at"],
+    )
+    _record_unlockers_as_players(game)
+    return counts
+
+
+def _record_unlockers_as_players(game):
+    """Give every user with an unlock in the set `game` and no play record of it one, spanning
+    their unlocks, as an award records it: an achievement moved in from another set keeps its
+    unlocks, and the set's rarity divides them by its players."""
+    unlockers = (
+        UserUnlock.objects.filter(achievement__game=game)
+        .exclude(user__played_games__game=game)
+        .values("user")
+        .annotate(first_unlock=Min("unlocked_at"), last_unlock=Max("unlocked_at"))
+    )
+    PlayerGame.objects.bulk_create(
+        [
+            PlayerGame(
+                user_id=row["user"],
+                game=game,
+                first_played_at=row["first_unlock"],
+                last_played_at=row["last_unlock"],
+            )
+            for row in unlockers
+        ]
     )
 
 

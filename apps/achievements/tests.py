@@ -93,6 +93,7 @@ SEED_COMMANDS = (
 )
 COLLECTIBLE_COUNT = len(collectible_achievements())
 BONUS_SUBSET_COUNT = len(BONUS_SUBSET_TITLES)
+RECORDED_PLAYTIME_SECONDS = 600  # a play record the seed must leave alone
 COLLECTIBLE_POINTS = {
     WUMPA_TITLE: WUMPA_POINTS,
     AKU_TITLE: CHALLENGE_POINTS,
@@ -1044,16 +1045,39 @@ def test_seed_collectible_achievements_moves_a_core_challenge_into_the_bonus_sub
         type=achievement_type,
         status=Achievement.STATUS_OFFICIAL,
     )
-    UserUnlock.objects.create(user=user, achievement=stale, hardcore=True)
+    unlock = UserUnlock.objects.create(user=user, achievement=stale, hardcore=True)
     output = StringIO()
 
     call_command("seed_crash1_collectible_achievements", stdout=output)
 
     moved = Achievement.objects.get(pk=stale.pk)
-    assert moved.game == core.subsets.get()
+    bonus = core.subsets.get()
+    assert moved.game == bonus
     assert (moved.points, moved.status) == (points, Achievement.STATUS_OFFICIAL)
     assert UserUnlock.objects.filter(achievement=moved, hardcore=True).count() == 1
     assert f"{COLLECTIBLE_COUNT - 1} created, 1 updated" in output.getvalue()
+    # The unlocker plays the subset now, as an award would have recorded.
+    player_game = PlayerGame.objects.get(user=user, game=bonus)
+    assert player_game.first_played_at == player_game.last_played_at == unlock.unlocked_at
+
+
+@pytest.mark.django_db
+def test_seed_collectible_achievements_keeps_an_existing_subset_play_record(player_token):
+    user, _ = player_token
+    call_command("seed_crash1_collectible_achievements", verbosity=0)
+    bonus = Game.objects.get(parent_game__title=GAME_TITLE)
+    UserUnlock.objects.create(
+        user=user, achievement=bonus.achievements.get(title=LIVES_TITLE), hardcore=False
+    )
+    played = PlayerGame.objects.create(
+        user=user, game=bonus, playtime_seconds=RECORDED_PLAYTIME_SECONDS
+    )
+
+    call_command("seed_crash1_collectible_achievements", verbosity=0)
+
+    assert list(PlayerGame.objects.filter(game=bonus).values_list("pk", "playtime_seconds")) == [
+        (played.pk, RECORDED_PLAYTIME_SECONDS)
+    ]
 
 
 @pytest.mark.django_db
