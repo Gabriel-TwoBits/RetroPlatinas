@@ -18,7 +18,7 @@ live in `templates/components/`. See `CLAUDE.md` → *Frontend* for the build pi
 The one layout rule every screen follows:
 
 1. **Section** — a heading (`components/section-heading.html`: `font-display` 14px semibold,
-   3px accent strip `w-strip` in `brand`/`gold`/`state-platinum`/`state-hardcore`) over a
+   3px accent strip `w-strip` in `brand`/`brand2`/`gold`/`state-platinum`/`state-hardcore`) over a
    `border-line2` hairline. No box, no header bar, no fill.
 2. **Rows** — split by `border-t border-line` hairlines, the first row of a list without one
    (`first:border-t-0`; `components/stat-line.html` does it for statistics).
@@ -53,7 +53,7 @@ indigo/orange) and *Violeta Troféu* — and archives both. Neither ships.
 | `line` / `line2` | `#29313d` / `#3b4657` | hairlines between rows / under headings and around controls |
 | `txt` / `txt-muted` / `txt-faint` | `#e6ecf3` / `#97a4b5` / `#5f6b7c` | text ramp |
 | `brand` (`dim`/`ink`/`hi`) | `#34dcc4` (`#1c5e56`/`#06201b`/`#7fe9db`) | teal accent; `dim` is the procedural left rule, `hi` is link hover |
-| `brand2` | `#b09cff` | violet secondary highlight |
+| `brand2` | `#b09cff` | violet secondary highlight; subsets (heading strip, chip, completion seal) |
 | `gold` (`dim`) | `#f2b84b` (`#8a6a2c`) | points, unlocked achievements |
 | `danger` | `#e0552f` | form errors |
 
@@ -103,12 +103,13 @@ Each state has its own colour (`state-*` tokens) reused across the whole product
 | softcore | `state-softcore` `#7e93b1` | blue border; valid unlock, same points |
 | progress | `state-progress` `#d8922f` | amber; set started, not beaten |
 | beaten | `state-beaten` `#5cc48c` | green; every official progression and win-condition achievement unlocked, any mode |
-| platinum | `state-platinum` `#c2c9d8` | steel-platinum; every official achievement unlocked in hardcore |
+| platinum | `state-platinum` `#c2c9d8` | steel-platinum; every official achievement of a game's core set unlocked in hardcore |
+| subset completed | `brand2` `#b09cff` | violet; every official achievement of a subset unlocked in hardcore |
 
 `state-*` utilities are **safelisted** in `tailwind.config.js` because they're composed from
 data (`state='beaten'` → `text-state-beaten`) and can't be found by scanning the markup. The
-same applies to `text-`/`bg-` on `brand` and `gold`, which award, bar and heading-strip tones
-compose.
+same applies to `text-`/`bg-` on `brand` (the pattern covers `brand2` too) and `gold`, which
+award, seal, bar and heading-strip tones compose.
 
 **Tones are token names, never hex.** View data ships a `tone`/`state` key holding a
 token name; the template sets one colour class and the border keys off `currentColor`. Inline
@@ -124,7 +125,7 @@ Each is a small `{% include ... with ... %}` partial, reused across screens:
 | `site-menu.html` | `nav_class, account_class` | header: desktop row and mobile disclosure |
 | `form-fields.html` | `form` | login, register, password change, edit profile, comment form |
 | `logo.html` | `variant` (lockup/selo), `size` | header, footer |
-| `game-card.html` | `initials, title, href, meta, state, state_label, pct, icons, icons_more` | profile (mobile games panel); future game lists |
+| `game-card.html` | `initials, title, href, meta, state, state_label, pct, icons, icons_more, subsets` | profile (mobile games panel); future game lists |
 | `empty-state.html` | `title, body, href, cta` | every data block with nothing to show (home sets and activity, profile sections, comments) |
 | `achievement-badge.html` | `state, size, label` | badge states |
 | `progress-bar-segmented.html` | `not_pct, beaten_pct, plat_pct, height` | console progression (desktop and mobile) |
@@ -132,6 +133,9 @@ Each is a small `{% include ... with ... %}` partial, reused across screens:
 | `user-line.html` | `initials, name, meta, delta, href` | leaderboards/lists |
 | `stat-line.html` | `label, value, sub` | profile statistics, home numbers, achievement page unlocks |
 | `status-chip.html` | `achievement` | game page achievement rows, achievement page header |
+| `set-chip.html` | `game` | anything of a subset listed outside its section: leaderboard rows, unlock rows, achievement and leaderboard headers, profile subset rows |
+| `set-game-link.html` | `game, link_class` | unlock rows (home, feed, profile), achievement editor header |
+| `subset-progress.html` | `subsets` | profile games played (desktop cards and completion, mobile cards and completion) |
 
 Titles go in with an inline translation: `{% include "components/section-heading.html" with
 title=_("Recent activity") %}`.
@@ -143,6 +147,30 @@ text and errors around them.
 The desktop recent-game card is a genuinely different structure from `game-card.html`
 (percent beside the bar, 20-column achievement grid) with one call site, so it stays inline in
 `sec-recent-games.html`.
+
+## Sets and subsets
+
+A game is a **core set** (its own 100%) plus any number of **subsets** (`bonus`, `challenge`,
+`specialty`, `exclusive`), each a `Game` row under its parent. The site shows a subset only
+inside its core game:
+
+- **Where a subset lives** — a subset has no page of its own: `/games/<subset id>/` redirects to
+  its section of the core game's page, `/games/<core id>/#set-<subset id>`
+  (`Game.get_absolute_url`). Listings (home, games list, profile games played, ranking) hold
+  core games only.
+- **Order** — the core set, then subsets by type (bonus, challenge, specialty, exclusive), oldest
+  first (`site_set_order`).
+- **Accent** — the core set keeps `brand`; a subset's heading strip, chip and completion seal are
+  `brand2` (violet).
+- **Subset chip** (`components/set-chip.html`) — an outlined `brand2` chip, "*Bonus* subset"
+  (pt-BR "Subset *Bônus*"), the type in its `title`. Anything of a subset listed away from its
+  section names it: the core game's title links the subset's section and the chip follows it
+  (`components/set-game-link.html`). A core set carries no chip.
+- **Seals** — the **platinum** (`state-platinum`) is the core set's: every official achievement
+  of it unlocked in hardcore. A subset with every official achievement unlocked in hardcore
+  earns its own **Completed** seal (`brand2`; pt-BR *Concluído*). Neither counts the other.
+- **Points** — every set's official achievements score, so points, the ranking and the
+  achievements counted on the profile cover subsets too.
 
 ## Navigation
 
@@ -178,7 +206,9 @@ The desktop recent-game card is a genuinely different structure from `game-card.
 
 `/users/<username>/`, built by `apps/accounts/profile.py` from the shared `apps/core/stats.py`
 queries: only official achievements count, a hardcore unlock (which also writes its softcore
-twin) counts once per mode, and inactive accounts hold no rank.
+twin) counts once per mode, and inactive accounts hold no rank. Points and achievement counts
+cover every set; games played are core games, each with the subsets the player started (an
+unlock in any mode) inside it.
 
 - **Desktop** — main column (`flex-1`) plus a 320px rail (`w-80`) **on the right**, main column
   first in source order. Main: recently played → recent unlocks → progress by console →
@@ -186,7 +216,8 @@ twin) counts once per mode, and inactive accounts hold no rank.
   statistics → recent progress (heat).
 - **Surfaces** — every block is a ruled section on `bg`. Only the recent-game cards are filled;
   award tiles use the hatch placeholder with a 2px `currentColor` border, platinums first, then
-  beaten games.
+  subset seals (`brand2`, linking the subset's section, titled "*game* — *subset* subset ·
+  Completed"), then beaten games.
 - **Identity banner** — flat, a hairline under it. Identicon, name, bio (escaped, line breaks
   kept) and member since, then the follow control: the follower and following counts (active
   users only) linking the friends page, and the viewer's button — *Follow* (filled `brand`) or
@@ -202,8 +233,8 @@ twin) counts once per mode, and inactive accounts hold no rank.
   one, the game played last.
 - **Recent unlocks** — the last 20, newest first: badge through the `/Badge/` route with a
   hardcore or softcore border, title, game, local date and points.
-- **Statistics** — achievements per mode (softcore includes hardcore), games played, beaten,
-  platinums, average completion, then hardcore and softcore points earned in the last 7 days
+- **Statistics** — achievements per mode (softcore includes hardcore, subsets included), games
+  played, beaten, platinums (core sets), subsets completed, average completion (core sets), then hardcore and softcore points earned in the last 7 days
   and in the last 30 days (a mode counts an achievement when it reaches that mode, so softcore
   counts first unlocks in any mode and leaves out a later hardcore upgrade) and per week since
   joining (softcore includes hardcore).
@@ -213,7 +244,10 @@ twin) counts once per mode, and inactive accounts hold no rank.
 - **Empty states** — every list falls back to `empty-state.html`; the owner's version links to
   the getting-started guide.
 
-Completion lists every played game unpaginated, so there is no "load more".
+Completion lists every played game unpaginated, so there is no "load more". Under a game in the
+recently played cards, the completion rows and the mobile game cards,
+`components/subset-progress.html` lists each subset started behind a `border-line` left rule: its
+chip, *n*/*total* and, once completed, *Completed* in `brand2`.
 
 ### Mobile profile
 
@@ -256,16 +290,18 @@ unlock's softcore twin is not counted again.
   rule. One strip, never a full-height hero.
 - **Changelog entry** — a `font-data` category label in its colour + title + body, as a ruled row.
   The new-set entry shows only once a set has an official achievement.
-- **Set card** — a game object, so it is filled (`bg-surface`). One per game with an official
-  achievement, by title: the icon through the `/Images/` route, title, console, official
-  achievements, points and players (active users with points who unlocked one of them, as the
-  numbers count players); the card links to the game page.
+- **Set card** — a game object, so it is filled (`bg-surface`). One per core game with an
+  official achievement in its core set, by title: the icon through the `/Images/` route, title,
+  console, the core set's official achievements, points and players (active users with points
+  who unlocked one of them, as the numbers count players) and, when it has any, how many subsets
+  it has (`brand2`); the card links to the game page.
 - **Numbers** — games with an official achievement, official achievements, players (active
   users with points) and unlocks, each counted once.
 - **Playing now** — sessions pinged within `PLAYING_NOW_TTL`: identicon, user, game, rich
   presence and mode, the first 10 listed and the total under them. Hidden while nobody plays.
 - **Recent activity** — the last 8 unlocks site-wide, newest first: badge with a hardcore
-  border when earned in hardcore, user, achievement, game, console and relative time.
+  border when earned in hardcore, user, achievement, game (with the subset chip for a subset's
+  achievement), console and relative time.
 - **Empty state** — a pulsing `animate-rp-pulse` dot + honest line + optional CTA, no box. The
   fallback for sets and activity with nothing to show; keeps "new", never "dead".
 - **How to start / How to contribute** — procedural lists behind the left rule.
@@ -312,48 +348,83 @@ links to the full guide.
 answers 404. Every game title on the home, the profile and the games list links here.
 
 - **Header** — a ruled section: the icon through the `/Images/` route (a game object, so it sits
-  on `bg-surface`), title, console tag and name, then the official achievements and their
-  points side by side split by a vertical hairline, and the description (escaped, line breaks
-  kept). Unofficial achievements never count. A logged-in viewer gets a *New achievement* outlined button under
-  it, leading to the achievement editor.
+  on `bg-surface`), title, console tag and name, then the core set's official achievements and
+  their points side by side split by a vertical hairline, and the description (escaped, line
+  breaks kept). Unofficial achievements never count. Outlined buttons under it: *New achievement*
+  for a logged-in viewer (the achievement editor), *Code notes*, and *New subset* for staff.
 - **Tabs** — underline tabs (`.rp-tab`): *Achievements*, *Leaderboards*, *Recent players*.
   Each loads through HTMX from `/games/<id>/panel/<tab>/`, which answers the tab bar with its
   tab active plus the panel, swapped into `#game-tabs`; the active state is rendered by the
-  server, no client script.
-- **Achievements** — two ruled sections, each in the order the emulator receives its rows:
-  *Official* (`brand` strip), then *Unofficial* (`gold` strip), which every viewer sees; pt-BR
-  *Oficiais* and *Não oficiais*, under the `achievement section` context so the status chip keeps
-  the model's singular *Oficial* / *Não oficial*. A section with nothing to show is hidden. Every
-  row carries an outlined status chip after its title: *Official* in `brand`, *Unofficial* in
-  `gold`. For a logged-in
-  viewer an unlocked badge has a 2px `state-hardcore` or `state-softcore` border with the mode
-  and local date under the description; a locked one comes from the `_lock` route, faded, with
-  muted text. An anonymous visitor sees the plain badges and no unlock filters. Each title links
-  to the achievement page. Under the points, an *Edit* link in `brand` leads to the achievement
-  editor on the rows the viewer may edit (their own, or every row for staff), and a *History*
-  link in `brand` on every row leads to the achievement's history.
-- **Filters** — logged-in viewers get *All / Unlocked / Locked* outlined chips over the list,
-  the active one in `brand`; each reloads the panel through the same HTMX route (`?filter=`) and
-  applies to both sections. A game with no achievement says so under every filter; otherwise
-  each filter has its own empty state.
-- **Leaderboards** — a row per leaderboard: title (linking to its leaderboard page),
-  description and its entries by active users. Scores and ranks belong to the leaderboard page.
-- **Recent players** — the 20 active users who played last: identicon, profile link, official
-  achievements unlocked (and how many in hardcore) and when they last played.
+  server, no client script. A subset has no panel route (404).
+- **Achievements** — one ruled section per set (`<section id="set-<id>">`, `scroll-mt-20` so the
+  sticky header leaves the anchor visible), in site order (see *Sets and subsets*):
+  - **Heading** — *Core set* (`brand` strip) or the subset's title (`brand2` strip).
+  - **What it is** — one muted line: the core set is the game's own 100%; a bonus subset holds
+    challenges taken on while playing normally; a challenge subset, a specific challenge run; a
+    specialty or exclusive subset needs a different disc or version (alongside the core set, or
+    on its own). A subset's description (escaped) follows.
+  - **Totals** — a `font-data` line: the set's official achievements and their points (`gold`).
+  - **Progress** — for a logged-in viewer, on a set with official achievements: a bar
+    (`state-progress`, or the seal's colour once complete), "*n*/*total* unlocked (*h* hardcore)
+    · *pct*%" (floored), and the outlined seal chip when earned: *Platinum* on the core set,
+    *Completed* on a subset.
+  - **Opt-in** (bonus and challenge subsets) — every subset is off until the player turns it on.
+    A logged-in viewer gets an outlined `role="switch"` button, *Play this subset* with an
+    *On*/*Off* mark (`brand` border and dot when on), that POSTs `play=on|off` to
+    `/games/<subset id>/play/` with HTMX and swaps the control (`games/partials/opt-in.html`);
+    without htmx the form returns to the subset's section. A visitor gets *Log in to play this
+    subset*, returning to the section. Under it, a faint line: the change applies the next time
+    the game is opened in the emulator. Anything other than `on`/`off` answers 400; the core set,
+    a specialty or an exclusive subset answers 404.
+  - **Disc** (specialty and exclusive subsets) — instead of a switch, the discs it plays from:
+    each hash's label and its MD5 in `font-mono`, or a line saying none is linked yet.
+  - **New achievement in this subset** — a `brand` link for a logged-in viewer, opening the editor
+    with that subset chosen.
+  - **Rows** — the set's official achievements in the order the emulator receives them, then its
+    unofficial ones collapsed in a native `<details id="unofficial-<id>">` whose summary is
+    *Unofficial* in `gold` (pt-BR *Não oficiais*, `achievement section` context) with their count;
+    hidden when the set has none. Every row carries an outlined status chip after its title:
+    *Official* in `brand`, *Unofficial* in `gold`. For a logged-in viewer an unlocked badge has a
+    2px `state-hardcore` or `state-softcore` border with the mode and local date under the
+    description; a locked one comes from the `_lock` route, faded, with muted text. An anonymous
+    visitor sees the plain badges, no progress and no unlock filters. Each title links to the
+    achievement page. Under the points, an *Edit* link in `brand` on the rows the viewer may edit
+    (their own, or every row for staff), and a *History* link on every row. A set with nothing
+    to show says so (`empty-state.html`).
+- **Filters** — logged-in viewers get *All / Unlocked / Locked* outlined chips over the sets, the
+  active one in `brand`; each reloads the panel through the same HTMX route (`?filter=`) and
+  applies to every set, official and unofficial rows alike. Each set has its own empty state per
+  filter.
+- **Leaderboards** — a row per leaderboard, the core set's first, then each subset's with its
+  subset chip: title (linking to its leaderboard page), description and its entries by active
+  users. Scores and ranks belong to the leaderboard page.
+- **Recent players** — the 20 active users who played the core game last: identicon, profile
+  link, the core set's official achievements unlocked (and how many in hardcore) and when they
+  last played.
 - **Comments** — under the tabs, the shared comments section (see *Comments*).
+
+### New subset
+
+`/games/<id>/subsets/new/` (`templates/games/subset-new.html`), staff only (another user gets
+403, a visitor the login page, a subset 404), in the editor's shape: hairline rows explaining the
+four types, then the type, the subset title and an optional description. The subset goes on the
+core game's console, titled RA's way (`<game> [Subset - <title>]`); saving returns to its
+section. Staff also add subsets inline on the game in the admin; a specialty or exclusive
+subset's disc hash is linked there.
 
 ## Achievement page
 
 `/games/<id>/achievements/<aid>/` (`templates/achievements/detail.html`), in a `max-w-3xl`
 column; every achievement, official or unofficial, has a page anyone opens.
 
-- **Header** — a ruled section: a link back to the game, the badge (a game object, on
+- **Header** — a ruled section: a link back to the game (the core game's title; a subset's
+  achievement links its section and carries the subset chip), the badge (a game object, on
   `bg-surface`), the title with its status chip (`components/status-chip.html`, as on the game
   page), a `font-data` line with the points in `gold`, the type when it has one and the author's profile
   link, then the description (escaped, line breaks kept). Outlined buttons under it: *Edit
   achievement* for its author or staff, and *History*.
 - **Unlocks** — stat lines: the active users who unlocked it in any mode, those in hardcore, and
-  the active users who played the game. An unofficial achievement shows one muted line
+  the active users who played the core game. An unofficial achievement shows one muted line
   instead: it is never awarded.
 - **Comments** — the shared comments section (see *Comments*).
 
@@ -383,7 +454,8 @@ The bell (`templates/notifications/partials/bell.html`, rendered by `{% notifica
 and `/notifications/` (`templates/notifications/list.html`), built by
 `apps/notifications/display.py`. An achievement's author is notified when someone else comments
 on it, unlocks it (a player's first unlock only) or changes its status; the message is rendered
-in the reader's language when shown.
+in the reader's language when shown, and names the subset of an achievement that is not in a
+core set ("… “*achievement*” in the *Bonus* subset …"), stored as the `set` parameter.
 
 - **Bell** — a native `<details id="notification-menu">`: an outlined bell icon with the unread
   count in `font-data` `brand` (none when everything is read). The count polls
@@ -405,8 +477,11 @@ in the reader's language when shown.
 (`templates/achievements/edit.html`): the auth-page shape below in a `max-w-2xl` column, the
 title over a `border-line2` rule with the game linked under it. Editing shows the author, created
 and last-updated times as hairline-split `font-data` rows, then the current badge unlocked and locked
-(game objects, on `bg-surface`), then the form: title, description, points, type, a new badge
-upload, the condition (`mem_addr`, checked by the rcheevos parser) and the status. Saving returns
+(game objects, on `bg-surface`), then the form: on creation only, the set (*Core set* or one of
+the core game's subsets, "*title* (*type* subset)", the game of the URL chosen first; an
+achievement stays in its set afterwards), then title, description, points, type, a new badge
+upload, the condition (`mem_addr`, checked by the rcheevos parser) and the status. Under the
+title, the core game links the game page, and an existing subset achievement carries its chip. Saving returns
 to the edit page with the message *Achievement saved.*; *Back to the game* sits under a hairline,
 followed, once the achievement exists, by *History*.
 
@@ -415,7 +490,8 @@ followed, once the achievement exists, by *History*.
 `/games/<id>/achievements/<aid>/history/` (`templates/achievements/history.html`), built by
 `apps/achievements/revisions.py`, in a `max-w-3xl` column; visible to anyone.
 
-- **Header** — a ruled section: a link back to the game, the title, one muted line on what the
+- **Header** — a ruled section: a link back to the game (with the subset chip, as on the
+  achievement page), the title, one muted line on what the
   page lists and, for its author or staff, an outlined *Edit achievement* button.
 - **Revisions** — a section headed by the revision count, newest first, rows split by hairlines.
   Each row's `font-data` line carries the number (`#N`, bold `txt`), the local timestamp, the editor's
@@ -436,8 +512,9 @@ followed, once the achievement exists, by *History*.
 `apps/leaderboards/page.py`; an unknown game or leaderboard, a leaderboard of another game and a
 page the board does not have answer 404.
 
-- **Header** — a ruled section: a link back to the game, the title, the description, then the
-  entry count and whether lower or higher is better.
+- **Header** — a ruled section: a link back to the game (with the subset chip for a subset's
+  leaderboard, as on the achievement page), the title, the description, then the entry count and
+  whether lower or higher is better.
 - **Your position** — a logged-in viewer whose entry is not on the current page gets it in its
   own section above the board, with its rank on the whole board.
 - **Ranking** — 100 entries a page, best first, from active users only: rank (ties share it),
@@ -465,8 +542,9 @@ shared `apps/core/stats.py` queries; linked from the nav and the footer as *Rank
 - **Board** — a section headed *Hardcore points* (`state-hardcore` strip) or *Softcore points*
   (`state-softcore`), the count of ranked players, then 100 rows a page: rank (competition
   ranking, ties share it, as on the profile), identicon, profile link, the official
-  achievements unlocked in the mode (each once), the platinums (games with every official
-  achievement unlocked in hardcore, in both modes) and the mode's points. Only active users with
+  achievements unlocked in the mode (each once, subsets included), the platinums (core sets with
+  every official achievement unlocked in hardcore, in both modes) and the mode's points, earned
+  in every set. Only active users with
   points in the mode are ranked.
 - **Pages** — as on the leaderboard page, each link carrying the mode; a page the ranking does
   not have answers 404.
@@ -489,7 +567,8 @@ shared `apps/core/stats.py` queries; linked from the nav and the footer as *Rank
 - **Rows** — the last 50 unlocks of official achievements by active users, newest first, each
   once (a hardcore unlock's softcore twin is left out, an earlier softcore unlock of the same
   achievement is its own row): identicon, "*user* unlocked “*achievement*” in *game*" (profile
-  and game page links), console, relative time and the badge; an unlock earned in hardcore
+  and game page links; a subset's achievement links its section, followed by the subset chip),
+  console, relative time and the badge; an unlock earned in hardcore
   carries a *hardcore* mark and a `state-hardcore` badge border (`line2` otherwise). Empty, it
   shows the home's no-unlocks empty state.
 - **Polling** — a wrapper around the list polls `/feed/list/` (carrying the filter) every
