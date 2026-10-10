@@ -82,6 +82,8 @@ The official DuckStation build works as is: it sends its achievement requests to
    They register *Crash Bandicoot (USA)* (SCUS-94900, rcheevos hash
    `35386fd0891e594c9b6d8a4a5baa0027`) with its achievements, its rich presence script and its
    leaderboards (rcheevos runs leaderboards in hardcore mode). Any other disc is an unknown game.
+   `Beach Diet` and `Bandicoot Reserve` go into the game's `Bonus` subset, served once you opt into
+   it on the game page; every other achievement and both leaderboards are on the core set.
 2. With DuckStation closed, edit the `[Cheevos]` section of its `settings.ini` (on Linux,
    `~/.local/share/duckstation/settings.ini`):
 
