@@ -2,7 +2,7 @@
 
 The recipe an AI agent (Claude Code) follows to design, validate and ship an achievement set without a
 human relaying screenshots from the emulator. It produced the Crash Bandicoot (USA) set: 16
-achievements, 2 leaderboards and the rich presence script, each one validated against the real disc
+achievements (14 in the core set, 2 in a `Bonus` subset), 2 leaderboards and the rich presence script, each one validated against the real disc
 before a person ever booted the game.
 
 The short version: **never write a condition the agent cannot run.** Every condition is evaluated by
@@ -46,7 +46,18 @@ emulator. The Crash harness reproduced the "level achievement fires on death" bu
 frame, and then found two false positives nobody had reported (pause → quit, and an idle title screen
 when the attract demo returns).
 
-## 3. Measure, then design
+## 3. Choose the set
+
+Before any condition, decide which set the achievement belongs to. The **core set** holds the game's own
+100%: what the game itself asks of a player who finishes it fully (stages, bosses, the game's collectibles
+such as Crash's clear gems). Everything beyond it — a no-damage or deathless run, a self-imposed
+restriction, a grind, a contraption — goes into a subset every player opts into: `bonus` for challenges
+played alongside a normal run, `challenge` for a dedicated run. For Crash, `Beach Diet` (N. Sanity Beach
+without a Wumpa) and `Bandicoot Reserve` (99 lives) went into the `Bonus` subset. The seed command creates
+the subset and puts each title in its set; a title already seeded in another set moves, keeping its id and
+unlocks. Leaderboards stay on the core set.
+
+## 4. Measure, then design
 
 1. Record traces of the scenarios that matter: cold boot and attract demo, entering a stage, death and
    respawn, pause → quit, the real clear, game over. `analyze.py --timeline` lists the frames where each
@@ -59,7 +70,7 @@ when the attract demo returns).
    `0x2d` (that is a memory read — use decimal or `h2D`), true-at-load suppression after state loads.
 4. Check the syntax: `scripts/check-mem-addr.sh` (triggers, leaderboards and rich presence).
 
-## 4. Scenarios: the event and its look-alikes
+## 5. Scenarios: the event and its look-alikes
 
 Every achievement gets a scenario that **must** fire it and the look-alike scenarios that **must not**:
 death, death after a checkpoint, pause → quit, game over, results → map, the attract demo, other stages.
@@ -75,7 +86,7 @@ When the search cannot reach an event in reasonable time (99 lives, stages it ne
 poke is acceptable **only** as secondary evidence, labelled as such, and the event goes on the human's
 checklist.
 
-## 5. Orchestration
+## 6. Orchestration
 
 The work ran as a pipeline of AI agents, one roadmap PR at a time:
 
@@ -99,7 +110,7 @@ needed a second path.
 Achievement work ran in a separate git worktree with its own database and a throwaway container
 (the disc and BIOS mounted read-only), in parallel with the site work, and was merged at the end.
 
-## 6. Hand-off to the human
+## 7. Hand-off to the human
 
 Each achievement doc in this directory ends with **"Still for the in-game check (DuckStation)"**: the
 exact events the harness could not prove (unreached stages, poked values, bonus rounds, DuckStation's
@@ -109,9 +120,11 @@ Achievements" if the achievement is new, and makes it official once it behaves.
 ## Checklist for a new achievement
 
 1. Sources and code notes updated; the addresses it reads are measured in a trace.
-2. Condition built by a seed command (idempotent, updates existing rows by title).
-3. `check-mem-addr.sh` passes.
-4. A scenario that fires it and the look-alike scenarios that must not, all `OK` in the harness.
-5. Three-lens review; findings fixed or rejected with a reason.
-6. Definition of done passes, harness included (with the disc mounted).
-7. Its doc lists what is still for the in-game check; the user validates it in DuckStation.
+2. Its set chosen: core for the game's own 100%, a subset for a challenge beyond it.
+3. Condition built by a seed command (idempotent, updates existing rows by title, in its set).
+4. `check-mem-addr.sh` passes.
+5. A scenario that fires it and the look-alike scenarios that must not, all `OK` in the harness.
+6. Three-lens review; findings fixed or rejected with a reason.
+7. Definition of done passes, harness included (with the disc mounted).
+8. Its doc lists what is still for the in-game check and its set; the user validates it in DuckStation
+   (opted into the subset first when it is in one).
