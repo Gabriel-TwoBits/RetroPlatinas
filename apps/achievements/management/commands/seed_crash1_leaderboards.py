@@ -151,12 +151,12 @@ class Command(BaseCommand):
 
     @transaction.atomic
     def handle(self, *args, **options):
-        game, _author = seed_crash1_game()
+        game, author = seed_crash1_game()
         rows = [
             (title, description, mem_addr, LEADERBOARD_FORMAT, LOWER_IS_BETTER)
             for title, description, mem_addr, _level_id, _opening in leaderboards()
         ]
-        created, updated = upsert_leaderboards(game, rows)
+        created, updated = upsert_leaderboards(game, author, rows)
         self.stdout.write(
             self.style.SUCCESS(
                 f"Seeded {len(rows)} leaderboards: {created} created, {updated} updated."

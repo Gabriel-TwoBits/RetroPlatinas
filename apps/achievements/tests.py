@@ -1176,6 +1176,7 @@ def test_seed_leaderboards_creates_frame_timers_where_lower_is_better(leaderboar
     assert len(rows) == LEADERBOARD_COUNT
     for row in rows:
         assert (row.format, row.lower_is_better) == (LEADERBOARD_FORMAT, True)
+        assert row.author.username == IMPORT_AUTHOR
 
 
 def test_leaderboards_submit_on_their_stage_clear_achievement_condition():
@@ -1240,6 +1241,7 @@ def test_seed_leaderboards_updates_an_existing_definition_by_title(leaderboard_g
     stale.mem_addr = "STA:0xH61998=1::CAN:0=1::SUB:0xH61994=1::VAL:M:1=1"
     stale.format = "SCORE"
     stale.lower_is_better = False
+    stale.author = user
     stale.save()
     LeaderboardEntry.objects.create(leaderboard=stale, user=user, score=EDITED_SCORE)
 
@@ -1248,6 +1250,7 @@ def test_seed_leaderboards_updates_an_existing_definition_by_title(leaderboard_g
     updated = Leaderboard.objects.get(pk=stale.pk)
     assert (updated.description, updated.mem_addr) == (description, mem_addr)
     assert (updated.format, updated.lower_is_better) == (LEADERBOARD_FORMAT, True)
+    assert updated.author == user
     assert LeaderboardEntry.objects.get(leaderboard=updated).score == EDITED_SCORE
     assert leaderboard_game.leaderboards.count() == LEADERBOARD_COUNT
 

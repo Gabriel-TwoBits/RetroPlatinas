@@ -97,14 +97,14 @@ def upsert_achievements(game, author, rows):
     )
 
 
-def upsert_leaderboards(game, rows):
+def upsert_leaderboards(game, author, rows):
     """Create or update the seeded leaderboards of `game`; returns `(created, updated)`.
 
     `rows` holds `(title, description, mem_addr, format, lower_is_better)`. A missing title is
-    created; an existing one, matched by title, gets the whole current definition, since the
-    format and the ordering only make sense with the value its condition measures. Its entries
-    are left alone. Raises `CommandError` on two leaderboards with one title: the caller's
-    transaction then writes nothing.
+    created by `author`; an existing one, matched by title, gets the whole current definition,
+    since the format and the ordering only make sense with the value its condition measures. Its
+    author and entries are left alone. Raises `CommandError` on two leaderboards with one title:
+    the caller's transaction then writes nothing.
     """
     return _upsert_by_title(
         Leaderboard,
@@ -119,7 +119,7 @@ def upsert_leaderboards(game, rows):
                     "format": value_format,
                     "lower_is_better": lower_is_better,
                 },
-                {},
+                {"author": author},
             )
             for title, description, mem_addr, value_format, lower_is_better in rows
         ],
