@@ -366,6 +366,17 @@ def test_a_staff_revert_that_restores_another_status_notifies_the_author(staff, 
 
 
 @pytest.mark.django_db
+def test_a_status_change_by_an_unknown_editor_notifies_the_author(author, achievement):
+    achievement.status = Achievement.STATUS_VERIFIED
+    achievement.save()
+
+    notification = Notification.objects.get()
+    assert notification.user == author
+    assert notification.kind == Notification.KIND_STATUS
+    assert notification.params["new_status"] == Achievement.STATUS_VERIFIED
+
+
+@pytest.mark.django_db
 def test_creating_an_achievement_notifies_nobody(game, author):
     _achievement(game, author, status=Achievement.STATUS_VERIFIED)
 
