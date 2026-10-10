@@ -176,9 +176,11 @@ serve each status like this:
 | `unofficial` | everyone | `5` (unofficial) | `0` | never |
 | `official` | everyone | `3` (core / official) | real | yes |
 
-**A new condition is tested as `unofficial`** (the default for a new achievement). Enable "Test
-Unofficial Achievements" (`Cheevos/UnofficialTestMode`) and reload the game, then read the
-**achievement list**, not the pause-screen counter:
+**A new condition is tested as `unofficial`** (the default for a new achievement). An achievement
+of a bonus or challenge subset loads only once the tester turns that subset on (*Play this subset*
+in its section of the game page); every subset starts off. Enable "Test Unofficial Achievements"
+(`Cheevos/UnofficialTestMode`) and reload the game, then read the **achievement list**, not the
+pause-screen counter:
 
 - The "X of Y" counter only counts core achievements, so it stays put no matter how many
   unofficial ones loaded. They live in their own list bucket, suffixed `(Unofficial)`.
