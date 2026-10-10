@@ -68,6 +68,7 @@ from apps.anticheat.detection import award_validation_hash
 from apps.api.handlers import ACHIEVEMENT_FLAGS_CORE
 from apps.games.models import (
     SET_TYPE_BONUS,
+    SET_TYPE_CHALLENGE,
     Console,
     Game,
     GameHash,
@@ -1078,6 +1079,61 @@ def test_seed_collectible_achievements_keeps_an_existing_subset_play_record(play
     assert list(PlayerGame.objects.filter(game=bonus).values_list("pk", "playtime_seconds")) == [
         (played.pk, RECORDED_PLAYTIME_SECONDS)
     ]
+
+
+@pytest.mark.django_db
+def test_seed_collectible_achievements_keeps_a_renamed_bonus_subset(bonus_subset):
+    bonus_subset.set_title = "Extras"
+    bonus_subset.save(update_fields=["set_title"])
+
+    call_command("seed_crash1_collectible_achievements", verbosity=0)
+
+    assert Game.objects.filter(parent_game=bonus_subset.parent_game).get() == bonus_subset
+    titles = set(bonus_subset.achievements.values_list("title", flat=True))
+    assert titles == set(BONUS_SUBSET_TITLES)
+
+
+@pytest.mark.django_db
+def test_seed_collectible_achievements_refuses_two_bonus_subsets(collectibles_game, bonus_subset):
+    Game.objects.create(
+        parent_game=collectibles_game,
+        set_type=SET_TYPE_BONUS,
+        set_title=BONUS_SET_TITLE,
+        title="Crash Bandicoot [Subset - Bonus 2]",
+        console=collectibles_game.console,
+    )
+
+    with pytest.raises(CommandError, match="2 bonus subsets"):
+        call_command("seed_crash1_collectible_achievements", verbosity=0)
+
+
+@pytest.mark.django_db
+def test_seed_collectible_achievements_leaves_another_subset_alone(player_token):
+    user, _ = player_token
+    call_command("seed_crash1_level_achievements", verbosity=0)
+    core = Game.objects.get(title=GAME_TITLE)
+    challenge = Game.objects.create(
+        parent_game=core,
+        set_type=SET_TYPE_CHALLENGE,
+        set_title="Deathless",
+        title="Crash Bandicoot [Subset - Deathless]",
+        console=core.console,
+    )
+    foreign = Achievement.objects.create(
+        game=challenge,
+        author=user,
+        title=AKU_TITLE,
+        description="Someone else's take on it.",
+        points=EDITED_POINTS,
+        mem_addr="0xH000161=0",
+        status=Achievement.STATUS_UNOFFICIAL,
+    )
+
+    call_command("seed_crash1_collectible_achievements", verbosity=0)
+
+    left = Achievement.objects.get(pk=foreign.pk)
+    assert (left.game, left.mem_addr) == (challenge, foreign.mem_addr)
+    assert core.achievements.filter(title=AKU_TITLE).exclude(pk=foreign.pk).exists()
 
 
 @pytest.mark.django_db

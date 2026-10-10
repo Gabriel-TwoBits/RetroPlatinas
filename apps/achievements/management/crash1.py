@@ -47,32 +47,46 @@ def seed_crash1_game():
 
 
 def seed_crash1_bonus_subset(core):
-    """Get or create the bonus subset of the Crash Bandicoot core game `core`."""
-    subset, _ = Game.objects.get_or_create(
-        parent_game=core,
-        set_type=SET_TYPE_BONUS,
-        set_title=BONUS_SET_TITLE,
-        defaults={
-            "title": SUBSET_GAME_TITLE.format(parent=core.title, set_title=BONUS_SET_TITLE),
-            "console": core.console,
-        },
-    )
-    return subset
+    """Get or create the bonus subset of the Crash Bandicoot core game `core`.
+
+    Found by its parent and type, so renaming it on the site keeps it. Raises `CommandError` on
+    two bonus subsets: the seeds could not tell which one they fill.
+    """
+    subsets = list(_bonus_subsets(core))
+    if not subsets:
+        return Game.objects.create(
+            parent_game=core,
+            set_type=SET_TYPE_BONUS,
+            set_title=BONUS_SET_TITLE,
+            title=SUBSET_GAME_TITLE.format(parent=core.title, set_title=BONUS_SET_TITLE),
+            console=core.console,
+        )
+    elif len(subsets) == 1:
+        return subsets[0]
+    else:
+        raise CommandError(
+            f"{len(subsets)} bonus subsets of {core} exist; cannot tell which one to seed"
+        )
+
+
+def _bonus_subsets(core):
+    return Game.objects.filter(parent_game=core, set_type=SET_TYPE_BONUS)
 
 
 def _upsert_by_title(model, noun, game, rows, also_saved=()):
-    """Create or update rows of `model` for the set `game`, matched by title among every set of
-    its core game; returns `(created, updated)`.
+    """Create or update rows of `model` for the set `game`, matched by title among the sets the
+    seeds fill (its core game and the bonus subset); returns `(created, updated)`.
 
     `rows` holds `(title, fields, create_only)`: `fields` are written on create and brought up to
-    date on an existing row, `create_only` only on create. A row found in another set of the game
+    date on an existing row, `create_only` only on create. A row found in the other of those sets
     moves to `game`, keeping its id. `also_saved` names the columns an update saves besides
     `fields`: `save(update_fields=...)` skips an `auto_now` column otherwise. Raises
     `CommandError`, naming the rows `noun`, on two rows with one title: the caller's transaction
     then writes nothing.
     """
     core = game.core_game
-    game_sets = Game.objects.filter(Q(pk=core.pk) | Q(parent_game=core))
+    # Other subsets hold their authors' rows, which the seeds never move or rewrite.
+    game_sets = Game.objects.filter(Q(pk=core.pk) | Q(pk__in=_bonus_subsets(core)))
     created = updated = 0
     for title, fields, create_only in rows:
         matches = list(model.objects.filter(game__in=game_sets, title=title))
@@ -101,10 +115,10 @@ def upsert_achievements(game, author, rows):
     """Create or update the seeded achievements of the set `game`; returns `(created, updated)`.
 
     `rows` holds `(title, description, mem_addr, points, type)`. A missing title is created as
-    `official`; an existing one, matched by title in any set of the game, moves to `game` and gets
-    the current condition, description and type while its id, status, points, author and unlocks
-    are left alone. Raises `CommandError` on two achievements with one title: the caller's
-    transaction then writes nothing.
+    `official`; an existing one, matched by title in the core set or the bonus subset, moves to
+    `game` and gets the current condition, description and type while its id, status, points,
+    author and unlocks are left alone. Raises `CommandError` on two achievements with one title:
+    the caller's transaction then writes nothing.
     """
     counts = _upsert_by_title(
         Achievement,
@@ -129,11 +143,11 @@ def upsert_leaderboards(game, author, rows):
     """Create or update the seeded leaderboards of the set `game`; returns `(created, updated)`.
 
     `rows` holds `(title, description, mem_addr, format, lower_is_better)`. A missing title is
-    created by `author`; an existing one, matched by title in any set of the game, moves to `game`
-    and gets the whole current definition, since the format and the ordering only make sense with
-    the value its condition measures. Its author and entries are left alone. Raises
-    `CommandError` on two leaderboards with one title: the caller's transaction then writes
-    nothing.
+    created by `author`; an existing one, matched by title in the core set or the bonus subset,
+    moves to `game` and gets the whole current definition, since the format and the ordering only
+    make sense with the value its condition measures. Its author and entries are left alone.
+    Raises `CommandError` on two leaderboards with one title: the caller's transaction then
+    writes nothing.
     """
     return _upsert_by_title(
         Leaderboard,

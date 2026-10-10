@@ -188,8 +188,8 @@ class Command(BaseCommand):
     help = (
         "Seed the Crash Bandicoot 1 Wumpa, lives and Aku Aku achievements and the bonus subset "
         "the lives and no-Wumpa challenges belong to (idempotent); existing rows, matched by "
-        "title in any set of the game, move to their set and get the current condition, "
-        "description and type."
+        "title in the core set or the bonus subset, move to their set and get the current "
+        "condition, description and type."
     )
 
     @transaction.atomic
