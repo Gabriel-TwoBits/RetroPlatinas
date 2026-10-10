@@ -29,6 +29,7 @@ TITLES = {
 }
 CRASH_MD5 = "35386fd0891e594c9b6d8a4a5baa0027"
 CRASH_LABEL = "Crash Bandicoot (USA) — SCUS-94900"
+RA_CONDITION_SYNTAX = "https://docs.retroachievements.org/developer-docs/condition-syntax.html"
 
 
 def _h1(body):
@@ -135,7 +136,7 @@ def test_creating_achievements_points_to_the_retroachievements_developer_docs(cl
     article = _article(
         client.get("/docs/creating-achievements/", HTTP_ACCEPT_LANGUAGE="en").content.decode()
     )
-    assert 'href="https://docs.retroachievements.org/developer-docs/condition-syntax"' in article
+    assert f'href="{RA_CONDITION_SYNTAX}"' in article
     assert "Test Unofficial Achievements" in article
     assert "0xH61998=1_d0xH61998=0" in article
 
