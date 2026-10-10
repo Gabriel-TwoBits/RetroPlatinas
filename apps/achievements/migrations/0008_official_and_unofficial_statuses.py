@@ -1,7 +1,8 @@
 from django.db import migrations, models
 
 STATUS_CHOICES = [("official", "Official"), ("unofficial", "Unofficial")]
-# Community and verified were both awarded and worth points; the seal is not kept.
+# Community and verified were both awarded and worth points; the seal is not kept, so a
+# revision that only moved between them now repeats the one before it.
 FORWARD = {"draft": "unofficial", "community": "official", "verified": "official"}
 BACKWARD = {"unofficial": "draft", "official": "community"}
 

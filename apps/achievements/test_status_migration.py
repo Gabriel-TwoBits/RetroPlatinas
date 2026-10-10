@@ -66,11 +66,29 @@ def test_statuses_migrate_to_official_and_unofficial_and_back(restores_latest_sc
         params={"achievement": "draft", "old_status": "draft", "new_status": "community"},
         target_url="/",
     )
+    # Only the seal moved, so it would read official -> official.
+    old_notification.objects.create(
+        user_id=author.pk,
+        kind="status",
+        params={"achievement": "verified", "old_status": "community", "new_status": "verified"},
+        target_url="/",
+    )
+    malformed = old_notification.objects.create(
+        user_id=author.pk,
+        kind="status",
+        params={"achievement": "community", "new_status": "community"},
+        target_url="/",
+    )
 
     new_apps = _migrate(AFTER)
     achievements = new_apps.get_model("achievements", "Achievement").objects
     revisions = new_apps.get_model("achievements", "AchievementRevision").objects
-    notification = new_apps.get_model("notifications", "Notification").objects.get()
+    notifications = new_apps.get_model("notifications", "Notification").objects
+    assert notifications.get(pk=malformed.pk).params == {
+        "achievement": "community",
+        "new_status": "official",
+    }
+    notification = notifications.exclude(pk=malformed.pk).get()
 
     expected = {"draft": "unofficial", "community": "official", "verified": "official"}
     assert dict(achievements.values_list("title", "status")) == expected
@@ -82,7 +100,9 @@ def test_statuses_migrate_to_official_and_unofficial_and_back(restores_latest_sc
 
     old_apps = _migrate(BEFORE)
     achievements = old_apps.get_model("achievements", "Achievement").objects
-    notification = old_apps.get_model("notifications", "Notification").objects.get()
+    notification = (
+        old_apps.get_model("notifications", "Notification").objects.exclude(pk=malformed.pk).get()
+    )
 
     # The verified seal is gone for good: it comes back as community.
     assert dict(achievements.values_list("title", "status")) == {
