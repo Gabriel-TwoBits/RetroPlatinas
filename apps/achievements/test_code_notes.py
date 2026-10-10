@@ -12,7 +12,7 @@ from django.urls import reverse
 from apps.achievements.code_notes import MAX_CODE_NOTE_ADDRESS
 from apps.achievements.forms import CODE_NOTE_SEARCH_MAX_LENGTH
 from apps.achievements.models import CodeNote
-from apps.games.models import Console, Game
+from apps.games.models import SET_TYPE_BONUS, Console, Game
 
 User = get_user_model()
 
@@ -371,3 +371,36 @@ def test_a_note_under_another_game_is_not_found(client, author, lives):
     url = reverse("code_note_edit", args=[elsewhere.pk, lives.pk])
 
     assert client.get(url).status_code == HTTPStatus.NOT_FOUND
+
+
+# --- Subsets share their parent game's notes ---
+
+
+@pytest.fixture
+def bonus(game):
+    return Game.objects.create(
+        title="Crash Bandicoot [Subset - Bonus]",
+        console=game.console,
+        parent_game=game,
+        set_type=SET_TYPE_BONUS,
+        set_title="Bonus",
+    )
+
+
+@pytest.mark.django_db
+def test_a_subsets_code_notes_page_redirects_to_its_parents(client, game, bonus):
+    response = client.get(_list_url(bonus), {"q": "lives"})
+
+    assert response.status_code == HTTPStatus.FOUND
+    assert response["Location"] == f"{_list_url(game)}?q=lives"
+
+
+@pytest.mark.django_db
+def test_a_subsets_new_code_note_page_redirects_to_its_parents(client, author, game, bonus):
+    client.force_login(author)
+
+    response = client.get(_new_url(bonus))
+
+    assert response.status_code == HTTPStatus.FOUND
+    assert response["Location"] == _new_url(game)
+    assert not CodeNote.objects.exists()

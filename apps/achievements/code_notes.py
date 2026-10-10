@@ -1,6 +1,8 @@
 """Code notes as RAIntegration and the site read and write them.
 
-The address column is free text (the admin types it too), so every reader parses it as hex.
+The address column is free text (the admin types it too), so every reader parses it as hex. A
+subset shares its parent game's memory, so its notes are the parent's: every function here reads
+and writes `game.core_game`'s.
 """
 
 import logging
@@ -71,7 +73,11 @@ def code_notes_by_address(game):
     A note whose address does not parse is left out rather than failing the whole game.
     """
     # TRADEOFF: parsed in Python because `address` is text; an integer column makes it a query.
-    notes = CodeNote.objects.filter(game=game).select_related("author", "updated_by").order_by("id")
+    notes = (
+        CodeNote.objects.filter(game=game.core_game)
+        .select_related("author", "updated_by")
+        .order_by("id")
+    )
     by_address = {}
     for note in notes:
         address = parsed_address(note)
@@ -102,14 +108,15 @@ def search_code_notes(game, query):
 
 def add_code_note(author, game, address, text):
     """Creates `author`'s note at `address`, else `None` when the game has a note there."""
+    notes_game = game.core_game
     with transaction.atomic():
         # Serializes writers per game, as `save_code_notes` does.
-        Game.objects.select_for_update().get(pk=game.pk)
-        if address in code_notes_by_address(game):
+        Game.objects.select_for_update().get(pk=notes_game.pk)
+        if address in code_notes_by_address(notes_game):
             return None
         else:
             return CodeNote.objects.create(
-                game=game, author=author, address=stored_address(address), note=text
+                game=notes_game, author=author, address=stored_address(address), note=text
             )
 
 
@@ -140,17 +147,18 @@ def save_code_notes(user, game, notes):
     """
     successful = []
     denied = []
+    notes_game = game.core_game
     with transaction.atomic():
         # Serializes writers per game, so two adds of one new address cannot both insert it.
-        Game.objects.select_for_update().get(pk=game.pk)
-        existing = code_notes_by_address(game)
+        Game.objects.select_for_update().get(pk=notes_game.pk)
+        existing = code_notes_by_address(notes_game)
         for address, text in notes.items():
             note = existing.get(address)
             if note is None and text == "":
                 successful.append(address)
             elif note is None:
                 CodeNote.objects.create(
-                    game=game, author=user, address=stored_address(address), note=text
+                    game=notes_game, author=user, address=stored_address(address), note=text
                 )
                 successful.append(address)
             elif not can_edit(user, note.author_id):

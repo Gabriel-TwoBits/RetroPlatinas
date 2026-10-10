@@ -4,6 +4,7 @@ from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.http import HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils.translation import gettext
 from django.views.decorators.http import require_http_methods, require_POST, require_safe
 
@@ -182,9 +183,21 @@ def _code_note_editor(request, game, form, note=None):
     )
 
 
+def _parent_page(request, view_name, game):
+    """The same page on the parent game, which holds a subset's code notes."""
+    url = reverse(view_name, kwargs={"game_id": game.parent_game_id})
+    query = request.GET.urlencode()
+    if query:
+        return redirect(f"{url}?{query}")
+    else:
+        return redirect(url)
+
+
 @require_safe
 def code_notes(request, game_id):
     game = get_object_or_404(Game, pk=game_id)
+    if game.is_subset:
+        return _parent_page(request, "code_notes", game)
     search = CodeNoteSearchForm(request.GET)
     if not search.is_valid():
         return HttpResponseBadRequest(gettext("Invalid code note search"))
@@ -210,7 +223,9 @@ def code_notes(request, game_id):
 @require_http_methods(["GET", "POST"])
 def new_code_note(request, game_id):
     game = get_object_or_404(Game, pk=game_id)
-    if request.method == "POST":
+    if game.is_subset:
+        return _parent_page(request, "code_note_new", game)
+    elif request.method == "POST":
         form = NewCodeNoteForm(request.POST)
     else:
         form = NewCodeNoteForm()

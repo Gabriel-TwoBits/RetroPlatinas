@@ -29,6 +29,7 @@ from apps.core.stats import (
     ranked_entries,
 )
 from apps.games.models import RICH_PRESENCE_MAX_LENGTH, Console, Game, GameHash, PlayerGame
+from apps.games.sets import session_game, sets_for_game, sets_for_hash
 from apps.images.catalog import (
     avatar_path,
     badge_path,
@@ -90,6 +91,8 @@ _TOO_MANY_UNLOCKS = {
 # rcheevos RC_ACHIEVEMENT_CATEGORY_CORE / RC_ACHIEVEMENT_CATEGORY_UNOFFICIAL.
 ACHIEVEMENT_FLAGS_CORE = 3
 ACHIEVEMENT_FLAGS_UNOFFICIAL = 5
+# The `Type` rcheevos reads as RC_ACHIEVEMENT_SET_TYPE_CORE; a subset sends its own set type.
+SET_TYPE_CORE = "core"
 
 API_TOKEN_LIFETIME = timedelta(days=14)
 PERCENT = 100
@@ -240,12 +243,24 @@ def _game_by_id(raw_game_id):
     return Game.objects.select_related("console").filter(pk=game_id).first()
 
 
+def _hash_game(md5):
+    """The game linked to the hash `md5`, `None` when it is empty or unknown."""
+    if md5:
+        return (
+            Game.objects.select_related("console", "parent_game__console")
+            .filter(hashes__md5=md5.lower())
+            .first()
+        )
+    else:
+        return None
+
+
 def _game_from_request(request):
     """The game named by the `m` hash, else by the `g` id; `None` when neither matches."""
-    md5 = request.POST.get("m", "").lower()
+    md5 = request.POST.get("m", "")
     game_id_param = request.POST.get("g", "")
     if md5:
-        return Game.objects.select_related("console").filter(hashes__md5=md5).first()
+        return _hash_game(md5)
     elif game_id_param:
         return _game_by_id(game_id_param)
     else:
@@ -352,13 +367,56 @@ def handle_patch(request):
     }
 
 
+def _served_sets(request, user):
+    """The sets the `m` hash serves `user`, else the `g` game's set alone (the legacy load);
+    `None` when neither names a game."""
+    md5 = request.POST.get("m", "")
+    game_id_param = request.POST.get("g", "")
+    if md5:
+        hash_game = _hash_game(md5)
+        if hash_game is None:
+            return None
+        else:
+            return sets_for_hash(user, hash_game)
+    elif game_id_param:
+        game = _game_by_id(game_id_param)
+        if game is None:
+            return None
+        else:
+            return sets_for_game(game)
+    else:
+        return None
+
+
+def _serialize_set(request, served, set_game):
+    if set_game.pk == served.core.pk:
+        set_type = SET_TYPE_CORE
+        # rcheevos titles a set without one after the game.
+        title = None
+    else:
+        set_type = set_game.set_type
+        title = set_game.set_title
+    achievements = _served_achievements(set_game)
+    # Rarity is over the players of the set's own game.
+    players = _player_count(set_game)
+    return {
+        "AchievementSetId": set_game.pk,
+        "GameId": set_game.pk,
+        "Title": title,
+        "Type": set_type,
+        "ImageIconUrl": _game_icon_url(request, set_game),
+        "Achievements": [_serialize_achievement(request, a, players) for a in achievements],
+        "Leaderboards": [_serialize_leaderboard(lb) for lb in set_game.leaderboards.all()],
+    }
+
+
 def handle_achievementsets(request):
     user, error = _authenticate(request)
     if error is not None:
         return error
 
-    game = _game_from_request(request)
-    if game is None:
+    served = _served_sets(request, user)
+    if served is None:
         logger.info(
             "achievementsets unknown game hash=%s g=%s",
             request.POST.get("m", ""),
@@ -366,30 +424,16 @@ def handle_achievementsets(request):
         )
         return _GAME_NOT_FOUND
 
-    achievements = _served_achievements(game)
-    players = _player_count(game)
-    icon_url = _game_icon_url(request, game)
+    core = served.core
     return {
         "Success": True,
-        "GameId": game.pk,
-        "Title": game.title,
-        "ConsoleId": game.console.ra_id,
-        "ImageIconUrl": icon_url,
-        "RichPresenceGameId": game.pk,
-        "RichPresencePatch": game.rich_presence_patch,
-        # TRADEOFF: one core set per game, so game.pk doubles as the set id; a set model
-        # takes over when subsets (bonus/specialty) are supported.
-        "Sets": [
-            {
-                "AchievementSetId": game.pk,
-                "GameId": game.pk,
-                "Title": game.title,
-                "Type": "core",
-                "ImageIconUrl": icon_url,
-                "Achievements": [_serialize_achievement(request, a, players) for a in achievements],
-                "Leaderboards": [_serialize_leaderboard(lb) for lb in game.leaderboards.all()],
-            }
-        ],
+        "GameId": core.pk,
+        "Title": core.title,
+        "ConsoleId": core.console.ra_id,
+        "ImageIconUrl": _game_icon_url(request, core),
+        "RichPresenceGameId": served.rich_presence.pk,
+        "RichPresencePatch": served.rich_presence.rich_presence_patch,
+        "Sets": [_serialize_set(request, served, set_game) for set_game in served.sets],
     }
 
 
@@ -437,10 +481,18 @@ def handle_startsession(request):
     game = _game_by_id(request.POST.get("g", ""))
     if game is None:
         return _GAME_NOT_FOUND
+    hash_game = _hash_game(request.POST.get("m", ""))
+    # Without a known hash the session is the `g` game's, as on RA.
+    if hash_game is None:
+        session = game
+        served_games = [game]
+    else:
+        session = session_game(hash_game)
+        served_games = sets_for_hash(user, hash_game).sets
 
-    _record_session_contact(user, game, hardcore, starting=True)
+    _record_session_contact(user, session, hardcore, starting=True)
 
-    unlocks = UserUnlock.objects.filter(user=user, achievement__game=game).values(
+    unlocks = UserUnlock.objects.filter(user=user, achievement__game__in=served_games).values(
         "achievement_id", "hardcore", "unlocked_at"
     )
 
@@ -584,9 +636,14 @@ def handle_ping(request):
     game = _game_by_id(request.POST.get("g", ""))
     if game is None:
         return _GAME_NOT_FOUND
+    hash_game = _hash_game(request.POST.get("x", ""))
+    if hash_game is None:
+        session = game
+    else:
+        session = session_game(hash_game)
 
     rich_presence = request.POST.get("m", "")[:RICH_PRESENCE_MAX_LENGTH]
-    _record_session_contact(user, game, hardcore, rich_presence=rich_presence)
+    _record_session_contact(user, session, hardcore, rich_presence=rich_presence)
     return {"Success": True}
 
 

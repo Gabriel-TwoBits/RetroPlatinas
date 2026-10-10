@@ -35,7 +35,14 @@ from apps.api.handlers import (
     _not_found,
     _uint_param,
 )
-from apps.games.models import LOWERCASE_HEX, MD5_HEX_DIGITS, Console, Game, GameHash
+from apps.games.models import (
+    LOWERCASE_HEX,
+    MD5_HEX_DIGITS,
+    OPT_IN_SET_TYPES,
+    Console,
+    Game,
+    GameHash,
+)
 from apps.leaderboards.models import Leaderboard
 
 
@@ -537,7 +544,12 @@ def handle_submitgametitle(request):
         if error is not None:
             return error
         linked = GameHash.objects.filter(md5=md5).first()
-        if linked is None:
+        if game.set_type in OPT_IN_SET_TYPES:
+            return _invalid_parameter(
+                "A bonus or challenge subset loads with its parent game's discs: link the hash "
+                f"to game {game.parent_game_id}."
+            )
+        elif linked is None:
             # A title may be longer than a label can hold.
             label = label or game.title[:HASH_LABEL_MAX_LENGTH]
             GameHash.objects.create(game=game, md5=md5, label=label)
