@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RetroPlatinas\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-10 14:23-0300\n"
+"POT-Creation-Date: 2026-10-10 14:43-0300\n"
 "PO-Revision-Date: 2026-05-23 18:15-0300\n"
 "Last-Translator: RetroPlatinas\n"
 "Language-Team: Brazilian Portuguese\n"
@@ -29,7 +29,7 @@ msgstr "Aparece no seu perfil, com até %(limit)s caracteres."
 msgid "bio"
 msgstr "bio"
 
-#: apps/accounts/models.py:38 apps/achievements/models.py:366
+#: apps/accounts/models.py:38 apps/achievements/models.py:380
 #: apps/anticheat/models.py:24 apps/games/models.py:289
 #: apps/games/models.py:358 apps/leaderboards/models.py:93
 #: apps/notifications/models.py:35
@@ -221,7 +221,9 @@ msgstr "Set"
 msgid ""
 "The core set holds the game's own 100%; a subset holds challenges players "
 "opt into."
-msgstr "O set principal reúne os 100% do próprio jogo; um subset reúne desafios que o jogador escolhe ativar."
+msgstr ""
+"O set principal reúne os 100% do próprio jogo; um subset reúne desafios que "
+"o jogador escolhe ativar."
 
 #: apps/achievements/forms.py:113
 #, python-format
@@ -310,13 +312,13 @@ msgstr "Condição de vitória"
 msgid "Missable"
 msgstr "Perdível"
 
-#: apps/achievements/models.py:163 apps/achievements/models.py:393
+#: apps/achievements/models.py:163 apps/achievements/models.py:407
 #: apps/comments/models.py:51 apps/games/models.py:122 apps/games/models.py:226
 #: apps/games/models.py:295 apps/leaderboards/models.py:37
 msgid "game"
 msgstr "jogo"
 
-#: apps/achievements/models.py:168 apps/achievements/models.py:398
+#: apps/achievements/models.py:168 apps/achievements/models.py:412
 #: apps/comments/models.py:39 apps/leaderboards/models.py:52
 msgid "author"
 msgstr "autor"
@@ -348,13 +350,13 @@ msgstr "O número de um emblema enviado, ou 00000 para o emblema genérico."
 msgid "type"
 msgstr "tipo"
 
-#: apps/achievements/models.py:194 apps/achievements/models.py:411
+#: apps/achievements/models.py:194 apps/achievements/models.py:425
 #: apps/leaderboards/models.py:55
 msgid "updated at"
 msgstr "atualizado em"
 
 #: apps/achievements/models.py:197 apps/achievements/models.py:235
-#: apps/achievements/models.py:371 apps/comments/models.py:59
+#: apps/achievements/models.py:385 apps/comments/models.py:59
 msgid "achievement"
 msgstr "conquista"
 
@@ -378,7 +380,7 @@ msgstr "revisão de conquista"
 msgid "achievement revisions"
 msgstr "revisões de conquista"
 
-#: apps/achievements/models.py:373 apps/achievements/models.py:384
+#: apps/achievements/models.py:387 apps/achievements/models.py:398
 #: templates/accounts/partials/identity-header.html:64
 #: templates/accounts/partials/sec-recent-unlocks.html:15
 #: templates/feed/partials/feed-list.html:14
@@ -387,19 +389,19 @@ msgstr "revisões de conquista"
 msgid "hardcore"
 msgstr "hardcore"
 
-#: apps/achievements/models.py:375
+#: apps/achievements/models.py:389
 msgid "unlocked at"
 msgstr "desbloqueado em"
 
-#: apps/achievements/models.py:379
+#: apps/achievements/models.py:393
 msgid "user unlock"
 msgstr "desbloqueio de usuário"
 
-#: apps/achievements/models.py:380
+#: apps/achievements/models.py:394
 msgid "user unlocks"
 msgstr "desbloqueios de usuário"
 
-#: apps/achievements/models.py:384
+#: apps/achievements/models.py:398
 #: templates/accounts/partials/identity-header.html:64
 #: templates/accounts/partials/sec-recent-unlocks.html:15
 #: templates/games/partials/achievement-row.html:18 templates/home.html:70
@@ -407,27 +409,27 @@ msgstr "desbloqueios de usuário"
 msgid "softcore"
 msgstr "softcore"
 
-#: apps/achievements/models.py:400
+#: apps/achievements/models.py:414
 msgid "address"
 msgstr "endereço"
 
-#: apps/achievements/models.py:401
+#: apps/achievements/models.py:415
 msgid "note"
 msgstr "nota"
 
-#: apps/achievements/models.py:409
+#: apps/achievements/models.py:423
 msgid "updated by"
 msgstr "atualizado por"
 
-#: apps/achievements/models.py:414
+#: apps/achievements/models.py:428
 msgid "code note"
 msgstr "anotação de código"
 
-#: apps/achievements/models.py:415
+#: apps/achievements/models.py:429
 msgid "code notes"
 msgstr "anotações de código"
 
-#: apps/achievements/models.py:425
+#: apps/achievements/models.py:439
 msgid "A subset shares its parent game's code notes: note the parent game."
 msgstr ""
 "Um subset compartilha as anotações de código do jogo pai: anote no jogo pai."
@@ -450,7 +452,7 @@ msgstr "A condição é longa demais: no máximo %(limit)s bytes."
 msgid "rcheevos cannot parse this condition: %(reason)s."
 msgstr "O rcheevos não consegue interpretar esta condição: %(reason)s."
 
-#: apps/achievements/views.py:56
+#: apps/achievements/views.py:57
 msgid "Achievement saved."
 msgstr "Conquista salva."
 
@@ -905,23 +907,30 @@ msgstr "Os 100% do próprio jogo: tudo o que o jogo pede para você terminá-lo.
 #: apps/games/page.py:59
 msgid ""
 "Bonus subset: challenges you can take on while playing the game normally."
-msgstr "Subset bônus: desafios que você pode encarar jogando o jogo normalmente."
+msgstr ""
+"Subset bônus: desafios que você pode encarar jogando o jogo normalmente."
 
 #: apps/games/page.py:60
 msgid "Challenge subset: a specific challenge run, such as a deathless run."
-msgstr "Subset de desafio: uma jogatina com um desafio específico, como terminar sem morrer."
+msgstr ""
+"Subset de desafio: uma jogatina com um desafio específico, como terminar sem "
+"morrer."
 
 #: apps/games/page.py:62
 msgid ""
 "Specialty subset: needs a different disc or version of the game, and plays "
 "alongside the core set."
-msgstr "Subset especial: precisa de outro disco ou versão do jogo e é jogado junto com o set principal."
+msgstr ""
+"Subset especial: precisa de outro disco ou versão do jogo e é jogado junto "
+"com o set principal."
 
 #: apps/games/page.py:66
 msgid ""
 "Exclusive subset: needs a different disc or version of the game, and plays "
 "on its own."
-msgstr "Subset exclusivo: precisa de outro disco ou versão do jogo e é jogado sozinho."
+msgstr ""
+"Subset exclusivo: precisa de outro disco ou versão do jogo e é jogado "
+"sozinho."
 
 #: apps/games/views.py:36
 msgid "Invalid games filter"
@@ -1066,7 +1075,8 @@ msgstr "Sua conquista “%(achievement)s” agora é oficial."
 #, python-format
 msgid ""
 "Your achievement “%(achievement)s” in the %(set)s subset is now unofficial."
-msgstr "Sua conquista “%(achievement)s” do subset %(set)s deixou de ser oficial."
+msgstr ""
+"Sua conquista “%(achievement)s” do subset %(set)s deixou de ser oficial."
 
 #: apps/notifications/display.py:26
 #, python-format
@@ -1078,7 +1088,8 @@ msgstr "Sua conquista “%(achievement)s” deixou de ser oficial."
 msgid ""
 "%(actor)s commented on your achievement “%(achievement)s” in the %(set)s "
 "subset."
-msgstr "%(actor)s comentou na sua conquista “%(achievement)s” do subset %(set)s."
+msgstr ""
+"%(actor)s comentou na sua conquista “%(achievement)s” do subset %(set)s."
 
 #: apps/notifications/display.py:42
 #, python-format
@@ -1089,7 +1100,8 @@ msgstr "%(actor)s comentou na sua conquista “%(achievement)s”."
 #, python-format
 msgid ""
 "%(actor)s unlocked your achievement “%(achievement)s” in the %(set)s subset."
-msgstr "%(actor)s desbloqueou a sua conquista “%(achievement)s” do subset %(set)s."
+msgstr ""
+"%(actor)s desbloqueou a sua conquista “%(achievement)s” do subset %(set)s."
 
 #: apps/notifications/display.py:48
 #, python-format
@@ -1925,12 +1937,20 @@ msgstr ""
 "aparece quando a condição é atendida, o que prova que ela funciona, mas uma "
 "conquista não oficial nunca é registrada nem vale pontos."
 
-#: templates/docs/creating-achievements.html:30
+#: templates/docs/creating-achievements.html:28
+msgid ""
+"An achievement of a bonus or challenge subset loads only after you turn on "
+"Play this subset in that subset's section of the game page."
+msgstr ""
+"Uma conquista de um subset bônus ou de desafio só carrega depois que você "
+"ativa Jogar este subset na seção desse subset na página do jogo."
+
+#: templates/docs/creating-achievements.html:31
 #: templates/docs/statuses-and-contributing.html:42
 msgid "Make it official"
 msgstr "Torne-a oficial"
 
-#: templates/docs/creating-achievements.html:31
+#: templates/docs/creating-achievements.html:32
 msgid ""
 "Back in the editor, set the status to Official. Every player then receives "
 "it as an official achievement, and unlocking it counts and scores."
@@ -1938,23 +1958,23 @@ msgstr ""
 "De volta ao editor, mude o status para Oficial. A partir daí todo jogador a "
 "recebe como conquista oficial, e desbloqueá-la conta e vale pontos."
 
-#: templates/docs/creating-achievements.html:32
+#: templates/docs/creating-achievements.html:33
 msgid "What each status means →"
 msgstr "O que cada status significa →"
 
-#: templates/docs/creating-achievements.html:38
-#: templates/docs/creating-achievements.html:70
+#: templates/docs/creating-achievements.html:39
+#: templates/docs/creating-achievements.html:71
 msgid "Condition syntax"
 msgstr "Sintaxe das condições"
 
-#: templates/docs/creating-achievements.html:39
+#: templates/docs/creating-achievements.html:40
 msgid ""
 "A condition compares memory values. These are the pieces most conditions use:"
 msgstr ""
 "Uma condição compara valores da memória. Estas são as peças que a maioria "
 "das condições usa:"
 
-#: templates/docs/creating-achievements.html:43
+#: templates/docs/creating-achievements.html:44
 msgid ""
 "The 8-bit value at address 0x1234. 0x is 16-bit, 0xW 24-bit and 0xX 32-bit; "
 "0xM to 0xT read single bits."
@@ -1962,15 +1982,15 @@ msgstr ""
 "O valor de 8 bits no endereço 0x1234. 0x é 16 bits, 0xW 24 bits e 0xX 32 "
 "bits; de 0xM a 0xT leem bits individuais."
 
-#: templates/docs/creating-achievements.html:47
+#: templates/docs/creating-achievements.html:48
 msgid "The delta: the value the address held on the previous frame."
 msgstr "O delta: o valor que o endereço tinha no quadro anterior."
 
-#: templates/docs/creating-achievements.html:51
+#: templates/docs/creating-achievements.html:52
 msgid "Joins conditions: all of them must be true on the same frame."
 msgstr "Junta condições: todas precisam ser verdadeiras no mesmo quadro."
 
-#: templates/docs/creating-achievements.html:55
+#: templates/docs/creating-achievements.html:56
 msgid ""
 "Starts an alternative group: the core conditions plus any one group must be "
 "true."
@@ -1978,7 +1998,7 @@ msgstr ""
 "Inicia um grupo alternativo: as condições principais e mais um grupo "
 "qualquer precisam ser verdadeiros."
 
-#: templates/docs/creating-achievements.html:59
+#: templates/docs/creating-achievements.html:60
 msgid ""
 "Flags before a condition: ResetIf clears every hit count when it is true, "
 "PauseIf suspends the check while it is true."
@@ -1986,7 +2006,7 @@ msgstr ""
 "Flags antes de uma condição: ResetIf zera todas as contagens de hits quando "
 "é verdadeira, PauseIf suspende a verificação enquanto é verdadeira."
 
-#: templates/docs/creating-achievements.html:63
+#: templates/docs/creating-achievements.html:64
 msgid ""
 "A hit count after a condition: it must be true on that many frames before it "
 "counts."
@@ -1994,7 +2014,7 @@ msgstr ""
 "Uma contagem de hits depois de uma condição: ela precisa ser verdadeira "
 "nessa quantidade de quadros antes de contar."
 
-#: templates/docs/creating-achievements.html:66
+#: templates/docs/creating-achievements.html:67
 msgid ""
 "For example, this condition fires on the frame the byte at 0x61998 changes "
 "from 0 to 1:"
@@ -2002,7 +2022,7 @@ msgstr ""
 "Por exemplo, esta condição dispara no quadro em que o byte em 0x61998 muda "
 "de 0 para 1:"
 
-#: templates/docs/creating-achievements.html:68
+#: templates/docs/creating-achievements.html:69
 msgid ""
 "RetroAchievements' developer documentation covers every size, prefix and "
 "flag:"
@@ -2010,27 +2030,27 @@ msgstr ""
 "A documentação de desenvolvedor do RetroAchievements cobre todos os "
 "tamanhos, prefixos e flags:"
 
-#: templates/docs/creating-achievements.html:71
+#: templates/docs/creating-achievements.html:72
 msgid "Why delta"
 msgstr "Por que delta"
 
-#: templates/docs/creating-achievements.html:72
+#: templates/docs/creating-achievements.html:73
 msgid "Hit counts"
 msgstr "Contagens de hits"
 
-#: templates/docs/creating-achievements.html:74
+#: templates/docs/creating-achievements.html:75
 msgid "Alt groups"
 msgstr "Grupos alternativos"
 
-#: templates/docs/creating-achievements.html:75
+#: templates/docs/creating-achievements.html:76
 msgid "All developer docs"
 msgstr "Toda a documentação de desenvolvedor"
 
-#: templates/docs/creating-achievements.html:80
+#: templates/docs/creating-achievements.html:81
 msgid "Good practices"
 msgstr "Boas práticas"
 
-#: templates/docs/creating-achievements.html:82
+#: templates/docs/creating-achievements.html:83
 msgid ""
 "Describe the moment something happens, not a state: compare the value with "
 "its delta, as in the example above. A plain comparison can be true for a "
@@ -2041,7 +2061,7 @@ msgstr ""
 "verdadeira por um quadro enquanto o jogo inicia e desbloquear a conquista ao "
 "carregar."
 
-#: templates/docs/creating-achievements.html:83
+#: templates/docs/creating-achievements.html:84
 msgid ""
 "Console memory is zeroed at reset, so a 0 often means the game is not "
 "running yet. Guard the condition with a value that is only non-zero during "
@@ -2051,7 +2071,7 @@ msgstr ""
 "que o jogo ainda não está rodando. Proteja a condição com um valor que só é "
 "diferente de zero durante o jogo, como um ponteiro."
 
-#: templates/docs/creating-achievements.html:84
+#: templates/docs/creating-achievements.html:85
 msgid ""
 "The emulator holds back an achievement whose condition is already true when "
 "the game loads. Test from a save state made before the moment it should fire."
@@ -2060,7 +2080,7 @@ msgstr ""
 "carrega. Teste a partir de um save state feito antes do momento em que ela "
 "deve disparar."
 
-#: templates/docs/creating-achievements.html:85
+#: templates/docs/creating-achievements.html:86
 msgid ""
 "Check each address you rely on: code notes describe what the community "
 "found, often on another region of the game."
@@ -2068,7 +2088,7 @@ msgstr ""
 "Confira cada endereço que você usa: as anotações de código descrevem o que a "
 "comunidade encontrou, muitas vezes em outra região do jogo."
 
-#: templates/docs/creating-achievements.html:86
+#: templates/docs/creating-achievements.html:87
 msgid ""
 "Every save keeps a revision. The History link on the game page shows them, "
 "and the author or staff can revert to one."
@@ -2702,7 +2722,9 @@ msgstr "Entre para jogar este subset"
 msgid ""
 "Off until you turn it on. A change applies the next time you open the game "
 "in the emulator."
-msgstr "Fica desligado até você ligar. A mudança vale a partir da próxima vez que você abrir o jogo no emulador."
+msgstr ""
+"Fica desligado até você ligar. A mudança vale a partir da próxima vez que "
+"você abrir o jogo no emulador."
 
 #: templates/games/partials/panel-achievements.html:3
 msgid "Filter achievements"
@@ -2718,7 +2740,9 @@ msgstr[1] "%(shown)s conquistas oficiais"
 #: templates/games/partials/panel-achievements.html:30
 #, python-format
 msgid "%(unlocked)s/%(total)s unlocked (%(hardcore)s hardcore) · %(percent)s%%"
-msgstr "%(unlocked)s/%(total)s desbloqueadas (%(hardcore)s no hardcore) · %(percent)s%%"
+msgstr ""
+"%(unlocked)s/%(total)s desbloqueadas (%(hardcore)s no hardcore) · "
+"%(percent)s%%"
 
 #: templates/games/partials/panel-achievements.html:41
 msgid "Plays when you open the game from one of these discs:"
@@ -2728,11 +2752,11 @@ msgstr "É jogado quando você abre o jogo por um destes discos:"
 msgid "No disc is linked to this subset yet."
 msgstr "Nenhum disco está vinculado a este subset ainda."
 
-#: templates/games/partials/panel-achievements.html:53
+#: templates/games/partials/panel-achievements.html:56
 msgid "New achievement in this subset"
 msgstr "Nova conquista neste subset"
 
-#: templates/games/partials/panel-achievements.html:62
+#: templates/games/partials/panel-achievements.html:65
 msgctxt "achievement section"
 msgid "Unofficial"
 msgstr "Não oficiais"
@@ -2801,13 +2825,16 @@ msgstr "Uma jogatina com um desafio específico, como terminar sem morrer."
 msgid ""
 "A different disc or version, played alongside the core set. Link its disc "
 "hash in the admin."
-msgstr "Outro disco ou versão, jogado junto com o set principal. Vincule o hash do disco no admin."
+msgstr ""
+"Outro disco ou versão, jogado junto com o set principal. Vincule o hash do "
+"disco no admin."
 
 #: templates/games/subset-new.html:28
 msgid ""
 "A different disc or version, played on its own. Link its disc hash in the "
 "admin."
-msgstr "Outro disco ou versão, jogado sozinho. Vincule o hash do disco no admin."
+msgstr ""
+"Outro disco ou versão, jogado sozinho. Vincule o hash do disco no admin."
 
 #: templates/games/subset-new.html:35
 msgid "Add subset"

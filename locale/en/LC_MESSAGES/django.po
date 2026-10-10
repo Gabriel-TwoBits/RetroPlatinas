@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RetroPlatinas\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-10 14:23-0300\n"
+"POT-Creation-Date: 2026-10-10 14:43-0300\n"
 "PO-Revision-Date: 2026-05-23 18:15-0300\n"
 "Last-Translator: RetroPlatinas\n"
 "Language-Team: English\n"
@@ -29,7 +29,7 @@ msgstr ""
 msgid "bio"
 msgstr ""
 
-#: apps/accounts/models.py:38 apps/achievements/models.py:366
+#: apps/accounts/models.py:38 apps/achievements/models.py:380
 #: apps/anticheat/models.py:24 apps/games/models.py:289
 #: apps/games/models.py:358 apps/leaderboards/models.py:93
 #: apps/notifications/models.py:35
@@ -300,13 +300,13 @@ msgstr ""
 msgid "Missable"
 msgstr ""
 
-#: apps/achievements/models.py:163 apps/achievements/models.py:393
+#: apps/achievements/models.py:163 apps/achievements/models.py:407
 #: apps/comments/models.py:51 apps/games/models.py:122 apps/games/models.py:226
 #: apps/games/models.py:295 apps/leaderboards/models.py:37
 msgid "game"
 msgstr ""
 
-#: apps/achievements/models.py:168 apps/achievements/models.py:398
+#: apps/achievements/models.py:168 apps/achievements/models.py:412
 #: apps/comments/models.py:39 apps/leaderboards/models.py:52
 msgid "author"
 msgstr ""
@@ -338,13 +338,13 @@ msgstr ""
 msgid "type"
 msgstr ""
 
-#: apps/achievements/models.py:194 apps/achievements/models.py:411
+#: apps/achievements/models.py:194 apps/achievements/models.py:425
 #: apps/leaderboards/models.py:55
 msgid "updated at"
 msgstr ""
 
 #: apps/achievements/models.py:197 apps/achievements/models.py:235
-#: apps/achievements/models.py:371 apps/comments/models.py:59
+#: apps/achievements/models.py:385 apps/comments/models.py:59
 msgid "achievement"
 msgstr ""
 
@@ -368,7 +368,7 @@ msgstr ""
 msgid "achievement revisions"
 msgstr ""
 
-#: apps/achievements/models.py:373 apps/achievements/models.py:384
+#: apps/achievements/models.py:387 apps/achievements/models.py:398
 #: templates/accounts/partials/identity-header.html:64
 #: templates/accounts/partials/sec-recent-unlocks.html:15
 #: templates/feed/partials/feed-list.html:14
@@ -377,19 +377,19 @@ msgstr ""
 msgid "hardcore"
 msgstr ""
 
-#: apps/achievements/models.py:375
+#: apps/achievements/models.py:389
 msgid "unlocked at"
 msgstr ""
 
-#: apps/achievements/models.py:379
+#: apps/achievements/models.py:393
 msgid "user unlock"
 msgstr ""
 
-#: apps/achievements/models.py:380
+#: apps/achievements/models.py:394
 msgid "user unlocks"
 msgstr ""
 
-#: apps/achievements/models.py:384
+#: apps/achievements/models.py:398
 #: templates/accounts/partials/identity-header.html:64
 #: templates/accounts/partials/sec-recent-unlocks.html:15
 #: templates/games/partials/achievement-row.html:18 templates/home.html:70
@@ -397,27 +397,27 @@ msgstr ""
 msgid "softcore"
 msgstr ""
 
-#: apps/achievements/models.py:400
+#: apps/achievements/models.py:414
 msgid "address"
 msgstr ""
 
-#: apps/achievements/models.py:401
+#: apps/achievements/models.py:415
 msgid "note"
 msgstr ""
 
-#: apps/achievements/models.py:409
+#: apps/achievements/models.py:423
 msgid "updated by"
 msgstr ""
 
-#: apps/achievements/models.py:414
+#: apps/achievements/models.py:428
 msgid "code note"
 msgstr ""
 
-#: apps/achievements/models.py:415
+#: apps/achievements/models.py:429
 msgid "code notes"
 msgstr ""
 
-#: apps/achievements/models.py:425
+#: apps/achievements/models.py:439
 msgid "A subset shares its parent game's code notes: note the parent game."
 msgstr ""
 
@@ -439,7 +439,7 @@ msgstr ""
 msgid "rcheevos cannot parse this condition: %(reason)s."
 msgstr ""
 
-#: apps/achievements/views.py:56
+#: apps/achievements/views.py:57
 msgid "Achievement saved."
 msgstr ""
 
@@ -1871,122 +1871,128 @@ msgid ""
 "is never recorded or worth points."
 msgstr ""
 
-#: templates/docs/creating-achievements.html:30
+#: templates/docs/creating-achievements.html:28
+msgid ""
+"An achievement of a bonus or challenge subset loads only after you turn on "
+"Play this subset in that subset's section of the game page."
+msgstr ""
+
+#: templates/docs/creating-achievements.html:31
 #: templates/docs/statuses-and-contributing.html:42
 msgid "Make it official"
 msgstr ""
 
-#: templates/docs/creating-achievements.html:31
+#: templates/docs/creating-achievements.html:32
 msgid ""
 "Back in the editor, set the status to Official. Every player then receives "
 "it as an official achievement, and unlocking it counts and scores."
 msgstr ""
 
-#: templates/docs/creating-achievements.html:32
+#: templates/docs/creating-achievements.html:33
 msgid "What each status means →"
 msgstr ""
 
-#: templates/docs/creating-achievements.html:38
-#: templates/docs/creating-achievements.html:70
+#: templates/docs/creating-achievements.html:39
+#: templates/docs/creating-achievements.html:71
 msgid "Condition syntax"
 msgstr ""
 
-#: templates/docs/creating-achievements.html:39
+#: templates/docs/creating-achievements.html:40
 msgid ""
 "A condition compares memory values. These are the pieces most conditions use:"
 msgstr ""
 
-#: templates/docs/creating-achievements.html:43
+#: templates/docs/creating-achievements.html:44
 msgid ""
 "The 8-bit value at address 0x1234. 0x is 16-bit, 0xW 24-bit and 0xX 32-bit; "
 "0xM to 0xT read single bits."
 msgstr ""
 
-#: templates/docs/creating-achievements.html:47
+#: templates/docs/creating-achievements.html:48
 msgid "The delta: the value the address held on the previous frame."
 msgstr ""
 
-#: templates/docs/creating-achievements.html:51
+#: templates/docs/creating-achievements.html:52
 msgid "Joins conditions: all of them must be true on the same frame."
 msgstr ""
 
-#: templates/docs/creating-achievements.html:55
+#: templates/docs/creating-achievements.html:56
 msgid ""
 "Starts an alternative group: the core conditions plus any one group must be "
 "true."
 msgstr ""
 
-#: templates/docs/creating-achievements.html:59
+#: templates/docs/creating-achievements.html:60
 msgid ""
 "Flags before a condition: ResetIf clears every hit count when it is true, "
 "PauseIf suspends the check while it is true."
 msgstr ""
 
-#: templates/docs/creating-achievements.html:63
+#: templates/docs/creating-achievements.html:64
 msgid ""
 "A hit count after a condition: it must be true on that many frames before it "
 "counts."
 msgstr ""
 
-#: templates/docs/creating-achievements.html:66
+#: templates/docs/creating-achievements.html:67
 msgid ""
 "For example, this condition fires on the frame the byte at 0x61998 changes "
 "from 0 to 1:"
 msgstr ""
 
-#: templates/docs/creating-achievements.html:68
+#: templates/docs/creating-achievements.html:69
 msgid ""
 "RetroAchievements' developer documentation covers every size, prefix and "
 "flag:"
 msgstr ""
 
-#: templates/docs/creating-achievements.html:71
+#: templates/docs/creating-achievements.html:72
 msgid "Why delta"
 msgstr ""
 
-#: templates/docs/creating-achievements.html:72
+#: templates/docs/creating-achievements.html:73
 msgid "Hit counts"
 msgstr ""
 
-#: templates/docs/creating-achievements.html:74
+#: templates/docs/creating-achievements.html:75
 msgid "Alt groups"
 msgstr ""
 
-#: templates/docs/creating-achievements.html:75
+#: templates/docs/creating-achievements.html:76
 msgid "All developer docs"
 msgstr ""
 
-#: templates/docs/creating-achievements.html:80
+#: templates/docs/creating-achievements.html:81
 msgid "Good practices"
 msgstr ""
 
-#: templates/docs/creating-achievements.html:82
+#: templates/docs/creating-achievements.html:83
 msgid ""
 "Describe the moment something happens, not a state: compare the value with "
 "its delta, as in the example above. A plain comparison can be true for a "
 "frame while the game boots and unlock the achievement on load."
 msgstr ""
 
-#: templates/docs/creating-achievements.html:83
+#: templates/docs/creating-achievements.html:84
 msgid ""
 "Console memory is zeroed at reset, so a 0 often means the game is not "
 "running yet. Guard the condition with a value that is only non-zero during "
 "play, such as a pointer."
 msgstr ""
 
-#: templates/docs/creating-achievements.html:84
+#: templates/docs/creating-achievements.html:85
 msgid ""
 "The emulator holds back an achievement whose condition is already true when "
 "the game loads. Test from a save state made before the moment it should fire."
 msgstr ""
 
-#: templates/docs/creating-achievements.html:85
+#: templates/docs/creating-achievements.html:86
 msgid ""
 "Check each address you rely on: code notes describe what the community "
 "found, often on another region of the game."
 msgstr ""
 
-#: templates/docs/creating-achievements.html:86
+#: templates/docs/creating-achievements.html:87
 msgid ""
 "Every save keeps a revision. The History link on the game page shows them, "
 "and the author or staff can revert to one."
@@ -2522,11 +2528,11 @@ msgstr ""
 msgid "No disc is linked to this subset yet."
 msgstr ""
 
-#: templates/games/partials/panel-achievements.html:53
+#: templates/games/partials/panel-achievements.html:56
 msgid "New achievement in this subset"
 msgstr ""
 
-#: templates/games/partials/panel-achievements.html:62
+#: templates/games/partials/panel-achievements.html:65
 msgctxt "achievement section"
 msgid "Unofficial"
 msgstr ""
