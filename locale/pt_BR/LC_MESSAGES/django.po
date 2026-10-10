@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RetroPlatinas\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-10 14:44-0300\n"
+"POT-Creation-Date: 2026-10-10 14:45-0300\n"
 "PO-Revision-Date: 2026-05-23 18:15-0300\n"
 "Last-Translator: RetroPlatinas\n"
 "Language-Team: Brazilian Portuguese\n"
@@ -56,35 +56,29 @@ msgstr "amizade"
 msgid "friendships"
 msgstr "amizades"
 
-#: apps/accounts/profile.py:45 apps/games/page.py:70
+#: apps/accounts/profile.py:46 apps/games/page.py:70
 msgid "Platinum"
 msgstr "Platinado"
 
-#: apps/accounts/profile.py:46
+#: apps/accounts/profile.py:47
 msgid "Beaten"
 msgstr "Zerado"
 
-#: apps/accounts/profile.py:47
+#: apps/accounts/profile.py:48
 msgid "In progress"
 msgstr "Em andamento"
 
-#: apps/accounts/profile.py:49 apps/games/page.py:71
-#: templates/components/subset-progress.html:12
-msgctxt "subset seal"
-msgid "Completed"
-msgstr "Concluído"
-
-#: apps/accounts/profile.py:86
+#: apps/accounts/profile.py:85
 #, python-format
 msgid "%(hours)s h"
 msgstr "%(hours)s h"
 
-#: apps/accounts/profile.py:88
+#: apps/accounts/profile.py:87
 #, python-format
 msgid "%(minutes)s min"
 msgstr "%(minutes)s min"
 
-#: apps/accounts/profile.py:94
+#: apps/accounts/profile.py:93
 #, python-format
 msgid ""
 "%(console)s · %(unlocked)s/%(total)s achievements (%(hardcore)s hardcore) · "
@@ -715,19 +709,19 @@ msgstr "console"
 msgid "consoles"
 msgstr "consoles"
 
-#: apps/games/models.py:55 templates/games/subset-new.html:15
+#: apps/games/models.py:55
 msgid "Bonus"
 msgstr "Bônus"
 
-#: apps/games/models.py:56 templates/games/subset-new.html:19
+#: apps/games/models.py:56
 msgid "Challenge"
 msgstr "Desafio"
 
-#: apps/games/models.py:57 templates/games/subset-new.html:23
+#: apps/games/models.py:57
 msgid "Specialty"
 msgstr "Especial"
 
-#: apps/games/models.py:58 templates/games/subset-new.html:27
+#: apps/games/models.py:58
 msgid "Exclusive"
 msgstr "Exclusivo"
 
@@ -940,6 +934,11 @@ msgid ""
 msgstr ""
 "Subset exclusivo: precisa de outro disco ou versão do jogo e é jogado "
 "sozinho."
+
+#: apps/games/page.py:71
+msgctxt "subset seal"
+msgid "Completed"
+msgstr "Concluído"
 
 #: apps/games/views.py:36
 msgid "Invalid games filter"
@@ -1742,7 +1741,7 @@ msgstr "Emblema atual, bloqueado"
 msgid "Save achievement"
 msgstr "Salvar conquista"
 
-#: templates/achievements/edit.html:49 templates/games/subset-new.html:39
+#: templates/achievements/edit.html:49 templates/games/subset-new.html:27
 msgid "Back to the game"
 msgstr "Voltar ao jogo"
 
@@ -2822,30 +2821,11 @@ msgstr "Páginas de jogos"
 msgid "Game sections"
 msgstr "Seções do jogo"
 
-#: templates/games/subset-new.html:16
-msgid "Challenges taken on while playing the game normally."
-msgstr "Desafios encarados jogando o jogo normalmente."
+#: templates/games/subset-new.html:18
+msgid "Link a specialty or exclusive subset's disc hash in the admin."
+msgstr "Vincule o hash do disco de um subset especial ou exclusivo no admin."
 
-#: templates/games/subset-new.html:20
-msgid "A specific challenge run, such as a deathless run."
-msgstr "Uma jogatina com um desafio específico, como terminar sem morrer."
-
-#: templates/games/subset-new.html:24
-msgid ""
-"A different disc or version, played alongside the core set. Link its disc "
-"hash in the admin."
-msgstr ""
-"Outro disco ou versão, jogado junto com o set principal. Vincule o hash do "
-"disco no admin."
-
-#: templates/games/subset-new.html:28
-msgid ""
-"A different disc or version, played on its own. Link its disc hash in the "
-"admin."
-msgstr ""
-"Outro disco ou versão, jogado sozinho. Vincule o hash do disco no admin."
-
-#: templates/games/subset-new.html:35
+#: templates/games/subset-new.html:23
 msgid "Add subset"
 msgstr "Adicionar subset"
 
@@ -3075,6 +3055,25 @@ msgid "%(unread)s unread notification"
 msgid_plural "%(unread)s unread notifications"
 msgstr[0] "%(unread)s notificação não lida"
 msgstr[1] "%(unread)s notificações não lidas"
+
+#~ msgid "Challenges taken on while playing the game normally."
+#~ msgstr "Desafios encarados jogando o jogo normalmente."
+
+#~ msgid "A specific challenge run, such as a deathless run."
+#~ msgstr "Uma jogatina com um desafio específico, como terminar sem morrer."
+
+#~ msgid ""
+#~ "A different disc or version, played alongside the core set. Link its disc "
+#~ "hash in the admin."
+#~ msgstr ""
+#~ "Outro disco ou versão, jogado junto com o set principal. Vincule o hash "
+#~ "do disco no admin."
+
+#~ msgid ""
+#~ "A different disc or version, played on its own. Link its disc hash in the "
+#~ "admin."
+#~ msgstr ""
+#~ "Outro disco ou versão, jogado sozinho. Vincule o hash do disco no admin."
 
 #~ msgctxt "achievement section"
 #~ msgid "Official"

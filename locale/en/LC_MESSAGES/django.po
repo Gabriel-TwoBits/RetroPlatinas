@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RetroPlatinas\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-10 14:44-0300\n"
+"POT-Creation-Date: 2026-10-10 14:45-0300\n"
 "PO-Revision-Date: 2026-05-23 18:15-0300\n"
 "Last-Translator: RetroPlatinas\n"
 "Language-Team: English\n"
@@ -56,35 +56,29 @@ msgstr ""
 msgid "friendships"
 msgstr ""
 
-#: apps/accounts/profile.py:45 apps/games/page.py:70
+#: apps/accounts/profile.py:46 apps/games/page.py:70
 msgid "Platinum"
 msgstr ""
 
-#: apps/accounts/profile.py:46
+#: apps/accounts/profile.py:47
 msgid "Beaten"
 msgstr ""
 
-#: apps/accounts/profile.py:47
+#: apps/accounts/profile.py:48
 msgid "In progress"
 msgstr ""
 
-#: apps/accounts/profile.py:49 apps/games/page.py:71
-#: templates/components/subset-progress.html:12
-msgctxt "subset seal"
-msgid "Completed"
-msgstr ""
-
-#: apps/accounts/profile.py:86
+#: apps/accounts/profile.py:85
 #, python-format
 msgid "%(hours)s h"
 msgstr ""
 
-#: apps/accounts/profile.py:88
+#: apps/accounts/profile.py:87
 #, python-format
 msgid "%(minutes)s min"
 msgstr ""
 
-#: apps/accounts/profile.py:94
+#: apps/accounts/profile.py:93
 #, python-format
 msgid ""
 "%(console)s · %(unlocked)s/%(total)s achievements (%(hardcore)s hardcore) · "
@@ -693,19 +687,19 @@ msgstr ""
 msgid "consoles"
 msgstr ""
 
-#: apps/games/models.py:55 templates/games/subset-new.html:15
+#: apps/games/models.py:55
 msgid "Bonus"
 msgstr ""
 
-#: apps/games/models.py:56 templates/games/subset-new.html:19
+#: apps/games/models.py:56
 msgid "Challenge"
 msgstr ""
 
-#: apps/games/models.py:57 templates/games/subset-new.html:23
+#: apps/games/models.py:57
 msgid "Specialty"
 msgstr ""
 
-#: apps/games/models.py:58 templates/games/subset-new.html:27
+#: apps/games/models.py:58
 msgid "Exclusive"
 msgstr ""
 
@@ -906,6 +900,11 @@ msgstr ""
 msgid ""
 "Exclusive subset: needs a different disc or version of the game, and plays "
 "on its own."
+msgstr ""
+
+#: apps/games/page.py:71
+msgctxt "subset seal"
+msgid "Completed"
 msgstr ""
 
 #: apps/games/views.py:36
@@ -1696,7 +1695,7 @@ msgstr ""
 msgid "Save achievement"
 msgstr ""
 
-#: templates/achievements/edit.html:49 templates/games/subset-new.html:39
+#: templates/achievements/edit.html:49 templates/games/subset-new.html:27
 msgid "Back to the game"
 msgstr ""
 
@@ -2596,27 +2595,11 @@ msgstr ""
 msgid "Game sections"
 msgstr ""
 
-#: templates/games/subset-new.html:16
-msgid "Challenges taken on while playing the game normally."
+#: templates/games/subset-new.html:18
+msgid "Link a specialty or exclusive subset's disc hash in the admin."
 msgstr ""
 
-#: templates/games/subset-new.html:20
-msgid "A specific challenge run, such as a deathless run."
-msgstr ""
-
-#: templates/games/subset-new.html:24
-msgid ""
-"A different disc or version, played alongside the core set. Link its disc "
-"hash in the admin."
-msgstr ""
-
-#: templates/games/subset-new.html:28
-msgid ""
-"A different disc or version, played on its own. Link its disc hash in the "
-"admin."
-msgstr ""
-
-#: templates/games/subset-new.html:35
+#: templates/games/subset-new.html:23
 msgid "Add subset"
 msgstr ""
 

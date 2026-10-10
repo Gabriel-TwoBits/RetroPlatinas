@@ -13,7 +13,7 @@ from django.views.decorators.http import require_http_methods, require_POST, req
 from apps.core import htmx
 from apps.games import listing, page
 from apps.games.forms import GameFilterForm, NewSubsetForm
-from apps.games.models import OPT_IN_SET_TYPES, Game, UserSetPreference
+from apps.games.models import OPT_IN_SET_TYPES, SUBSET_TYPES, Game, UserSetPreference
 
 PAGE_PARAM = "page"
 # The opt-in control posts `play`: whether the player plays the subset from the next load on.
@@ -134,4 +134,12 @@ def new_subset(request, game_id):
         messages.success(request, gettext("Subset added."))
         return redirect(subset.get_absolute_url())
     else:
-        return render(request, "games/subset-new.html", {"form": form, "game": parent})
+        return render(
+            request,
+            "games/subset-new.html",
+            {
+                "form": form,
+                "game": parent,
+                "explanations": [page.SET_TYPE_EXPLANATIONS[value] for value in SUBSET_TYPES],
+            },
+        )

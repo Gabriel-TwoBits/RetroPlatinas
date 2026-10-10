@@ -407,7 +407,7 @@ answers 404. Every game title on the home, the profile and the games list links 
 
 `/games/<id>/subsets/new/` (`templates/games/subset-new.html`), staff only (another user gets
 403, a visitor the login page, a subset 404), in the editor's shape: hairline rows explaining the
-four types, then the type, the subset title and an optional description. The subset goes on the
+four types (the game page's own explanations), then the type, the subset title and an optional description. The subset goes on the
 core game's console, titled RA's way (`<game> [Subset - <title>]`); saving returns to its
 section. Staff also add subsets inline on the game in the admin; a specialty or exclusive
 subset's disc hash is linked there.

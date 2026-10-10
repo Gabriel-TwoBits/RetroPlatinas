@@ -5,11 +5,12 @@ from datetime import timedelta
 
 from django.contrib.humanize.templatetags.humanize import intcomma, naturaltime
 from django.utils import timezone
-from django.utils.translation import gettext, pgettext_lazy
+from django.utils.translation import gettext
 from django.utils.translation import gettext_lazy as _
 
 from apps.core import stats
 from apps.games.models import PlayerGame
+from apps.games.page import SUBSET_ACCENT, SUBSET_SEAL
 from apps.images.catalog import avatar_path, badge_path
 
 VALID_TABS = ["overview", "awards", "games", "progress"]
@@ -46,8 +47,6 @@ STATE_LABELS = {
     STATE_BEATEN: _("Beaten"),
     STATE_PROGRESS: _("In progress"),
 }
-SUBSET_SEAL_LABEL = pgettext_lazy("subset seal", "Completed")
-SUBSET_SEAL_TONE = "brand2"
 
 
 def _initials(title):
@@ -119,6 +118,7 @@ def _subset(progress):
         "unlocked": progress.unlocked,
         "achievements": progress.achievements,
         "complete": progress.complete,
+        "seal": SUBSET_SEAL,
     }
 
 
@@ -198,8 +198,8 @@ def _subset_seals(games):
             subset["game"],
             gettext("%(game)s — %(set)s subset")
             % {"game": game["game"].title, "set": subset["game"].set_title},
-            SUBSET_SEAL_LABEL,
-            SUBSET_SEAL_TONE,
+            SUBSET_SEAL,
+            SUBSET_ACCENT,
             game["initials"],
         )
         for game in games

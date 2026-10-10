@@ -10,24 +10,12 @@
     <a href="{% url 'game_detail' game.pk %}" class="mt-1 inline-block text-sm text-brand">{{ game.title }}</a>
   </div>
 
-  <dl class="mt-4 text-xs leading-snug">
-    <div class="flex gap-3 border-b border-line py-2">
-      <dt class="w-20 shrink-0 font-data text-brand">{% trans "Bonus" %}</dt>
-      <dd class="text-txt-muted">{% trans "Challenges taken on while playing the game normally." %}</dd>
-    </div>
-    <div class="flex gap-3 border-b border-line py-2">
-      <dt class="w-20 shrink-0 font-data text-brand">{% trans "Challenge" %}</dt>
-      <dd class="text-txt-muted">{% trans "A specific challenge run, such as a deathless run." %}</dd>
-    </div>
-    <div class="flex gap-3 border-b border-line py-2">
-      <dt class="w-20 shrink-0 font-data text-brand">{% trans "Specialty" %}</dt>
-      <dd class="text-txt-muted">{% trans "A different disc or version, played alongside the core set. Link its disc hash in the admin." %}</dd>
-    </div>
-    <div class="flex gap-3 border-b border-line py-2">
-      <dt class="w-20 shrink-0 font-data text-brand">{% trans "Exclusive" %}</dt>
-      <dd class="text-txt-muted">{% trans "A different disc or version, played on its own. Link its disc hash in the admin." %}</dd>
-    </div>
-  </dl>
+  <ul class="mt-4 text-xs leading-snug">
+    {% for explanation in explanations %}
+      <li class="border-b border-line py-2 text-txt-muted">{{ explanation }}</li>
+    {% endfor %}
+  </ul>
+  <p class="mt-2 text-xs leading-snug text-txt-faint">{% trans "Link a specialty or exclusive subset's disc hash in the admin." %}</p>
 
   <form method="post" class="rp-form mt-6">
     {% csrf_token %}
