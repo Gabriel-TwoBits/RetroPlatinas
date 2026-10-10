@@ -11,7 +11,8 @@ tailwindcss -i static/css/input.css -o static/css/output.css --minify
 
 # The mem_addr checker the achievement editor runs compiles from vendor/rcheevos on first use;
 # checking a trivial trigger here compiles it at startup instead of during a web request. The
-# script reuses any existing binary, so drop it first to rebuild from the current sources.
+# script rebuilds only when check-mem-addr.c changes, not vendor/rcheevos, so drop the binary first
+# to rebuild from the current sources.
 rm -f .cache/check-mem-addr
 bash scripts/check-mem-addr.sh '0=1' > /dev/null
 
