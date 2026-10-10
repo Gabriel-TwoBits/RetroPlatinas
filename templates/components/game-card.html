@@ -7,6 +7,7 @@
     pct         : completion percent (integer)
     icons       : optional achievement cells [{unlocked}] — renders the strip
     icons_more  : count of achievements beyond the strip
+    subsets     : optional subsets started, as components/subset-progress.html takes them
 {% endcomment %}
 <div class="rounded-card bg-surface p-3">
   <div class="flex gap-3">
@@ -24,6 +25,7 @@
       <div class="h-1.5 overflow-hidden rounded-card bg-elevated">
         <div class="h-full bg-state-{{ state }}" style="width:{{ pct }}%"></div>
       </div>
+      {% include "components/subset-progress.html" %}
     </div>
   </div>
   {% if icons %}

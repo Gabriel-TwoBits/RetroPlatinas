@@ -5,7 +5,7 @@ from datetime import timedelta
 
 from django.contrib.humanize.templatetags.humanize import intcomma, naturaltime
 from django.utils import timezone
-from django.utils.translation import gettext
+from django.utils.translation import gettext, pgettext_lazy
 from django.utils.translation import gettext_lazy as _
 
 from apps.core import stats
@@ -46,6 +46,8 @@ STATE_LABELS = {
     STATE_BEATEN: _("Beaten"),
     STATE_PROGRESS: _("In progress"),
 }
+SUBSET_SEAL_LABEL = pgettext_lazy("subset seal", "Completed")
+SUBSET_SEAL_TONE = "brand2"
 
 
 def _initials(title):
@@ -111,11 +113,21 @@ def _icons(unlocked, total, cap):
     }
 
 
+def _subset(progress):
+    return {
+        "game": progress.game,
+        "unlocked": progress.unlocked,
+        "achievements": progress.achievements,
+        "complete": progress.complete,
+    }
+
+
 def _game(progress):
     game = progress.played.game
     state = _state(progress)
     return {
         "game": game,
+        "subsets": [_subset(subset) for subset in progress.subsets],
         "played": progress.played,
         "initials": _initials(game.title),
         "tag": game.console.short_name,
@@ -165,13 +177,47 @@ def _consoles(games):
         ]
 
 
+def _award(game, label, state_label, tone, initials):
+    return {
+        "game": game,
+        "label": label,
+        "state_label": state_label,
+        "tone": tone,
+        "initials": initials,
+    }
+
+
+def _game_award(game, tone):
+    return _award(game["game"], game["game"].title, game["state_label"], tone, game["initials"])
+
+
+def _subset_seals(games):
+    """A seal per subset completed, in the order its game was last played, then site order."""
+    return [
+        _award(
+            subset["game"],
+            gettext("%(game)s — %(set)s subset")
+            % {"game": game["game"].title, "set": subset["game"].set_title},
+            SUBSET_SEAL_LABEL,
+            SUBSET_SEAL_TONE,
+            game["initials"],
+        )
+        for game in games
+        for subset in game["subsets"]
+        if subset["complete"]
+    ]
+
+
 def _awards(games):
-    """Platinums first, then beaten games, each in the order the games were last played."""
+    """Platinums first, then subset seals, then beaten games, each in the order the games were
+    last played."""
     platinums = [game for game in games if game["state"] == STATE_PLATINUM]
     beaten = [game for game in games if game["state"] == STATE_BEATEN]
-    return [{**game, "tone": "state-platinum"} for game in platinums] + [
-        {**game, "tone": "state-beaten"} for game in beaten
-    ]
+    return (
+        [_game_award(game, "state-platinum") for game in platinums]
+        + _subset_seals(games)
+        + [_game_award(game, "state-beaten") for game in beaten]
+    )
 
 
 def _heat_opacity(intensity):
@@ -289,6 +335,9 @@ def profile_context(profile_user, viewer):
         "games_played": len(games),
         "games_beaten": sum(1 for game in games if game["beaten"]),
         "platinums": sum(1 for game in games if game["state"] == STATE_PLATINUM),
+        "subsets_completed": sum(
+            1 for game in games for subset in game["subsets"] if subset["complete"]
+        ),
         "average_completion": _average_completion(games),
         "short_window_days": SHORT_WINDOW.days,
         "long_window_days": LONG_WINDOW.days,

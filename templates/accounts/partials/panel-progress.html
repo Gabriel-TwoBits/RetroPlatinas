@@ -43,6 +43,7 @@
                 <div class="h-full bg-state-{{ g.state }}" style="width:{{ g.pct }}%"></div>
               </div>
             </div>
+            {% include "components/subset-progress.html" with subsets=g.subsets %}
           </div>
         </div>
       {% endfor %}

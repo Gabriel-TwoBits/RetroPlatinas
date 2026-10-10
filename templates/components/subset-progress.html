@@ -1,0 +1,16 @@
+{% load i18n %}
+{% comment %}
+  A played game's subsets the player started, under the game, behind a hairline rule. Args:
+    subsets : rows of apps.accounts.profile with game, unlocked, achievements and complete
+{% endcomment %}
+{% if subsets %}
+  <ul class="mt-2 flex flex-col gap-1 border-l border-line pl-3">
+    {% for s in subsets %}
+      <li class="flex flex-wrap items-center gap-x-2 gap-y-1 font-data text-xs text-txt-faint">
+        {% include "components/set-chip.html" with game=s.game %}
+        <span>{{ s.unlocked.softcore }}/{{ s.achievements }}</span>
+        {% if s.complete %}<span class="font-semibold text-brand2">{% translate "Completed" context "subset seal" %}</span>{% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+{% endif %}

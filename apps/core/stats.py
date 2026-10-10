@@ -16,7 +16,7 @@ from django.db.models import Count, Exists, OuterRef, Q, Subquery, Sum
 from django.db.models.functions import Coalesce
 
 from apps.achievements.models import Achievement, UserUnlock
-from apps.games.models import Game, PlayerGame
+from apps.games.models import Game, PlayerGame, site_set_order
 from apps.leaderboards.models import Leaderboard
 
 
@@ -315,7 +315,8 @@ def set_progress(game, official_ids, hardcore_ids, softcore_ids):
 
 @dataclass
 class GameProgress:
-    """A user's progress on one played game's official achievements."""
+    """A user's progress on one played game's official achievements, with the subsets of the
+    game the user started (an unlock in any mode), in site order."""
 
     played: PlayerGame
     achievements: int
@@ -324,9 +325,10 @@ class GameProgress:
     points_unlocked: int
     beaten: bool
     platinum: bool
+    subsets: list[SetProgress]
 
 
-def _game_progress(played, achievements, hardcore_ids, softcore_ids):
+def _game_progress(played, achievements, hardcore_ids, softcore_ids, subsets):
     """`achievements` are the game's official `(id, points, type)`; the id sets hold what the
     user unlocked in each mode, softcore covering both."""
     ids = {achievement_id for achievement_id, _, _ in achievements}
@@ -335,31 +337,51 @@ def _game_progress(played, achievements, hardcore_ids, softcore_ids):
         for achievement_id, _, achievement_type in achievements
         if achievement_type in BEATING_TYPES
     }
+    core = set_progress(played.game, ids, hardcore_ids, softcore_ids)
     return GameProgress(
         played=played,
-        achievements=len(ids),
+        achievements=core.achievements,
         points=sum(points for _, points, _ in achievements),
-        unlocked=ByMode(hardcore=len(ids & hardcore_ids), softcore=len(ids & softcore_ids)),
+        unlocked=core.unlocked,
         points_unlocked=sum(
             points for achievement_id, points, _ in achievements if achievement_id in softcore_ids
         ),
         beaten=bool(beating_ids) and beating_ids <= softcore_ids,
-        platinum=bool(ids) and ids <= hardcore_ids,
+        platinum=core.complete,
+        subsets=subsets,
     )
+
+
+def _started_subsets(subsets, achievements_by_game, hardcore_ids, softcore_ids):
+    progress = [
+        set_progress(
+            subset,
+            {achievement_id for achievement_id, _, _ in achievements_by_game[subset.pk]},
+            hardcore_ids,
+            softcore_ids,
+        )
+        for subset in sorted(subsets, key=site_set_order)
+    ]
+    return [subset for subset in progress if subset.unlocked.softcore > 0]
 
 
 def played_games_progress(user):
     """A `GameProgress` for each core game the user played, most recently played first.
 
     A game is beaten once every official progression and win-condition achievement is unlocked
-    in any mode, and platinum once every official achievement is unlocked in hardcore.
+    in any mode, and platinum once every official achievement is unlocked in hardcore; a subset
+    is complete once every official achievement of it is unlocked in hardcore.
     """
     played = list(
         PlayerGame.objects.filter(user=user, game__set_type__isnull=True)
         .select_related("game__console")
         .order_by("-last_played_at", "id")
     )
-    game_ids = [played_game.game_id for played_game in played]
+    core_ids = [played_game.game_id for played_game in played]
+    subsets_by_core = {game_id: [] for game_id in core_ids}
+    for subset in Game.objects.filter(parent_game_id__in=core_ids):
+        subsets_by_core[subset.parent_game_id].append(subset)
+    game_ids = core_ids + [subset.pk for subsets in subsets_by_core.values() for subset in subsets]
     achievements_by_game = {game_id: [] for game_id in game_ids}
     for achievement_id, game_id, points, achievement_type in Achievement.objects.filter(
         game_id__in=game_ids, status=Achievement.STATUS_OFFICIAL
@@ -378,7 +400,16 @@ def played_games_progress(user):
             softcore_ids.add(achievement_id)
     return [
         _game_progress(
-            played_game, achievements_by_game[played_game.game_id], hardcore_ids, softcore_ids
+            played_game,
+            achievements_by_game[played_game.game_id],
+            hardcore_ids,
+            softcore_ids,
+            _started_subsets(
+                subsets_by_core[played_game.game_id],
+                achievements_by_game,
+                hardcore_ids,
+                softcore_ids,
+            ),
         )
         for played_game in played
     ]

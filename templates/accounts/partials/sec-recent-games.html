@@ -18,6 +18,7 @@
               </div>
               <span class="font-data text-xs text-txt-muted">{{ g.pct }}%</span>
             </div>
+            {% include "components/subset-progress.html" with subsets=g.subsets %}
           </div>
         </div>
         {% if g.grid.cells %}

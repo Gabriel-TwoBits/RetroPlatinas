@@ -11,7 +11,10 @@
     <div class="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-line py-3 sm:flex-nowrap">
       <div class="flex min-w-0 flex-1 items-center gap-3">
         <div class="rp-hatch flex h-7 w-7 shrink-0 items-center justify-center rounded-card font-display text-xs font-bold text-brand">{{ g.initials }}</div>
-        <a href="{% url 'game_detail' g.game.pk %}" class="truncate text-sm font-medium text-txt hover:text-brand-hi">{{ g.game.title }}</a>
+        <div class="min-w-0">
+          <a href="{% url 'game_detail' g.game.pk %}" class="block truncate text-sm font-medium text-txt hover:text-brand-hi">{{ g.game.title }}</a>
+          {% include "components/subset-progress.html" with subsets=g.subsets %}
+        </div>
       </div>
       <span class="font-data text-xs text-txt-muted sm:w-16">{{ g.tag }}</span>
       <span class="font-data text-xs text-state-{{ g.state }} sm:w-24 sm:text-right">{{ g.unlocked.softcore }} / {{ g.achievements }}</span>

@@ -6,7 +6,8 @@
     {% include "components/stat-line.html" with label=_("Softcore achievements") sub=_("hardcore included") value=unlocked.softcore|intcomma %}
     {% include "components/stat-line.html" with label=_("Games played") value=games_played|intcomma %}
     {% include "components/stat-line.html" with label=_("Games beaten") value=games_beaten|intcomma %}
-    {% include "components/stat-line.html" with label=_("Platinums") value=platinums|intcomma %}
+    {% include "components/stat-line.html" with label=_("Platinums") sub=_("core sets") value=platinums|intcomma %}
+    {% include "components/stat-line.html" with label=_("Subsets completed") value=subsets_completed|intcomma %}
     {% if average_completion is None %}
       {% include "components/stat-line.html" with label=_("Average completion") sub=_("per game") value="—" %}
     {% else %}
