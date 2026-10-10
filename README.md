@@ -144,6 +144,39 @@ With `DEBUG` on, `GET /api/test/presence/<username>/` returns that user's live s
 rich presence, mode, last ping) as JSON, or 404 for an unknown user. It is a test endpoint and
 answers 404 whenever `DEBUG` is off.
 
+## Subsets
+
+A game's own achievements are its **core set**: the accessible 100%. Challenges live in
+**subsets**, `Game` rows with a parent game (`parent_game`, always a core game), a type
+(`set_type`) and the title the emulator shows (`set_title`), as RetroAchievements' "supporting
+games": achievements, leaderboards, players, rarity and `AchievementsRemaining` are per subset.
+Staff add subsets inline on the core game's admin page; a subset is on its parent's console.
+
+| Type | Loaded |
+| --- | --- |
+| `bonus`, `challenge` | with the core set's discs, once the player opts in (`UserSetPreference`, off without a row; editable in the admin). They take no hash of their own |
+| `specialty` | by its own disc hash: the core set, the specialty set and the opted-in bonus and challenge subsets |
+| `exclusive` | by its own disc hash, alone |
+
+`achievementsets` resolves `m` as RAWeb's `ResolveAchievementSetsAction` does: the top-level
+`GameId`, `Title`, console and icon are the core game's (an exclusive load's too); `Sets` come core
+first, then specialty, challenge and bonus, each with its own game's id as `AchievementSetId` and
+`GameId`, `Type` as stored (`core` for the core set) and `Title` null for the core set, which
+rcheevos then titles after the game. A specialty or exclusive load runs that subset's rich
+presence when it has one, else the core game's. With `g` alone the game is served by itself as a
+core set (legacy clients). A hash linked to a bonus or challenge subset, which validation
+refuses, loads its parent's sets.
+
+`startsession` and `ping` record the session on the game of the hash they carry (`m`, `x`): a
+specialty or exclusive disc plays that subset, any other disc the core game; an absent or unknown
+hash falls back to `g`. `startsession` returns the unlocks of every set the hash serves.
+
+A subset shares its parent's memory map, so its code notes are the parent's: `codenotes2`,
+`submitcodenote` and `submitcodenotes` with a subset's id read and write the parent's notes, and
+the site's code-notes pages of a subset redirect to the parent's. The games list, the home page
+and "games played" (profile, stats API) list core games only, and a platinum is a core set
+completed in hardcore; a subset's points and unlocks count everywhere.
+
 ## Stats API
 
 Read-only JSON for the public site, outside `dorequest.php` (`GET` only; an unknown user, game or
@@ -228,7 +261,8 @@ text or address. Logged-in users add one at `/games/<id>/code-notes/new/`: the a
 hex (`0x` optional, up to `0xffffffff`) and stored as `0x%x`, one note per address. Only its author
 or staff edit (`/games/<id>/code-notes/<note_id>/edit/`) or delete it; another user gets 403, as
 from RAIntegration (`can_edit` in `apps/achievements/editing.py`). A change keeps the author and
-records who made it and when.
+records who made it and when. A subset's code-notes pages redirect to its parent game's (see
+[Subsets](#subsets)).
 
 ## Comments on the site
 
@@ -267,12 +301,12 @@ A refusal answers `access_denied` with `Status` 403, as RetroAchievements does.
 
 | Action | Allowed to | Behaviour |
 | --- | --- | --- |
-| `codenotes2` | anyone | the game's notes, `Address` as `0x%06x` |
-| `submitcodenote`, `submitcodenotes` | any user adds; only the note's author or staff changes or deletes it | an empty note deletes; a change keeps the note's author and is served as the last writer's (`User`); `submitcodenotes` lists the refused addresses in `AccessDeniedAddresses` |
+| `codenotes2` | anyone | the game's notes (a subset's are its parent's), `Address` as `0x%06x` |
+| `submitcodenote`, `submitcodenotes` | any user adds; only the note's author or staff changes or deletes it | a subset's notes are written to its parent; an empty note deletes; a change keeps the note's author and is served as the last writer's (`User`); `submitcodenotes` lists the refused addresses in `AccessDeniedAddresses` |
 | `uploadachievement` | any user creates; only the author or staff changes | a new achievement is always **unofficial**, whatever `f` says, and `f` never changes a status: make it official on the site (the achievement editor or the admin). `b` must be an uploaded badge or `00000`; `x` is the type |
 | `uploadleaderboard` | staff creates; only the author or staff changes | stored as `STA:…::CAN:…::SUB:…::VAL:…`; format aliases (`TIME`, `POINTS`, …) are stored by their canonical name. Leaderboards have no status: a new one is live for every player, hence staff only |
 | `submitrichpresence` | staff | replaces the game's rich presence script |
-| `submitgametitle` | staff | links the hash to game `g`, or to the game titled `i` on console `c`, created if there is none |
+| `submitgametitle` | staff | links the hash to game `g`, or to the game titled `i` on console `c`, created if there is none; a bonus or challenge subset takes no hash (`invalid_parameter`) |
 | `badgeiter` | anyone | the first badge number and the next one |
 | `uploadbadgeimage` | any user | multipart `u`, `t`, `file` (PNG, JPEG or GIF, at most 1 MiB and 1024 px a side); answers the new badge's name as `BadgeIter` |
 | `achievementwondata` | any user | the achievement's latest unlockers; the friends-only page (`f=1`) lists only those the user follows, while `NumEarned` still counts everyone |
