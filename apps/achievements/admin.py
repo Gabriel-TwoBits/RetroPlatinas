@@ -14,8 +14,7 @@ from apps.achievements.models import (
     record_baselines,
     record_revisions,
 )
-from apps.achievements.scoring import recalculate_unlocker_points
-from apps.games.models import PlayerGame
+from apps.achievements.scoring import recalculate_unlocker_points, record_unlockers_as_players
 from apps.images.catalog import badge_path
 from apps.images.rendering import ADMIN_LIST_THUMBNAIL_PX, BADGE_SIZE_PX
 
@@ -33,26 +32,6 @@ def _badge_img(name, locked, size):
         alt,
         size,
         size,
-    )
-
-
-def _record_unlockers_as_players(unlocks):
-    """Gives each unlocker a `PlayerGame` row for the unlocked achievement's game.
-
-    Rarity divides unlockers by the game's `PlayerGame` rows, so an unlocker without one would
-    push it past 100%.
-    """
-    PlayerGame.objects.bulk_create(
-        [
-            PlayerGame(
-                user_id=unlock.user_id,
-                game_id=unlock.achievement.game_id,
-                first_played_at=unlock.unlocked_at,
-                last_played_at=unlock.unlocked_at,
-            )
-            for unlock in unlocks.select_related("achievement")
-        ],
-        ignore_conflicts=True,
     )
 
 
@@ -121,7 +100,7 @@ class AchievementAdmin(admin.ModelAdmin):
         if "status" in form.changed_data or "points" in form.changed_data:
             recalculate_unlocker_points([obj.pk])
         if "game" in form.changed_data:
-            _record_unlockers_as_players(UserUnlock.objects.filter(achievement=obj))
+            record_unlockers_as_players(UserUnlock.objects.filter(achievement=obj))
 
     def _change_status(self, request, queryset, status):
         """Gives the selected achievements `status`, recounting their unlockers' points; returns
@@ -196,7 +175,7 @@ class UserUnlockAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
-        _record_unlockers_as_players(UserUnlock.objects.filter(pk=obj.pk))
+        record_unlockers_as_players(UserUnlock.objects.filter(pk=obj.pk))
 
 
 @admin.register(CodeNote)
