@@ -59,6 +59,9 @@ LEADERBOARD_ID = 9
 BADGE_NUMBER = 12
 BADGE_NAME = "00012"
 WON_ACHIEVEMENT_ID = 3
+# `won_achievement`: player, other and staff unlocked it; an idle fourth player did not.
+WON_ACHIEVEMENT_WINNERS = 3
+WON_ACHIEVEMENT_PLAYERS = 4
 
 RCHEEVOS_NEW_ACHIEVEMENT = (
     "r=uploadachievement&u=player&t=tok&g=7&n=Beach&d=Clear+it&m=0xH0001%3d1_0xH0002%3d2"
@@ -1039,8 +1042,8 @@ def test_achievementwondata_lists_the_latest_winners(client, player, other, staf
         "Success": True,
         "AchievementID": won_achievement.pk,
         "Response": {
-            "NumEarned": 3,
-            "TotalPlayers": 4,
+            "NumEarned": WON_ACHIEVEMENT_WINNERS,
+            "TotalPlayers": WON_ACHIEVEMENT_PLAYERS,
             "GameID": GAME_ID,
             "RecentWinner": [
                 _winner(staff, won_achievement, hardcore=False),
@@ -1073,7 +1076,7 @@ def test_achievementwondata_friends_only_lists_the_winners_the_user_follows(
     data = _raw(client, _with(RCHEEVOS_ACHIEVEMENT_WON_DATA, o="0"))
 
     assert data["Response"]["RecentWinner"] == [_winner(other, won_achievement, hardcore=True)]
-    assert data["Response"]["NumEarned"] == 3
+    assert data["Response"]["NumEarned"] == WON_ACHIEVEMENT_WINNERS
 
 
 @pytest.mark.django_db
@@ -1085,7 +1088,7 @@ def test_achievementwondata_friends_only_pages_past_the_followed_winners(
     data = _raw(client, RCHEEVOS_ACHIEVEMENT_WON_DATA)
 
     assert data["Response"]["RecentWinner"] == []
-    assert data["Response"]["NumEarned"] == 3
+    assert data["Response"]["NumEarned"] == WON_ACHIEVEMENT_WINNERS
 
 
 @pytest.mark.django_db
