@@ -160,7 +160,7 @@ while the others keep their hits, as in a live session.
 | `<stage>-checkpoint-death` | `<stage>-start` | the stage's achievement on the switch to the map (lid `0x19`); `Beach Diet` on the clear (lid of the stage) for its stage, whose route picks up no Wumpa; never the gem | `plans/<stage>-checkpoint.json`, the death of `<stage>-checkpoint-respawn`, then `plans/<stage>-checkpoint-clear.json` from the checkpoint: the game skips Stage Clear after that death and goes straight to the map (game state `0x300`) |
 | `<stage>-checkpoint-death-fruit-poked` | `<stage>-start` | the stage's achievement only | **Secondary evidence (RAM poke):** the same with one Wumpa set (player and Wumpa HUD) after the respawn, which the clear commits. Only for the stage `Beach Diet` names |
 | `<stage>-timed-pause-quit` | `map` / `map-unlocked` | nothing; the stage's leaderboard canceled | The stage entered holding its heading from the frame its level loads: the leaderboard must start once, with Crash still on the ground until then and moving within 4 frames after; then the pause menu open 300 frames (left out of the time) and a quit. Only for a stage with a leaderboard |
-| `<stage>-timed-clear` | `map` / `map-unlocked` | the stage's achievement on Stage Clear; its leaderboard submitted | The stage entered from the map, then as `<stage>-clear`: the submitted time must be the frames played from the start to the win; the next stage's leaderboard, if any, canceled by its quit |
+| `<stage>-timed-clear` | `map` / `map-unlocked` | the stage's achievement on Stage Clear; its leaderboard submitted | The stage entered from the map, then as `<stage>-clear`: the submitted time must be the frames from the start to the win; the next stage's leaderboard, if any, canceled by its quit |
 | `<stage>-timed-checkpoint-death` | `map` | as `<stage>-checkpoint-death`; the leaderboard submitted on the map | The stage entered from the map, then as `<stage>-checkpoint-death` without the state reload after the death, so the death stays in the timed run |
 | `nsanity-beach-timed-game-over` | `map` | nothing; the leaderboard canceled | N. Sanity Beach entered from the map, then as `game-over`: one attempt through every death, canceled only by the game over |
 
@@ -171,11 +171,14 @@ one: it must start on a frame where its stage's opening hands Crash to the playe
 respawn and with no demo (`session.handovers`): an intro when the game state turns playing, a
 spin-in when the same player object leaves its opening state (state flags bit 15,
 `probes.NO_CONTROL_STATE_FLAG`); the value it last showed or submitted must equal the frames of play
-since then (in a stage, game state playing, pause menu closed: `session.player_in_play`); a cancel
-must come with the game state quit (`0x400`) or game over (`0x200`) and a submit on Stage Clear or
-the map. The verdict prints a line per attempt. The independent evidence of the start frame is the
-movement measured by `<stage>-timed-pause-quit`. `<stage>-start` states are saved inside a spin-in,
-so a scenario from one plays an attempt that starts when it ends (`scenarios.opening_attempt`).
+since then (in a stage, game state playing, pause menu closed: `session.player_in_play`); a
+submitted one must also equal the frames from its start to the frame the stage is won
+(`session.wins`: the game state leaves playing for `0x500`, or `0x300` on the map path; no submitted
+run opens the pause menu); a cancel must come with the game state quit (`0x400`) or game over
+(`0x200`) and a submit on Stage Clear or the map. The verdict prints a line per attempt. The
+independent evidence of the start frame is the movement measured by `<stage>-timed-pause-quit`.
+`<stage>-start` states are saved inside a spin-in, so a scenario from one plays an attempt that
+starts when it ends (`scenarios.opening_attempt`).
 
 Every scenario also lists the rich presence strings the game must show on the way (`presence`,
 regular expressions matched in full): the title and demo strings in `cold-boot`, `attract` and
@@ -294,7 +297,8 @@ emu.frame_hooks.append(callable)  # called with emu after every frame
 `session.py` wraps an `Emu` with every repo achievement, leaderboard and the rich presence active
 and the tracer attached (`presence` lists every change of the display string; `leaderboard_events`
 every `LeaderboardEvent`, with `clock`, a frame count that survives state loads, and `played`, the
-frames of play so far; `handovers` the frames where a stage's opening handed Crash to the player);
+frames of play so far; `handovers` the frames where a stage's opening handed Crash to the player;
+`wins` the frames a stage was won);
 helpers: `step`, `press`, `wait_until`, `shot`, `note`, `rearm`, `close` (returns every `Trigger`:
 frame, title and the lid on that frame).
 `navigation.py` holds the menu moves (`boot_to_map`, `move_cursor_to`, `enter_stage`,

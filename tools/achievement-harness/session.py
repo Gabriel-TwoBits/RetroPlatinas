@@ -17,7 +17,9 @@ from probes import (
     ALL,
     FIXED_POINT_SHIFT,
     GAME_STATE,
+    GAME_STATE_LEVEL_WON,
     GAME_STATE_PLAYING,
+    GAME_STATE_STAGE_CLEARED,
     NO_CONTROL_STATE_FLAG,
     NOISY,
     PAUSED,
@@ -49,6 +51,8 @@ LEADERBOARD_EVENTS = {
     "LBOARD_TRIGGERED": "submitted",
 }
 QUIET_EVENTS = {"LBOARD_UPDATED"}
+# The game states a stage is won with: Stage Clear next, or the map after a death past a checkpoint.
+WINNING_GAME_STATES = (GAME_STATE_STAGE_CLEARED, GAME_STATE_LEVEL_WON)
 # A state load puts every leaderboard back to waiting without an event of its own.
 STATE_LOADED = "reset"
 SCREENSHOT_ON_CHANGE = {
@@ -205,11 +209,13 @@ class Session:
             self.emu.activate_leaderboard(leaderboard.runtime_id, leaderboard.mem_addr)
         self.leaderboard_events = []
         # A monotonic frame count (emu.frame restarts on a state load), the frames of play so
-        # far (player_in_play) and the frames where a stage's opening handed Crash to the player
-        # (handovers).
+        # far (player_in_play), the frames where a stage's opening handed Crash to the player
+        # (handovers) and the frames a stage was won on (the game state leaves playing for a
+        # winning one).
         self.clock = 0
         self.played = 0
         self.handovers = []  # (clock, lid, opening)
+        self.wins = []  # clock
         self._previous = (False, None)
         self._last_frame = self.emu.frame
         self.emu.activate_rich_presence(achievements.rich_presence())
@@ -274,6 +280,10 @@ class Session:
         else:
             pass  # Menus, loads, the clear, the pause menu.
         current = (emu.u32(GAME_STATE) == GAME_STATE_PLAYING, player_object(emu))
+        if self._previous[0] and in_a_stage(emu) and emu.u32(GAME_STATE) in WINNING_GAME_STATES:
+            self.wins.append(self.clock)
+        else:
+            pass  # No win on this frame.
         for opening in handovers(self._previous, current):
             self.handovers.append((self.clock, navigation.level_id(emu), opening))
         self._previous = current

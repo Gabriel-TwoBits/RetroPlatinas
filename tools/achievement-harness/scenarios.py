@@ -6,9 +6,10 @@ they do (usually none: a death, a quit or the attract demo must never unlock any
 non-zero when a trigger is missing, repeated, unexpected or fires on another level. It states every
 leaderboard attempt it plays and how each ends (submitted, canceled, reset by a state load or still
 running), and fails on an attempt that starts anywhere but where the stage hands Crash to the
-player, on a submitted or shown time that is not the frames played, and on a cancel without a quit
-or a game over. It also lists the rich presence strings the game must show on the way (regular
-expressions), and fails when one never shows or when a string names an unknown macro or level.
+player, on a submitted or shown time that is not the frames played, on a submitted time that is not
+the frames from the start to the win, and on a cancel without a quit or a game over. It also lists
+the rich presence strings the game must show on the way (regular expressions), and fails when one
+never shows or when a string names an unknown macro or level.
 
     python tools/achievement-harness/scenarios.py [--core CORE] NAME [NAME ...] | all
 
@@ -1004,8 +1005,9 @@ def attempts(events):
 
 def attempt_problems(title, attempt, level_id, opening, session):
     """What is wrong with one attempt: a start anywhere but where the player gains control of the
-    stage, a time shown or submitted that is not the frames played since the start, a cancel
-    without a quit or a game over, or a submit off Stage Clear and the map."""
+    stage, a time shown or submitted that is not the frames played since the start, a submitted
+    time that is not the frames from the start to the win (no submitted run opens the pause
+    menu), a cancel without a quit or a game over, or a submit off Stage Clear and the map."""
     if attempt.start is None:
         return [f"{title}: {attempt.last.kind} at clock {attempt.last.clock} with no start"]
     problems = []
@@ -1031,10 +1033,32 @@ def attempt_problems(title, attempt, level_id, opening, session):
             f"{title}: canceled with the game state {attempt.end.game_state:#x}, "
             "neither a quit nor a game over"
         )
-    elif attempt.outcome == SUBMITTED and attempt.end.level_id not in SUBMIT_LIDS:
+    elif attempt.outcome == SUBMITTED:
+        problems += submit_problems(title, attempt, session)
+    else:
+        pass  # Running, cut short by a state load, or canceled by a quit or a game over.
+    return problems
+
+
+def submit_problems(title, attempt, session):
+    """A submit off Stage Clear and the map, or with a time other than the frames from the start
+    to the first win after it (session.wins, the frame the stage is won is not played)."""
+    problems = []
+    if attempt.end.level_id not in SUBMIT_LIDS:
         problems.append(f"{title}: submitted on lid {attempt.end.level_id:#x}")
     else:
-        pass  # Running, cut short by a state load, or ended as expected.
+        pass  # Submitted on Stage Clear or the map.
+    start, end = attempt.start.clock, attempt.end.clock
+    wins = [clock for clock in session.wins if start < clock <= end]
+    if not wins:
+        problems.append(f"{title}: submitted at clock {end} with no win since clock {start}")
+    elif attempt.end.value != wins[0] - start:
+        problems.append(
+            f"{title}: submitted {attempt.end.value} frames, the stage was won "
+            f"{wins[0] - start} frames after the start"
+        )
+    else:
+        pass  # The time runs from the start to the win.
     return problems
 
 

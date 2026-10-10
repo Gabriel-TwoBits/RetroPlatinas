@@ -128,11 +128,12 @@ leaderboards; `pytest` runs it over every seeded one.
 Behaviour: the harness activates both leaderboards in the vendored rcheevos runtime next to every achievement,
 records their `LBOARD_*` events, and judges every scenario's attempts: each must start on a frame where its
 stage's opening hands Crash to the player (before any respawn, no demo), the value it shows or submits must
-equal the frames of play since then (stage loaded, game state playing, pause menu closed), a cancel must come
-with the game state quit or game over and a submit on Stage Clear or the map; and each scenario lists how many
-attempts of each leaderboard it plays and how each ends (submitted, canceled, cut short by a state load, or
-still running). A submit, a start or a cancel anywhere else fails it. The independent evidence of the start
-frame is Crash's position in the `-timed-pause-quit` scenarios.
+equal the frames of play since then (stage loaded, game state playing, pause menu closed), a submitted one
+must also equal the frames from its start to the frame the stage is won (game state `05`, or `03` on the map
+path), a cancel must come with the game state quit or game over and a submit on Stage Clear or the map; and
+each scenario lists how many attempts of each leaderboard it plays and how each ends (submitted, canceled, cut
+short by a state load, or still running). A submit, a start or a cancel anywhere else fails it. The
+independent evidence of the start frame is Crash's position in the `-timed-pause-quit` scenarios.
 
 Runs on `PCSX-ReARMed r26 ff81ed1` with the vendored rcheevos 12.3.
 
