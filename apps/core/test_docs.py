@@ -241,3 +241,28 @@ def test_faq_answers_subsets_opting_in_and_the_platinum(client, language, questi
     article = _article(client.get(FAQ, HTTP_ACCEPT_LANGUAGE=language).content.decode())
     for question in questions:
         assert question in article
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    ("language", "heading", "reason"),
+    [
+        (
+            "en",
+            "Why did an achievement not unlock?",
+            "It belongs to a bonus or challenge subset you have not turned on",
+        ),
+        (
+            "pt-br",
+            "Por que uma conquista não desbloqueou?",
+            "Ela é de um subset bônus ou de desafio que você não ligou",
+        ),
+    ],
+)
+def test_faq_names_a_subset_left_off_as_a_reason_an_achievement_did_not_unlock(
+    client, language, heading, reason
+):
+    article = _article(client.get(FAQ, HTTP_ACCEPT_LANGUAGE=language).content.decode())
+    start = article.index(heading)
+    reasons = article[start : article.index("</ul>", start)]
+    assert reason in reasons
