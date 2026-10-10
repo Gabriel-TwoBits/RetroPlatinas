@@ -1,0 +1,78 @@
+"""Creates the notifications an achievement's author receives. Nobody is notified of what they
+did themselves.
+
+Imports nothing from the achievements app, which calls into it while recording revisions.
+"""
+
+from dataclasses import dataclass
+
+from django.urls import reverse
+
+from apps.notifications.models import Notification
+
+COMMENTS_FRAGMENT = "#comments"
+
+
+@dataclass(frozen=True)
+class StatusChange:
+    achievement_id: int
+    game_id: int
+    author_id: int
+    title: str
+    old_status: str
+    new_status: str
+
+
+def _achievement_url(game_id, achievement_id):
+    return reverse("achievement_detail", args=[game_id, achievement_id])
+
+
+def notify_comment(comment):
+    """Tells the achievement's author about `comment`; a comment on a game notifies nobody."""
+    achievement = comment.achievement
+    if achievement is None:
+        # Games have no author to notify.
+        return None
+    elif achievement.author_id == comment.author_id:
+        return None
+    else:
+        return Notification.objects.create(
+            user_id=achievement.author_id,
+            kind=Notification.KIND_COMMENT,
+            params={"actor": comment.author.username, "achievement": achievement.title},
+            target_url=_achievement_url(achievement.game_id, achievement.pk) + COMMENTS_FRAGMENT,
+        )
+
+
+def notify_unlock(achievement, player):
+    """Tells the achievement's author that `player` unlocked it. One insert from values the award
+    already holds, so the award path makes no extra read."""
+    if achievement.author_id == player.pk:
+        return None
+    else:
+        return Notification.objects.create(
+            user_id=achievement.author_id,
+            kind=Notification.KIND_UNLOCK,
+            params={"actor": player.username, "achievement": achievement.title},
+            target_url=_achievement_url(achievement.game_id, achievement.pk),
+        )
+
+
+def notify_status_changes(changes, editor):
+    """Tells each author that `editor` (`None` when unknown) changed their achievement's status."""
+    Notification.objects.bulk_create(
+        [
+            Notification(
+                user_id=change.author_id,
+                kind=Notification.KIND_STATUS,
+                params={
+                    "achievement": change.title,
+                    "old_status": change.old_status,
+                    "new_status": change.new_status,
+                },
+                target_url=_achievement_url(change.game_id, change.achievement_id),
+            )
+            for change in changes
+            if editor is None or editor.pk != change.author_id
+        ]
+    )

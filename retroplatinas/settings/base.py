@@ -22,6 +22,7 @@ INSTALLED_APPS = [
     "apps.images",
     "apps.anticheat",
     "apps.comments",
+    "apps.notifications",
 ]
 
 AUTH_USER_MODEL = "accounts.User"

@@ -8,6 +8,7 @@ from django.utils.translation import gettext_lazy as _
 from PIL import Image
 
 from apps.games.models import Game
+from apps.notifications.emit import StatusChange, notify_status_changes
 
 BADGE_NAME_DIGITS = 5
 # rc_client_achievement_t.badge_name is a char[8].
@@ -302,16 +303,41 @@ def _latest_revised_values(achievement_ids):
 
 def record_revisions(achievement_ids, editor):
     """Records, by `editor`, the stored state of each achievement whose revised fields differ from
-    its latest revision, so a save that changed none of them records nothing."""
+    its latest revision, so a save that changed none of them records nothing, and notifies each
+    author whose achievement's status changed: every status change is recorded here."""
     latest = _latest_revised_values(achievement_ids)
-    stored = Achievement.objects.filter(pk__in=achievement_ids).values("pk", *REVISED_FIELDS)
-    AchievementRevision.objects.bulk_create(
-        [
-            AchievementRevision(achievement_id=row.pop("pk"), editor=editor, **row)
-            for row in stored
-            if latest.get(row["pk"]) != {field: row[field] for field in REVISED_FIELDS}
-        ]
+    stored = Achievement.objects.filter(pk__in=achievement_ids).values(
+        "pk", "game_id", "author_id", *REVISED_FIELDS
     )
+    revisions = []
+    status_changes = []
+    for row in stored:
+        values = {field: row[field] for field in REVISED_FIELDS}
+        previous = latest.get(row["pk"])
+        if previous is None:
+            # A new achievement: its first revision, no status change.
+            revisions.append(AchievementRevision(achievement_id=row["pk"], editor=editor, **values))
+        elif previous == values:
+            # Nothing revised changed since the latest revision.
+            pass
+        else:
+            revisions.append(AchievementRevision(achievement_id=row["pk"], editor=editor, **values))
+            if previous["status"] != values["status"]:
+                status_changes.append(
+                    StatusChange(
+                        achievement_id=row["pk"],
+                        game_id=row["game_id"],
+                        author_id=row["author_id"],
+                        title=values["title"],
+                        old_status=previous["status"],
+                        new_status=values["status"],
+                    )
+                )
+            else:
+                # Another revised field changed; the status stayed.
+                pass
+    AchievementRevision.objects.bulk_create(revisions)
+    notify_status_changes(status_changes, editor)
 
 
 def record_baselines(achievement_ids):

@@ -36,6 +36,7 @@ from apps.images.catalog import (
     versioned_game_icon_path,
 )
 from apps.leaderboards.models import Leaderboard, LeaderboardEntry
+from apps.notifications.emit import notify_unlock
 
 logger = logging.getLogger("apps.api")
 
@@ -539,6 +540,8 @@ def handle_awardachievement(request):
         )
         if softcore_created:
             locked_user.softcore_points += achievement.points
+            # A first unlock always creates the softcore row; a later hardcore one notifies nobody.
+            notify_unlock(achievement, locked_user)
 
         hardcore_created = False
         if hardcore:

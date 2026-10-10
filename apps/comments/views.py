@@ -3,6 +3,7 @@ from urllib.parse import urlsplit
 
 from django.contrib.auth.views import redirect_to_login
 from django.core.exceptions import PermissionDenied
+from django.db import transaction
 from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -14,6 +15,7 @@ from apps.comments.forms import CommentForm
 from apps.comments.models import Comment, target_fields
 from apps.comments.threads import page_url, thread
 from apps.games.models import Game
+from apps.notifications.emit import notify_comment
 
 
 def _answer(request, target, form=None):
@@ -49,9 +51,11 @@ def _login_required(view):
 def _add(request, target):
     form = CommentForm(request.POST)
     if form.is_valid():
-        Comment.objects.create(
-            author=request.user, content=form.cleaned_data["content"], **target_fields(target)
-        )
+        with transaction.atomic():
+            comment = Comment.objects.create(
+                author=request.user, content=form.cleaned_data["content"], **target_fields(target)
+            )
+            notify_comment(comment)
         return _answer(request, target)
     else:
         return _answer(request, target, form)
