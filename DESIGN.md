@@ -160,7 +160,14 @@ twin) counts once per mode, and inactive accounts hold no rank.
   award tiles use the hatch placeholder with a 2px `currentColor` border, platinums first, then
   beaten games.
 - **Identity banner** — flat, a hairline under it. Identicon, name, bio (escaped, line breaks
-  kept) and member since; the owner gets an *Edit profile* link. Hardcore and softcore points
+  kept) and member since, then the follow control: the follower and following counts (active
+  users only) linking the friends page, and the viewer's button — *Follow* (filled `brand`) or
+  *Unfollow* (outlined) for another logged-in user, a *Follow* link to log in for a visitor,
+  nothing for the owner, and on an inactive profile only an *Unfollow* for whoever already
+  follows it. The button posts with HTMX and swaps the whole control
+  (`accounts/partials/follow-control.html`), so the follower count follows; a session expired
+  meanwhile sends the browser to log in and back to the profile. The owner gets an *Edit profile*
+  link. Hardcore and softcore points
   sit side by side split by a vertical hairline, each with its global rank (`#N of M`, M being
   the active users with points in that mode) or *unranked*. Under a hairline, *playing now*
   (a session pinged within `PLAYING_NOW_TTL`, with its rich presence and mode) or, without
@@ -198,6 +205,18 @@ state beyond the active underline. Order: **overview → awards → games → pr
 login page). It edits the bio (at most `BIO_MAX_LENGTH`, 100 characters, which the help text
 states and the textarea's `maxlength` enforces) in the auth-page shape below and returns to the
 profile on save.
+
+### Friends page
+
+`/users/<username>/friends/` (`templates/accounts/friends.html`), built by
+`apps/accounts/friends.py`; linked from the profile's follower and following counts. Following
+is one-way: following someone does not make them follow back.
+
+- **Header** — a ruled section: "*user*'s friends" and a link back to the profile.
+- **Lists** — *Following* and *Followers*, two ruled sections side by side from `lg`, stacked
+  below. Rows (`accounts/partials/friend-row.html`): identicon, profile link, hardcore and
+  softcore points in their state colours; the most recent follow first, active users only,
+  unpaginated. Each list falls back to `empty-state.html`.
 
 ## Home landing page
 
@@ -440,18 +459,20 @@ shared `apps/core/stats.py` queries; linked from the nav and the footer as *Rank
 `/feed/` (`templates/feed/feed.html`), built by `apps/core/feed.py` from the shared
 `apps/core/stats.py` queries; linked from the nav and the footer as *Feed*.
 
-- **Header** — a ruled section: the title and one line saying how many unlocks are listed and
-  how often they refresh.
-- **Filter** — *All* (active, `brand`, `aria-current`) and *Friends* outlined chips. *Friends* is
-  disabled (`aria-disabled`, faint, no link) with a note under the chips until following exists.
+- **Header** — a ruled section: the title and one line saying how many unlocks are listed, whose
+  (the site's or the followed players') and how often they refresh.
+- **Filter** — *All* (`/feed/`, the default) and *Friends* (`/feed/?filter=friends`) outlined
+  chips, the active one in `brand` (`aria-current`). *Friends* lists only the unlocks of the
+  active users the viewer follows and needs a session: a visitor is sent to log in and back. An
+  unknown filter answers 400. Empty, *Friends* links the ranking to find players to follow.
 - **Rows** — the last 50 unlocks of published achievements by active users, newest first, each
   once (a hardcore unlock's softcore twin is left out, an earlier softcore unlock of the same
   achievement is its own row): identicon, "*user* unlocked “*achievement*” in *game*" (profile
   and game page links), console, relative time and the badge; an unlock earned in hardcore
   carries a *hardcore* mark and a `state-hardcore` badge border (`line2` otherwise). Empty, it
   shows the home's no-unlocks empty state.
-- **Polling** — a wrapper around the list polls `/feed/list/` every `POLL_SECONDS` (30 s,
-  `hx-trigger="every 30s"`) and swaps its contents; the fragment
+- **Polling** — a wrapper around the list polls `/feed/list/` (carrying the filter) every
+  `POLL_SECONDS` (30 s, `hx-trigger="every 30s"`) and swaps its contents; the fragment
   (`templates/feed/partials/feed-list.html`) is the bare list, so the trigger stays on the
   wrapper. Nothing is cached: the relative times must stay current.
 

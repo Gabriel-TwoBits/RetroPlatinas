@@ -203,6 +203,16 @@ characters); only its author or staff delete it with `POST /comments/<id>/delete
 user gets 403. A draft's page and comments exist only for its author; staff moderate every
 comment, including those on a draft, in the admin.
 
+## Following
+
+Following is one-way, as on Twitter. A logged-in user follows another from their profile
+(`POST /users/<username>/follow/`) and stops with `POST /users/<username>/unfollow/`; nobody
+follows themselves (400), and an inactive account gains no followers (404) but can still be
+unfollowed. `/users/<username>/friends/` lists whom the user follows and who follows them, the
+feed's *Friends* filter (`/feed/?filter=friends`) shows only the unlocks of the users the viewer
+follows, and emulators read the same list through `getfriendlist`. Inactive accounts are left out
+everywhere.
+
 ## Notifications
 
 An achievement's author is notified when another user comments on it, unlocks it for the first
