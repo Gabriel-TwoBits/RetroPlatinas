@@ -15,7 +15,7 @@ AWARD_RATE_LIMIT = 30
 AWARD_RATE_WINDOW = timedelta(minutes=1)
 AWARD_RATE_KEY = "anticheat:award-attempts:{user_id}"
 
-# This many achievements of one game unlocked within the window is flagged.
+# This many achievements unlocked within the window in one game's sessions is flagged.
 UNLOCK_BURST_THRESHOLD = 10
 UNLOCK_BURST_WINDOW = timedelta(minutes=1)
 UNLOCK_BURST_KEY = "anticheat:new-unlocks:{user_id}:{game_id}"
@@ -109,11 +109,15 @@ def award_rate_exceeded(user):
     return attempts > AWARD_RATE_LIMIT
 
 
-def inspect_unlock(user, achievement, seconds_since_unlock, now):
+def inspect_unlock(user, achievement, session_game_id, seconds_since_unlock, now):
     """Flags a new unlock, arrived at `now`, that completes a burst or comes right after its
-    session started."""
-    _flag_unlock_burst(user, achievement.game_id)
-    _flag_early_unlock(user, achievement, seconds_since_unlock, now)
+    session started.
+
+    `session_game_id` is the game the session is recorded on, which the subsets served with a
+    core set share with it.
+    """
+    _flag_unlock_burst(user, session_game_id)
+    _flag_early_unlock(user, achievement, session_game_id, seconds_since_unlock, now)
 
 
 def _flag_unlock_burst(user, game_id):
@@ -135,9 +139,9 @@ def _flag_unlock_burst(user, game_id):
         )
 
 
-def _flag_early_unlock(user, achievement, seconds_since_unlock, now):
+def _flag_early_unlock(user, achievement, session_game_id, seconds_since_unlock, now):
     session_started_at = (
-        PlayerGame.objects.filter(user=user, game_id=achievement.game_id)
+        PlayerGame.objects.filter(user=user, game_id=session_game_id)
         .values_list("session_started_at", flat=True)
         .first()
     )
@@ -147,7 +151,7 @@ def _flag_early_unlock(user, achievement, seconds_since_unlock, now):
         flag(
             user,
             SuspiciousActivity.Kind.EARLY_UNLOCK,
-            game_id=achievement.game_id,
+            game_id=session_game_id,
             achievement_id=achievement.pk,
             seconds_after_session_start=(now - session_started_at).total_seconds(),
             seconds_since_unlock=seconds_since_unlock,

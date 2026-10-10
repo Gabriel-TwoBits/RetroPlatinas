@@ -524,6 +524,16 @@ def _remaining_in_set(user, game, hardcore):
     return max(total - unlocked, 0)
 
 
+def _award_session_game(request, achievement):
+    """The game the unlock's session is recorded on: the `m` hash's, as startsession records
+    it, else the core game, whose id rc_client loads."""
+    hash_game = _hash_game(request.POST.get("m", ""))
+    if hash_game is None:
+        return achievement.game.core_game
+    else:
+        return session_game(hash_game)
+
+
 # rc_client retries an unlock until the server takes it, sending `o`, the seconds since the
 # unlock; an unlock claimed to be older than this is dated this far back.
 UNLOCK_MAX_AGE = timedelta(days=1)
@@ -566,7 +576,9 @@ def handle_awardachievement(request):
         return error
 
     achievement = (
-        Achievement.objects.select_related("game", "author").filter(pk=achievement_id).first()
+        Achievement.objects.select_related("game__parent_game", "author")
+        .filter(pk=achievement_id)
+        .first()
     )
     if achievement is None:
         return _ACHIEVEMENT_NOT_FOUND
@@ -612,7 +624,8 @@ def handle_awardachievement(request):
 
     # A retry of an unlock already recorded was inspected when it first landed.
     if softcore_created or hardcore_created:
-        inspect_unlock(locked_user, achievement, seconds_since_unlock, now)
+        session = _award_session_game(request, achievement)
+        inspect_unlock(locked_user, achievement, session.pk, seconds_since_unlock, now)
 
     return {
         "Success": True,

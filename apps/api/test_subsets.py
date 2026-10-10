@@ -3,6 +3,7 @@
 and the code notes a subset shares with its parent game."""
 
 from http import HTTPStatus
+from itertools import cycle, islice
 
 import pytest
 from django.contrib.auth import get_user_model
@@ -10,7 +11,8 @@ from django.core.cache import cache
 from django.utils import timezone
 
 from apps.achievements.models import Achievement, CodeNote, UserUnlock
-from apps.anticheat.detection import award_validation_hash
+from apps.anticheat.detection import UNLOCK_BURST_THRESHOLD, award_validation_hash
+from apps.anticheat.models import SuspiciousActivity
 from apps.api.handlers import API_TOKEN_LIFETIME
 from apps.games.models import (
     MD5_HEX_DIGITS,
@@ -460,7 +462,7 @@ def test_ping_with_an_unknown_game_is_not_found_whatever_the_hash(client, player
 # --- awardachievement ---
 
 
-def _award(client, achievement):
+def _award(client, achievement, **params):
     return _post(
         client,
         r="awardachievement",
@@ -469,6 +471,7 @@ def _award(client, achievement):
         a=achievement.pk,
         h=1,
         v=award_validation_hash(achievement.pk, PLAYER, True, 0),
+        **params,
     )
 
 
@@ -485,6 +488,54 @@ def test_award_counts_the_remaining_achievements_of_the_achievements_own_set(cli
     assert last["AchievementsRemaining"] == 0
     core = _award(client, sets.achievements[sets.core.pk])
     assert core["AchievementsRemaining"] == 0
+
+
+@pytest.mark.django_db
+def test_a_bonus_unlock_right_after_a_core_hash_session_starts_is_flagged(client, player, sets):
+    _opt(player, sets.bonus)
+    _startsession(client, g=sets.core.pk, h=1, m=CORE_MD5)
+
+    _award(client, sets.achievements[sets.bonus.pk], m=CORE_MD5)
+
+    activity = SuspiciousActivity.objects.get(user=player)
+    assert activity.kind == SuspiciousActivity.Kind.EARLY_UNLOCK
+    assert activity.detail["game_id"] == sets.core.pk
+    assert activity.detail["achievement_id"] == sets.achievements[sets.bonus.pk].pk
+
+
+@pytest.mark.django_db
+def test_a_core_unlock_right_after_a_specialty_session_starts_is_flagged(client, player, sets):
+    _startsession(client, g=sets.core.pk, h=1, m=SPECIALTY_MD5)
+
+    _award(client, sets.achievements[sets.core.pk], m=SPECIALTY_MD5)
+
+    activity = SuspiciousActivity.objects.get(user=player)
+    assert activity.kind == SuspiciousActivity.Kind.EARLY_UNLOCK
+    assert activity.detail["game_id"] == sets.specialty.pk
+
+
+@pytest.mark.django_db
+def test_a_bonus_unlock_without_a_hash_is_judged_by_the_core_session(client, player, sets):
+    _startsession(client, g=sets.core.pk, h=1)
+
+    _award(client, sets.achievements[sets.bonus.pk])
+
+    assert SuspiciousActivity.objects.get(user=player).detail["game_id"] == sets.core.pk
+
+
+@pytest.mark.django_db
+def test_a_burst_spread_over_the_sets_of_one_load_is_flagged(client, player, sets):
+    _opt(player, sets.bonus)
+    alternating = islice(cycle((sets.core, sets.bonus)), UNLOCK_BURST_THRESHOLD)
+    achievements = [
+        _official(game, player, f"Burst {index}") for index, game in enumerate(alternating)
+    ]
+
+    for achievement in achievements:
+        _award(client, achievement, m=CORE_MD5)
+
+    burst = SuspiciousActivity.objects.get(user=player, kind=SuspiciousActivity.Kind.UNLOCK_BURST)
+    assert burst.detail["game_id"] == sets.core.pk
 
 
 # --- code notes ---
