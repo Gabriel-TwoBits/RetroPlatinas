@@ -136,7 +136,7 @@ The desktop recent-game card is a genuinely different structure from `game-card.
 
 ## Navigation
 
-- **Desktop (`lg` and up)** — logo, then the nav (Games, Ranking, Feed, Search, How to start),
+- **Desktop (`lg` and up)** — logo, then the nav (Games, Ranking, Feed, Search, How to start, Docs),
   then the account links and the language select, in one sticky row.
 - **Below `lg`** — the logo and a native `<details id="site-menu">` disclosure labelled
   *Menu*. Opening it drops a full-width panel under the header with the same nav stacked,
@@ -145,6 +145,24 @@ The desktop recent-game card is a genuinely different structure from `game-card.
 - **Notification bell** — for a logged-in user, at the right of the header on every width,
   beside *Menu* below `lg` (see *Notifications*).
 - At 380px nothing overflows horizontally; the language select lives in the menu there.
+- **Footer** — Games, Ranking, Feed, How to start and Docs.
+
+## Docs
+
+`/docs/` and its pages (`templates/docs/`), listed in navigation order by `DOC_PAGES` in
+`apps/core/docs.py`; a slug outside it answers 404. Every page extends `docs/layout.html`.
+
+- **Docs navigation** — `<nav id="docs-nav">`: *Documentation* (the index) over the page list.
+  On `lg` and up it is a 224px (`w-56`) column left of the page, the list behind the procedural
+  left rule; below `lg` it sits above the page as a wrapped row over a `border-line2` hairline.
+  The current entry is `brand` with `aria-current="page"`.
+- **Page** — a `max-w-2xl` column: the title, one intro line, then ruled sections. Steps use the
+  procedural numbered list; facts and questions are hairline-split rows; code sits in an outlined
+  `<pre>`. External links end in ↗ and open in a new tab.
+- **Index** — one row per page: its title (linking it) and its one-line summary.
+- **Live data** — the getting-started page shows this site's origin as the DuckStation
+  `[Cheevos] Host`; the statuses page renders the real status chips; the FAQ lists every
+  registered disc hash (game, console, label, MD5) or an empty state.
 
 ## Profile screen
 
