@@ -41,6 +41,38 @@ def seed_crash1_game():
     return game, author
 
 
+def _upsert_by_title(model, noun, game, rows, also_saved=()):
+    """Create or update rows of `model` for `game`, matched by title; returns `(created, updated)`.
+
+    `rows` holds `(title, fields, create_only)`: `fields` are written on create and brought up to
+    date on an existing row, `create_only` only on create. `also_saved` names the columns an update
+    saves besides `fields`: `save(update_fields=...)` skips an `auto_now` column otherwise. Raises
+    `CommandError`, naming the rows `noun`, on two rows with one title: the caller's transaction
+    then writes nothing.
+    """
+    created = updated = 0
+    for title, fields, create_only in rows:
+        matches = list(model.objects.filter(game=game, title=title))
+        if not matches:
+            model.objects.create(game=game, title=title, **create_only, **fields)
+            created += 1
+        elif len(matches) == 1:
+            row = matches[0]
+            if any(getattr(row, name) != value for name, value in fields.items()):
+                for name, value in fields.items():
+                    setattr(row, name, value)
+                row.save(update_fields=[*fields, *also_saved])
+                updated += 1
+            else:
+                pass  # Already current.
+        else:
+            raise CommandError(
+                f"{len(matches)} {noun} of {game} are titled {title!r}; "
+                "cannot tell which one to update"
+            )
+    return created, updated
+
+
 def upsert_achievements(game, author, rows):
     """Create or update the seeded achievements of `game`; returns `(created, updated)`.
 
@@ -49,35 +81,20 @@ def upsert_achievements(game, author, rows):
     while its status, points, author and unlocks are left alone. Raises `CommandError` on two
     achievements with one title: the caller's transaction then writes nothing.
     """
-    created = updated = 0
-    for title, description, mem_addr, points in rows:
-        fields = {"mem_addr": mem_addr, "description": description}
-        matches = list(Achievement.objects.filter(game=game, title=title))
-        if not matches:
-            Achievement.objects.create(
-                game=game,
-                author=author,
-                title=title,
-                points=points,
-                status=Achievement.STATUS_COMMUNITY,
-                **fields,
+    return _upsert_by_title(
+        Achievement,
+        "achievements",
+        game,
+        [
+            (
+                title,
+                {"mem_addr": mem_addr, "description": description},
+                {"author": author, "points": points, "status": Achievement.STATUS_COMMUNITY},
             )
-            created += 1
-        elif len(matches) == 1:
-            row = matches[0]
-            if any(getattr(row, name) != value for name, value in fields.items()):
-                for name, value in fields.items():
-                    setattr(row, name, value)
-                row.save(update_fields=[*fields, "updated_at"])
-                updated += 1
-            else:
-                pass  # Already current.
-        else:
-            raise CommandError(
-                f"{len(matches)} achievements of {game} are titled {title!r}; "
-                "cannot tell which one to update"
-            )
-    return created, updated
+            for title, description, mem_addr, points in rows
+        ],
+        also_saved=["updated_at"],
+    )
 
 
 def upsert_leaderboards(game, rows):
@@ -89,30 +106,21 @@ def upsert_leaderboards(game, rows):
     are left alone. Raises `CommandError` on two leaderboards with one title: the caller's
     transaction then writes nothing.
     """
-    created = updated = 0
-    for title, description, mem_addr, value_format, lower_is_better in rows:
-        fields = {
-            "description": description,
-            "mem_addr": mem_addr,
-            "format": value_format,
-            "lower_is_better": lower_is_better,
-        }
-        matches = list(Leaderboard.objects.filter(game=game, title=title))
-        if not matches:
-            Leaderboard.objects.create(game=game, title=title, **fields)
-            created += 1
-        elif len(matches) == 1:
-            row = matches[0]
-            if any(getattr(row, name) != value for name, value in fields.items()):
-                for name, value in fields.items():
-                    setattr(row, name, value)
-                row.save(update_fields=list(fields))
-                updated += 1
-            else:
-                pass  # Already current.
-        else:
-            raise CommandError(
-                f"{len(matches)} leaderboards of {game} are titled {title!r}; "
-                "cannot tell which one to update"
+    return _upsert_by_title(
+        Leaderboard,
+        "leaderboards",
+        game,
+        [
+            (
+                title,
+                {
+                    "description": description,
+                    "mem_addr": mem_addr,
+                    "format": value_format,
+                    "lower_is_better": lower_is_better,
+                },
+                {},
             )
-    return created, updated
+            for title, description, mem_addr, value_format, lower_is_better in rows
+        ],
+    )
