@@ -72,7 +72,9 @@ def add_game_comment(request, game_id):
 def add_achievement_comment(request, game_id, achievement_id):
     # Another user's draft does not exist, so neither does its comments section.
     achievement = get_object_or_404(
-        Achievement.objects.visible_to(request.user), pk=achievement_id, game_id=game_id
+        Achievement.objects.visible_to(request.user).select_related("author"),
+        pk=achievement_id,
+        game_id=game_id,
     )
     return _add(request, achievement)
 

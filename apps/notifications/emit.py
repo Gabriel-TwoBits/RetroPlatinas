@@ -1,5 +1,5 @@
 """Creates the notifications an achievement's author receives. Nobody is notified of what they
-did themselves.
+did themselves, and an inactive account, which cannot log in to read them, is notified of nothing.
 
 Imports nothing from the achievements app, which calls into it while recording revisions.
 """
@@ -18,6 +18,7 @@ class StatusChange:
     achievement_id: int
     game_id: int
     author_id: int
+    author_is_active: bool
     title: str
     old_status: str
     new_status: str
@@ -35,6 +36,8 @@ def notify_comment(comment):
         return None
     elif achievement.author_id == comment.author_id:
         return None
+    elif not achievement.author.is_active:
+        return None
     else:
         return Notification.objects.create(
             user_id=achievement.author_id,
@@ -46,8 +49,10 @@ def notify_comment(comment):
 
 def notify_unlock(achievement, player):
     """Tells the achievement's author that `player` unlocked it. One insert from values the award
-    already holds, so the award path makes no extra read."""
+    already holds (its query joins the author), so the award path makes no extra read."""
     if achievement.author_id == player.pk:
+        return None
+    elif not achievement.author.is_active:
         return None
     else:
         return Notification.objects.create(
@@ -73,6 +78,6 @@ def notify_status_changes(changes, editor):
                 target_url=_achievement_url(change.game_id, change.achievement_id),
             )
             for change in changes
-            if editor is None or editor.pk != change.author_id
+            if change.author_is_active and (editor is None or editor.pk != change.author_id)
         ]
     )

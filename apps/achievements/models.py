@@ -307,7 +307,7 @@ def record_revisions(achievement_ids, editor):
     author whose achievement's status changed: every status change is recorded here."""
     latest = _latest_revised_values(achievement_ids)
     stored = Achievement.objects.filter(pk__in=achievement_ids).values(
-        "pk", "game_id", "author_id", *REVISED_FIELDS
+        "pk", "game_id", "author_id", "author__is_active", *REVISED_FIELDS
     )
     revisions = []
     status_changes = []
@@ -328,6 +328,7 @@ def record_revisions(achievement_ids, editor):
                         achievement_id=row["pk"],
                         game_id=row["game_id"],
                         author_id=row["author_id"],
+                        author_is_active=row["author__is_active"],
                         title=values["title"],
                         old_status=previous["status"],
                         new_status=values["status"],

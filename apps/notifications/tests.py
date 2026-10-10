@@ -62,6 +62,12 @@ def staff(db):
 
 
 @pytest.fixture
+def inactive_author(db):
+    """Like the seeded achievements' import account, which cannot log in."""
+    return User.objects.create_user(username="ra-import", is_active=False)
+
+
+@pytest.fixture
 def game(db):
     console = Console.objects.create(ra_id=PLAYSTATION_RA_ID, name="PlayStation", short_name="PS1")
     return Game.objects.create(title="Crash Bandicoot", console=console)
@@ -149,6 +155,23 @@ def test_commenting_on_your_own_achievement_notifies_nobody(client, author, achi
 
 
 @pytest.mark.django_db
+def test_a_comment_on_an_inactive_authors_achievement_notifies_nobody(
+    client, other, game, inactive_author
+):
+    achievement = _achievement(game, inactive_author)
+    client.force_login(other)
+
+    _post(
+        client,
+        reverse("achievement_comment_add", args=[achievement.game_id, achievement.pk]),
+        {"content": "Nice one"},
+        **HTMX,
+    )
+
+    assert not Notification.objects.exists()
+
+
+@pytest.mark.django_db
 def test_a_comment_on_a_game_notifies_nobody(client, other, game):
     client.force_login(other)
 
@@ -227,6 +250,17 @@ def test_unlocking_your_own_achievement_notifies_nobody(client, player, game):
 
 
 @pytest.mark.django_db
+def test_unlocking_an_inactive_authors_achievement_notifies_nobody(
+    client, player, game, inactive_author
+):
+    achievement = _achievement(game, inactive_author)
+
+    assert _award(client, player, achievement, "0").json()["Success"] is True
+
+    assert not Notification.objects.exists()
+
+
+@pytest.mark.django_db
 def test_the_unlock_notification_adds_one_insert_to_the_award(client, author, player, achievement):
     own = _achievement(achievement.game, player, title="Own")
     warm_up = _achievement(achievement.game, player, title="Warm-up")
@@ -271,6 +305,18 @@ def test_an_admin_status_action_notifies_each_author(
     assert all(
         n.params["old_status"] == start and n.params["new_status"] == end for n in notifications
     )
+
+
+@pytest.mark.django_db
+def test_an_admin_status_action_notifies_no_inactive_author(admin_client, game, inactive_author):
+    achievement = _achievement(game, inactive_author)
+
+    admin_client.post(
+        ACHIEVEMENT_CHANGELIST_URL,
+        {"action": "mark_verified", "_selected_action": [achievement.pk]},
+    )
+
+    assert not Notification.objects.exists()
 
 
 @pytest.mark.django_db

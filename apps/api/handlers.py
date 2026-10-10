@@ -517,7 +517,7 @@ def handle_awardachievement(request):
     # Another user's draft answers as unknown, so drafts stay invisible to everyone but the author.
     achievement = (
         Achievement.objects.visible_to(user)
-        .select_related("game")
+        .select_related("game", "author")
         .filter(pk=achievement_id)
         .first()
     )

@@ -207,7 +207,8 @@ comment, including those on a draft, in the admin.
 
 An achievement's author is notified when another user comments on it, unlocks it for the first
 time, or changes its status (in the web editor, a revert or the admin, bulk actions included);
-nobody is notified of their own action. Notifications store their kind and parameters, so each
+nobody is notified of their own action, and an inactive account (such as the seeded achievements'
+`ra-import` author) is notified of nothing. Notifications store their kind and parameters, so each
 reader sees the message in their own language. The header's bell shows the unread count, refreshed
 every 60 seconds, and the latest 10; `/notifications/` lists them all. Opening one marks it read,
 and *Mark all as read* clears the count.
