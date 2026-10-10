@@ -137,7 +137,7 @@ def revert_achievement(request, game_id, achievement_id, revision_id):
     )
     revision = get_object_or_404(achievement.revisions, pk=revision_id)
     if not can_revert(request.user, achievement, revision):
-        raise PermissionDenied("Only the author or staff revert, to a status they may set.")
+        raise PermissionDenied("Only the author or staff revert, to points they may set.")
     else:
         revert(achievement, revision, request.user)
         messages.success(request, gettext("Achievement reverted."))

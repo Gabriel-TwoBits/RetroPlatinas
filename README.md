@@ -217,7 +217,7 @@ revision yet, written without `save()` (`bulk_create`, `update()`, `loaddata`), 
 state recorded, with no editor, right before its next recorded change; a later write without
 `save()` is folded into the next revision. `/games/<id>/achievements/<aid>/history/` lists the
 revisions, newest first, each with a line diff against the one before it (`mem_addr` one condition
-per line); it is visible to whoever may see the achievement. Its author or staff may revert to an
+per line); it is visible to anyone. Its author or staff may revert to an
 earlier revision: the revert is a new revision, the history is never rewritten, and only to
 points they may set in the editor, so nobody restores points off RA's scale.
 
