@@ -1,6 +1,10 @@
 # RetroPlatinas — Server
 
-Alternative platform to RetroAchievements.org with full protocol compatibility (rcheevos).
+Alternative platform to RetroAchievements.org with full protocol compatibility (rcheevos), built
+so anyone can start a game's set. A game's **core set** is its normal 100% — what the game itself
+asks of a player to finish it — without walls of missables and grinds. Challenges such as deathless
+runs, no-hit bosses, single-character runs and grinds live in **subsets** that each player turns
+on only if they want them (see [Subsets](#subsets)).
 
 Copyright (C) 2026 Gabriel-TwoBits. Licensed under the [GNU AGPL-3.0](LICENSE) —
 if you run a modified version as a network service, you must offer its source to your users.
