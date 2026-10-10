@@ -150,7 +150,8 @@ A game's own achievements are its **core set**: the accessible 100%. Challenges 
 **subsets**, `Game` rows with a parent game (`parent_game`, always a core game), a type
 (`set_type`) and the title the emulator shows (`set_title`), as RetroAchievements' "supporting
 games": achievements, leaderboards, players, rarity and `AchievementsRemaining` are per subset.
-Staff add subsets inline on the core game's admin page; a subset is on its parent's console.
+Staff add subsets inline on the core game's admin page; a subset is on its parent's console and
+moves with it.
 
 | Type | Loaded |
 | --- | --- |
@@ -209,8 +210,8 @@ time). Flagging never blocks or bans a user. Thresholds are constants in
 | --- | --- | --- |
 | `invalid_signature` | `awardachievement` or `submitlbentry` arrives without `v`, or with a `v` that does not match (once per user, request type and minute) | rejected (`missing_parameter` / `invalid_parameter`) |
 | `rate_limited` | a user sends more than 30 `awardachievement` in a minute (once per window) | HTTP 429, which rc_client retries with backoff, so the unlock is delayed, not lost |
-| `unlock_burst` | 10 new unlocks of one game, in either mode, arrive within a minute (once per burst) | accepted |
-| `early_unlock` | a new unlock arrives less than 30 s after the session's `startsession` | accepted |
+| `unlock_burst` | 10 new unlocks of one game's sessions (a core set and the subsets loaded with it count together), in either mode, arrive within a minute (once per burst) | accepted |
+| `early_unlock` | a new unlock arrives less than 30 s after the `startsession` of the session its `m` hash loads (the core game's without one) | accepted |
 
 Both timing checks go by when the request arrives, not by the unlock time `o` claims: `v` is an
 unkeyed MD5 of public values, so anyone can sign any `o`. Unlocks out of an unlikely order are not
@@ -310,7 +311,7 @@ A refusal answers `access_denied` with `Status` 403, as RetroAchievements does.
 | `badgeiter` | anyone | the first badge number and the next one |
 | `uploadbadgeimage` | any user | multipart `u`, `t`, `file` (PNG, JPEG or GIF, at most 1 MiB and 1024 px a side); answers the new badge's name as `BadgeIter` |
 | `achievementwondata` | any user | the achievement's latest unlockers; the friends-only page (`f=1`) lists only those the user follows, while `NumEarned` still counts everyone |
-| `getfriendlist` | any user | the active users the user follows, most recently seen first, at most 100: avatar, hardcore points (`RAPoints`) and, from their latest play record, the rich presence (`LastSeen`, `Unknown` without one), when it was seen and the game; the last-seen fields are null for one who never played |
+| `getfriendlist` | any user | the active users the user follows, most recently seen first, at most 100: avatar, hardcore points (`RAPoints`) and, from their latest play record, the rich presence (`LastSeen`, `Unknown` without one), when it was seen and the game (a bonus or challenge subset's unlocks are seen as its parent's session); the last-seen fields are null for one who never played |
 | `latestclient` | anyone | answers `not_found`, which lets every emulator through |
 
 `uploadachievement` and `uploadleaderboard` carry a checksum `h`, the lowercase hex MD5 rcheevos
