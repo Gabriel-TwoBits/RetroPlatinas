@@ -1065,7 +1065,10 @@ def test_achievementwondata_friends_only_lists_the_winners_the_user_follows(
     client, player, other, staff, won_achievement
 ):
     Friendship.objects.create(user=player, friend=other)
+    Friendship.objects.create(user=player, friend=staff)
     Friendship.objects.create(user=staff, friend=player)
+    staff.is_active = False
+    staff.save(update_fields=["is_active"])
 
     data = _raw(client, _with(RCHEEVOS_ACHIEVEMENT_WON_DATA, o="0"))
 

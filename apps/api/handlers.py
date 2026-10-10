@@ -919,7 +919,8 @@ def handle_achievementwondata(request):
 
     winners = _achievement_winners(achievement)
     if friends_only:
-        listed = winners.filter(user__in=Friendship.objects.filter(user=user).values("friend"))
+        followed = Friendship.objects.filter(user=user, friend__is_active=True).values("friend")
+        listed = winners.filter(user__in=followed)
     else:
         listed = winners
     page = listed[offset : offset + count]
