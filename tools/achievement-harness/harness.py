@@ -174,6 +174,7 @@ class Emu:
         lib.h_set_input.argtypes = [ctypes.c_uint32]
         lib.h_run.argtypes = [ctypes.c_int]
         lib.h_ach_activate.argtypes = [ctypes.c_uint32, ctypes.c_char_p]
+        lib.h_lb_activate.argtypes = [ctypes.c_uint32, ctypes.c_char_p]
         lib.h_ach_reset_one.argtypes = [ctypes.c_uint32]
         lib.h_ach_state.argtypes = [ctypes.c_uint32]
         lib.h_ach_hits.argtypes = [ctypes.c_uint32, ctypes.c_char_p, ctypes.c_int]
@@ -315,7 +316,8 @@ class Emu:
         return buf.raw
 
     def restore(self, blob):
-        """Loads an in-memory state; every trigger goes back to WAITING, as in emulators."""
+        """Loads an in-memory state; every trigger and leaderboard goes back to WAITING, as in
+        emulators."""
         if self.lib.h_load_state(blob, len(blob)) != 0:
             raise RuntimeError("retro_unserialize failed")
         self.pristine = False
@@ -334,6 +336,12 @@ class Emu:
         result = self.lib.h_ach_activate(achievement_id, mem_addr.encode())
         if result != 0:
             raise ValueError(f"rc_runtime_activate_achievement({achievement_id}) -> {result}")
+
+    def activate_leaderboard(self, leaderboard_id, mem_addr):
+        """Loads a leaderboard; its LBOARD_* events come out of `events()`."""
+        result = self.lib.h_lb_activate(leaderboard_id, mem_addr.encode())
+        if result != 0:
+            raise ValueError(f"rc_runtime_activate_lboard({leaderboard_id}) -> {result}")
 
     def reset_achievement(self, achievement_id):
         """One trigger back to WAITING with zeroed hits; the others keep their state."""
@@ -375,7 +383,8 @@ class Emu:
         return buf.value.decode()
 
     def events(self):
-        """rcheevos events since the last call: [(frame, name, achievement_id, value), ...]."""
+        """rcheevos events since the last call: [(frame, name, id, value), ...]; the id is an
+        achievement's or, for the LBOARD_* events, a leaderboard's."""
         frames = (ctypes.c_uint64 * EVENT_BATCH)()
         types = (ctypes.c_int32 * EVENT_BATCH)()
         ids = (ctypes.c_uint32 * EVENT_BATCH)()

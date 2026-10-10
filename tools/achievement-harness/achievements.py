@@ -1,9 +1,10 @@
-"""The repo's achievements and rich presence, built by the seed commands' own code (never copied).
+"""The repo's achievements, leaderboards and rich presence, built by the seed commands' own code
+(never copied).
 
 Importing a seed command needs Django, so this module puts the repo root on `sys.path` and calls
 `django.setup()` with the project's settings before the import.
 
-    python tools/achievement-harness/achievements.py      # id, title, mem_addr, then the script
+    python tools/achievement-harness/achievements.py  # achievements, leaderboards, the script
 """
 
 import os
@@ -24,6 +25,15 @@ class Definition:
     runtime_id: int
     title: str
     mem_addr: str
+
+
+@dataclass(frozen=True)
+class LeaderboardDefinition:
+    runtime_id: int
+    title: str
+    mem_addr: str
+    level_id: int  # the stage it times (c1 level id, `0xH6188d`)
+    opening: str  # how the stage hands Crash to the player (the seed's INTRO or SPIN_IN)
 
 
 def _setup_django():
@@ -55,6 +65,14 @@ def advanced_seed():
     from apps.achievements.management.commands import seed_crash1_advanced_achievements
 
     return seed_crash1_advanced_achievements
+
+
+def leaderboard_seed():
+    """`seed_crash1_leaderboards`, whose definitions the harness activates."""
+    _setup_django()
+    from apps.achievements.management.commands import seed_crash1_leaderboards
+
+    return seed_crash1_leaderboards
 
 
 def rich_presence():
@@ -95,7 +113,20 @@ def definitions():
     ]
 
 
+def leaderboard_definitions():
+    """Every seeded leaderboard, numbered from FIRST_RUNTIME_ID in seed order (rcheevos keeps
+    leaderboard ids apart from achievement ids)."""
+    return [
+        LeaderboardDefinition(FIRST_RUNTIME_ID + index, title, mem_addr, level_id, opening)
+        for index, (title, _description, mem_addr, level_id, opening) in enumerate(
+            leaderboard_seed().leaderboards()
+        )
+    ]
+
+
 if __name__ == "__main__":
     for definition in definitions():
         print(definition.runtime_id, definition.title, definition.mem_addr, sep="\t")
+    for leaderboard in leaderboard_definitions():
+        print(f"lb{leaderboard.runtime_id}", leaderboard.title, leaderboard.mem_addr, sep="\t")
     print(rich_presence(), end="")

@@ -62,6 +62,11 @@ BOSS_HEALTH_OFFSET = 0x105
 PLAYER_FRUIT_OFFSET = 0x160
 PLAYER_LIVES_OFFSET = 0x164
 PLAYER_POSITION_OFFSETS = (0x80, 0x84, 0x88)
+# c1 `state_flags`, copied from the object's current state. Bit 15, unnamed in c1, is set by the
+# states that open a stage: N. Sanity Beach's wake-up, left on the first button, and the spin-in
+# elsewhere, which ignores the pad.
+PLAYER_STATE_FLAGS_OFFSET = 0x120
+NO_CONTROL_STATE_FLAG = 0x8000
 # The code notes give +0x06 as the first hop of the lives chain; only +0x6C reads the lives.
 HUD_COUNT_CHAIN = (0x6C, 0xE4, 0x0C)
 # A HUD object's own 24.8 copy of the count it shows, stepping with the digits.
@@ -154,6 +159,13 @@ player_lives = player_counter(PLAYER_LIVES_OFFSET)
 player_fruit = player_counter(PLAYER_FRUIT_OFFSET)
 
 
+def player_state_flags(emu):
+    """The player object's state flags; None outside a stage and while the pointer is null."""
+    if not in_a_stage(emu):
+        return None
+    return emu.deref(PLAYER_POINTER, PLAYER_STATE_FLAGS_OFFSET, size=FIXED_POINT_BYTES)
+
+
 def hud_count(pointer):
     return lambda emu: emu.deref(pointer, *HUD_COUNT_CHAIN)
 
@@ -219,6 +231,7 @@ OBJECTS = [
     ("player_ptr", u24(PLAYER_POINTER)),
     ("player_lives", player_lives),
     ("player_fruit", player_fruit),
+    ("player_state_flags", player_state_flags),
 ]
 
 ALL = CONDITION_READS + CODE_NOTE_READS + GLOBALS + OBJECTS

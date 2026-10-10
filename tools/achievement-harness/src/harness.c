@@ -454,7 +454,15 @@ int h_ach_activate(uint32_t id, const char *memaddr) {
     return rc_runtime_activate_achievement(&runtime, id, memaddr, NULL, 0);
 }
 
-/* Puts every trigger back in WAITING with zeroed hits, as an emulator does after a state load. */
+/* Parses a leaderboard (STA/CAN/SUB/VAL); 0 on success, an rc_error.h code otherwise. Its
+   LBOARD_* events reach the event queue like the achievements' own. */
+int h_lb_activate(uint32_t id, const char *memaddr) {
+    ensure_runtime();
+    return rc_runtime_activate_lboard(&runtime, id, memaddr, NULL, 0);
+}
+
+/* Puts every trigger and leaderboard back in WAITING with zeroed hits, as an emulator does after
+   a state load. */
 void h_ach_reset(void) {
     ensure_runtime();
     rc_runtime_reset(&runtime);

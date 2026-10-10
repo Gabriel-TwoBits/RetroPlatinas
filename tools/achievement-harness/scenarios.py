@@ -1,11 +1,15 @@
-"""Recorded scenarios: scripted play from a derivable state, judged against the repo's achievements
-and rich presence.
+"""Recorded scenarios: scripted play from a derivable state, judged against the repo's achievements,
+leaderboards and rich presence.
 
 Each scenario states which achievements must trigger and the level (lid) the game must show when
 they do (usually none: a death, a quit or the attract demo must never unlock anything), and
-exits non-zero when a trigger is missing, repeated, unexpected or fires on another level. It also
-lists the rich presence strings the game must show on the way (regular expressions), and fails
-when one never shows or when a string names an unknown macro or level.
+exits non-zero when a trigger is missing, repeated, unexpected or fires on another level. It
+states every leaderboard attempt it plays and how each ends (submitted, canceled, reset by a state
+load or still running), and fails on an attempt that starts anywhere but where the stage hands
+Crash to the player, on a submitted or shown time that is not the frames played, and on a cancel
+off the title level. It also lists the rich presence strings the game must show on the way
+(regular expressions), and fails when one never shows or when a string names an unknown macro or
+level.
 
     python tools/achievement-harness/scenarios.py [--core CORE] NAME [NAME ...] | all
 
@@ -17,13 +21,15 @@ import random
 import re
 import subprocess
 import sys
+from collections import defaultdict
 from collections.abc import Callable
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 
 import achievements
 import navigation
 import plan as plans
 import states
+from explore import QUIT_MOVE
 from harness import CORE_DEFAULTS, DEFAULT_CORE, FRAMES_PER_SECOND, SECONDS_PER_MINUTE, Btn
 from probes import (
     BOX_COUNT,
@@ -37,17 +43,21 @@ from probes import (
     LID_STAGE_CLEAR,
     LID_TITLE,
     LIFE_HUD_POINTER,
+    PAUSED,
+    PAUSED_ON,
     PBAK_STATE,
     PLAYER_FRUIT_OFFSET,
     PLAYER_LIVES_OFFSET,
     PLAYER_POINTER,
+    PLAYER_POSITION_OFFSETS,
     RESPAWN_COUNT,
     boss_health,
     box_count,
     has_gem,
     hud_count_address,
+    in_a_stage,
 )
-from session import Session
+from session import STATE_LOADED, Session
 from states import BOSS_FIGHTS, STAGES
 
 COLD_BOOT_FRAMES = 3 * SECONDS_PER_MINUTE * FRAMES_PER_SECOND
@@ -74,6 +84,15 @@ DEATH_SEED = 1
 PLAN_PREFIX_DIVISOR = 2  # deaths start halfway through a stage's clearing plan
 # After a collectible event: the extra life of a Wumpa wrap lands about 110 frames later.
 AFTER_EVENT_FRAMES = 300
+# A held button moves Crash on the frame he gets control (after the spin-in) or 3 frames later
+# (N. Sanity Beach's wake-up); more would mean the timer starts before he has control.
+MAX_INPUT_LAG_FRAMES = 4
+POSITION_BYTES = 4
+_X_OFFSET, _Y_OFFSET, _Z_OFFSET = PLAYER_POSITION_OFFSETS
+GROUND_AXES_OFFSETS = (_X_OFFSET, _Z_OFFSET)
+MOVE_TIMEOUT_FRAMES = 2 * FRAMES_PER_SECOND
+STAND_BEFORE_PAUSE_FRAMES = 60
+PAUSE_OPEN_FRAMES = 5 * FRAMES_PER_SECOND
 
 HEADING_BUTTONS = {"up": Btn.UP, "down": Btn.DOWN, "right": Btn.RIGHT}
 # Boxes of a stage, measured: those its clearing plan breaks plus those the Stage Clear screen then
@@ -104,6 +123,15 @@ ATTRACT_DEMOS = (
 )
 BROKEN_PRESENCE = ("[Unknown macro]", "an unknown level")
 
+# How a leaderboard attempt ends.
+SUBMITTED = "submitted"
+CANCELED = "canceled"
+RUNNING = "running"  # still timing when the scenario ends
+RESET = "reset"  # cut short by a state load
+LEADERBOARD_TITLES = {lb.level_id: lb.title for lb in achievements.leaderboard_definitions()}
+LEADERBOARD_OPENINGS = {lb.level_id: lb.opening for lb in achievements.leaderboard_definitions()}
+SUBMIT_LIDS = (LID_STAGE_CLEAR, LID_TITLE)
+
 
 def demo_of(name):
     return f"Watching a demo of {re.escape(name)}"
@@ -125,6 +153,54 @@ class Scenario:
     play: Callable
     presence: tuple  # patterns each matched in full by at least one rich presence string shown
     never: tuple = ()  # patterns no rich presence string shown may match in full
+    # leaderboard title -> how each of its attempts ends, in order (SUBMITTED, CANCELED, RESET,
+    # RUNNING)
+    leaderboards: dict = field(default_factory=dict)
+
+
+def attempts_in(stage, *outcomes):
+    """The leaderboard attempts a scenario plays in `stage`, by how each ends; none when the stage
+    has no leaderboard."""
+    title = LEADERBOARD_TITLES.get(stage.level_id)
+    if title is None:
+        return {}
+    return {title: outcomes}
+
+
+def opening_attempt(stage, outcome):
+    """The attempt a scenario from `stage.start` plays: that state is saved 30 frames after the
+    game state turns playing, which is inside a spin-in (the leaderboard starts when it ends) and
+    after an intro has handed Crash over (nothing starts)."""
+    if LEADERBOARD_OPENINGS.get(stage.level_id) == achievements.leaderboard_seed().SPIN_IN:
+        return attempts_in(stage, outcome)
+    return {}
+
+
+def merged(*expectations):
+    """Leaderboard expectations played one after the other: each title's attempts, in order."""
+    attempts = defaultdict(tuple)
+    for expectation in expectations:
+        for title, outcomes in expectation.items():
+            attempts[title] += tuple(outcomes)
+    return dict(attempts)
+
+
+def farming_attempts(stage, plan_path):
+    """The attempts of goal_event on a plan whose farming quits and re-enters the stage
+    (explore.QUIT_MOVE): each re-entry but the last ends canceled by the next quit, the last is cut
+    short by the state load after the event, and the scenario's own re-entry ends canceled."""
+    quits = plans.load(plan_path).macros.count(QUIT_MOVE)
+    if quits == 0:
+        return attempts_in(stage, CANCELED)
+    return attempts_in(stage, *[CANCELED] * (quits - 1), RESET, CANCELED)
+
+
+def next_stage(stage):
+    """The stage the map cursor moves on to after `stage` is cleared."""
+    for candidate in STAGES:
+        if candidate.map_index == stage.map_index + 1:
+            return candidate
+    raise KeyError(f"no stage of STAGES follows {stage.name} on the map")
 
 
 def respawns(emu):
@@ -400,12 +476,14 @@ def clear(stage, plan_path, boxes=None):
     return play
 
 
-def checkpoint_death(stage, fruit=None):
+def checkpoint_death(stage, fruit=None, reload=True):
     """The checkpoint route, a death, then the clear searched from the checkpoint respawn.
 
     The game skips the Stage Clear screen after a death past a checkpoint: the clear ends straight
     on the map (game state `0x300`), so the stage's achievement fires there and the gem cannot.
-    `fruit`, when given, is poked as the player's Wumpa after the respawn (poke_fruit).
+    `fruit`, when given, is poked as the player's Wumpa after the respawn (poke_fruit). `reload`
+    saves and loads a state at the respawn, as the clear was searched from; without it the run
+    goes on live (the plan replays the same on the interpreter), so a leaderboard keeps timing.
     """
 
     def play(s):
@@ -415,8 +493,11 @@ def checkpoint_death(stage, fruit=None):
         s.note(f"checkpoint {s.emu.s32(CHECKPOINT_ID):#x}, {box_count(s.emu)} boxes; dying")
         states.die_by_random_play(s.emu, stage, states.CHECKPOINT_DEATH_SEED)
         s.note(f"respawned at the checkpoint with {box_count(s.emu)} boxes counted")
-        s.emu.restore(s.emu.snapshot())  # as the respawn state the clear was searched from
-        s.note("state reloaded (the frame count restarts at 0)")
+        if reload:
+            s.emu.restore(s.emu.snapshot())  # as the respawn state the clear was searched from
+            s.note("state reloaded (the frame count restarts at 0)")
+        else:
+            pass  # Live: the leaderboards keep their attempt.
         if fruit is not None:
             poke_fruit(s, fruit)
         else:
@@ -494,6 +575,93 @@ def goal_event(stage, goal, start_lives=None):
     return play
 
 
+def entered_from_the_map(stage, then):
+    """Enters `stage` from the map as its `-start` state does (so its plans replay), with the
+    leaderboards active from the map; then plays `then`."""
+
+    def play(s):
+        navigation.move_cursor_to(s.emu, stage.map_index)
+        entered = navigation.enter_stage(s.emu)
+        s.note(f"entered lid {entered:#x} from the map")
+        then(s)
+
+    return play
+
+
+def player_ground_position(emu):
+    """The player object's x and z (not y: a fall or a landing changes it without any input), or
+    None outside a stage or before the object exists."""
+    if not in_a_stage(emu) or not emu.u24(PLAYER_POINTER):
+        return None
+    return tuple(
+        emu.deref(PLAYER_POINTER, offset, size=POSITION_BYTES) for offset in GROUND_AXES_OFFSETS
+    )
+
+
+def started_attempts(s):
+    return [event for event in s.leaderboard_events if event.kind == "started"]
+
+
+def timed_pause_quit(stage):
+    """Enters `stage` holding its heading from the frame its level loads, then opens the pause menu
+    for a while and quits.
+
+    Fails unless the leaderboard starts once and the player, still on the ground until then
+    although the heading is held, first moves within MAX_INPUT_LAG_FRAMES of that frame. The
+    judge then checks the run's time leaves out the frames the pause menu was open, and that the
+    quit cancels it.
+    """
+    heading = [HEADING_BUTTONS[stage.heading]]
+
+    def play(s):
+        navigation.move_cursor_to(s.emu, stage.map_index)
+        navigation.press(s.emu, Btn.CROSS)
+        s.wait_until(
+            lambda e: navigation.level_id(e) == stage.level_id,
+            navigation.LOAD_TIMEOUT_FRAMES,
+            f"{stage.name} level",
+        )
+        s.note(f"{stage.name} loaded; holding {stage.heading} until the player moves")
+        before_start = []  # the player's ground position on every frame before the start
+        for _ in range(navigation.LOAD_TIMEOUT_FRAMES):
+            if started_attempts(s):
+                break
+            before_start.append(player_ground_position(s.emu))
+            s.step(1, heading)
+        else:
+            raise TimeoutError(f"no leaderboard started in {stage.name}")
+        start = started_attempts(s)[0]
+        still = before_start[-1]
+        s.wait_until(
+            lambda e: player_ground_position(e) != still, MOVE_TIMEOUT_FRAMES, "a move", heading
+        )
+        lag = s.clock - start.clock
+        held_still = {position for position in before_start if position is not None} == {still}
+        s.note(
+            f"the player first moved {lag} frames after the leaderboard started; still at "
+            f"{still} on every frame before the start: {held_still}"
+        )
+        if not held_still or not 0 <= lag <= MAX_INPUT_LAG_FRAMES:
+            raise RuntimeError(
+                f"the player moved before the start or {lag} frames after it, "
+                f"not within {MAX_INPUT_LAG_FRAMES}"
+            )
+        else:
+            pass  # The run starts when the player gains control.
+        s.step(STAND_BEFORE_PAUSE_FRAMES)
+        navigation.press(s.emu, Btn.START)
+        s.wait_until(lambda e: e.u8(PAUSED) == PAUSED_ON, navigation.LOAD_TIMEOUT_FRAMES, "pause")
+        s.step(PAUSE_OPEN_FRAMES)
+        navigation.press(s.emu, Btn.START)
+        s.wait_until(lambda e: e.u8(PAUSED) != PAUSED_ON, navigation.LOAD_TIMEOUT_FRAMES, "resume")
+        s.note(f"the pause menu was open; {s.played - start.played + 1} frames played so far")
+        s.step(STAND_BEFORE_PAUSE_FRAMES)
+        navigation.pause_and_quit(s.emu)
+        s.step(AFTER_LAST_QUIT_FRAMES)
+
+    return play
+
+
 NOTHING_FIRES = {}
 SCENARIOS = {
     "cold-boot": Scenario(
@@ -526,6 +694,7 @@ SCENARIOS["attract-then-new-game"] = Scenario(
     play_attract_then_new_game,
     (demo_of(ATTRACT_DEMOS[0]), TITLE_SCREEN, ISLAND_MAP, in_stage(_beach, NEW_GAME_LIVES)),
     never=(demo_of(_beach), NO_LIVES),
+    leaderboards=attempts_in(STAGES[0], RUNNING),
 )
 for _stage in STAGES:
     _name = achievements.level_title(_stage.level_id)
@@ -536,6 +705,7 @@ for _stage in STAGES:
         deaths(_stage),
         (in_stage(_name, NEW_GAME_LIVES), in_stage(_name, LOW_LIVES)),
         never=(NO_LIVES,),
+        leaderboards=opening_attempt(_stage, RUNNING),
     )
     SCENARIOS[f"{_stage.name}-quit"] = Scenario(
         _stage.start,
@@ -544,6 +714,9 @@ for _stage in STAGES:
         quits(_stage),
         (in_stage(_name), ISLAND_MAP),
         never=(NO_LIVES,),
+        leaderboards=merged(
+            opening_attempt(_stage, CANCELED), attempts_in(_stage, CANCELED, CANCELED)
+        ),
     )
     if _stage.plan_path.is_file():
         SCENARIOS[f"{_stage.name}-clear"] = Scenario(
@@ -553,6 +726,9 @@ for _stage in STAGES:
             clear(_stage, _stage.plan_path),
             (in_stage(_name), STAGE_CLEAR, ISLAND_MAP),
             never=(NO_LIVES,),
+            leaderboards=merged(
+                opening_attempt(_stage, SUBMITTED), attempts_in(next_stage(_stage), CANCELED)
+            ),
         )
     else:
         pass  # No clearing plan committed: the clear stays for the in-game check.
@@ -569,6 +745,7 @@ for _stage in STAGES:
                 goal_event(_stage, _goal),
                 (in_stage(_name), ISLAND_MAP),
                 never=(NO_LIVES,),
+                leaderboards=farming_attempts(_stage, _stage.goal_plan_path(_goal)),
             )
         else:
             pass  # No searched route to this event in this stage.
@@ -583,6 +760,7 @@ for _stage in STAGES:
             goal_event(_stage, "wumpa", start_lives=_collectibles.MAX_LIVES - 1),
             (in_stage(_name, str(_collectibles.MAX_LIVES)),),
             never=(NO_LIVES,),
+            leaderboards=farming_attempts(_stage, _stage.goal_plan_path("wumpa")),
         )
         SCENARIOS[f"{_stage.name}-lives-cap-poked"] = Scenario(
             _wumpa_start,
@@ -592,6 +770,7 @@ for _stage in STAGES:
             goal_event(_stage, "wumpa", start_lives=_collectibles.MAX_LIVES),
             (in_stage(_name, str(_collectibles.MAX_LIVES)),),
             never=(NO_LIVES,),
+            leaderboards=farming_attempts(_stage, _stage.goal_plan_path("wumpa")),
         )
     else:
         pass  # The poked lives scenarios ride on the Wumpa route.
@@ -604,6 +783,9 @@ for _stage in STAGES:
             clear(_stage, _no_wumpa_plan),
             (in_stage(_name), STAGE_CLEAR, ISLAND_MAP),
             never=(NO_LIVES,),
+            leaderboards=merged(
+                opening_attempt(_stage, SUBMITTED), attempts_in(next_stage(_stage), CANCELED)
+            ),
         )
     else:
         pass  # Only the seeded stage has a no-Wumpa achievement to judge.
@@ -623,6 +805,9 @@ for _stage in _GEM_STAGES:
             clear(_stage, _gem_plan),
             (in_stage(_name), STAGE_CLEAR, ISLAND_MAP),
             never=(NO_LIVES,),
+            leaderboards=merged(
+                opening_attempt(_stage, SUBMITTED), attempts_in(next_stage(_stage), CANCELED)
+            ),
         )
     else:
         pass  # No searched gem run.
@@ -635,6 +820,9 @@ for _stage in _GEM_STAGES:
             clear(_stage, _stage.plan_path, boxes=STAGE_BOXES[_stage.name]),
             (in_stage(_name), STAGE_CLEAR, ISLAND_MAP),
             never=(NO_LIVES,),
+            leaderboards=merged(
+                opening_attempt(_stage, SUBMITTED), attempts_in(next_stage(_stage), CANCELED)
+            ),
         )
         SCENARIOS[f"{_stage.name}-one-box-short-poked"] = Scenario(
             _stage.start,
@@ -644,6 +832,9 @@ for _stage in _GEM_STAGES:
             clear(_stage, _stage.plan_path, boxes=STAGE_BOXES[_stage.name] - 1),
             (in_stage(_name), STAGE_CLEAR, ISLAND_MAP),
             never=(NO_LIVES,),
+            leaderboards=merged(
+                opening_attempt(_stage, SUBMITTED), attempts_in(next_stage(_stage), CANCELED)
+            ),
         )
     else:
         pass  # No clearing plan or no measured box total to poke.
@@ -656,6 +847,7 @@ for _stage in _GEM_STAGES:
             clear(_stage, _stage.early_death_clear_plan_path, boxes=STAGE_BOXES[_stage.name]),
             (in_stage(_name), STAGE_CLEAR, ISLAND_MAP),
             never=(NO_LIVES,),
+            leaderboards=attempts_in(next_stage(_stage), CANCELED),
         )
     else:
         pass  # No clear searched from a restart after an early death.
@@ -683,8 +875,57 @@ for _stage in _GEM_STAGES:
             (in_stage(_name), ISLAND_MAP),
             never=(NO_LIVES, STAGE_CLEAR),
         )
+        if _stage.level_id in LEADERBOARD_TITLES:
+            SCENARIOS[f"{_stage.name}-timed-checkpoint-death"] = Scenario(
+                states.RECIPES[_stage.start].parent,
+                _route_lids,
+                f"{_stage.name} entered from the map, then as {_stage.name}-checkpoint-death "
+                "without the state reload: the death stays in the timed run",
+                entered_from_the_map(_stage, checkpoint_death(_stage, reload=False)),
+                (in_stage(_name), ISLAND_MAP),
+                never=(NO_LIVES, STAGE_CLEAR),
+                leaderboards=attempts_in(_stage, SUBMITTED),
+            )
+        else:
+            pass  # No leaderboard times this stage.
     else:
         pass  # No route from the checkpoint respawn to the clear.
+_TIMED_STAGES = [stage for stage in STAGES if stage.level_id in LEADERBOARD_TITLES]
+for _stage in _TIMED_STAGES:
+    _name = achievements.level_title(_stage.level_id)
+    _from_map = states.RECIPES[_stage.start].parent
+    SCENARIOS[f"{_stage.name}-timed-pause-quit"] = Scenario(
+        _from_map,
+        NOTHING_FIRES,
+        f"{_stage.name} entered holding its heading, the pause menu opened for a while, a quit",
+        timed_pause_quit(_stage),
+        (in_stage(_name), ISLAND_MAP),
+        never=(NO_LIVES,),
+        leaderboards=attempts_in(_stage, CANCELED),
+    )
+    if _stage.plan_path.is_file():
+        SCENARIOS[f"{_stage.name}-timed-clear"] = Scenario(
+            _from_map,
+            {_name: LID_STAGE_CLEAR},
+            f"{_stage.name} entered from the map and cleared by its plan, then the next stage quit",
+            entered_from_the_map(_stage, clear(_stage, _stage.plan_path)),
+            (in_stage(_name), STAGE_CLEAR, ISLAND_MAP),
+            never=(NO_LIVES,),
+            leaderboards={
+                **attempts_in(_stage, SUBMITTED),
+                **attempts_in(next_stage(_stage), CANCELED),
+            },
+        )
+    else:
+        pass  # No clearing plan: the timed clear stays for the in-game check.
+SCENARIOS["nsanity-beach-timed-game-over"] = Scenario(
+    states.RECIPES[STAGES[0].start].parent,
+    NOTHING_FIRES,
+    "N. Sanity Beach entered from the map, then deaths down to a game over",
+    entered_from_the_map(STAGES[0], down_to_game_over(STAGES[0])),
+    (in_stage(_beach, NEW_GAME_LIVES), in_stage(_beach, "0"), GAME_OVER),
+    leaderboards=attempts_in(STAGES[0], CANCELED),
+)
 SCENARIOS["papu-papu-quit"] = Scenario(
     BOSS_FIGHTS[0].start,
     NOTHING_FIRES,
@@ -719,6 +960,106 @@ for _boss in BOSS_FIGHTS:
         pass  # No searched win: the boss achievement stays for the in-game check.
 
 
+@dataclass
+class Attempt:
+    start: object  # the "started" LeaderboardEvent; None when an end came without one
+    last: object  # the latest event with the value shown (started, updated or the submit)
+    end: object = None  # the "canceled" or "submitted" LeaderboardEvent; None while running
+
+    @property
+    def outcome(self):
+        if self.end is None:
+            return RUNNING
+        if self.end.kind == "submitted":
+            return SUBMITTED
+        if self.end.kind == STATE_LOADED:
+            return RESET
+        return CANCELED
+
+
+def attempts(events):
+    """One title's leaderboard events, in order -> its Attempts."""
+    found = []
+    for event in events:
+        if event.kind == "started":
+            found.append(Attempt(event, event))
+        elif event.kind == STATE_LOADED:
+            if found and found[-1].end is None:
+                found[-1].end = event
+            else:
+                pass  # No attempt to cut short.
+        elif found and found[-1].end is None:
+            if event.kind == "updated":
+                found[-1].last = event
+            elif event.kind == "submitted":
+                found[-1].last = event
+                found[-1].end = event
+            else:
+                found[-1].end = event
+        else:
+            found.append(Attempt(None, event, event))  # An end, or a value, with no start.
+    return found
+
+
+def attempt_problems(title, attempt, level_id, opening, session):
+    """What is wrong with one attempt: a start anywhere but where the player gains control of the
+    stage, a time shown or submitted that is not the frames played since the start, a cancel
+    off the title level or a submit off Stage Clear and the map."""
+    if attempt.start is None:
+        return [f"{title}: {attempt.last.kind} at clock {attempt.last.clock} with no start"]
+    problems = []
+    start = attempt.start
+    if (start.clock, level_id, opening) not in session.handovers:
+        problems.append(
+            f"{title}: started at clock {start.clock} on lid {start.level_id:#x}, not where the "
+            f"{opening} of lid {level_id:#x} handed Crash over ({session.handovers})"
+        )
+    else:
+        pass  # Started when the player gained control.
+    played_until = session.played if attempt.end is None else attempt.end.played
+    played = played_until - start.played + 1  # the start frame is played
+    if attempt.last.value != played:
+        problems.append(
+            f"{title}: {attempt.outcome} with {attempt.last.value} frames on the clock, "
+            f"{played} played since the start"
+        )
+    else:
+        pass  # The clock counted exactly the frames played.
+    if attempt.outcome == CANCELED and attempt.end.level_id != LID_TITLE:
+        problems.append(f"{title}: canceled on lid {attempt.end.level_id:#x}, not the title level")
+    elif attempt.outcome == SUBMITTED and attempt.end.level_id not in SUBMIT_LIDS:
+        problems.append(f"{title}: submitted on lid {attempt.end.level_id:#x}")
+    else:
+        pass  # Running, or ended on the expected level.
+    return problems
+
+
+def leaderboard_problems(scenario, session):
+    """Every leaderboard's attempts must end as the scenario states, each judged by
+    attempt_problems; returns the problems and a line per attempt for the verdict."""
+    by_title = defaultdict(list)
+    for event in session.leaderboard_events:
+        by_title[event.title].append(event)
+    stages = {lb.title: (lb.level_id, lb.opening) for lb in session.leaderboards}
+    problems, lines = [], []
+    for title in sorted(set(by_title) | set(scenario.leaderboards)):
+        found = attempts(by_title[title])
+        outcomes = tuple(attempt.outcome for attempt in found)
+        wanted = tuple(scenario.leaderboards.get(title, ()))
+        if outcomes != wanted:
+            problems.append(f"{title}: attempts {outcomes}, expected {wanted}")
+        else:
+            pass  # As many attempts as expected, each ending as expected.
+        for attempt in found:
+            problems += attempt_problems(title, attempt, *stages[title], session)
+            start_clock = attempt.start.clock if attempt.start else None
+            lines.append(
+                f"{title}: started at clock {start_clock}, {attempt.outcome} with "
+                f"{attempt.last.value} frames on lid {attempt.last.level_id:#x}"
+            )
+    return problems, lines
+
+
 def on_expected_level(trigger, expected):
     """`expected` maps a title to its lid; an unexpected title is never on its level."""
     return expected.get(trigger.title) == trigger.level_id
@@ -750,7 +1091,8 @@ def run(name, core):
     Every expected achievement must fire exactly once, while the game shows its expected lid, and
     nothing else may fire: a trigger on another level fails even when its title was expected.
     Every expected rich presence pattern must match a string shown on the way, and no string
-    shown may match a `never` pattern.
+    shown may match a `never` pattern. Every leaderboard attempt must end as the scenario states
+    and pass attempt_problems.
     """
     scenario = SCENARIOS[name]
     session = Session(name, state=scenario.start, core=core)
@@ -761,7 +1103,14 @@ def run(name, core):
     off_level = [trigger for trigger in triggers if not on_expected_level(trigger, expected)]
     on_level = sorted(trigger.title for trigger in triggers if on_expected_level(trigger, expected))
     missing, broken = presence_problems(scenario, session.presence)
-    passed = not off_level and on_level == sorted(expected) and not missing and not broken
+    leaderboard_failures, leaderboard_lines = leaderboard_problems(scenario, session)
+    passed = (
+        not off_level
+        and on_level == sorted(expected)
+        and not missing
+        and not broken
+        and not leaderboard_failures
+    )
     verdict = "OK" if passed else "FAIL"
     wanted = [f"{title} on lid {lid:#x}" for title, lid in sorted(expected.items())]
     fired = [
@@ -770,9 +1119,12 @@ def run(name, core):
     ]
     for frame, text in session.presence:
         print(f"  presence frame {frame}: {text}")
+    for line in leaderboard_lines:
+        print(f"  leaderboard {line}")
     print(
         f"{verdict} {name}: expected {wanted}; triggered {fired}; "
-        f"presence never shown {missing}; broken presence {broken}"
+        f"presence never shown {missing}; broken presence {broken}; "
+        f"leaderboard problems {leaderboard_failures}"
     )
     return passed
 

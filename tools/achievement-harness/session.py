@@ -1,5 +1,5 @@
-"""A traced play session: emulator + the repo's achievements and rich presence + per-frame CSV +
-event log + shots.
+"""A traced play session: emulator + the repo's achievements, leaderboards and rich presence +
+per-frame CSV + event log + shots.
 
 Writes `.cache/achievement-harness/traces/<name>.csv` (one row per frame, every probe),
 `traces/<name>.events.log` (every probe change, every rcheevos event, free-text notes) and
@@ -13,7 +13,22 @@ import achievements
 import navigation
 import states
 from harness import DEFAULT_CORE, TRIGGERED, Emu
-from probes import ALL, NOISY, format_value
+from probes import (
+    ALL,
+    FIXED_POINT_SHIFT,
+    GAME_STATE,
+    GAME_STATE_PLAYING,
+    NO_CONTROL_STATE_FLAG,
+    NOISY,
+    PAUSED,
+    PAUSED_ON,
+    PBAK_STATE,
+    PLAYER_POINTER,
+    RESPAWN_COUNT,
+    format_value,
+    in_a_stage,
+    player_state_flags,
+)
 from provision import SHOTS_DIR, TRACES_DIR
 
 MAX_AUTO_SHOTS = 120
@@ -21,6 +36,21 @@ MAX_SHOT_LABEL_CHARS = 80
 FRAME_DIGITS = 6
 MASK_HEX_DIGITS = 4
 RICH_PRESENCE = "rich_presence"
+NO_DEMO = 0
+NO_RESPAWN = 0
+INTRO = achievements.leaderboard_seed().INTRO
+SPIN_IN = achievements.leaderboard_seed().SPIN_IN
+# rcheevos leaderboard events, by the name the event log uses; UPDATED fires on nearly every frame
+# of a timed run, so it only feeds the latest value and stays out of the log.
+LEADERBOARD_EVENTS = {
+    "LBOARD_STARTED": "started",
+    "LBOARD_UPDATED": "updated",
+    "LBOARD_CANCELED": "canceled",
+    "LBOARD_TRIGGERED": "submitted",
+}
+QUIET_EVENTS = {"LBOARD_UPDATED"}
+# A state load puts every leaderboard back to waiting without an event of its own.
+STATE_LOADED = "reset"
 SCREENSHOT_ON_CHANGE = {
     "r6188d",
     "r61994",
@@ -51,15 +81,78 @@ class Trigger:
     level_id: int  # the lid the game shows on the trigger frame
 
 
+@dataclass(frozen=True)
+class LeaderboardEvent:
+    kind: str  # LEADERBOARD_EVENTS value, or STATE_LOADED
+    title: str
+    clock: int  # Session.clock: frames since the session started, across state loads
+    value: int  # the value rcheevos reports (0 on a cancel)
+    level_id: int
+    game_state: int
+    played: int  # Session.played on that frame
+
+
+def player_in_play(emu):
+    """The frames a fastest-clear run should count: the player in a stage (not an attract demo),
+    the game state playing, the pause menu closed."""
+    return (
+        in_a_stage(emu)
+        and emu.u32(GAME_STATE) == GAME_STATE_PLAYING
+        and emu.s32(PBAK_STATE) == NO_DEMO
+        and emu.u8(PAUSED) != PAUSED_ON
+    )
+
+
+def player_object(emu):
+    """`(pointer, opening)` of the player object in a stage, outside an attract demo and before
+    any respawn, `opening` while its state flags carry NO_CONTROL_STATE_FLAG (the state that opens
+    the stage); None elsewhere."""
+    flags = player_state_flags(emu)
+    if (
+        flags is None
+        or emu.s32(PBAK_STATE) != NO_DEMO
+        or emu.s32(RESPAWN_COUNT) >> FIXED_POINT_SHIFT != NO_RESPAWN
+    ):
+        return None
+    return emu.u24(PLAYER_POINTER), bool(flags & NO_CONTROL_STATE_FLAG)
+
+
+def handovers(previous, current):
+    """The stage openings (the leaderboard seed's INTRO, SPIN_IN) that hand Crash to the player
+    on a frame, from `(game state playing, player_object)` of the previous frame and of this one.
+
+    An intro hands him over when the game state turns playing; a spin-in when the same player
+    object leaves its opening state.
+    """
+    playing, player = current
+    previous_playing, previous_player = previous
+    if not playing or player is None:
+        return []
+    found = []
+    if not previous_playing:
+        found.append(INTRO)
+    else:
+        pass  # The game state was already playing.
+    if previous_player is not None and previous_player[0] == player[0]:
+        if previous_player[1] and not player[1]:
+            found.append(SPIN_IN)
+        else:
+            pass  # Still in, or already out of, the opening state.
+    else:
+        pass  # A new player object: no previous state of its own.
+    return found
+
+
 class Tracer:
     """Frame hook: one CSV row per frame from named probes, plus a change and event log."""
 
-    def __init__(self, name, probes, quiet, on_change):
+    def __init__(self, name, probes, quiet, on_change, on_event):
         TRACES_DIR.mkdir(parents=True, exist_ok=True)
         self.probes = probes
         self.names = [probe_name for probe_name, _reader in probes]
         self.quiet = quiet
         self.on_change = on_change
+        self.on_event = on_event
         self.csv_file = (TRACES_DIR / f"{name}.csv").open("w", newline="", encoding="utf-8")
         self.writer = csv.writer(self.csv_file)
         self.writer.writerow(["frame", "input", *self.names])
@@ -86,7 +179,11 @@ class Tracer:
                     )
             self.on_change(emu, self.previous, values)
         for frame, event, runtime_id, value in emu.events():
-            self.event_log.write(f"{frame}\tRCHEEVOS\t{event} id={runtime_id} value={value}\n")
+            if event not in QUIET_EVENTS:
+                self.event_log.write(f"{frame}\tRCHEEVOS\t{event} id={runtime_id} value={value}\n")
+            else:
+                pass  # The latest value still reaches on_event.
+            self.on_event(emu, event, runtime_id, value)
         self.previous = values
 
     def close(self):
@@ -102,6 +199,19 @@ class Session:
             states.load(self.emu, state)
         self.definitions = achievements.definitions()
         self.titles = {definition.runtime_id: definition.title for definition in self.definitions}
+        self.leaderboards = achievements.leaderboard_definitions()
+        self.leaderboard_titles = {lb.runtime_id: lb.title for lb in self.leaderboards}
+        for leaderboard in self.leaderboards:
+            self.emu.activate_leaderboard(leaderboard.runtime_id, leaderboard.mem_addr)
+        self.leaderboard_events = []
+        # A monotonic frame count (emu.frame restarts on a state load), the frames of play so
+        # far (player_in_play) and the frames where a stage's opening handed Crash to the player
+        # (handovers).
+        self.clock = 0
+        self.played = 0
+        self.handovers = []  # (clock, lid, opening)
+        self._previous = (False, None)
+        self._last_frame = self.emu.frame
         self.emu.activate_rich_presence(achievements.rich_presence())
         self.presence = []  # (frame, display string) on every change
         probes = [*ALL, (RICH_PRESENCE, lambda emu: emu.rich_presence())]
@@ -118,8 +228,9 @@ class Session:
             stale.unlink()
         self.shots_taken = 0
         self.triggers = []
-        self.tracer = Tracer(self.name, probes, quiet, self._on_change)
+        self.tracer = Tracer(self.name, probes, quiet, self._on_change, self._on_event)
         self.emu.frame_hooks.append(self._record_presence)
+        self.emu.frame_hooks.append(self._track_play)
         self.emu.frame_hooks.append(self.tracer)
         self.note(
             f"session {self.name} from {state or 'cold boot'}; core {self.emu.core_version}; "
@@ -138,6 +249,51 @@ class Session:
         text = emu.rich_presence()
         if not self.presence or self.presence[-1][1] != text:
             self.presence.append((emu.frame, text))
+
+    def _track_play(self, emu):
+        self.clock += 1
+        if emu.frame <= self._last_frame:
+            # emu.frame restarts on a state load; `played` still holds the frames before it.
+            for leaderboard in self.leaderboards:
+                self.leaderboard_events.append(
+                    LeaderboardEvent(
+                        STATE_LOADED,
+                        leaderboard.title,
+                        self.clock,
+                        0,
+                        navigation.level_id(emu),
+                        emu.u32(GAME_STATE),
+                        self.played,
+                    )
+                )
+        else:
+            pass  # The emulation ran on.
+        self._last_frame = emu.frame
+        if player_in_play(emu):
+            self.played += 1
+        else:
+            pass  # Menus, loads, the clear, the pause menu.
+        current = (emu.u32(GAME_STATE) == GAME_STATE_PLAYING, player_object(emu))
+        for opening in handovers(self._previous, current):
+            self.handovers.append((self.clock, navigation.level_id(emu), opening))
+        self._previous = current
+
+    def _on_event(self, emu, event, runtime_id, value):
+        kind = LEADERBOARD_EVENTS.get(event)
+        if kind is None:
+            return  # An achievement event: triggers are read off the achievement states.
+        title = self.leaderboard_titles[runtime_id]
+        level_id = navigation.level_id(emu)
+        self.leaderboard_events.append(
+            LeaderboardEvent(
+                kind, title, self.clock, value, level_id, emu.u32(GAME_STATE), self.played
+            )
+        )
+        if kind != "updated":
+            self.note(f"LEADERBOARD {kind} {title!r} value {value} on lid {level_id:#x}")
+            self.shot(f"LEADERBOARD-{kind}-lb{runtime_id}")
+        else:
+            pass  # Nearly every frame of a run: kept for the judge, neither noted nor shot.
 
     def _on_change(self, emu, old, new):
         for runtime_id, title in self.titles.items():
