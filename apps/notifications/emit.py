@@ -38,11 +38,17 @@ def _achievement_params(title, set_title):
         return {"achievement": title}
 
 
-def _set_title(game):
-    if game.is_subset:
-        return game.set_title
-    else:
+def subset_title(set_type, set_title):
+    """The title a notification names a set by: a subset's, none for a core set, which may keep
+    a `set_title` from when it was a subset."""
+    if set_type is None:
         return ""
+    else:
+        return set_title
+
+
+def _set_title(game):
+    return subset_title(game.set_type, game.set_title)
 
 
 def notify_comment(comment):
