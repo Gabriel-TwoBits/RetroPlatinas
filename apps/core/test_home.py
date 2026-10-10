@@ -401,3 +401,60 @@ def test_home_empty_states_are_translated_to_brazilian_portuguese(client):
 
     assert "Nenhum set oficial ainda" in body
     assert "Nenhum desbloqueio ainda" in body
+
+
+# --- Purpose copy ---
+
+
+def _hero(body):
+    return body[body.index("<section") : body.index("</section>")]
+
+
+@pytest.mark.django_db
+def test_hero_says_the_core_set_is_the_normal_100_and_challenges_are_opt_in(client):
+    body = _get(client).content.decode()
+
+    assert "<title>RetroPlatinas — retro achievement sets anyone can start</title>" in body
+    hero = _hero(body)
+    assert "Retro achievement sets anyone can start." in hero
+    assert "core set is its normal 100%" in hero
+    assert "without walls of missables and grinds" in hero
+    assert "Each one stays off until you turn it on." in hero
+
+
+@pytest.mark.django_db
+def test_hero_is_translated_to_brazilian_portuguese(client):
+    body = _get(client, "pt-br").content.decode()
+
+    assert (
+        "<title>RetroPlatinas — sets de conquistas retrô que qualquer um pode começar</title>"
+        in (body)
+    )
+    hero = _hero(body)
+    assert "Sets de conquistas retrô que qualquer um pode começar." in hero
+    assert "o 100% normal dele" in hero
+    assert "Cada um fica desligado até você ligar." in hero
+
+
+@pytest.mark.django_db
+def test_home_describes_the_purpose_to_search_engines(client):
+    body = _get(client).content.decode()
+
+    assert '<meta name="description" content="Retro achievement sets anyone can start:' in body
+
+
+@pytest.mark.django_db
+def test_how_to_contribute_points_writers_to_the_set_guidance(client):
+    section = _section(_get(client).content.decode(), "How to contribute")
+
+    assert "Write achievements" in section
+    assert "the challenges in a subset" in section
+    assert 'href="/docs/creating-achievements/"' in section
+    assert "No gatekeeping" not in section
+
+
+@pytest.mark.django_db
+def test_how_to_start_says_subsets_wait_for_the_player(client):
+    section = _section(_get(client).content.decode(), "How to start playing")
+
+    assert "The core set loads on its own. Subsets wait until you turn them on." in section

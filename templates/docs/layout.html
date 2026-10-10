@@ -6,6 +6,7 @@
 {% endcomment %}
 
 {% block title %}{% if doc_page %}{{ doc_page.title }}{% else %}{% trans "Documentation" %}{% endif %} — RetroPlatinas{% endblock %}
+{% block meta_description %}{% if doc_page %}{{ doc_page.summary }}{% else %}{% trans "How to play on RetroPlatinas and how to write its achievements: the core set holds a game's normal 100%, and subsets hold the challenges." %}{% endif %}{% endblock %}
 
 {% block content %}
 <div class="mx-auto flex max-w-5xl flex-col gap-8 px-4 py-8 lg:flex-row lg:gap-12">

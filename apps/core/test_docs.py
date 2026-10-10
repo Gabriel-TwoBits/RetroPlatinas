@@ -1,5 +1,6 @@
 """The /docs/ pages: every page in both languages, the docs navigation and the FAQ's discs."""
 
+import html
 import re
 
 import pytest
@@ -20,7 +21,10 @@ TITLES = {
     DOCS: ("Documentation", "Documentação"),
     "/docs/getting-started/": ("How to start playing", "Como começar a jogar"),
     "/docs/creating-achievements/": ("Creating achievements", "Criando conquistas"),
-    "/docs/statuses-and-contributing/": ("Statuses and contributing", "Status e como contribuir"),
+    "/docs/statuses-and-contributing/": (
+        "Statuses, sets and contributing",
+        "Status, sets e como contribuir",
+    ),
     "/docs/leaderboards-and-rich-presence/": (
         "Leaderboards and rich presence",
         "Placares e rich presence",
@@ -150,3 +154,90 @@ def test_statuses_page_shows_the_site_status_chips_in_brazilian_portuguese(clien
     )
     for label in ("Oficial", "Não oficial"):
         assert f"{label}</span>" in article
+
+
+def _meta_description(body):
+    match = re.search(r'<meta name="description" content="([^"]*)">', body)
+    assert match, "meta description missing"
+    return html.unescape(match.group(1))
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("page", DOC_PAGES, ids=lambda page: page.slug)
+def test_each_docs_page_describes_itself_with_its_summary(client, page):
+    body = client.get(f"/docs/{page.slug}/", HTTP_ACCEPT_LANGUAGE="en").content.decode()
+    assert _meta_description(body) == str(page.summary)
+
+
+@pytest.mark.django_db
+def test_docs_index_describes_the_core_set_and_subsets(client):
+    body = client.get(DOCS, HTTP_ACCEPT_LANGUAGE="en").content.decode()
+    assert "the core set holds a game's normal 100%" in _meta_description(body)
+
+
+@pytest.mark.django_db
+def test_creating_achievements_says_what_belongs_in_each_set(client):
+    article = _article(
+        client.get("/docs/creating-achievements/", HTTP_ACCEPT_LANGUAGE="en").content.decode()
+    )
+    for set_name in (
+        "Core set",
+        "Bonus subset",
+        "Challenge subset",
+        "Specialty subset",
+        "Exclusive subset",
+    ):
+        assert f">{set_name}</dt>" in article
+    assert "If they would not, the achievement belongs in a subset." in article
+    assert "Staff add subsets." in article
+
+
+@pytest.mark.django_db
+def test_creating_achievements_set_guidance_is_in_brazilian_portuguese(client):
+    article = _article(
+        client.get("/docs/creating-achievements/", HTTP_ACCEPT_LANGUAGE="pt-br").content.decode()
+    )
+    for set_name in (
+        "Set principal",
+        "Subset bônus",
+        "Subset de desafio",
+        "Subset especial",
+        "Subset exclusivo",
+    ):
+        assert f">{set_name}</dt>" in article
+    assert "O 100% normal do jogo" in article
+
+
+@pytest.mark.django_db
+def test_getting_started_explains_the_core_set_and_the_subset_opt_in(client):
+    article = _article(
+        client.get("/docs/getting-started/", HTTP_ACCEPT_LANGUAGE="en").content.decode()
+    )
+    assert "Core set and subsets" in article
+    assert "core set is its normal 100%" in article
+    assert "turn on Play this subset" in article
+
+
+@pytest.mark.django_db
+def test_statuses_page_explains_the_sets_and_the_platinum(client):
+    article = _article(
+        client.get("/docs/statuses-and-contributing/", HTTP_ACCEPT_LANGUAGE="en").content.decode()
+    )
+    assert "A game has one core set, its normal 100%" in article
+    assert "A bonus or challenge subset is opt-in" in article
+    assert "Points from every set count on profiles and in the ranking." in article
+    assert 'href="/docs/creating-achievements/"' in article
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    ("language", "questions"),
+    [
+        ("en", ("What is a subset?", "How do I play a subset?", "What counts for the platinum?")),
+        ("pt-br", ("O que é um subset?", "Como jogar um subset?", "O que conta para o platinado?")),
+    ],
+)
+def test_faq_answers_subsets_opting_in_and_the_platinum(client, language, questions):
+    article = _article(client.get(FAQ, HTTP_ACCEPT_LANGUAGE=language).content.decode())
+    for question in questions:
+        assert question in article

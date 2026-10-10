@@ -1,7 +1,7 @@
 {% extends "docs/layout.html" %}
 {% load i18n %}
 
-{% block doc_intro %}{% trans "Every achievement is official or unofficial: its status decides whether unlocking it is recorded and worth points. Sets grow from players writing, testing and reviewing them." %}{% endblock %}
+{% block doc_intro %}{% trans "Every achievement is official or unofficial, and belongs to a game's core set or to one of its subsets. Its status decides whether unlocking it is recorded and worth points; its set decides who plays it. Sets grow from players writing, testing and reviewing them." %}{% endblock %}
 
 {% block doc_body %}
   <div class="mt-8">
@@ -27,6 +27,16 @@
   </div>
 
   <div class="mt-10">
+    {% include "components/section-heading.html" with title=_("Sets") %}
+    <ul class="mt-1">
+      <li class="border-t border-line py-3 text-sm leading-relaxed text-txt-muted first:border-t-0">{% trans "A game has one core set, its normal 100%, which every player gets. Challenges go in its subsets: bonus, challenge, specialty and exclusive." %}</li>
+      <li class="border-t border-line py-3 text-sm leading-relaxed text-txt-muted first:border-t-0">{% trans "A bonus or challenge subset is opt-in: each player turns it on in its section of the game page. A specialty or exclusive subset plays when its own disc is loaded." %}</li>
+      <li class="border-t border-line py-3 text-sm leading-relaxed text-txt-muted first:border-t-0">{% trans "The platinum is every official achievement of the core set unlocked in hardcore. A subset completed in hardcore earns its own Completed seal. Points from every set count on profiles and in the ranking." %}</li>
+    </ul>
+    <a href="{% url 'docs_page' 'creating-achievements' %}" class="mt-1 inline-block font-data text-xs text-brand">{% trans "Which set an achievement belongs in →" %}</a>
+  </div>
+
+  <div class="mt-10">
     {% include "components/section-heading.html" with title=_("How to contribute") accent="gold" %}
     <ol class="mt-4 flex flex-col gap-6 border-l-2 border-brand-dim pl-4">
       <li>
@@ -35,7 +45,7 @@
       </li>
       <li>
         <h3 class="font-display text-base font-semibold text-txt"><span class="mr-2 font-data text-brand">2</span>{% trans "Write and test it unofficial" %}</h3>
-        <p class="mt-1 text-sm leading-relaxed text-txt-muted">{% trans "Follow the creating achievements guide, and test it in the game before making it official." %}</p>
+        <p class="mt-1 text-sm leading-relaxed text-txt-muted">{% trans "Follow the creating achievements guide: put it in the core set or a subset, and test it in the game before making it official." %}</p>
         <a href="{% url 'docs_page' 'creating-achievements' %}" class="mt-1 inline-block font-data text-xs text-brand">{% trans "Creating achievements →" %}</a>
       </li>
       <li>

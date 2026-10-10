@@ -47,18 +47,24 @@ DOC_PAGES = (
     DocPage(
         GETTING_STARTED,
         _("How to start playing"),
-        _("Create an account, point DuckStation at this site, log in and play."),
+        _("Create an account, point DuckStation at this site, log in and play the core set."),
         _getting_started_context,
     ),
     DocPage(
         "creating-achievements",
         _("Creating achievements"),
-        _("Write a condition in the web editor, test it unofficial and make it official."),
+        _(
+            "Choose the set an achievement belongs in, write its condition, test it unofficial "
+            "and make it official."
+        ),
     ),
     DocPage(
         "statuses-and-contributing",
-        _("Statuses and contributing"),
-        _("What official and unofficial mean, and how code notes help a set."),
+        _("Statuses, sets and contributing"),
+        _(
+            "What official and unofficial mean, how a core set and its subsets fit together, "
+            "and how code notes help."
+        ),
         _statuses_context,
     ),
     DocPage(
@@ -69,7 +75,10 @@ DOC_PAGES = (
     DocPage(
         "faq",
         _("Frequently asked questions"),
-        _("Supported discs, achievements that did not unlock, hardcore and softcore."),
+        _(
+            "Supported discs, subsets and the platinum, achievements that did not unlock, "
+            "hardcore and softcore."
+        ),
         _faq_context,
     ),
 )

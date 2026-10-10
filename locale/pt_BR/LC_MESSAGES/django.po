@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RetroPlatinas\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-10 14:51-0300\n"
+"POT-Creation-Date: 2026-10-10 15:00-0300\n"
 "PO-Revision-Date: 2026-05-23 18:15-0300\n"
 "Last-Translator: RetroPlatinas\n"
 "Language-Team: Brazilian Portuguese\n"
@@ -225,6 +225,7 @@ msgid "%(title)s (%(type)s subset)"
 msgstr "%(title)s (subset %(type)s)"
 
 #: apps/achievements/forms.py:118 apps/games/page.py:56
+#: templates/docs/creating-achievements.html:13
 msgid "Core set"
 msgstr "Set principal"
 
@@ -378,8 +379,8 @@ msgstr "revisões de conquista"
 #: templates/accounts/partials/identity-header.html:64
 #: templates/accounts/partials/sec-recent-unlocks.html:15
 #: templates/feed/partials/feed-list.html:14
-#: templates/games/partials/achievement-row.html:18 templates/home.html:69
-#: templates/home.html:142
+#: templates/games/partials/achievement-row.html:18 templates/home.html:75
+#: templates/home.html:149
 msgid "hardcore"
 msgstr "hardcore"
 
@@ -398,8 +399,8 @@ msgstr "desbloqueios de usuário"
 #: apps/achievements/models.py:390
 #: templates/accounts/partials/identity-header.html:64
 #: templates/accounts/partials/sec-recent-unlocks.html:15
-#: templates/games/partials/achievement-row.html:18 templates/home.html:70
-#: templates/home.html:142
+#: templates/games/partials/achievement-row.html:18 templates/home.html:76
+#: templates/home.html:149
 msgid "softcore"
 msgstr "softcore"
 
@@ -565,54 +566,55 @@ msgstr "comentário"
 msgid "comments"
 msgstr "comentários"
 
-#: apps/core/docs.py:49 templates/home.html:106
+#: apps/core/docs.py:49 templates/home.html:112
 msgid "How to start playing"
 msgstr "Como começar a jogar"
 
 #: apps/core/docs.py:50
-msgid "Create an account, point DuckStation at this site, log in and play."
-msgstr "Crie uma conta, aponte o DuckStation para este site, entre e jogue."
+msgid ""
+"Create an account, point DuckStation at this site, log in and play the core "
+"set."
+msgstr "Crie uma conta, aponte o DuckStation para este site, entre e jogue o set principal."
 
 #: apps/core/docs.py:55
 msgid "Creating achievements"
 msgstr "Criando conquistas"
 
-#: apps/core/docs.py:56
+#: apps/core/docs.py:57
 msgid ""
-"Write a condition in the web editor, test it unofficial and make it official."
-msgstr ""
-"Escreva uma condição no editor do site, teste enquanto ela é não oficial e "
-"torne-a oficial."
+"Choose the set an achievement belongs in, write its condition, test it "
+"unofficial and make it official."
+msgstr "Escolha em qual set a conquista entra, escreva a condição dela, teste enquanto ela é não oficial e torne-a oficial."
 
-#: apps/core/docs.py:60
-msgid "Statuses and contributing"
-msgstr "Status e como contribuir"
+#: apps/core/docs.py:63
+msgid "Statuses, sets and contributing"
+msgstr "Status, sets e como contribuir"
 
-#: apps/core/docs.py:61
-msgid "What official and unofficial mean, and how code notes help a set."
-msgstr ""
-"O que significam oficial e não oficial, e como as anotações de código ajudam "
-"um set."
+#: apps/core/docs.py:65
+msgid ""
+"What official and unofficial mean, how a core set and its subsets fit "
+"together, and how code notes help."
+msgstr "O que significam oficial e não oficial, como o set principal e os subsets se encaixam e como as anotações de código ajudam."
 
-#: apps/core/docs.py:66
+#: apps/core/docs.py:72
 msgid "Leaderboards and rich presence"
 msgstr "Placares e rich presence"
 
-#: apps/core/docs.py:67
+#: apps/core/docs.py:73
 msgid "How scores and times are ranked, and what the playing-now line shows."
 msgstr ""
 "Como pontuações e tempos são classificados, e o que mostra a linha de "
 "jogando agora."
 
-#: apps/core/docs.py:71
+#: apps/core/docs.py:77
 msgid "Frequently asked questions"
 msgstr "Perguntas frequentes"
 
-#: apps/core/docs.py:72
+#: apps/core/docs.py:79
 msgid ""
-"Supported discs, achievements that did not unlock, hardcore and softcore."
-msgstr ""
-"Discos suportados, conquistas que não desbloquearam, hardcore e softcore."
+"Supported discs, subsets and the platinum, achievements that did not unlock, "
+"hardcore and softcore."
+msgstr "Discos suportados, subsets e o platinado, conquistas que não desbloquearam, hardcore e softcore."
 
 #: apps/core/feed.py:15
 msgctxt "feed filter"
@@ -1262,7 +1264,7 @@ msgstr "#%(rank)s de %(players)s"
 msgid "unranked"
 msgstr "sem ranking"
 
-#: templates/accounts/partials/identity-header.html:53 templates/home.html:128
+#: templates/accounts/partials/identity-header.html:53 templates/home.html:135
 msgid "Playing now"
 msgstr "Jogando agora"
 
@@ -1300,7 +1302,7 @@ msgstr[1] "há %(days)s dias"
 #: templates/accounts/partials/panel-overview.html:14
 #: templates/accounts/partials/ranking-board.html:39
 #: templates/accounts/partials/sec-heat.html:11
-#: templates/games/partials/panel-achievements.html:22 templates/home.html:74
+#: templates/games/partials/panel-achievements.html:22 templates/home.html:80
 #, python-format
 msgid "%(shown)s pt"
 msgid_plural "%(shown)s pts"
@@ -1364,7 +1366,7 @@ msgstr[0] "%(shown)s jogador no ranking"
 msgstr[1] "%(shown)s jogadores no ranking"
 
 #: templates/accounts/partials/ranking-board.html:34
-#: templates/games/partials/results.html:21 templates/home.html:73
+#: templates/games/partials/results.html:21 templates/home.html:79
 #, python-format
 msgid "%(shown)s achievement"
 msgid_plural "%(shown)s achievements"
@@ -1426,7 +1428,7 @@ msgstr[1] "%(points)s pts"
 
 #: templates/accounts/partials/sec-recent-unlocks.html:22
 #: templates/accounts/partials/sec-recent-unlocks.html:24
-#: templates/feed/partials/feed-list.html:24 templates/home.html:171
+#: templates/feed/partials/feed-list.html:24 templates/home.html:178
 msgid "No unlocks yet"
 msgstr "Nenhum desbloqueio ainda"
 
@@ -1552,7 +1554,7 @@ msgstr "Visão geral"
 msgid "Awards"
 msgstr "Prêmios"
 
-#: templates/accounts/profile.html:31 templates/base.html:64
+#: templates/accounts/profile.html:31 templates/base.html:65
 #: templates/components/site-menu.html:8 templates/games/list.html:4
 #: templates/games/list.html:9 templates/home.html:7
 msgid "Games"
@@ -1563,7 +1565,7 @@ msgid "Progress"
 msgstr "Progresso"
 
 #: templates/accounts/ranking.html:4 templates/accounts/ranking.html:9
-#: templates/base.html:65 templates/components/site-menu.html:9
+#: templates/base.html:66 templates/components/site-menu.html:9
 #: templates/leaderboards/detail.html:34
 msgid "Ranking"
 msgstr "Ranking"
@@ -1581,7 +1583,7 @@ msgstr[1] ""
 "Jogadores ordenados pelos pontos das conquistas oficiais. Atualiza a cada "
 "%(minutes)s minutos."
 
-#: templates/accounts/register.html:8 templates/home.html:25
+#: templates/accounts/register.html:8 templates/home.html:26
 msgid "Create account"
 msgstr "Criar conta"
 
@@ -1628,7 +1630,7 @@ msgstr "Voltar às anotações de código"
 
 #: templates/achievements/code-notes.html:4
 #: templates/achievements/code-notes.html:10
-#: templates/docs/statuses-and-contributing.html:53
+#: templates/docs/statuses-and-contributing.html:63
 #: templates/games/detail.html:36
 msgid "Code notes"
 msgstr "Anotações de código"
@@ -1785,20 +1787,28 @@ msgstr "Nenhum campo mudou."
 msgid "No change recorded yet"
 msgstr "Nenhuma mudança registrada ainda"
 
-#: templates/base.html:41
+#: templates/base.html:8
+#, python-format
+msgid ""
+"Retro achievement sets anyone can start: each game's core set is its normal "
+"100%%, without walls of missables and grinds, and challenges are opt-in "
+"subsets."
+msgstr "Sets de conquistas retrô que qualquer um pode começar: o set principal de cada jogo é o 100%% normal dele, sem paredões de conquistas perdíveis e de grind, e os desafios ficam em subsets opcionais."
+
+#: templates/base.html:42
 msgid "Menu"
 msgstr "Menu"
 
-#: templates/base.html:66 templates/components/site-menu.html:10
+#: templates/base.html:67 templates/components/site-menu.html:10
 #: templates/feed/feed.html:4 templates/feed/feed.html:9
 msgid "Feed"
 msgstr "Feed"
 
-#: templates/base.html:67 templates/components/site-menu.html:12
+#: templates/base.html:68 templates/components/site-menu.html:12
 msgid "How to start"
 msgstr "Como começar"
 
-#: templates/base.html:68 templates/components/site-menu.html:13
+#: templates/base.html:69 templates/components/site-menu.html:13
 msgid "Docs"
 msgstr "Documentação"
 
@@ -1860,41 +1870,105 @@ msgstr "Mudar idioma"
 
 #: templates/docs/creating-achievements.html:4
 msgid ""
-"Every logged-in player can write achievements for a game on the site. A new "
-"achievement starts unofficial: it is never awarded, so you can test it in "
-"the emulator before it counts for anyone."
-msgstr ""
-"Todo jogador logado pode escrever conquistas para um jogo no site. Uma "
-"conquista nova começa não oficial: ela nunca é concedida, então dá para "
-"testá-la no emulador antes que ela conte para alguém."
+"Every logged-in player can write achievements for a game on the site. Put "
+"what the game asks of every player in its core set and the challenges in a "
+"subset. A new achievement starts unofficial: it is never awarded, so you can "
+"test it in the emulator before it counts for anyone."
+msgstr "Todo jogador logado pode escrever conquistas para um jogo no site. O que o jogo pede de todo jogador vai no set principal, e os desafios vão num subset. Uma conquista nova começa não oficial: ela nunca é concedida, então dá para testá-la no emulador antes que ela conte para alguém."
 
 #: templates/docs/creating-achievements.html:9
+msgid "Which set it belongs in"
+msgstr "Em qual set ela entra"
+
+#: templates/docs/creating-achievements.html:10
+msgid ""
+"A player who finishes the game normally should be able to earn the whole "
+"core set. If they would not, the achievement belongs in a subset."
+msgstr "Quem termina o jogo normalmente deve conseguir desbloquear o set principal inteiro. Se não for o caso, a conquista vai para um subset."
+
+#: templates/docs/creating-achievements.html:14
+#, python-format
+msgid ""
+"The game's normal 100%%: stages, bosses, story progress and the collectibles "
+"the game itself counts toward completion. Leave out what can be missed for "
+"good unless the game's own 100%% needs it, and mark that one Missable. In "
+"Crash Bandicoot: clearing each stage, beating a boss, collecting the clear "
+"gems."
+msgstr "O 100%% normal do jogo: fases, chefes, progresso da história e os coletáveis que o próprio jogo conta para a conclusão. Deixe de fora o que pode ser perdido para sempre, a não ser que o 100%% do próprio jogo exija; nesse caso, marque a conquista como Perdível. No Crash Bandicoot: passar cada fase, derrotar um chefe, pegar as gemas transparentes."
+
+#: templates/docs/creating-achievements.html:17
+msgid "Bonus subset"
+msgstr "Subset bônus"
+
+#: templates/docs/creating-achievements.html:18
+msgid ""
+"Extra challenges taken on while playing the game normally: beating a boss "
+"without getting hit, clearing a stage under a rule, maxing out a counter. In "
+"Crash Bandicoot: clearing N. Sanity Beach without picking up a Wumpa Fruit, "
+"reaching 99 lives."
+msgstr "Desafios extras encarados enquanto você joga normalmente: derrotar um chefe sem levar dano, passar uma fase seguindo uma regra, levar um contador ao máximo. No Crash Bandicoot: passar N. Sanity Beach sem pegar nenhuma Wumpa Fruit, chegar a 99 vidas."
+
+#: templates/docs/creating-achievements.html:21
+msgid "Challenge subset"
+msgstr "Subset de desafio"
+
+#: templates/docs/creating-achievements.html:22
+msgid ""
+"A whole run under one rule, which changes how the game is played from start "
+"to finish: a deathless run, a no-damage run, a single-character run."
+msgstr "Uma jogatina inteira sob uma regra, que muda o jeito de jogar do começo ao fim: terminar sem morrer, sem levar dano, com um só personagem."
+
+#: templates/docs/creating-achievements.html:25
+msgid "Specialty subset"
+msgstr "Subset especial"
+
+#: templates/docs/creating-achievements.html:26
+msgid ""
+"Content that needs another disc or version of the game and plays alongside "
+"the core set, such as levels only one regional release has."
+msgstr "Conteúdo que precisa de outro disco ou versão do jogo e é jogado junto com o set principal, como fases que só uma versão regional tem."
+
+#: templates/docs/creating-achievements.html:29
+msgid "Exclusive subset"
+msgstr "Subset exclusivo"
+
+#: templates/docs/creating-achievements.html:30
+msgid ""
+"A disc different enough to stand on its own, such as a prototype or a demo "
+"disc: loading it plays only that subset."
+msgstr "Um disco diferente o bastante para ficar sozinho, como um protótipo ou um disco de demonstração: ao carregá-lo, só esse subset é jogado."
+
+#: templates/docs/creating-achievements.html:33
+msgid ""
+"Staff add subsets. If a game has none of the kind you need, ask for one in "
+"the comments on its page."
+msgstr "A equipe cria os subsets. Se um jogo não tem o tipo de que você precisa, peça um nos comentários da página dele."
+
+#: templates/docs/creating-achievements.html:37
 msgid "From unofficial to official"
 msgstr "De não oficial a oficial"
 
-#: templates/docs/creating-achievements.html:12
+#: templates/docs/creating-achievements.html:40
 msgid "Open the editor"
 msgstr "Abra o editor"
 
-#: templates/docs/creating-achievements.html:13
+#: templates/docs/creating-achievements.html:41
 msgid ""
-"Log in, open the game's page and press New achievement. The editor asks for "
-"a title, a description, the points, the type, a badge image, the condition "
-"and the status."
-msgstr ""
-"Entre, abra a página do jogo e clique em Nova conquista. O editor pede um "
-"título, uma descrição, os pontos, o tipo, uma imagem de emblema, a condição "
-"e o status."
+"Log in, open the game's page and press New achievement, or New achievement "
+"in this subset in a subset's section. The editor asks for the set, a title, "
+"a description, the points, the type, a badge image, the condition and the "
+"status."
+msgstr "Entre, abra a página do jogo e clique em Nova conquista, ou em Nova conquista neste subset na seção de um subset. O editor pede o set, um título, uma descrição, os pontos, o tipo, uma imagem de emblema, a condição e o status."
 
-#: templates/docs/creating-achievements.html:14
+#: templates/docs/creating-achievements.html:42
 msgid "See the games →"
 msgstr "Ver os jogos →"
 
-#: templates/docs/creating-achievements.html:17
+#: templates/docs/creating-achievements.html:45
 msgid "Write the condition"
 msgstr "Escreva a condição"
 
-#: templates/docs/creating-achievements.html:18
+#: templates/docs/creating-achievements.html:46
 msgid ""
 "The condition (mem_addr) tells the emulator which memory values unlock the "
 "achievement. The syntax is the same as on RetroAchievements; the pointers "
@@ -1904,11 +1978,11 @@ msgstr ""
 "a conquista. A sintaxe é a mesma do RetroAchievements; as dicas abaixo "
 "cobrem o básico."
 
-#: templates/docs/creating-achievements.html:21
+#: templates/docs/creating-achievements.html:49
 msgid "Save it unofficial"
 msgstr "Salve como não oficial"
 
-#: templates/docs/creating-achievements.html:22
+#: templates/docs/creating-achievements.html:50
 msgid ""
 "On save, the editor checks the condition with the same rcheevos parser the "
 "emulators run and refuses a malformed one, showing the parser's reason. A "
@@ -1919,11 +1993,11 @@ msgstr ""
 "parser. Uma condição válida ainda pode estar errada: só o jogo prova que "
 "funciona."
 
-#: templates/docs/creating-achievements.html:25
+#: templates/docs/creating-achievements.html:53
 msgid "Test it in DuckStation"
 msgstr "Teste no DuckStation"
 
-#: templates/docs/creating-achievements.html:26
+#: templates/docs/creating-achievements.html:54
 msgid ""
 "Log in to DuckStation, turn on Test Unofficial Achievements in Settings → "
 "Achievements, then close the game and open it again: the emulator only "
@@ -1933,7 +2007,7 @@ msgstr ""
 "Achievements) em Configurações → Conquistas, depois feche o jogo e abra de "
 "novo: o emulador só busca as conquistas quando um jogo carrega."
 
-#: templates/docs/creating-achievements.html:27
+#: templates/docs/creating-achievements.html:55
 msgid ""
 "Unofficial achievements appear in the achievement list marked (Unofficial); "
 "the pause screen's counter only counts official ones. The pop-up fires when "
@@ -1945,7 +2019,7 @@ msgstr ""
 "aparece quando a condição é atendida, o que prova que ela funciona, mas uma "
 "conquista não oficial nunca é registrada nem vale pontos."
 
-#: templates/docs/creating-achievements.html:28
+#: templates/docs/creating-achievements.html:56
 msgid ""
 "An achievement of a bonus or challenge subset loads only after you turn on "
 "Play this subset in that subset's section of the game page."
@@ -1953,12 +2027,12 @@ msgstr ""
 "Uma conquista de um subset bônus ou de desafio só carrega depois que você "
 "ativa Jogar este subset na seção desse subset na página do jogo."
 
-#: templates/docs/creating-achievements.html:31
-#: templates/docs/statuses-and-contributing.html:42
+#: templates/docs/creating-achievements.html:59
+#: templates/docs/statuses-and-contributing.html:52
 msgid "Make it official"
 msgstr "Torne-a oficial"
 
-#: templates/docs/creating-achievements.html:32
+#: templates/docs/creating-achievements.html:60
 msgid ""
 "Back in the editor, set the status to Official. Every player then receives "
 "it as an official achievement, and unlocking it counts and scores."
@@ -1966,23 +2040,23 @@ msgstr ""
 "De volta ao editor, mude o status para Oficial. A partir daí todo jogador a "
 "recebe como conquista oficial, e desbloqueá-la conta e vale pontos."
 
-#: templates/docs/creating-achievements.html:33
+#: templates/docs/creating-achievements.html:61
 msgid "What each status means →"
 msgstr "O que cada status significa →"
 
-#: templates/docs/creating-achievements.html:39
-#: templates/docs/creating-achievements.html:71
+#: templates/docs/creating-achievements.html:67
+#: templates/docs/creating-achievements.html:99
 msgid "Condition syntax"
 msgstr "Sintaxe das condições"
 
-#: templates/docs/creating-achievements.html:40
+#: templates/docs/creating-achievements.html:68
 msgid ""
 "A condition compares memory values. These are the pieces most conditions use:"
 msgstr ""
 "Uma condição compara valores da memória. Estas são as peças que a maioria "
 "das condições usa:"
 
-#: templates/docs/creating-achievements.html:44
+#: templates/docs/creating-achievements.html:72
 msgid ""
 "The 8-bit value at address 0x1234. 0x is 16-bit, 0xW 24-bit and 0xX 32-bit; "
 "0xM to 0xT read single bits."
@@ -1990,15 +2064,15 @@ msgstr ""
 "O valor de 8 bits no endereço 0x1234. 0x é 16 bits, 0xW 24 bits e 0xX 32 "
 "bits; de 0xM a 0xT leem bits individuais."
 
-#: templates/docs/creating-achievements.html:48
+#: templates/docs/creating-achievements.html:76
 msgid "The delta: the value the address held on the previous frame."
 msgstr "O delta: o valor que o endereço tinha no quadro anterior."
 
-#: templates/docs/creating-achievements.html:52
+#: templates/docs/creating-achievements.html:80
 msgid "Joins conditions: all of them must be true on the same frame."
 msgstr "Junta condições: todas precisam ser verdadeiras no mesmo quadro."
 
-#: templates/docs/creating-achievements.html:56
+#: templates/docs/creating-achievements.html:84
 msgid ""
 "Starts an alternative group: the core conditions plus any one group must be "
 "true."
@@ -2006,7 +2080,7 @@ msgstr ""
 "Inicia um grupo alternativo: as condições principais e mais um grupo "
 "qualquer precisam ser verdadeiros."
 
-#: templates/docs/creating-achievements.html:60
+#: templates/docs/creating-achievements.html:88
 msgid ""
 "Flags before a condition: ResetIf clears every hit count when it is true, "
 "PauseIf suspends the check while it is true."
@@ -2014,7 +2088,7 @@ msgstr ""
 "Flags antes de uma condição: ResetIf zera todas as contagens de hits quando "
 "é verdadeira, PauseIf suspende a verificação enquanto é verdadeira."
 
-#: templates/docs/creating-achievements.html:64
+#: templates/docs/creating-achievements.html:92
 msgid ""
 "A hit count after a condition: it must be true on that many frames before it "
 "counts."
@@ -2022,7 +2096,7 @@ msgstr ""
 "Uma contagem de hits depois de uma condição: ela precisa ser verdadeira "
 "nessa quantidade de quadros antes de contar."
 
-#: templates/docs/creating-achievements.html:67
+#: templates/docs/creating-achievements.html:95
 msgid ""
 "For example, this condition fires on the frame the byte at 0x61998 changes "
 "from 0 to 1:"
@@ -2030,7 +2104,7 @@ msgstr ""
 "Por exemplo, esta condição dispara no quadro em que o byte em 0x61998 muda "
 "de 0 para 1:"
 
-#: templates/docs/creating-achievements.html:69
+#: templates/docs/creating-achievements.html:97
 msgid ""
 "RetroAchievements' developer documentation covers every size, prefix and "
 "flag:"
@@ -2038,27 +2112,27 @@ msgstr ""
 "A documentação de desenvolvedor do RetroAchievements cobre todos os "
 "tamanhos, prefixos e flags:"
 
-#: templates/docs/creating-achievements.html:72
+#: templates/docs/creating-achievements.html:100
 msgid "Why delta"
 msgstr "Por que delta"
 
-#: templates/docs/creating-achievements.html:73
+#: templates/docs/creating-achievements.html:101
 msgid "Hit counts"
 msgstr "Contagens de hits"
 
-#: templates/docs/creating-achievements.html:75
+#: templates/docs/creating-achievements.html:103
 msgid "Alt groups"
 msgstr "Grupos alternativos"
 
-#: templates/docs/creating-achievements.html:76
+#: templates/docs/creating-achievements.html:104
 msgid "All developer docs"
 msgstr "Toda a documentação de desenvolvedor"
 
-#: templates/docs/creating-achievements.html:81
+#: templates/docs/creating-achievements.html:109
 msgid "Good practices"
 msgstr "Boas práticas"
 
-#: templates/docs/creating-achievements.html:83
+#: templates/docs/creating-achievements.html:111
 msgid ""
 "Describe the moment something happens, not a state: compare the value with "
 "its delta, as in the example above. A plain comparison can be true for a "
@@ -2069,7 +2143,7 @@ msgstr ""
 "verdadeira por um quadro enquanto o jogo inicia e desbloquear a conquista ao "
 "carregar."
 
-#: templates/docs/creating-achievements.html:84
+#: templates/docs/creating-achievements.html:112
 msgid ""
 "Console memory is zeroed at reset, so a 0 often means the game is not "
 "running yet. Guard the condition with a value that is only non-zero during "
@@ -2079,7 +2153,7 @@ msgstr ""
 "que o jogo ainda não está rodando. Proteja a condição com um valor que só é "
 "diferente de zero durante o jogo, como um ponteiro."
 
-#: templates/docs/creating-achievements.html:85
+#: templates/docs/creating-achievements.html:113
 msgid ""
 "The emulator holds back an achievement whose condition is already true when "
 "the game loads. Test from a save state made before the moment it should fire."
@@ -2088,7 +2162,7 @@ msgstr ""
 "carrega. Teste a partir de um save state feito antes do momento em que ela "
 "deve disparar."
 
-#: templates/docs/creating-achievements.html:86
+#: templates/docs/creating-achievements.html:114
 msgid ""
 "Check each address you rely on: code notes describe what the community "
 "found, often on another region of the game."
@@ -2096,7 +2170,7 @@ msgstr ""
 "Confira cada endereço que você usa: as anotações de código descrevem o que a "
 "comunidade encontrou, muitas vezes em outra região do jogo."
 
-#: templates/docs/creating-achievements.html:87
+#: templates/docs/creating-achievements.html:115
 msgid ""
 "Every save keeps a revision. The History link on the game page shows them, "
 "and the author or staff can revert to one."
@@ -2129,10 +2203,47 @@ msgid "No disc registered yet"
 msgstr "Nenhum disco cadastrado ainda"
 
 #: templates/docs/faq.html:28
+msgid "What is a subset?"
+msgstr "O que é um subset?"
+
+#: templates/docs/faq.html:29
+#, python-format
+msgid ""
+"A game's core set is its normal 100%%: what the game itself asks of you to "
+"finish it. Challenges that go beyond it, such as a deathless run, a no-hit "
+"boss or a long grind, live in subsets, so you only play them if you want to. "
+"The game page lists each subset below the core set."
+msgstr "O set principal de um jogo é o 100%% normal dele: o que o próprio jogo pede para você terminá-lo. Desafios que vão além disso, como terminar sem morrer, vencer um chefe sem levar dano ou um grind longo, ficam em subsets, então você só joga se quiser. A página do jogo lista cada subset abaixo do set principal."
+
+#: templates/docs/faq.html:33
+msgid "How do I play a subset?"
+msgstr "Como jogar um subset?"
+
+#: templates/docs/faq.html:34
+msgid ""
+"Every subset starts off. Log in, open the game page and turn on Play this "
+"subset in the subset's section; it applies the next time you open the game "
+"in the emulator. Turn it off the same way. A specialty or exclusive subset "
+"has no switch: it plays when you load the disc it is made for."
+msgstr "Todo subset começa desligado. Entre, abra a página do jogo e ligue Jogar este subset na seção do subset; a mudança vale na próxima vez que você abrir o jogo no emulador. Para desligar, é o mesmo caminho. Um subset especial ou exclusivo não tem botão: ele é jogado quando você carrega o disco para o qual foi feito."
+
+#: templates/docs/faq.html:38
+msgid "What counts for the platinum?"
+msgstr "O que conta para o platinado?"
+
+#: templates/docs/faq.html:39
+msgid ""
+"Only the core set: unlock every official achievement of a game's core set in "
+"hardcore and the game is platinum. A subset completed in hardcore earns its "
+"own Completed seal instead. Points from every set count on your profile and "
+"in the ranking."
+msgstr "Só o set principal: desbloqueie em hardcore todas as conquistas oficiais do set principal de um jogo e ele fica platinado. Um subset concluído em hardcore ganha o próprio selo de Concluído. Os pontos de todos os sets contam no seu perfil e no ranking."
+
+#: templates/docs/faq.html:43
 msgid "Why did an achievement not unlock?"
 msgstr "Por que uma conquista não desbloqueou?"
 
-#: templates/docs/faq.html:30
+#: templates/docs/faq.html:45
 msgid ""
 "The emulator did not recognise the disc, so it loaded no achievements for "
 "it. Check that your disc is in the list above."
@@ -2140,7 +2251,7 @@ msgstr ""
 "O emulador não reconheceu o disco, então não carregou nenhuma conquista para "
 "ele. Confira se o seu disco está na lista acima."
 
-#: templates/docs/faq.html:31
+#: templates/docs/faq.html:46
 #, python-format
 msgid ""
 "The emulator is not connected to this site: check the Host in DuckStation's "
@@ -2151,7 +2262,13 @@ msgstr ""
 "DuckStation e se você está logado, como mostra o <a href=\"%(start_url)s\" "
 "class=\"text-brand\">guia de como começar</a>."
 
-#: templates/docs/faq.html:32
+#: templates/docs/faq.html:47
+msgid ""
+"It belongs to a bonus or challenge subset you have not turned on, or you "
+"turned it on while the game was open: close the game and open it again."
+msgstr "Ela é de um subset bônus ou de desafio que você não ligou, ou você ligou o subset com o jogo aberto: feche o jogo e abra de novo."
+
+#: templates/docs/faq.html:48
 msgid ""
 "It is unofficial: the emulator lists it only with Test Unofficial "
 "Achievements on, and an unofficial achievement is never recorded or worth "
@@ -2160,7 +2277,7 @@ msgstr ""
 "Ela é não oficial: o emulador só a lista com Testar Conquistas Não Oficiais "
 "ativado, e uma conquista não oficial nunca é registrada nem vale pontos."
 
-#: templates/docs/faq.html:33
+#: templates/docs/faq.html:49
 msgid ""
 "Its condition was already true when the game loaded, for example from a save "
 "state made after the moment: the emulator holds it back until the condition "
@@ -2170,7 +2287,7 @@ msgstr ""
 "partir de um save state feito depois do momento: o emulador a segura até a "
 "condição ficar falsa e verdadeira de novo."
 
-#: templates/docs/faq.html:34
+#: templates/docs/faq.html:50
 msgid ""
 "It changed after you opened the game: the emulator only fetches achievements "
 "when a game loads, so close the game and open it again."
@@ -2178,16 +2295,16 @@ msgstr ""
 "Ela mudou depois que você abriu o jogo: o emulador só busca as conquistas "
 "quando um jogo carrega, então feche o jogo e abra de novo."
 
-#: templates/docs/faq.html:35
+#: templates/docs/faq.html:51
 msgid ""
 "It has a bug. Tell its author in the comments on the achievement's page."
 msgstr "Ela tem um bug. Avise o autor nos comentários da página da conquista."
 
-#: templates/docs/faq.html:40
+#: templates/docs/faq.html:56
 msgid "Hardcore or softcore?"
 msgstr "Hardcore ou softcore?"
 
-#: templates/docs/faq.html:41
+#: templates/docs/faq.html:57
 msgid ""
 "Both are worth the same points, and the site shows each total apart. "
 "Hardcore turns off save states, cheats and rewind; an achievement unlocked "
@@ -2198,11 +2315,11 @@ msgstr ""
 "desbloqueada no hardcore também conta no softcore. Os placares só funcionam "
 "no hardcore."
 
-#: templates/docs/faq.html:45
+#: templates/docs/faq.html:61
 msgid "Do I need a RetroAchievements account?"
 msgstr "Preciso de uma conta no RetroAchievements?"
 
-#: templates/docs/faq.html:46
+#: templates/docs/faq.html:62
 msgid ""
 "No. RetroPlatinas speaks the same protocol as RetroAchievements, so the "
 "emulator works unchanged, but accounts, achievements and progress are "
@@ -2212,11 +2329,11 @@ msgstr ""
 "emulador funciona sem mudanças, mas contas, conquistas e progresso são "
 "separados: entre com a sua conta do RetroPlatinas."
 
-#: templates/docs/faq.html:50
+#: templates/docs/faq.html:66
 msgid "Can I use another emulator?"
 msgstr "Posso usar outro emulador?"
 
-#: templates/docs/faq.html:51
+#: templates/docs/faq.html:67
 msgid ""
 "Today DuckStation is the only emulator we test. Others built on rcheevos may "
 "work if they let you change the server address, but they are not supported."
@@ -2254,7 +2371,7 @@ msgstr ""
 msgid "You're already logged in as %(username)s."
 msgstr "Você já está conectado como %(username)s."
 
-#: templates/docs/getting-started.html:16 templates/home.html:92
+#: templates/docs/getting-started.html:16
 msgid "Create account →"
 msgstr "Criar conta →"
 
@@ -2315,18 +2432,38 @@ msgstr "Jogue"
 
 #: templates/docs/getting-started.html:37
 msgid ""
-"Load a game that has a set — today, Crash Bandicoot (PS1). Achievements pop "
-"up as you unlock them and show up on your profile."
-msgstr ""
-"Carregue um jogo que tenha um set — hoje, Crash Bandicoot (PS1). As "
-"conquistas aparecem na tela quando você as desbloqueia e vão para o seu "
-"perfil."
+"Load a game that has a set — today, Crash Bandicoot (PS1). Its core set "
+"loads on its own; achievements pop up as you unlock them and show up on your "
+"profile."
+msgstr "Carregue um jogo que tenha um set — hoje, Crash Bandicoot (PS1). O set principal carrega sozinho; as conquistas aparecem na tela quando você as desbloqueia e vão para o seu perfil."
 
 #: templates/docs/getting-started.html:43
+msgid "Core set and subsets"
+msgstr "Set principal e subsets"
+
+#: templates/docs/getting-started.html:44
+#, python-format
+msgid ""
+"A game's core set is its normal 100%%: what the game itself asks of you to "
+"finish it. Authors keep walls of missables and long grinds out of it, so you "
+"can start it without a guide. Every official achievement of the core set "
+"unlocked in hardcore earns the platinum."
+msgstr "O set principal de um jogo é o 100%% normal dele: o que o próprio jogo pede para você terminá-lo. Os autores deixam de fora paredões de conquistas perdíveis e grinds longos, então dá para começar sem guia. Desbloquear em hardcore todas as conquistas oficiais do set principal rende o platinado."
+
+#: templates/docs/getting-started.html:45
+msgid ""
+"Challenges such as deathless runs or no-hit bosses live in subsets, each "
+"with its own completion seal. A bonus or challenge subset stays off until "
+"you turn on Play this subset in its section of the game page; the change "
+"applies the next time you open the game in the emulator. A specialty or "
+"exclusive subset plays when you load the disc it is made for."
+msgstr "Desafios como terminar sem morrer ou vencer chefes sem levar dano ficam em subsets, cada um com o próprio selo de conclusão. Um subset bônus ou de desafio fica desligado até você ligar Jogar este subset na seção dele na página do jogo; a mudança vale na próxima vez que você abrir o jogo no emulador. Um subset especial ou exclusivo é jogado quando você carrega o disco para o qual foi feito."
+
+#: templates/docs/getting-started.html:49
 msgid "Hardcore mode"
 msgstr "Modo hardcore"
 
-#: templates/docs/getting-started.html:44
+#: templates/docs/getting-started.html:50
 msgid ""
 "Hardcore Mode, in the same Achievements settings, turns off save states, "
 "cheats and rewind. Unlocks earned that way carry the hardcore seal and are "
@@ -2336,7 +2473,7 @@ msgstr ""
 "states, cheats e rewind. Os desbloqueios feitos assim levam o selo hardcore "
 "e aparecem à parte dos softcore; eles valem os mesmos pontos."
 
-#: templates/docs/getting-started.html:45
+#: templates/docs/getting-started.html:51
 msgid ""
 "An achievement unlocked in hardcore also counts as unlocked in softcore, so "
 "its points go to both totals. One unlocked in softcore can still be earned "
@@ -2347,11 +2484,11 @@ msgstr ""
 "softcore ainda pode ser conquistada de novo no hardcore depois. Os placares "
 "só funcionam no hardcore."
 
-#: templates/docs/getting-started.html:49
+#: templates/docs/getting-started.html:55
 msgid "Softcore mode"
 msgstr "Modo softcore"
 
-#: templates/docs/getting-started.html:50
+#: templates/docs/getting-started.html:56
 msgid ""
 "With Hardcore Mode off you play in softcore: save states, cheats and rewind "
 "work, and unlocks count only toward your softcore total."
@@ -2359,7 +2496,7 @@ msgstr ""
 "Com o Modo Hardcore desligado você joga no softcore: save states, trapaças e "
 "rebobinar funcionam, e os desbloqueios contam só para o seu total softcore."
 
-#: templates/docs/getting-started.html:55
+#: templates/docs/getting-started.html:61
 #, python-format
 msgid ""
 "Something did not unlock? See the <a href=\"%(faq_url)s\" class=\"text-"
@@ -2368,16 +2505,19 @@ msgstr ""
 "Algo não desbloqueou? Veja as <a href=\"%(faq_url)s\" class=\"text-"
 "brand\">perguntas frequentes</a>."
 
-#: templates/docs/index.html:4
-msgid "Guides for playing on RetroPlatinas and for writing its achievements."
-msgstr "Guias para jogar no RetroPlatinas e para escrever as conquistas dele."
+#: templates/docs/index.html:4 templates/docs/layout.html:9
+#, python-format
+msgid ""
+"How to play on RetroPlatinas and how to write its achievements: the core set "
+"holds a game's normal 100%%, and subsets hold the challenges."
+msgstr "Como jogar no RetroPlatinas e como escrever as conquistas dele: o set principal guarda o 100%% normal de um jogo, e os subsets guardam os desafios."
 
 #: templates/docs/index.html:8
 msgid "Pages"
 msgstr "Páginas"
 
-#: templates/docs/layout.html:8 templates/docs/layout.html:12
-#: templates/docs/layout.html:13 templates/docs/layout.html:28
+#: templates/docs/layout.html:8 templates/docs/layout.html:13
+#: templates/docs/layout.html:14 templates/docs/layout.html:29
 msgid "Documentation"
 msgstr "Documentação"
 
@@ -2493,13 +2633,11 @@ msgstr "Rich presence na documentação do RetroAchievements"
 
 #: templates/docs/statuses-and-contributing.html:4
 msgid ""
-"Every achievement is official or unofficial: its status decides whether "
-"unlocking it is recorded and worth points. Sets grow from players writing, "
-"testing and reviewing them."
-msgstr ""
-"Toda conquista é oficial ou não oficial: o status decide se o desbloqueio é "
-"registrado e vale pontos. Os sets crescem com jogadores escrevendo, testando "
-"e revisando conquistas."
+"Every achievement is official or unofficial, and belongs to a game's core "
+"set or to one of its subsets. Its status decides whether unlocking it is "
+"recorded and worth points; its set decides who plays it. Sets grow from "
+"players writing, testing and reviewing them."
+msgstr "Toda conquista é oficial ou não oficial e pertence ao set principal de um jogo ou a um dos subsets dele. O status decide se o desbloqueio é registrado e vale pontos; o set decide quem a joga. Os sets crescem com jogadores escrevendo, testando e revisando conquistas."
 
 #: templates/docs/statuses-and-contributing.html:8
 msgid "Statuses"
@@ -2546,15 +2684,44 @@ msgstr ""
 "mas tira os pontos dela dos totais; torná-la oficial de novo volta a contá-"
 "los."
 
-#: templates/docs/statuses-and-contributing.html:30 templates/home.html:87
+#: templates/docs/statuses-and-contributing.html:30
+msgid "Sets"
+msgstr "Sets"
+
+#: templates/docs/statuses-and-contributing.html:32
+#, python-format
+msgid ""
+"A game has one core set, its normal 100%%, which every player gets. "
+"Challenges go in its subsets: bonus, challenge, specialty and exclusive."
+msgstr "Um jogo tem um set principal, o 100%% normal dele, que todo jogador recebe. Os desafios vão nos subsets: bônus, desafio, especial e exclusivo."
+
+#: templates/docs/statuses-and-contributing.html:33
+msgid ""
+"A bonus or challenge subset is opt-in: each player turns it on in its "
+"section of the game page. A specialty or exclusive subset plays when its own "
+"disc is loaded."
+msgstr "Um subset bônus ou de desafio é opcional: cada jogador o liga na seção dele na página do jogo. Um subset especial ou exclusivo é jogado quando o disco dele é carregado."
+
+#: templates/docs/statuses-and-contributing.html:34
+msgid ""
+"The platinum is every official achievement of the core set unlocked in "
+"hardcore. A subset completed in hardcore earns its own Completed seal. "
+"Points from every set count on profiles and in the ranking."
+msgstr "O platinado é ter todas as conquistas oficiais do set principal desbloqueadas em hardcore. Um subset concluído em hardcore ganha o próprio selo de Concluído. Os pontos de todos os sets contam nos perfis e no ranking."
+
+#: templates/docs/statuses-and-contributing.html:36
+msgid "Which set an achievement belongs in →"
+msgstr "Em qual set uma conquista entra →"
+
+#: templates/docs/statuses-and-contributing.html:40 templates/home.html:93
 msgid "How to contribute"
 msgstr "Como contribuir"
 
-#: templates/docs/statuses-and-contributing.html:33
+#: templates/docs/statuses-and-contributing.html:43
 msgid "Read the code notes"
 msgstr "Leia as anotações de código"
 
-#: templates/docs/statuses-and-contributing.html:34
+#: templates/docs/statuses-and-contributing.html:44
 msgid ""
 "Each game page links its code notes: what the community found at each memory "
 "address."
@@ -2562,23 +2729,21 @@ msgstr ""
 "Cada página de jogo leva às anotações de código dele: o que a comunidade "
 "encontrou em cada endereço de memória."
 
-#: templates/docs/statuses-and-contributing.html:37
+#: templates/docs/statuses-and-contributing.html:47
 msgid "Write and test it unofficial"
 msgstr "Escreva e teste como não oficial"
 
-#: templates/docs/statuses-and-contributing.html:38
+#: templates/docs/statuses-and-contributing.html:48
 msgid ""
-"Follow the creating achievements guide, and test it in the game before "
-"making it official."
-msgstr ""
-"Siga o guia de criação de conquistas e teste no jogo antes de torná-la "
-"oficial."
+"Follow the creating achievements guide: put it in the core set or a subset, "
+"and test it in the game before making it official."
+msgstr "Siga o guia de criação de conquistas: coloque-a no set principal ou num subset e teste no jogo antes de torná-la oficial."
 
-#: templates/docs/statuses-and-contributing.html:39
+#: templates/docs/statuses-and-contributing.html:49
 msgid "Creating achievements →"
 msgstr "Criando conquistas →"
 
-#: templates/docs/statuses-and-contributing.html:43
+#: templates/docs/statuses-and-contributing.html:53
 msgid ""
 "Once it fires at the right moment, make it official. Players can leave "
 "feedback in the comments on its page."
@@ -2586,11 +2751,11 @@ msgstr ""
 "Quando ela disparar no momento certo, torne-a oficial. Os jogadores podem "
 "deixar opiniões nos comentários da página dela."
 
-#: templates/docs/statuses-and-contributing.html:46
+#: templates/docs/statuses-and-contributing.html:56
 msgid "Share what you found"
 msgstr "Compartilhe o que você descobriu"
 
-#: templates/docs/statuses-and-contributing.html:47
+#: templates/docs/statuses-and-contributing.html:57
 msgid ""
 "Add a code note for every address you worked out, so the next author starts "
 "from it."
@@ -2598,7 +2763,7 @@ msgstr ""
 "Adicione uma anotação de código para cada endereço que você desvendou, para "
 "o próximo autor começar dali."
 
-#: templates/docs/statuses-and-contributing.html:55
+#: templates/docs/statuses-and-contributing.html:65
 msgid ""
 "A code note describes one memory address of a game: its size, the values it "
 "takes and what they mean."
@@ -2606,7 +2771,7 @@ msgstr ""
 "Uma anotação de código descreve um endereço de memória de um jogo: o "
 "tamanho, os valores que ele assume e o que eles significam."
 
-#: templates/docs/statuses-and-contributing.html:56
+#: templates/docs/statuses-and-contributing.html:66
 msgid ""
 "Anyone can read and search them. A logged-in player adds new ones; the "
 "author or staff edit or delete a note."
@@ -2614,7 +2779,7 @@ msgstr ""
 "Qualquer pessoa pode ler e buscar as anotações. Um jogador logado adiciona "
 "novas; o autor ou a equipe edita ou apaga uma anotação."
 
-#: templates/docs/statuses-and-contributing.html:57
+#: templates/docs/statuses-and-contributing.html:67
 msgid ""
 "Notes are a starting point, not the truth: many come from RetroAchievements "
 "and describe another region or revision of the game. Check each address in "
@@ -2655,7 +2820,7 @@ msgstr[1] ""
 msgid "Feed filter"
 msgstr "Filtro do feed"
 
-#: templates/feed/partials/feed-list.html:10 templates/home.html:164
+#: templates/feed/partials/feed-list.html:10 templates/home.html:171
 msgid "unlocked"
 msgstr "desbloqueou"
 
@@ -2676,11 +2841,11 @@ msgstr "Siga jogadores pelos perfis deles e os desbloqueios aparecem aqui."
 msgid "Find players in the ranking →"
 msgstr "Encontre jogadores no ranking →"
 
-#: templates/feed/partials/feed-list.html:24 templates/home.html:171
+#: templates/feed/partials/feed-list.html:24 templates/home.html:178
 msgid "As soon as someone plays, their unlocks show up here."
 msgstr "Assim que alguém jogar, os desbloqueios aparecem aqui."
 
-#: templates/feed/partials/feed-list.html:24 templates/home.html:171
+#: templates/feed/partials/feed-list.html:24 templates/home.html:178
 msgid "Be the first to play →"
 msgstr "Seja o primeiro a jogar →"
 
@@ -2805,11 +2970,11 @@ msgstr "Nenhum jogo corresponde a estes filtros"
 msgid "Clear the filters →"
 msgstr "Limpar os filtros →"
 
-#: templates/games/partials/results.html:33 templates/home.html:81
+#: templates/games/partials/results.html:33 templates/home.html:87
 msgid "No official sets yet"
 msgstr "Nenhum set oficial ainda"
 
-#: templates/games/partials/results.html:33 templates/home.html:81
+#: templates/games/partials/results.html:33 templates/home.html:87
 msgid "A game shows up here as soon as it has an official achievement."
 msgstr "Um jogo aparece aqui assim que tiver uma conquista oficial."
 
@@ -2830,62 +2995,77 @@ msgid "Add subset"
 msgstr "Adicionar subset"
 
 #: templates/home.html:4
-msgid "Home"
-msgstr "Início"
+msgid "retro achievement sets anyone can start"
+msgstr "sets de conquistas retrô que qualquer um pode começar"
 
 #: templates/home.html:9
 msgid "Players"
 msgstr "Jogadores"
 
 #: templates/home.html:19
-msgid "Achievements for retro games, truly open."
-msgstr "Conquistas para jogos retrô, abertas de verdade."
+msgid "Retro achievement sets anyone can start."
+msgstr "Sets de conquistas retrô que qualquer um pode começar."
 
 #: templates/home.html:20
+#, python-format
 msgid ""
-"RetroPlatinas adds achievements to classics running on an emulator. Play, "
-"unlock and show up on the board."
-msgstr ""
-"O RetroPlatinas adiciona conquistas a clássicos rodando em emulador. Jogue, "
-"desbloqueie e apareça no placar."
+"A game's core set is its normal 100%%: what the game itself asks of you to "
+"finish it, without walls of missables and grinds."
+msgstr "O set principal de um jogo é o 100%% normal dele: o que o próprio jogo pede para você terminá-lo, sem paredões de conquistas perdíveis e de grind."
 
 #: templates/home.html:21
+msgid ""
+"Deathless runs, no-hit bosses and other challenges live in subsets. Each one "
+"stays off until you turn it on."
+msgstr "Terminar sem morrer, vencer chefes sem levar dano e outros desafios ficam em subsets. Cada um fica desligado até você ligar."
+
+#: templates/home.html:22
 msgid "New project · under construction"
 msgstr "Projeto novo · em construção"
 
-#: templates/home.html:22
+#: templates/home.html:23
 msgid "We're new: every number on this page is real, however small."
 msgstr "Somos novos: cada número desta página é real, por menor que seja."
 
-#: templates/home.html:26
+#: templates/home.html:27
 msgid "See the games"
 msgstr "Ver os jogos"
 
-#: templates/home.html:37
+#: templates/home.html:38
 msgid "What's new"
 msgstr "Novidades"
 
-#: templates/home.html:41
+#: templates/home.html:42
 msgid "New set"
 msgstr "Novo set"
 
-#: templates/home.html:42
+#: templates/home.html:43
 msgid "First set: Crash Bandicoot (PS1)"
 msgstr "Primeiro set: Crash Bandicoot (PS1)"
 
-#: templates/home.html:43
+#: templates/home.html:44
 msgid "Our first set, with hardcore and softcore seals."
 msgstr "Nosso primeiro set, com selos hardcore e softcore."
 
-#: templates/home.html:47
+#: templates/home.html:48 templates/home.html:53
 msgid "Platform"
 msgstr "Plataforma"
 
-#: templates/home.html:48
+#: templates/home.html:49
+msgid "Core set and opt-in subsets"
+msgstr "Set principal e subsets opcionais"
+
+#: templates/home.html:50
+msgid ""
+"The platinum is the core set in hardcore. Challenges are subsets you turn on "
+"in the game page, each with its own seal."
+msgstr "O platinado é o set principal em hardcore. Os desafios são subsets que você liga na página do jogo, cada um com o próprio selo."
+
+#: templates/home.html:54
 msgid "Hardcore & softcore"
 msgstr "Hardcore & softcore"
 
-#: templates/home.html:49
+#: templates/home.html:55
 msgid ""
 "Unlocks without save states get the hardcore seal, shown apart from softcore "
 "ones."
@@ -2893,104 +3073,114 @@ msgstr ""
 "Desbloqueios sem save state ganham o selo hardcore, exibidos à parte dos "
 "softcore."
 
-#: templates/home.html:52
+#: templates/home.html:58
 msgid "Community"
 msgstr "Comunidade"
 
-#: templates/home.html:53
+#: templates/home.html:59
 msgid "Open source on Codeberg"
 msgstr "Código aberto no Codeberg"
 
-#: templates/home.html:54
+#: templates/home.html:60
 msgid "RetroPlatinas is AGPL-3.0. Issues and roadmap are public."
 msgstr "O RetroPlatinas é AGPL-3.0. Issues e roadmap são públicos."
 
-#: templates/home.html:60
+#: templates/home.html:66
 msgid "Available sets"
 msgstr "Sets disponíveis"
 
-#: templates/home.html:75
+#: templates/home.html:81
 #, python-format
 msgid "%(shown)s player"
 msgid_plural "%(shown)s players"
 msgstr[0] "%(shown)s jogador"
 msgstr[1] "%(shown)s jogadores"
 
-#: templates/home.html:76
+#: templates/home.html:82
 #, python-format
 msgid "%(shown)s subset"
 msgid_plural "%(shown)s subsets"
 msgstr[0] "%(shown)s subset"
 msgstr[1] "%(shown)s subsets"
 
-#: templates/home.html:90
-msgid "Create achievement sets"
-msgstr "Criar sets de conquistas"
+#: templates/home.html:96
+msgid "Write achievements"
+msgstr "Escreva conquistas"
 
-#: templates/home.html:91
-msgid "Pick a game, design the achievements and publish a set. No gatekeeping."
-msgstr ""
-"Escolha um jogo, planeje as conquistas e publique um set. Sem burocracia."
+#: templates/home.html:97
+msgid ""
+"Put what the game asks of every player in its core set, and the challenges "
+"in a subset. Any logged-in player can write an achievement, test it "
+"unofficial and make it official."
+msgstr "O que o jogo pede de todo jogador vai no set principal, e os desafios vão num subset. Qualquer jogador logado pode escrever uma conquista, testá-la como não oficial e torná-la oficial."
 
-#: templates/home.html:95
+#: templates/home.html:98
+msgid "How to write achievements →"
+msgstr "Como escrever conquistas →"
+
+#: templates/home.html:101
 msgid "Contribute code"
 msgstr "Contribuir com código"
 
-#: templates/home.html:96
+#: templates/home.html:102
 msgid "AGPL-3.0 on Codeberg. Bugs, features and roadmap are open."
 msgstr "AGPL-3.0 no Codeberg. Bugs, features e roadmap são abertos."
 
-#: templates/home.html:97
+#: templates/home.html:103
 msgid "See the repository →"
 msgstr "Ver o repositório →"
 
-#: templates/home.html:108
+#: templates/home.html:114
 msgid "Get a compatible emulator (DuckStation)"
 msgstr "Baixe um emulador compatível (DuckStation)"
 
-#: templates/home.html:109
+#: templates/home.html:115
 msgid "Create your account and sign in from the emulator"
 msgstr "Crie sua conta e entre pelo emulador"
 
-#: templates/home.html:110
+#: templates/home.html:116
 msgid "Load the game and start unlocking"
 msgstr "Carregue o jogo e comece a desbloquear"
 
-#: templates/home.html:112
+#: templates/home.html:118
+msgid "The core set loads on its own. Subsets wait until you turn them on."
+msgstr "O set principal carrega sozinho. Os subsets esperam até você ligá-los."
+
+#: templates/home.html:119
 msgid "Today: PlayStation (PS1). More consoles as sets arrive."
 msgstr ""
 "Por enquanto: PlayStation (PS1). Mais consoles conforme os sets chegarem."
 
-#: templates/home.html:113
+#: templates/home.html:120
 msgid "Step-by-step guide →"
 msgstr "Guia passo a passo →"
 
-#: templates/home.html:117
+#: templates/home.html:124
 msgid "The project in numbers"
 msgstr "O projeto em números"
 
-#: templates/home.html:149
+#: templates/home.html:156
 #, python-format
 msgid "%(total)s playing in all"
 msgstr "%(total)s jogando no total"
 
-#: templates/home.html:157
+#: templates/home.html:164
 msgid "Recent activity"
 msgstr "Atividade recente"
 
-#: templates/home.html:167
+#: templates/home.html:174
 msgid "HC"
 msgstr "HC"
 
-#: templates/home.html:177
+#: templates/home.html:184
 msgid "Open source"
 msgstr "Código aberto"
 
-#: templates/home.html:181
+#: templates/home.html:188
 msgid "Codeberg — repository"
 msgstr "Codeberg — repositório"
 
-#: templates/home.html:186
+#: templates/home.html:193
 msgid "Licensed under AGPL-3.0"
 msgstr "Licenciado sob a AGPL-3.0"
 
@@ -3055,6 +3245,29 @@ msgid "%(unread)s unread notification"
 msgid_plural "%(unread)s unread notifications"
 msgstr[0] "%(unread)s notificação não lida"
 msgstr[1] "%(unread)s notificações não lidas"
+
+#~ msgid ""
+#~ "Guides for playing on RetroPlatinas and for writing its achievements."
+#~ msgstr ""
+#~ "Guias para jogar no RetroPlatinas e para escrever as conquistas dele."
+
+#~ msgid "Home"
+#~ msgstr "Início"
+
+#~ msgid "Achievements for retro games, truly open."
+#~ msgstr "Conquistas para jogos retrô, abertas de verdade."
+
+#~ msgid ""
+#~ "RetroPlatinas adds achievements to classics running on an emulator. Play, "
+#~ "unlock and show up on the board."
+#~ msgstr ""
+#~ "O RetroPlatinas adiciona conquistas a clássicos rodando em emulador. "
+#~ "Jogue, desbloqueie e apareça no placar."
+
+#~ msgid ""
+#~ "Pick a game, design the achievements and publish a set. No gatekeeping."
+#~ msgstr ""
+#~ "Escolha um jogo, planeje as conquistas e publique um set. Sem burocracia."
 
 #~ msgid "Challenges taken on while playing the game normally."
 #~ msgstr "Desafios encarados jogando o jogo normalmente."
@@ -3160,9 +3373,6 @@ msgstr[1] "%(unread)s notificações não lidas"
 
 #~ msgid "Publish it as community"
 #~ msgstr "Publique como comunidade"
-
-#~ msgid "Show achievements by status"
-#~ msgstr "Mostrar conquistas por status"
 
 #~ msgid "No sets published yet"
 #~ msgstr "Nenhum set publicado ainda"

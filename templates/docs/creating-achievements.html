@@ -1,16 +1,44 @@
 {% extends "docs/layout.html" %}
 {% load i18n %}
 
-{% block doc_intro %}{% trans "Every logged-in player can write achievements for a game on the site. A new achievement starts unofficial: it is never awarded, so you can test it in the emulator before it counts for anyone." %}{% endblock %}
+{% block doc_intro %}{% trans "Every logged-in player can write achievements for a game on the site. Put what the game asks of every player in its core set and the challenges in a subset. A new achievement starts unofficial: it is never awarded, so you can test it in the emulator before it counts for anyone." %}{% endblock %}
 
 {% block doc_body %}
   {% url 'docs_page' 'statuses-and-contributing' as statuses_url %}
   <div class="mt-8">
+    {% include "components/section-heading.html" with title=_("Which set it belongs in") accent="gold" %}
+    <p class="mt-3 text-sm leading-relaxed text-txt-muted">{% trans "A player who finishes the game normally should be able to earn the whole core set. If they would not, the achievement belongs in a subset." %}</p>
+    <dl class="mt-3">
+      <div class="border-t border-line py-3 first:border-t-0">
+        <dt class="font-display text-sm font-semibold text-txt">{% trans "Core set" %}</dt>
+        <dd class="mt-1 text-sm leading-relaxed text-txt-muted">{% trans "The game's normal 100%: stages, bosses, story progress and the collectibles the game itself counts toward completion. Leave out what can be missed for good unless the game's own 100% needs it, and mark that one Missable. In Crash Bandicoot: clearing each stage, beating a boss, collecting the clear gems." %}</dd>
+      </div>
+      <div class="border-t border-line py-3 first:border-t-0">
+        <dt class="font-display text-sm font-semibold text-txt">{% trans "Bonus subset" %}</dt>
+        <dd class="mt-1 text-sm leading-relaxed text-txt-muted">{% trans "Extra challenges taken on while playing the game normally: beating a boss without getting hit, clearing a stage under a rule, maxing out a counter. In Crash Bandicoot: clearing N. Sanity Beach without picking up a Wumpa Fruit, reaching 99 lives." %}</dd>
+      </div>
+      <div class="border-t border-line py-3 first:border-t-0">
+        <dt class="font-display text-sm font-semibold text-txt">{% trans "Challenge subset" %}</dt>
+        <dd class="mt-1 text-sm leading-relaxed text-txt-muted">{% trans "A whole run under one rule, which changes how the game is played from start to finish: a deathless run, a no-damage run, a single-character run." %}</dd>
+      </div>
+      <div class="border-t border-line py-3 first:border-t-0">
+        <dt class="font-display text-sm font-semibold text-txt">{% trans "Specialty subset" %}</dt>
+        <dd class="mt-1 text-sm leading-relaxed text-txt-muted">{% trans "Content that needs another disc or version of the game and plays alongside the core set, such as levels only one regional release has." %}</dd>
+      </div>
+      <div class="border-t border-line py-3 first:border-t-0">
+        <dt class="font-display text-sm font-semibold text-txt">{% trans "Exclusive subset" %}</dt>
+        <dd class="mt-1 text-sm leading-relaxed text-txt-muted">{% trans "A disc different enough to stand on its own, such as a prototype or a demo disc: loading it plays only that subset." %}</dd>
+      </div>
+    </dl>
+    <p class="mt-3 text-sm leading-relaxed text-txt-muted">{% trans "Staff add subsets. If a game has none of the kind you need, ask for one in the comments on its page." %}</p>
+  </div>
+
+  <div class="mt-10">
     {% include "components/section-heading.html" with title=_("From unofficial to official") accent="gold" %}
     <ol class="mt-4 flex flex-col gap-6 border-l-2 border-brand-dim pl-4">
       <li>
         <h3 class="font-display text-base font-semibold text-txt"><span class="mr-2 font-data text-brand">1</span>{% trans "Open the editor" %}</h3>
-        <p class="mt-1 text-sm leading-relaxed text-txt-muted">{% trans "Log in, open the game's page and press New achievement. The editor asks for a title, a description, the points, the type, a badge image, the condition and the status." %}</p>
+        <p class="mt-1 text-sm leading-relaxed text-txt-muted">{% trans "Log in, open the game's page and press New achievement, or New achievement in this subset in a subset's section. The editor asks for the set, a title, a description, the points, the type, a badge image, the condition and the status." %}</p>
         <a href="{% url 'games_list' %}" class="mt-1 inline-block font-data text-xs text-brand">{% trans "See the games →" %}</a>
       </li>
       <li>

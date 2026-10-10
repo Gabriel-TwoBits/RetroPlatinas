@@ -169,5 +169,6 @@ def test_the_home_set_card_counts_the_games_subsets(client, core, bonus, player)
 def test_the_home_set_card_of_a_game_without_subsets_counts_none(client, core, player):
     _achievement(core, player, "Core one")
     body = _get(client, "/")
-    assert f'href="/games/{core.pk}/"' in body
-    assert "subset" not in body
+    card = re.search(rf'<a href="/games/{core.pk}/".*?</a>', body, re.DOTALL)
+    assert card, "set card missing"
+    assert "subset" not in card.group(0)

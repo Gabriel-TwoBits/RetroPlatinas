@@ -174,7 +174,7 @@ def test_homepage_renders_portuguese_by_default(client):
 def test_homepage_prints_each_portuguese_sentence_once(client):
     body = client.get("/").content.decode()
     assert body.count("Somos novos:") == 1
-    assert body.count("Escolha um jogo,") == 1
+    assert body.count("O que o jogo pede de todo jogador") == 1
 
 
 @pytest.mark.django_db

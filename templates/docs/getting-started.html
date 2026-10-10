@@ -34,9 +34,15 @@ Host = {{ server_url }}</pre>
       </li>
       <li>
         <h3 class="font-display text-base font-semibold text-txt"><span class="mr-2 font-data text-brand">5</span>{% trans "Play" %}</h3>
-        <p class="mt-1 text-sm leading-relaxed text-txt-muted">{% trans "Load a game that has a set — today, Crash Bandicoot (PS1). Achievements pop up as you unlock them and show up on your profile." %}</p>
+        <p class="mt-1 text-sm leading-relaxed text-txt-muted">{% trans "Load a game that has a set — today, Crash Bandicoot (PS1). Its core set loads on its own; achievements pop up as you unlock them and show up on your profile." %}</p>
       </li>
     </ol>
+  </div>
+
+  <div class="mt-10">
+    {% include "components/section-heading.html" with title=_("Core set and subsets") %}
+    <p class="mt-3 text-sm leading-relaxed text-txt-muted">{% trans "A game's core set is its normal 100%: what the game itself asks of you to finish it. Authors keep walls of missables and long grinds out of it, so you can start it without a guide. Every official achievement of the core set unlocked in hardcore earns the platinum." %}</p>
+    <p class="mt-3 text-sm leading-relaxed text-txt-muted">{% trans "Challenges such as deathless runs or no-hit bosses live in subsets, each with its own completion seal. A bonus or challenge subset stays off until you turn on Play this subset in its section of the game page; the change applies the next time you open the game in the emulator. A specialty or exclusive subset plays when you load the disc it is made for." %}</p>
   </div>
 
   <div class="mt-10">
