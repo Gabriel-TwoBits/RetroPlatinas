@@ -9,7 +9,7 @@
 > **Validated** in the headless harness (`tools/achievement-harness/`) against `SCUS-94900 — Crash
 > Bandicoot (USA)`; see **Validation** for exactly what, how, and what still needs the in-game check.
 
-Six achievements for completionist play, published as `community`. Titles and descriptions are our own.
+Six achievements for completionist play, created as `official`. Titles and descriptions are our own.
 
 | Title | Points | Unlocks when |
 | --- | --- | --- |
@@ -31,7 +31,7 @@ achievement would be locked out for good. The descriptions say "without dying pa
 ## Seeding
 
 `python manage.py seed_crash1_advanced_achievements` is idempotent and behaves like the other Crash seeds
-(`crash-bandicoot-1-level-achievements.md`): a missing title is created (`community`, author `ra-import`), an
+(`crash-bandicoot-1-level-achievements.md`): a missing title is created (`official`, author `ra-import`), an
 existing one, matched by title, gets the current `mem_addr`, description and type (standard, `""`, for the
 gems; `progression` for the boss) and keeps its status, points, author and unlocks; two rows with one title
 fail the command without writing anything. The conditions are built by the command's `build_gem_mem_addr` and

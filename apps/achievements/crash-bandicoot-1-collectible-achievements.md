@@ -7,7 +7,7 @@
 > **Validated** in the headless harness (`tools/achievement-harness/`) against `SCUS-94900 — Crash
 > Bandicoot (USA)`; see **Validation** for exactly what, how, and what still needs the in-game check.
 
-Four achievements about the things Crash picks up, published as `community`. Titles and descriptions are our
+Four achievements about the things Crash picks up, created as `official`. Titles and descriptions are our
 own.
 
 | Title | Points | Unlocks when |
@@ -20,7 +20,7 @@ own.
 ## Seeding
 
 `python manage.py seed_crash1_collectible_achievements` is idempotent and behaves like the level seed
-(`crash-bandicoot-1-level-achievements.md`): a missing title is created (`community`, author `ra-import`), an
+(`crash-bandicoot-1-level-achievements.md`): a missing title is created (`official`, author `ra-import`), an
 existing one, matched by title, gets the current `mem_addr`, description and type (standard, `""`) and keeps
 its status, points, author and unlocks; two rows with one title fail the command without writing anything.
 Both commands share

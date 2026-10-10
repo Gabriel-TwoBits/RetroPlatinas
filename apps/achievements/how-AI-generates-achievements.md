@@ -103,8 +103,8 @@ Achievement work ran in a separate git worktree with its own database and a thro
 
 Each achievement doc in this directory ends with **"Still for the in-game check (DuckStation)"**: the
 exact events the harness could not prove (unreached stages, poked values, bonus rounds, DuckStation's
-own CD timing). The person tests those, as a draft with "Test Unofficial Achievements" if the
-achievement is new, and publishes it once it behaves.
+own CD timing). The person tests those, as an unofficial achievement with "Test Unofficial
+Achievements" if the achievement is new, and makes it official once it behaves.
 
 ## Checklist for a new achievement
 

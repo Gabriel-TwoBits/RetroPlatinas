@@ -102,8 +102,8 @@ Each state has its own colour (`state-*` tokens) reused across the whole product
 | hardcore | `state-hardcore` `#e0552f` | red border over gold; no save states |
 | softcore | `state-softcore` `#7e93b1` | blue border; valid unlock, same points |
 | progress | `state-progress` `#d8922f` | amber; set started, not beaten |
-| beaten | `state-beaten` `#5cc48c` | green; every published progression and win-condition achievement unlocked, any mode |
-| platinum | `state-platinum` `#c2c9d8` | steel-platinum; every published achievement unlocked in hardcore |
+| beaten | `state-beaten` `#5cc48c` | green; every official progression and win-condition achievement unlocked, any mode |
+| platinum | `state-platinum` `#c2c9d8` | steel-platinum; every official achievement unlocked in hardcore |
 
 `state-*` utilities are **safelisted** in `tailwind.config.js` because they're composed from
 data (`state='beaten'` → `text-state-beaten`) and can't be found by scanning the markup. The
@@ -177,7 +177,7 @@ The desktop recent-game card is a genuinely different structure from `game-card.
 ## Profile screen
 
 `/users/<username>/`, built by `apps/accounts/profile.py` from the shared `apps/core/stats.py`
-queries: only published achievements count, a hardcore unlock (which also writes its softcore
+queries: only official achievements count, a hardcore unlock (which also writes its softcore
 twin) counts once per mode, and inactive accounts hold no rank.
 
 - **Desktop** — main column (`flex-1`) plus a 320px rail (`w-80`) **on the right**, main column
@@ -249,18 +249,18 @@ is one-way: following someone does not make them follow back.
 ## Home landing page
 
 `templates/home.html`, built by `apps/core/home.py` from the shared `apps/core/stats.py`
-queries: only published achievements count, inactive accounts are left out, and a hardcore
+queries: only official achievements count, inactive accounts are left out, and a hardcore
 unlock's softcore twin is not counted again.
 
 - **Hero strip** — headline, sub, a `font-data` status line and the dual CTA, over a `border-line2`
   rule. One strip, never a full-height hero.
 - **Changelog entry** — a `font-data` category label in its colour + title + body, as a ruled row.
-  The new-set entry shows only once a set is published.
-- **Set card** — a game object, so it is filled (`bg-surface`). One per game with a published
-  achievement, by title: the icon through the `/Images/` route, title, console, published
+  The new-set entry shows only once a set has an official achievement.
+- **Set card** — a game object, so it is filled (`bg-surface`). One per game with an official
+  achievement, by title: the icon through the `/Images/` route, title, console, official
   achievements, points and players (active users with points who unlocked one of them, as the
   numbers count players); the card links to the game page.
-- **Numbers** — games with a published achievement, published achievements, players (active
+- **Numbers** — games with an official achievement, official achievements, players (active
   users with points) and unlocks, each counted once.
 - **Playing now** — sessions pinged within `PLAYING_NOW_TTL`: identicon, user, game, rich
   presence and mode, the first 10 listed and the total under them. Hidden while nobody plays.
@@ -285,10 +285,10 @@ links to the full guide.
 - **Header** — a ruled section: the title and one line saying what is listed by default and
   how to list every game.
 - **Filters** — a plain GET form inside `.rp-form`: title search (case-insensitive substring),
-  console select, minimum published achievements (a number field, default `1`) and order
+  console select, minimum official achievements (a number field, default `1`) and order
   (*Alphabetical*, the default; *Most achievements*; *Most players*, the active users with a
-  `PlayerGame` for it). A game with no published achievement has no set to play, so it is
-  listed only once the minimum is set to `0`. Drafts never count. A filter the form rejects
+  `PlayerGame` for it). A game with no official achievement has no set to play, so it is
+  listed only once the minimum is set to `0`. Unofficial achievements never count. A filter the form rejects
   (unknown console or order, negative or non-numeric minimum, an over-long search) answers 400.
 - **Live search** — HTMX upgrades the form: any input (`input changed delay:300ms`) or a submit
   fetches `/games/results/`, the bare results block (`templates/games/partials/results.html`),
@@ -298,13 +298,13 @@ links to the full guide.
   a pushed entry would come back on Back with results under stale filters. Without JavaScript
   a submit button (in `<noscript>`) sends the same form to `/games/`.
 - **Cards** — game objects, so filled (`bg-surface`), 24 a page in a 1/2/3-column grid: the
-  icon through the `/Images/` route, title, console tag and published achievements; the card
+  icon through the `/Images/` route, title, console tag and official achievements; the card
   links to the game page. The section heading counts the matching games.
 - **Pages** — as on the leaderboard page, each link carrying the search and filters (the
   query string minus `page`) and swapping `#games-results` through `/games/results/`; a page
   the list does not have answers 404.
 - **Empty states** — with a search or filter, *No games match these filters* with a link back
-  to the bare list; without one, the home's no-sets-published line.
+  to the bare list; without one, the home's no-official-sets line.
 
 ## Game page
 
@@ -312,45 +312,40 @@ links to the full guide.
 answers 404. Every game title on the home, the profile and the games list links here.
 
 - **Header** — a ruled section: the icon through the `/Images/` route (a game object, so it sits
-  on `bg-surface`), title, console tag and name, then the published achievements and their
+  on `bg-surface`), title, console tag and name, then the official achievements and their
   points side by side split by a vertical hairline, and the description (escaped, line breaks
-  kept). Drafts never count. A logged-in viewer gets a *New achievement* outlined button under
+  kept). Unofficial achievements never count. A logged-in viewer gets a *New achievement* outlined button under
   it, leading to the achievement editor.
 - **Tabs** — underline tabs (`.rp-tab`): *Achievements*, *Leaderboards*, *Recent players*.
   Each loads through HTMX from `/games/<id>/panel/<tab>/`, which answers the tab bar with its
   tab active plus the panel, swapped into `#game-tabs`; the active state is rendered by the
   server, no client script.
-- **Achievements** — ruled sections in the order the emulator receives them: *Verified* (the
-  quality seal, `state-platinum` strip; pt-BR *Verificadas*, under the `achievement section`
-  context so the status chip keeps the model's *Verificado*), then *Community*, then *Your
-  drafts* (`gold` strip), which only the drafts' author sees. A group with nothing to show is
-  hidden. Every row carries an outlined status chip after its title: *Verified* in
-  `state-platinum` with a check seal, *Community* in `brand`, *Draft* in `gold`. For a logged-in
+- **Achievements** — two ruled sections, each in the order the emulator receives its rows:
+  *Official* (`brand` strip), then *Unofficial* (`gold` strip), which every viewer sees; pt-BR
+  *Oficiais* and *Não oficiais*, under the `achievement section` context so the status chip keeps
+  the model's singular *Oficial* / *Não oficial*. A section with nothing to show is hidden. Every
+  row carries an outlined status chip after its title: *Official* in `brand`, *Unofficial* in
+  `gold`. For a logged-in
   viewer an unlocked badge has a 2px `state-hardcore` or `state-softcore` border with the mode
   and local date under the description; a locked one comes from the `_lock` route, faded, with
   muted text. An anonymous visitor sees the plain badges and no unlock filters. Each title links
   to the achievement page. Under the points, an *Edit* link in `brand` leads to the achievement
   editor on the rows the viewer may edit (their own, or every row for staff), and a *History*
   link in `brand` on every row leads to the achievement's history.
-- **Status choice** — outlined chips over the list, the active one in `brand`: *Verified only*,
-  *Verified + Community* (the default) and, for a logged-in viewer, *All incl. my drafts*. Each
-  reloads the achievements panel through the same HTMX route (`?show=verified|published|all`);
-  another user's draft is never listed, whatever the choice. A choice with nothing to show has
-  its own empty state under every filter.
-- **Filters** — logged-in viewers get *All / Unlocked / Locked* outlined chips under the status
-  choice; each reloads the panel through the same route (`?filter=`), keeping the status choice,
-  as the status chips keep the filter. Each filter has its own empty state, which under
-  *Verified only* names the verified set.
+- **Filters** — logged-in viewers get *All / Unlocked / Locked* outlined chips over the list,
+  the active one in `brand`; each reloads the panel through the same HTMX route (`?filter=`) and
+  applies to both sections. A game with no achievement says so under every filter; otherwise
+  each filter has its own empty state.
 - **Leaderboards** — a row per leaderboard: title (linking to its leaderboard page),
   description and its entries by active users. Scores and ranks belong to the leaderboard page.
-- **Recent players** — the 20 active users who played last: identicon, profile link, published
+- **Recent players** — the 20 active users who played last: identicon, profile link, official
   achievements unlocked (and how many in hardcore) and when they last played.
 - **Comments** — under the tabs, the shared comments section (see *Comments*).
 
 ## Achievement page
 
 `/games/<id>/achievements/<aid>/` (`templates/achievements/detail.html`), in a `max-w-3xl`
-column; another user's draft answers 404, to staff as well: a draft's page is its author's.
+column; every achievement, official or unofficial, has a page anyone opens.
 
 - **Header** — a ruled section: a link back to the game, the badge (a game object, on
   `bg-surface`), the title with its status chip (`components/status-chip.html`, as on the game
@@ -358,8 +353,8 @@ column; another user's draft answers 404, to staff as well: a draft's page is it
   link, then the description (escaped, line breaks kept). Outlined buttons under it: *Edit
   achievement* for its author or staff, and *History*.
 - **Unlocks** — stat lines: the active users who unlocked it in any mode, those in hardcore, and
-  the active users who played the game. A draft shows one muted line instead: it is never
-  awarded.
+  the active users who played the game. An unofficial achievement shows one muted line
+  instead: it is never awarded.
 - **Comments** — the shared comments section (see *Comments*).
 
 ## Comments
@@ -380,8 +375,7 @@ the game page and of the achievement page, as `<section id="comments">`.
   invalid comment comes back with its error in the form. Without htmx loaded, the forms post
   normally and return to the page. An htmx post after the session expired answers `HX-Redirect`
   to the login page, which returns to the section.
-- **Moderation** — staff also delete comments in the admin, the only path for one on an
-  achievement moved back to draft, whose page only its author opens.
+- **Moderation** — staff also delete comments in the admin.
 
 ## Notifications
 
@@ -419,8 +413,7 @@ followed, once the achievement exists, by *History*.
 ## Achievement history
 
 `/games/<id>/achievements/<aid>/history/` (`templates/achievements/history.html`), built by
-`apps/achievements/revisions.py`, in a `max-w-3xl` column; visible to whoever may see the
-achievement, another user's draft answering 404.
+`apps/achievements/revisions.py`, in a `max-w-3xl` column; visible to anyone.
 
 - **Header** — a ruled section: a link back to the game, the title, one muted line on what the
   page lists and, for its author or staff, an outlined *Edit achievement* button.
@@ -434,7 +427,7 @@ achievement, another user's draft answering 404.
   labels. A row that changed nothing says so.
 - **Revert** — a small outlined *Revert to this revision* button (`rounded-tile`) at the right
   of the `font-data` line, POSTing to `…/history/<rid>/revert/`, only on rows the viewer may revert to:
-  their author or staff, a status and points they may set in the editor, values other than the
+  their author or staff, points they may set in the editor, values other than the
   current ones. Reverting adds a revision and returns to the page with *Achievement reverted.*
 
 ## Leaderboard page
@@ -471,8 +464,8 @@ shared `apps/core/stats.py` queries; linked from the nav and the footer as *Rank
   `#ranking-board` out of it (`hx-select`) and pushes the URL. An unknown mode answers 400.
 - **Board** — a section headed *Hardcore points* (`state-hardcore` strip) or *Softcore points*
   (`state-softcore`), the count of ranked players, then 100 rows a page: rank (competition
-  ranking, ties share it, as on the profile), identicon, profile link, the published
-  achievements unlocked in the mode (each once), the platinums (games with every published
+  ranking, ties share it, as on the profile), identicon, profile link, the official
+  achievements unlocked in the mode (each once), the platinums (games with every official
   achievement unlocked in hardcore, in both modes) and the mode's points. Only active users with
   points in the mode are ranked.
 - **Pages** — as on the leaderboard page, each link carrying the mode; a page the ranking does
@@ -493,7 +486,7 @@ shared `apps/core/stats.py` queries; linked from the nav and the footer as *Rank
   chips, the active one in `brand` (`aria-current`). *Friends* lists only the unlocks of the
   active users the viewer follows and needs a session: a visitor is sent to log in and back. An
   unknown filter answers 400. Empty, *Friends* links the ranking to find players to follow.
-- **Rows** — the last 50 unlocks of published achievements by active users, newest first, each
+- **Rows** — the last 50 unlocks of official achievements by active users, newest first, each
   once (a hardcore unlock's softcore twin is left out, an earlier softcore unlock of the same
   achievement is its own row): identicon, "*user* unlocked “*achievement*” in *game*" (profile
   and game page links), console, relative time and the badge; an unlock earned in hardcore

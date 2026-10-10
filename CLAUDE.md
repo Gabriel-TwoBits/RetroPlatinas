@@ -168,33 +168,31 @@ the game: **the user's check in DuckStation remains the final gate** before a co
 
 ### Testing an achievement in game
 
-`community` and `verified` are both **published**; `verified` is only a quality seal on the site.
-`achievementsets`/`patch` serve each status like this:
+An achievement is `official` or `unofficial`, as on RetroAchievements. `achievementsets`/`patch`
+serve each status like this:
 
-| Status | Served to | `Flags` | Awarded (`UserUnlock` + points) |
-| --- | --- | --- | --- |
-| `draft` | its author only (the token's user) | `5` (unofficial) | never |
-| `community` | everyone | `3` (core / official) | yes |
-| `verified` | everyone | `3` (core / official) | yes |
+| Status | Served to | `Flags` | `Rarity` | Awarded (`UserUnlock` + points) |
+| --- | --- | --- | --- | --- |
+| `unofficial` | everyone | `5` (unofficial) | `0` | never |
+| `official` | everyone | `3` (core / official) | real | yes |
 
-**A new condition is tested as a `draft`**, logged in to the emulator as its author. Enable "Test
+**A new condition is tested as `unofficial`** (the default for a new achievement). Enable "Test
 Unofficial Achievements" (`Cheevos/UnofficialTestMode`) and reload the game, then read the
 **achievement list**, not the pause-screen counter:
 
-- The "X of Y" counter only counts core achievements, so it stays put no matter how many drafts
-  loaded. Drafts live in their own list bucket, suffixed `(Unofficial)`.
+- The "X of Y" counter only counts core achievements, so it stays put no matter how many
+  unofficial ones loaded. They live in their own list bucket, suffixed `(Unofficial)`.
 - The in-game popup **does** fire for them, which is what proves the `mem_addr` is right.
 - rcheevos **never sends `awardachievement` for an unofficial achievement**, and the server rejects
-  a draft anyway (`invalid_state`), so no `UserUnlock` and no points.
+  one anyway (`invalid_state`), so no `UserUnlock` and no points.
 
-**Publish it to see the full cycle**: its author moves it from draft to community in the web
-editor (`/games/<id>/achievements/<aid>/edit/`); staff also use the admin bulk actions (publish as
-community, mark verified, move back to draft), and only staff set verified. Every player then
-receives it as core, without UnofficialTestMode: the unlock is sent, recorded and scored, and
-`AchievementsRemaining` (published achievements not yet unlocked in that mode) reaching `0` fires
-the mastery event. Moving a published achievement back to draft (web editor, bulk action or change
-form) keeps its unlocks but recalculates every unlocker's points without it; republishing counts
-them again.
+**Make it official to see the full cycle**: its author or staff set the status in the web editor
+(`/games/<id>/achievements/<aid>/edit/`); staff also use the admin bulk actions (make official,
+make unofficial). Every player then receives it as core, without UnofficialTestMode: the unlock is
+sent, recorded and scored, and `AchievementsRemaining` (official achievements not yet unlocked in
+that mode) reaching `0` fires the mastery event. Making an official achievement unofficial (web
+editor, bulk action or change form) keeps its unlocks but recalculates every unlocker's points
+without it; making it official again counts them again.
 
 ## i18n workflow
 

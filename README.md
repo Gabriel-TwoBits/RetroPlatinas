@@ -95,7 +95,7 @@ Other keys of the same section:
 
 | Key | Setting | When |
 | --- | --- | --- |
-| `UnofficialTestMode = true` | Test Unofficial Achievements | Only for an author testing their own `draft` achievements, which are served to that author alone, as unofficial, and never awarded. Published (`community`, `verified`) achievements load without it. |
+| `UnofficialTestMode = true` | Test Unofficial Achievements | Only to see `unofficial` achievements, which every player is served but which are never awarded: an author tests a new condition with it on. `official` achievements load without it. |
 | `ChallengeMode = true` | Hardcore mode | Save states are blocked; turning it on requires a reset. Each unlock reports its mode, and a hardcore unlock counts for both the hardcore and the softcore totals. |
 
 ## Badges, game icons and avatars
@@ -159,7 +159,7 @@ list.
 | `/api/games/<id>/leaderboard/<lb_id>/` | the top 100 entries: rank, raw score and the leaderboard's `Format` |
 | `/api/games/<id>/players/` | the 100 most recent players: first and last played, playtime, achievements unlocked per mode |
 
-Only published achievements count. A hardcore unlock also counts as a softcore one, as in the point
+Only official achievements count. A hardcore unlock also counts as a softcore one, as in the point
 totals. Ranks are competition ranks (ties share a rank); a user with no points in a mode has no rank
 in it. Inactive accounts (deactivated users and system accounts such as `ra-import`) hold no rank
 and are left out of leaderboards and player lists, including the `submitlbentry` and `lbinfo`
@@ -201,10 +201,9 @@ not zero. An unlock carrying `o` is dated that far back, at most one day. A requ
 Logged-in users create an achievement at `/games/<id>/achievements/new/` and edit one at
 `/games/<id>/achievements/<aid>/edit/`: title, description, points (RetroAchievements' scale),
 type, a badge upload (which becomes a new badge), the `mem_addr` condition and the status. The
-status of a new achievement defaults to draft; its author may also create it as community right
-away. Only its author or staff edit it: another user gets 403, and another user's draft does not
-exist (404). The author moves it between draft and community; only staff set
-or lift verified. A change of status or points recounts its unlockers' points, as the admin does.
+status of a new achievement defaults to unofficial; its author may also create it as official
+right away. Only its author or staff edit it, and either makes it official or unofficial; another
+user gets 403. A change of status or points recounts its unlockers' points, as the admin does.
 The condition must parse with the vendored rcheevos parser: `apps/achievements/triggers.py` runs
 `scripts/check-mem-addr.sh`, whose binary `entrypoint.sh` compiles at container startup.
 
@@ -219,9 +218,8 @@ state recorded, with no editor, right before its next recorded change; a later w
 `save()` is folded into the next revision. `/games/<id>/achievements/<aid>/history/` lists the
 revisions, newest first, each with a line diff against the one before it (`mem_addr` one condition
 per line); it is visible to whoever may see the achievement. Its author or staff may revert to an
-earlier revision: the revert is a new revision, the history is never rewritten, and only to a
-status and points they may set in the editor, so an author can neither self-verify nor lift a
-verified seal by reverting, and nobody restores points off RA's scale.
+earlier revision: the revert is a new revision, the history is never rewritten, and only to
+points they may set in the editor, so nobody restores points off RA's scale.
 
 ## Code notes on the site
 
@@ -238,8 +236,8 @@ Games and achievements take comments, shown at the bottom of the game page and o
 page (`/games/<id>/achievements/<aid>/`). Logged-in users add one with
 `POST /games/<id>/comments/` or `POST /games/<id>/achievements/<aid>/comments/` (at most 2000
 characters); only its author or staff delete it with `POST /comments/<id>/delete/`, and another
-user gets 403. A draft's page and comments exist only for its author; staff moderate every
-comment, including those on a draft, in the admin.
+user gets 403. Official and unofficial achievements take comments alike; staff also moderate
+every comment in the admin.
 
 ## Following
 
@@ -271,8 +269,8 @@ A refusal answers `access_denied` with `Status` 403, as RetroAchievements does.
 | --- | --- | --- |
 | `codenotes2` | anyone | the game's notes, `Address` as `0x%06x` |
 | `submitcodenote`, `submitcodenotes` | any user adds; only the note's author or staff changes or deletes it | an empty note deletes; a change keeps the note's author and is served as the last writer's (`User`); `submitcodenotes` lists the refused addresses in `AccessDeniedAddresses` |
-| `uploadachievement` | any user creates; only the author or staff changes | a new achievement is always a **draft**, whatever `f` says, and `f` never changes a status: publish on the site (the achievement editor or the admin). `b` must be an uploaded badge or `00000`; `x` is the type |
-| `uploadleaderboard` | staff creates; only the author or staff changes | stored as `STA:…::CAN:…::SUB:…::VAL:…`; format aliases (`TIME`, `POINTS`, …) are stored by their canonical name. Leaderboards have no draft state: a new one is live for every player, hence staff only |
+| `uploadachievement` | any user creates; only the author or staff changes | a new achievement is always **unofficial**, whatever `f` says, and `f` never changes a status: make it official on the site (the achievement editor or the admin). `b` must be an uploaded badge or `00000`; `x` is the type |
+| `uploadleaderboard` | staff creates; only the author or staff changes | stored as `STA:…::CAN:…::SUB:…::VAL:…`; format aliases (`TIME`, `POINTS`, …) are stored by their canonical name. Leaderboards have no status: a new one is live for every player, hence staff only |
 | `submitrichpresence` | staff | replaces the game's rich presence script |
 | `submitgametitle` | staff | links the hash to game `g`, or to the game titled `i` on console `c`, created if there is none |
 | `badgeiter` | anyone | the first badge number and the next one |
