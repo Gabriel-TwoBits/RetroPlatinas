@@ -288,13 +288,27 @@ def _latest_revised_values(achievement_ids):
     return {row.pop("achievement_id"): row for row in latest}
 
 
+def _subset_title(set_type, set_title):
+    """A core game may keep a `set_title` from when it was a subset; only a subset's counts."""
+    if set_type is None:
+        return ""
+    else:
+        return set_title
+
+
 def record_revisions(achievement_ids, editor):
     """Records, by `editor`, the stored state of each achievement whose revised fields differ from
     its latest revision, so a save that changed none of them records nothing, and notifies each
     author whose achievement's status changed: every status change is recorded here."""
     latest = _latest_revised_values(achievement_ids)
     stored = Achievement.objects.filter(pk__in=achievement_ids).values(
-        "pk", "game_id", "game__set_title", "author_id", "author__is_active", *REVISED_FIELDS
+        "pk",
+        "game_id",
+        "game__set_type",
+        "game__set_title",
+        "author_id",
+        "author__is_active",
+        *REVISED_FIELDS,
     )
     revisions = []
     status_changes = []
@@ -319,7 +333,7 @@ def record_revisions(achievement_ids, editor):
                         title=values["title"],
                         old_status=previous["status"],
                         new_status=values["status"],
-                        set_title=row["game__set_title"],
+                        set_title=_subset_title(row["game__set_type"], row["game__set_title"]),
                     )
                 )
             else:

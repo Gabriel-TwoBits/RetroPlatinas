@@ -804,6 +804,15 @@ def test_a_status_change_in_a_subset_names_the_subset(staff, bonus_achievement):
 
 
 @pytest.mark.django_db
+def test_a_status_change_on_a_core_game_ignores_a_leftover_set_title(staff, game, achievement):
+    Game.objects.filter(pk=game.pk).update(set_title="Bonus")
+    achievement.status = Achievement.STATUS_UNOFFICIAL
+    achievement.save(editor=staff)
+
+    assert "set" not in Notification.objects.get().params
+
+
+@pytest.mark.django_db
 def test_subset_messages_are_rendered_in_the_readers_language(client, author):
     subset = {"achievement": "Beach", "set": "Bonus"}
     _notification(author, Notification.KIND_UNLOCK, actor="other", **subset)
