@@ -73,7 +73,17 @@ class NewSubsetForm(forms.ModelForm):
             title = SUBSET_GAME_TITLE.format(
                 parent=self.instance.parent_game.title, set_title=set_title
             )
-            self.instance.title = title[:GAME_TITLE_MAX_LENGTH]
+            if len(title) > GAME_TITLE_MAX_LENGTH:
+                self.add_error(
+                    "set_title",
+                    _(
+                        "Too long: the subset's game title, the game's title with this one, "
+                        "can have at most %(max)s characters."
+                    )
+                    % {"max": GAME_TITLE_MAX_LENGTH},
+                )
+            else:
+                self.instance.title = title
         else:
             # The required field already reported the missing title.
             pass

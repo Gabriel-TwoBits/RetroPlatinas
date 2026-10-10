@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RetroPlatinas\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-10 14:43-0300\n"
+"POT-Creation-Date: 2026-10-10 14:44-0300\n"
 "PO-Revision-Date: 2026-05-23 18:15-0300\n"
 "Last-Translator: RetroPlatinas\n"
 "Language-Team: Brazilian Portuguese\n"
@@ -685,6 +685,15 @@ msgstr "Mínimo de conquistas"
 #: apps/games/forms.py:34
 msgid "Order by"
 msgstr "Ordenar por"
+
+#: apps/games/forms.py:80
+#, python-format
+msgid ""
+"Too long: the subset's game title, the game's title with this one, can have "
+"at most %(max)s characters."
+msgstr ""
+"Longo demais: o título do jogo do subset, o título do jogo junto com este, "
+"pode ter no máximo %(max)s caracteres."
 
 #: apps/games/models.py:31
 msgid "RA ID"

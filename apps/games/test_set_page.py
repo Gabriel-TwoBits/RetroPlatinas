@@ -12,6 +12,7 @@ from django.utils import timezone
 
 from apps.achievements.models import Achievement, UserUnlock
 from apps.api.handlers import API_TOKEN_LIFETIME
+from apps.games.forms import GAME_TITLE_MAX_LENGTH
 from apps.games.models import (
     MD5_HEX_DIGITS,
     SET_TYPE_BONUS,
@@ -464,6 +465,21 @@ def test_a_new_subset_needs_a_type_and_a_title(client, sets, staff, fields, fiel
     response = client.post(f"/games/{sets.core.pk}/subsets/new/", fields)
     assert response.status_code == HTTPStatus.OK
     assert response.context["form"].errors[field]
+    assert Game.objects.filter(parent_game=sets.core).count() == subsets
+
+
+@pytest.mark.django_db
+def test_a_new_subset_refuses_a_game_title_too_long_to_store(client, sets, staff):
+    Game.objects.filter(pk=sets.core.pk).update(title="C" * GAME_TITLE_MAX_LENGTH)
+    client.force_login(staff)
+    subsets = Game.objects.filter(parent_game=sets.core).count()
+
+    response = client.post(
+        f"/games/{sets.core.pk}/subsets/new/", {"set_type": SET_TYPE_BONUS, "set_title": "Extra"}
+    )
+
+    assert response.status_code == HTTPStatus.OK
+    assert response.context["form"].errors["set_title"]
     assert Game.objects.filter(parent_game=sets.core).count() == subsets
 
 
