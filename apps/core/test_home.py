@@ -426,10 +426,8 @@ def test_hero_says_the_core_set_is_the_normal_100_and_challenges_are_opt_in(clie
 def test_hero_is_translated_to_brazilian_portuguese(client):
     body = _get(client, "pt-br").content.decode()
 
-    assert (
-        "<title>RetroPlatinas — sets de conquistas retrô que qualquer um pode começar</title>"
-        in (body)
-    )
+    title = "RetroPlatinas — sets de conquistas retrô que qualquer um pode começar"
+    assert f"<title>{title}</title>" in body
     hero = _hero(body)
     assert "Sets de conquistas retrô que qualquer um pode começar." in hero
     assert "o 100% normal dele" in hero
