@@ -22,10 +22,27 @@ class StatusChange:
     title: str
     old_status: str
     new_status: str
+    # The subset's title, empty for an achievement of a core set.
+    set_title: str
 
 
 def _achievement_url(game_id, achievement_id):
     return reverse("achievement_detail", args=[game_id, achievement_id])
+
+
+def _achievement_params(title, set_title):
+    """The achievement's title and, for a subset's, the subset's title under `set`."""
+    if set_title:
+        return {"achievement": title, "set": set_title}
+    else:
+        return {"achievement": title}
+
+
+def _set_title(game):
+    if game.is_subset:
+        return game.set_title
+    else:
+        return ""
 
 
 def notify_comment(comment):
@@ -42,14 +59,18 @@ def notify_comment(comment):
         return Notification.objects.create(
             user_id=achievement.author_id,
             kind=Notification.KIND_COMMENT,
-            params={"actor": comment.author.username, "achievement": achievement.title},
+            params={
+                "actor": comment.author.username,
+                **_achievement_params(achievement.title, _set_title(achievement.game)),
+            },
             target_url=_achievement_url(achievement.game_id, achievement.pk) + COMMENTS_FRAGMENT,
         )
 
 
 def notify_unlock(achievement, player):
     """Tells the achievement's author that `player` unlocked it. One insert from values the award
-    already holds (its query joins the author), so the award path makes no extra read."""
+    already holds (its query joins the author and the game), so the award path makes no extra
+    read."""
     if achievement.author_id == player.pk:
         return None
     elif not achievement.author.is_active:
@@ -58,7 +79,10 @@ def notify_unlock(achievement, player):
         return Notification.objects.create(
             user_id=achievement.author_id,
             kind=Notification.KIND_UNLOCK,
-            params={"actor": player.username, "achievement": achievement.title},
+            params={
+                "actor": player.username,
+                **_achievement_params(achievement.title, _set_title(achievement.game)),
+            },
             target_url=_achievement_url(achievement.game_id, achievement.pk),
         )
 
@@ -71,7 +95,7 @@ def notify_status_changes(changes, editor):
                 user_id=change.author_id,
                 kind=Notification.KIND_STATUS,
                 params={
-                    "achievement": change.title,
+                    **_achievement_params(change.title, change.set_title),
                     "old_status": change.old_status,
                     "new_status": change.new_status,
                 },

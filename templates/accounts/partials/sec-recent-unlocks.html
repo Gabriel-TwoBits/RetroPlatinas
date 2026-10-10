@@ -8,7 +8,7 @@
           <img src="{{ u.badge_url }}" alt="" width="40" height="40" class="h-10 w-10 shrink-0 rounded-tile border-2 {% if u.unlock.hardcore %}border-state-hardcore{% else %}border-state-softcore{% endif %}">
           <div class="min-w-0 flex-1">
             <div class="truncate text-sm font-semibold text-txt">{{ achievement.title }}</div>
-            <div class="truncate font-data text-xs text-txt-faint"><a href="{% url 'game_detail' achievement.game.pk %}" class="text-txt-faint hover:text-brand-hi">{{ achievement.game.title }}</a> · <time datetime="{{ u.unlock.unlocked_at|date:'c' }}">{{ u.unlock.unlocked_at|date:"SHORT_DATETIME_FORMAT" }}</time></div>
+            <div class="truncate font-data text-xs text-txt-faint">{% include "components/set-game-link.html" with game=achievement.game link_class="text-txt-faint hover:text-brand-hi" %} · <time datetime="{{ u.unlock.unlocked_at|date:'c' }}">{{ u.unlock.unlocked_at|date:"SHORT_DATETIME_FORMAT" }}</time></div>
           </div>
           <div class="shrink-0 text-right font-data text-xs">
             <div class="text-gold">{% blocktrans count points=achievement.points %}{{ points }} pt{% plural %}{{ points }} pts{% endblocktrans %}</div>

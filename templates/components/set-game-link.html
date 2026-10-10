@@ -1,0 +1,6 @@
+{% comment %}
+  The game an achievement or leaderboard belongs to: its core game's title linking the game page
+  (a subset's section of it), then the subset's chip. Args:
+    game       : the set's Game, its parent_game loaded
+    link_class : classes of the link
+{% endcomment %}<a href="{{ game.get_absolute_url }}" class="{{ link_class }}">{{ game.core_game.title }}</a>{% if game.is_subset %} {% include "components/set-chip.html" %}{% endif %}

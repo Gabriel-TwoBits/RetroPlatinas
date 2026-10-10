@@ -14,6 +14,7 @@ def _set(game):
         "achievements": game.official_achievements,
         "points": game.official_points,
         "players": game.player_count,
+        "subsets": game.subset_count,
     }
 
 

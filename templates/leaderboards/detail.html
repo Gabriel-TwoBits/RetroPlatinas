@@ -1,12 +1,15 @@
 {% extends "base.html" %}
 {% load i18n humanize %}
 
-{% block title %}{{ leaderboard.title }} — {{ game.title }} — RetroPlatinas{% endblock %}
+{% block title %}{{ leaderboard.title }} — {{ game.core_game.title }} — RetroPlatinas{% endblock %}
 
 {% block content %}
 <div class="mx-auto max-w-3xl px-4 py-6 sm:py-8">
   <section class="border-b border-line2 pb-6">
-    <a href="{% url 'game_detail' game.pk %}" class="font-data text-xs text-brand hover:text-brand-hi">← {{ game.title }}</a>
+    <div class="flex flex-wrap items-baseline gap-x-2">
+      <a href="{{ game.get_absolute_url }}" class="font-data text-xs text-brand hover:text-brand-hi">← {{ game.core_game.title }}</a>
+      {% include "components/set-chip.html" %}
+    </div>
     <h1 class="mt-2 break-words font-display text-2xl font-bold leading-tight text-txt sm:text-3xl">{{ leaderboard.title }}</h1>
     {% if leaderboard.description %}
       <p class="mt-2 whitespace-pre-line break-words text-sm leading-relaxed text-txt-muted">{{ leaderboard.description }}</p>

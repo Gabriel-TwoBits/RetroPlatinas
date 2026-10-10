@@ -181,7 +181,7 @@ def recent_unlocks(user, limit):
     """The user's latest `limit` unlocks of official achievements, newest first, each once."""
     return (
         _one_row_per_unlock(official_unlocks().filter(user=user))
-        .select_related("achievement__game")
+        .select_related("achievement__game__parent_game")
         .order_by("-unlocked_at", "-id")[:limit]
     )
 
@@ -201,9 +201,9 @@ def site_unlock_count():
 
 
 def _newest_first(unlocks, limit):
-    return unlocks.select_related("user", "achievement__game__console").order_by(
-        "-unlocked_at", "-id"
-    )[:limit]
+    return unlocks.select_related(
+        "user", "achievement__game__console", "achievement__game__parent_game"
+    ).order_by("-unlocked_at", "-id")[:limit]
 
 
 def recent_site_unlocks(limit):
@@ -219,8 +219,9 @@ def recent_followed_unlocks(follower, limit):
 
 def official_games():
     """The core games with an official achievement, by title, each annotated with
-    `official_achievements`, `official_points` and `player_count` (the active users with points
-    who unlocked one of its official achievements, as `ranked_player_counts` counts players)."""
+    `official_achievements`, `official_points`, `player_count` (the active users with points
+    who unlocked one of its official achievements, as `ranked_player_counts` counts players) and
+    `subset_count`."""
     official = Q(achievements__status=Achievement.STATUS_OFFICIAL)
     # A subquery: counting players through a second join would multiply the achievement sums.
     player_count = (
@@ -231,12 +232,20 @@ def official_games():
         .annotate(count=Count("user", distinct=True))
         .values("count")
     )
+    subset_count = (
+        Game.objects.filter(parent_game=OuterRef("pk"))
+        .order_by()
+        .values("parent_game")
+        .annotate(count=Count("pk"))
+        .values("count")
+    )
     return (
         Game.objects.core()
         .annotate(
             official_achievements=Count("achievements", filter=official),
             official_points=Sum("achievements__points", filter=official),
             player_count=Coalesce(Subquery(player_count), 0),
+            subset_count=Coalesce(Subquery(subset_count), 0),
         )
         .filter(official_achievements__gt=0)
         .select_related("console")

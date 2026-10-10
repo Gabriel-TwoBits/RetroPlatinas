@@ -16,7 +16,7 @@ from apps.accounts.models import API_TOKEN_HEX_LENGTH
 from apps.achievements.models import Achievement
 from apps.achievements.revisions import revert
 from apps.anticheat.detection import award_validation_hash
-from apps.games.models import Console, Game
+from apps.games.models import SET_TYPE_BONUS, Console, Game
 from apps.notifications.display import (
     MENU_NOTIFICATIONS_SHOWN,
     NOTIFICATIONS_PER_PAGE,
@@ -746,3 +746,92 @@ def test_marking_all_read_needs_a_post(client, author):
 
     assert _get(client, READ_ALL_URL).status_code == HTTPStatus.METHOD_NOT_ALLOWED
     assert Notification.objects.filter(read=False).exists()
+
+
+# --- Subsets ---
+
+
+@pytest.fixture
+def bonus_achievement(game, author):
+    bonus = Game.objects.create(
+        title="Crash Bandicoot [Subset - Bonus]",
+        console=game.console,
+        parent_game=game,
+        set_type=SET_TYPE_BONUS,
+        set_title="Bonus",
+    )
+    return _achievement(bonus, author)
+
+
+@pytest.mark.django_db
+def test_an_unlock_in_a_subset_names_the_subset(client, author, player, bonus_achievement):
+    _award(client, player, bonus_achievement, "0")
+
+    notification = Notification.objects.get()
+    assert notification.params == {"actor": "player", "achievement": "Beach", "set": "Bonus"}
+    assert notification.target_url == _achievement_url(bonus_achievement)
+
+
+@pytest.mark.django_db
+def test_a_comment_in_a_subset_names_the_subset(client, other, bonus_achievement):
+    client.force_login(other)
+
+    _post(
+        client,
+        reverse("achievement_comment_add", args=[bonus_achievement.game_id, bonus_achievement.pk]),
+        {"content": "Nice one"},
+        **HTMX,
+    )
+
+    assert Notification.objects.get().params == {
+        "actor": "other",
+        "achievement": "Beach",
+        "set": "Bonus",
+    }
+
+
+@pytest.mark.django_db
+def test_a_status_change_in_a_subset_names_the_subset(staff, bonus_achievement):
+    bonus_achievement.status = Achievement.STATUS_UNOFFICIAL
+    bonus_achievement.save(editor=staff)
+
+    assert Notification.objects.get().params == {
+        "achievement": "Beach",
+        "set": "Bonus",
+        "old_status": Achievement.STATUS_OFFICIAL,
+        "new_status": Achievement.STATUS_UNOFFICIAL,
+    }
+
+
+@pytest.mark.django_db
+def test_subset_messages_are_rendered_in_the_readers_language(client, author):
+    subset = {"achievement": "Beach", "set": "Bonus"}
+    _notification(author, Notification.KIND_UNLOCK, actor="other", **subset)
+    _notification(author, Notification.KIND_COMMENT, actor="other", **subset)
+    _notification(
+        author,
+        Notification.KIND_STATUS,
+        old_status=Achievement.STATUS_UNOFFICIAL,
+        new_status=Achievement.STATUS_OFFICIAL,
+        **subset,
+    )
+    _notification(
+        author,
+        Notification.KIND_STATUS,
+        old_status=Achievement.STATUS_OFFICIAL,
+        new_status=Achievement.STATUS_UNOFFICIAL,
+        **subset,
+    )
+    client.force_login(author)
+
+    english = _get(client, LIST_URL).content.decode()
+    portuguese = client.get(LIST_URL, HTTP_ACCEPT_LANGUAGE="pt-br").content.decode()
+
+    assert "other unlocked your achievement “Beach” in the Bonus subset." in english
+    assert "other commented on your achievement “Beach” in the Bonus subset." in english
+    assert "Your achievement “Beach” in the Bonus subset is now official." in english
+    assert "Your achievement “Beach” in the Bonus subset is now unofficial." in english
+    assert "other desbloqueou a sua conquista “Beach” do subset Bonus." in portuguese
+    assert "other comentou na sua conquista “Beach” do subset Bonus." in portuguese
+    assert "Sua conquista “Beach” do subset Bonus agora é oficial." in portuguese
+    assert "Sua conquista “Beach” do subset Bonus deixou de ser oficial." in portuguese

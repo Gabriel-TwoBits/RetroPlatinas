@@ -70,7 +70,7 @@ def _editor(request, achievement):
 
 def _achievement(game_id, achievement_id):
     return get_object_or_404(
-        Achievement.objects.select_related("game", "author"),
+        Achievement.objects.select_related("game__parent_game", "author"),
         pk=achievement_id,
         game_id=game_id,
     )
@@ -87,7 +87,8 @@ def achievement_detail(request, game_id, achievement_id):
             "game": achievement.game,
             "badge_url": badge_path(achievement.badge_name),
             "unlockers": stats.achievement_unlockers(achievement),
-            "players": stats.game_players(achievement.game).count(),
+            # A subset's own players are only those who unlocked one of its achievements.
+            "players": stats.game_players(achievement.game.core_game).count(),
             "editable": can_edit(request.user, achievement.author_id),
             "thread": thread(achievement, request.user),
         },
@@ -97,7 +98,7 @@ def achievement_detail(request, game_id, achievement_id):
 @login_required
 @require_http_methods(["GET", "POST"])
 def new_achievement(request, game_id):
-    game = get_object_or_404(Game, pk=game_id)
+    game = get_object_or_404(Game.objects.select_related("parent_game"), pk=game_id)
     return _editor(request, Achievement(game=game, author=request.user))
 
 

@@ -11,7 +11,9 @@ from apps.leaderboards.models import Leaderboard
 def leaderboard_detail(request, game_id, leaderboard_id):
     # A leaderboard of another game is unknown under this one.
     leaderboard = get_object_or_404(
-        Leaderboard.objects.select_related("game__console"), pk=leaderboard_id, game_id=game_id
+        Leaderboard.objects.select_related("game__console", "game__parent_game"),
+        pk=leaderboard_id,
+        game_id=game_id,
     )
     try:
         context = page.board_context(leaderboard, request.user, request.GET.get("page", 1))

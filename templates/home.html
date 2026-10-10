@@ -73,6 +73,7 @@
                   {% blocktrans count achievements=s.achievements with shown=s.achievements|intcomma %}{{ shown }} achievement{% plural %}{{ shown }} achievements{% endblocktrans %}
                   · {% blocktrans count points=s.points with shown=s.points|intcomma %}{{ shown }} pt{% plural %}{{ shown }} pts{% endblocktrans %}
                   · {% blocktrans count players=s.players with shown=s.players|intcomma %}{{ shown }} player{% plural %}{{ shown }} players{% endblocktrans %}
+                  {% if s.subsets %}· <span class="text-brand2">{% blocktrans count subsets=s.subsets with shown=s.subsets|intcomma %}{{ shown }} subset{% plural %}{{ shown }} subsets{% endblocktrans %}</span>{% endif %}
                 </div>
               </div>
             </a>
@@ -161,7 +162,7 @@
                 <img src="{{ a.badge_url }}" alt="" width="32" height="32" class="h-8 w-8 shrink-0 rounded-card border {% if unlock.hardcore %}border-state-hardcore{% else %}border-line2{% endif %}">
                 <div class="min-w-0 flex-1">
                   <div class="text-xs leading-tight text-txt"><a href="{% url 'user_detail' unlock.user.username %}" class="font-display font-semibold text-txt">{{ unlock.user.username }}</a> {% trans "unlocked" %} <span class="text-gold">“{{ achievement.title }}”</span></div>
-                  <div class="mt-1 font-data text-xs text-txt-faint"><a href="{% url 'game_detail' achievement.game.pk %}" class="text-txt-faint hover:text-brand-hi">{{ achievement.game.title }}</a> · {{ achievement.game.console.short_name }} · <time datetime="{{ unlock.unlocked_at|date:'c' }}">{{ unlock.unlocked_at|naturaltime }}</time></div>
+                  <div class="mt-1 font-data text-xs text-txt-faint">{% include "components/set-game-link.html" with game=achievement.game link_class="text-txt-faint hover:text-brand-hi" %} · {{ achievement.game.console.short_name }} · <time datetime="{{ unlock.unlocked_at|date:'c' }}">{{ unlock.unlocked_at|naturaltime }}</time></div>
                 </div>
                 {% if unlock.hardcore %}<span class="shrink-0 font-data text-xs text-state-hardcore">{% trans "HC" %}</span>{% endif %}
               </div>
