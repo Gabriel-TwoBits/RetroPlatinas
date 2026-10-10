@@ -113,7 +113,7 @@ def upsert_achievements(game, author, rows):
             (
                 title,
                 {"mem_addr": mem_addr, "description": description, "type": achievement_type},
-                {"author": author, "points": points, "status": Achievement.STATUS_COMMUNITY},
+                {"author": author, "points": points, "status": Achievement.STATUS_OFFICIAL},
             )
             for title, description, mem_addr, points, achievement_type in rows
         ],

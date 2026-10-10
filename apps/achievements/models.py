@@ -140,9 +140,6 @@ class Achievement(models.Model):
         (STATUS_OFFICIAL, _("Official")),
         (STATUS_UNOFFICIAL, _("Unofficial")),
     ]
-    # Read by the Crash seed helpers in `management/crash1.py`; remove once they name
-    # STATUS_OFFICIAL.
-    STATUS_COMMUNITY = STATUS_OFFICIAL
 
     # The rcheevos achievement types, sent verbatim as `Type`; "" is a standard achievement.
     TYPE_NONE = ""
