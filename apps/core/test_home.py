@@ -442,6 +442,40 @@ def test_home_describes_the_purpose_to_search_engines(client):
 
 
 @pytest.mark.django_db
+def test_home_describes_the_purpose_to_search_engines_in_brazilian_portuguese(client):
+    body = _get(client, "pt-br").content.decode()
+
+    assert '<meta name="description" content="Sets de conquistas retrô que qualquer um' in body
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    ("language", "heading", "item", "detail"),
+    [
+        (
+            "en",
+            "What's new",
+            "Core set and opt-in subsets",
+            "The platinum is the core set in hardcore.",
+        ),
+        (
+            "pt-br",
+            "Novidades",
+            "Set principal e subsets opcionais",
+            "O platinado é o set principal em hardcore.",
+        ),
+    ],
+)
+def test_whats_new_announces_the_core_set_and_opt_in_subsets(
+    client, language, heading, item, detail
+):
+    section = _section(_get(client, language).content.decode(), heading)
+
+    assert item in section
+    assert detail in section
+
+
+@pytest.mark.django_db
 def test_how_to_contribute_points_writers_to_the_set_guidance(client):
     section = _section(_get(client).content.decode(), "How to contribute")
 
