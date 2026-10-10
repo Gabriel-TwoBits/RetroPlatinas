@@ -1,0 +1,18 @@
+{% extends "docs/layout.html" %}
+{% load i18n %}
+
+{% block doc_intro %}{% trans "Guides for playing on RetroPlatinas and for writing its achievements." %}{% endblock %}
+
+{% block doc_body %}
+<div class="mt-8">
+  {% include "components/section-heading.html" with title=_("Pages") %}
+  <ul>
+    {% for item in doc_pages %}
+      <li class="border-t border-line py-3 first:border-t-0">
+        <a href="{% url 'docs_page' item.slug %}" class="font-display text-base font-semibold text-brand no-underline hover:text-brand-hi hover:no-underline">{{ item.title }}</a>
+        <p class="mt-1 text-sm leading-relaxed text-txt-muted">{{ item.summary }}</p>
+      </li>
+    {% endfor %}
+  </ul>
+</div>
+{% endblock %}

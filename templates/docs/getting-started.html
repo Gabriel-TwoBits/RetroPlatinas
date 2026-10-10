@@ -1,13 +1,9 @@
-{% extends "base.html" %}
+{% extends "docs/layout.html" %}
 {% load i18n %}
 
-{% block title %}{% trans "How to start playing" %} — RetroPlatinas{% endblock %}
+{% block doc_intro %}{% trans "RetroPlatinas works with an unmodified DuckStation: point it at this site, log in and play." %}{% endblock %}
 
-{% block content %}
-<article class="mx-auto max-w-2xl px-4 py-8">
-  <h1 class="font-display text-2xl font-bold leading-tight tracking-tight text-txt">{% trans "How to start playing" %}</h1>
-  <p class="mt-2 text-sm leading-relaxed text-txt-muted">{% trans "RetroPlatinas works with an unmodified DuckStation: point it at this site, log in and play." %}</p>
-
+{% block doc_body %}
   <div class="mt-8">
     {% include "components/section-heading.html" with title=_("Step by step") accent="gold" %}
     <ol class="mt-4 flex flex-col gap-6 border-l-2 border-brand-dim pl-4">
@@ -46,6 +42,16 @@ Host = {{ server_url }}</pre>
   <div class="mt-10">
     {% include "components/section-heading.html" with title=_("Hardcore mode") accent="state-hardcore" %}
     <p class="mt-3 text-sm leading-relaxed text-txt-muted">{% trans "Hardcore Mode, in the same Achievements settings, turns off save states, cheats and rewind. Unlocks earned that way carry the hardcore seal and are shown apart from softcore ones; they are worth the same points." %}</p>
+    <p class="mt-3 text-sm leading-relaxed text-txt-muted">{% trans "An achievement unlocked in hardcore also counts as unlocked in softcore, so its points go to both totals. One unlocked in softcore can still be earned again in hardcore later. Leaderboards only run in hardcore." %}</p>
   </div>
-</article>
+
+  <div class="mt-10">
+    {% include "components/section-heading.html" with title=_("Softcore mode") accent="state-softcore" %}
+    <p class="mt-3 text-sm leading-relaxed text-txt-muted">{% trans "With Hardcore Mode off you play in softcore: save states, cheats and rewind work, and unlocks count only toward your softcore total." %}</p>
+  </div>
+
+  <p class="mt-10 text-sm leading-relaxed text-txt-muted">
+    {% url 'docs_page' 'faq' as faq_url %}
+    {% blocktrans trimmed %}Something did not unlock? See the <a href="{{ faq_url }}" class="text-brand">frequently asked questions</a>.{% endblocktrans %}
+  </p>
 {% endblock %}

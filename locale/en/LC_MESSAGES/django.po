@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RetroPlatinas\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 23:27-0300\n"
+"POT-Creation-Date: 2026-10-09 23:37-0300\n"
 "PO-Revision-Date: 2026-05-23 18:15-0300\n"
 "Last-Translator: RetroPlatinas\n"
 "Language-Team: English\n"
@@ -524,6 +524,47 @@ msgstr ""
 msgid "comments"
 msgstr ""
 
+#: apps/core/docs.py:49 templates/home.html:105
+msgid "How to start playing"
+msgstr ""
+
+#: apps/core/docs.py:50
+msgid "Create an account, point DuckStation at this site, log in and play."
+msgstr ""
+
+#: apps/core/docs.py:55
+msgid "Creating achievements"
+msgstr ""
+
+#: apps/core/docs.py:56
+msgid "Write a condition in the web editor, test it as a draft and publish it."
+msgstr ""
+
+#: apps/core/docs.py:60
+msgid "Statuses and contributing"
+msgstr ""
+
+#: apps/core/docs.py:61
+msgid "What draft, community and verified mean, and how code notes help a set."
+msgstr ""
+
+#: apps/core/docs.py:66
+msgid "Leaderboards and rich presence"
+msgstr ""
+
+#: apps/core/docs.py:67
+msgid "How scores and times are ranked, and what the playing-now line shows."
+msgstr ""
+
+#: apps/core/docs.py:71
+msgid "Frequently asked questions"
+msgstr ""
+
+#: apps/core/docs.py:72
+msgid ""
+"Supported discs, achievements that did not unlock, hardcore and softcore."
+msgstr ""
+
 #: apps/core/feed.py:15
 msgctxt "feed filter"
 msgid "All"
@@ -534,7 +575,7 @@ msgctxt "feed filter"
 msgid "Friends"
 msgstr ""
 
-#: apps/core/views.py:28
+#: apps/core/views.py:29
 msgid "Unknown feed filter"
 msgstr ""
 
@@ -672,7 +713,7 @@ msgstr ""
 msgid "Achievements"
 msgstr ""
 
-#: apps/games/page.py:18
+#: apps/games/page.py:18 templates/docs/leaderboards-and-rich-presence.html:8
 msgid "Leaderboards"
 msgstr ""
 
@@ -947,7 +988,7 @@ msgid "No account yet?"
 msgstr ""
 
 #: templates/accounts/login.html:14 templates/accounts/register.html:4
-#: templates/accounts/register.html:12 templates/components/site-menu.html:25
+#: templates/accounts/register.html:12 templates/components/site-menu.html:26
 msgid "Register"
 msgstr ""
 
@@ -1285,7 +1326,7 @@ msgstr ""
 #: templates/accounts/password-change-form.html:4
 #: templates/accounts/password-change-form.html:8
 #: templates/accounts/password-change-form.html:12
-#: templates/components/site-menu.html:18
+#: templates/components/site-menu.html:19
 msgid "Change password"
 msgstr ""
 
@@ -1376,7 +1417,9 @@ msgid "Back to the code notes"
 msgstr ""
 
 #: templates/achievements/code-notes.html:4
-#: templates/achievements/code-notes.html:10 templates/games/detail.html:36
+#: templates/achievements/code-notes.html:10
+#: templates/docs/statuses-and-contributing.html:57
+#: templates/games/detail.html:36
 msgid "Code notes"
 msgstr ""
 
@@ -1537,6 +1580,10 @@ msgstr ""
 msgid "How to start"
 msgstr ""
 
+#: templates/base.html:66 templates/components/site-menu.html:13
+msgid "Docs"
+msgstr ""
+
 #: templates/comments/partials/thread.html:7
 #, python-format
 msgid "%(comments)s comment"
@@ -1572,114 +1619,624 @@ msgstr ""
 msgid "Main navigation"
 msgstr ""
 
-#: templates/components/site-menu.html:21
+#: templates/components/site-menu.html:22
 msgid "Logout"
 msgstr ""
 
-#: templates/components/site-menu.html:24
+#: templates/components/site-menu.html:25
 msgid "Login"
 msgstr ""
 
-#: templates/components/site-menu.html:31
+#: templates/components/site-menu.html:32
 msgid "Language"
 msgstr ""
 
-#: templates/components/site-menu.html:37
+#: templates/components/site-menu.html:38
 msgid "Change language"
 msgstr ""
 
-#: templates/docs/getting-started.html:4 templates/docs/getting-started.html:8
-#: templates/home.html:105
-msgid "How to start playing"
+#: templates/docs/creating-achievements.html:4
+msgid ""
+"Every logged-in player can write achievements for a game on the site. A new "
+"achievement starts as a draft that only you receive, so you can test it in "
+"the emulator before anyone else sees it."
 msgstr ""
 
-#: templates/docs/getting-started.html:9
+#: templates/docs/creating-achievements.html:9
+msgid "From draft to published"
+msgstr ""
+
+#: templates/docs/creating-achievements.html:12
+msgid "Open the editor"
+msgstr ""
+
+#: templates/docs/creating-achievements.html:13
+msgid ""
+"Log in, open the game's page and press New achievement. The editor asks for "
+"a title, a description, the points, the type, a badge image, the condition "
+"and the status."
+msgstr ""
+
+#: templates/docs/creating-achievements.html:14
+msgid "See the games →"
+msgstr ""
+
+#: templates/docs/creating-achievements.html:17
+msgid "Write the condition"
+msgstr ""
+
+#: templates/docs/creating-achievements.html:18
+msgid ""
+"The condition (mem_addr) tells the emulator which memory values unlock the "
+"achievement. The syntax is the same as on RetroAchievements; the pointers "
+"below cover the basics."
+msgstr ""
+
+#: templates/docs/creating-achievements.html:21
+msgid "Save it as a draft"
+msgstr ""
+
+#: templates/docs/creating-achievements.html:22
+msgid ""
+"On save, the editor checks the condition with the same rcheevos parser the "
+"emulators run and refuses a malformed one, showing the parser's reason. A "
+"condition that parses can still be wrong: only the game proves it."
+msgstr ""
+
+#: templates/docs/creating-achievements.html:25
+msgid "Test it in DuckStation"
+msgstr ""
+
+#: templates/docs/creating-achievements.html:26
+msgid ""
+"Log in to DuckStation as the draft's author, turn on Test Unofficial "
+"Achievements in Settings → Achievements, then close the game and open it "
+"again: the emulator only fetches the achievements when a game loads."
+msgstr ""
+
+#: templates/docs/creating-achievements.html:27
+msgid ""
+"Drafts appear in the achievement list marked (Unofficial); the pause "
+"screen's counter only counts official ones. The pop-up fires when the "
+"condition is met, which proves it works, but a draft is never recorded or "
+"worth points."
+msgstr ""
+
+#: templates/docs/creating-achievements.html:30
+msgid "Publish it"
+msgstr ""
+
+#: templates/docs/creating-achievements.html:31
+msgid ""
+"Back in the editor, set the status to Community. Every player then receives "
+"it as an official achievement, and unlocking it counts and scores."
+msgstr ""
+
+#: templates/docs/creating-achievements.html:32
+msgid "What each status means →"
+msgstr ""
+
+#: templates/docs/creating-achievements.html:38
+#: templates/docs/creating-achievements.html:70
+msgid "Condition syntax"
+msgstr ""
+
+#: templates/docs/creating-achievements.html:39
+msgid ""
+"A condition compares memory values. These are the pieces most conditions use:"
+msgstr ""
+
+#: templates/docs/creating-achievements.html:43
+msgid ""
+"The 8-bit value at address 0x1234. 0x is 16-bit, 0xW 24-bit and 0xX 32-bit; "
+"0xM to 0xT read single bits."
+msgstr ""
+
+#: templates/docs/creating-achievements.html:47
+msgid "The delta: the value the address held on the previous frame."
+msgstr ""
+
+#: templates/docs/creating-achievements.html:51
+msgid "Joins conditions: all of them must be true on the same frame."
+msgstr ""
+
+#: templates/docs/creating-achievements.html:55
+msgid ""
+"Starts an alternative group: the core conditions plus any one group must be "
+"true."
+msgstr ""
+
+#: templates/docs/creating-achievements.html:59
+msgid ""
+"Flags before a condition: ResetIf clears every hit count when it is true, "
+"PauseIf suspends the check while it is true."
+msgstr ""
+
+#: templates/docs/creating-achievements.html:63
+msgid ""
+"A hit count after a condition: it must be true on that many frames before it "
+"counts."
+msgstr ""
+
+#: templates/docs/creating-achievements.html:66
+msgid ""
+"For example, this condition fires on the frame the byte at 0x61998 changes "
+"from 0 to 1:"
+msgstr ""
+
+#: templates/docs/creating-achievements.html:68
+msgid ""
+"RetroAchievements' developer documentation covers every size, prefix and "
+"flag:"
+msgstr ""
+
+#: templates/docs/creating-achievements.html:71
+msgid "Why delta"
+msgstr ""
+
+#: templates/docs/creating-achievements.html:72
+msgid "Hit counts"
+msgstr ""
+
+#: templates/docs/creating-achievements.html:74
+msgid "Alt groups"
+msgstr ""
+
+#: templates/docs/creating-achievements.html:75
+msgid "All developer docs"
+msgstr ""
+
+#: templates/docs/creating-achievements.html:80
+msgid "Good practices"
+msgstr ""
+
+#: templates/docs/creating-achievements.html:82
+msgid ""
+"Describe the moment something happens, not a state: compare the value with "
+"its delta, as in the example above. A plain comparison can be true for a "
+"frame while the game boots and unlock the achievement on load."
+msgstr ""
+
+#: templates/docs/creating-achievements.html:83
+msgid ""
+"Console memory is zeroed at reset, so a 0 often means the game is not "
+"running yet. Guard the condition with a value that is only non-zero during "
+"play, such as a pointer."
+msgstr ""
+
+#: templates/docs/creating-achievements.html:84
+msgid ""
+"The emulator holds back an achievement whose condition is already true when "
+"the game loads. Test from a save state made before the moment it should fire."
+msgstr ""
+
+#: templates/docs/creating-achievements.html:85
+msgid ""
+"Check each address you rely on: code notes describe what the community "
+"found, often on another region of the game."
+msgstr ""
+
+#: templates/docs/creating-achievements.html:86
+msgid ""
+"Every save keeps a revision. The History link on the game page shows them, "
+"and the author or staff can revert to one."
+msgstr ""
+
+#: templates/docs/faq.html:4
+msgid "Short answers to what players and authors ask most."
+msgstr ""
+
+#: templates/docs/faq.html:9
+msgid "Which discs are supported?"
+msgstr ""
+
+#: templates/docs/faq.html:10
+msgid ""
+"The emulator recognises a game by a hash of its disc: for PlayStation, the "
+"hash of the boot executable named in SYSTEM.CNF. A disc only gets "
+"achievements when its hash is registered for a game here, so another region "
+"or revision of the same game, with a different executable, is not recognised."
+msgstr ""
+
+#: templates/docs/faq.html:22
+msgid "No disc registered yet"
+msgstr ""
+
+#: templates/docs/faq.html:28
+msgid "Why did an achievement not unlock?"
+msgstr ""
+
+#: templates/docs/faq.html:30
+msgid ""
+"The emulator did not recognise the disc, so it loaded no achievements for "
+"it. Check that your disc is in the list above."
+msgstr ""
+
+#: templates/docs/faq.html:31
+#, python-format
+msgid ""
+"The emulator is not connected to this site: check the Host in DuckStation's "
+"settings.ini and that you are logged in, as the <a href=\"%(start_url)s\" "
+"class=\"text-brand\">getting started guide</a> shows."
+msgstr ""
+
+#: templates/docs/faq.html:32
+msgid ""
+"It is a draft: only its author receives it, and a draft is never recorded or "
+"worth points."
+msgstr ""
+
+#: templates/docs/faq.html:33
+msgid ""
+"Its condition was already true when the game loaded, for example from a save "
+"state made after the moment: the emulator holds it back until the condition "
+"turns false and true again."
+msgstr ""
+
+#: templates/docs/faq.html:34
+msgid ""
+"It changed after you opened the game: the emulator only fetches achievements "
+"when a game loads, so close the game and open it again."
+msgstr ""
+
+#: templates/docs/faq.html:35
+msgid ""
+"It has a bug. Tell its author in the comments on the achievement's page."
+msgstr ""
+
+#: templates/docs/faq.html:40
+msgid "Hardcore or softcore?"
+msgstr ""
+
+#: templates/docs/faq.html:41
+msgid ""
+"Both are worth the same points, and the site shows each total apart. "
+"Hardcore turns off save states, cheats and rewind; an achievement unlocked "
+"in hardcore also counts in softcore. Leaderboards only run in hardcore."
+msgstr ""
+
+#: templates/docs/faq.html:45
+msgid "Do I need a RetroAchievements account?"
+msgstr ""
+
+#: templates/docs/faq.html:46
+msgid ""
+"No. RetroPlatinas speaks the same protocol as RetroAchievements, so the "
+"emulator works unchanged, but accounts, achievements and progress are "
+"separate: log in with your RetroPlatinas account."
+msgstr ""
+
+#: templates/docs/faq.html:50
+msgid "Can I use another emulator?"
+msgstr ""
+
+#: templates/docs/faq.html:51
+msgid ""
+"Today DuckStation is the only emulator we test. Others built on rcheevos may "
+"work if they let you change the server address, but they are not supported."
+msgstr ""
+
+#: templates/docs/getting-started.html:4
 msgid ""
 "RetroPlatinas works with an unmodified DuckStation: point it at this site, "
 "log in and play."
 msgstr ""
 
-#: templates/docs/getting-started.html:12
+#: templates/docs/getting-started.html:8
 msgid "Step by step"
 msgstr ""
 
-#: templates/docs/getting-started.html:15
+#: templates/docs/getting-started.html:11
 msgid "Create an account"
 msgstr ""
 
-#: templates/docs/getting-started.html:16
+#: templates/docs/getting-started.html:12
 msgid ""
 "Pick a username and a password. They are the same ones you will type into "
 "the emulator."
 msgstr ""
 
-#: templates/docs/getting-started.html:18
+#: templates/docs/getting-started.html:14
 #, python-format
 msgid "You're already logged in as %(username)s."
 msgstr ""
 
-#: templates/docs/getting-started.html:20 templates/home.html:91
+#: templates/docs/getting-started.html:16 templates/home.html:91
 msgid "Create account →"
 msgstr ""
 
-#: templates/docs/getting-started.html:24
+#: templates/docs/getting-started.html:20
 msgid "Get DuckStation"
 msgstr ""
 
-#: templates/docs/getting-started.html:25
+#: templates/docs/getting-started.html:21
 msgid ""
 "Download DuckStation for your system from its official site and open it "
 "once, so it creates its settings file. Today it is the only emulator we "
 "test, for PlayStation (PS1) games."
 msgstr ""
 
-#: templates/docs/getting-started.html:29
+#: templates/docs/getting-started.html:25
 msgid "Point DuckStation at RetroPlatinas"
 msgstr ""
 
-#: templates/docs/getting-started.html:30
+#: templates/docs/getting-started.html:26
 msgid ""
 "Close DuckStation, open its settings.ini in a text editor and set the server "
 "address in the [Cheevos] section (add the section if it isn't there):"
 msgstr ""
 
-#: templates/docs/getting-started.html:33
+#: templates/docs/getting-started.html:29
 msgid ""
 "settings.ini lives in DuckStation's user folder: Documents\\DuckStation on "
 "Windows, ~/.local/share/duckstation on Linux, ~/Library/Application Support/"
 "DuckStation on macOS."
 msgstr ""
 
-#: templates/docs/getting-started.html:36
+#: templates/docs/getting-started.html:32
 msgid "Log in from the emulator"
 msgstr ""
 
-#: templates/docs/getting-started.html:37
+#: templates/docs/getting-started.html:33
 msgid ""
 "Open DuckStation, go to Settings → Achievements, enable achievements and log "
 "in with your RetroPlatinas username and password. DuckStation remembers the "
 "login, so you only do this once."
 msgstr ""
 
-#: templates/docs/getting-started.html:40
+#: templates/docs/getting-started.html:36
 msgid "Play"
 msgstr ""
 
-#: templates/docs/getting-started.html:41
+#: templates/docs/getting-started.html:37
 msgid ""
 "Load a game that has a set — today, Crash Bandicoot (PS1). Achievements pop "
 "up as you unlock them and show up on your profile."
 msgstr ""
 
-#: templates/docs/getting-started.html:47
+#: templates/docs/getting-started.html:43
 msgid "Hardcore mode"
 msgstr ""
 
-#: templates/docs/getting-started.html:48
+#: templates/docs/getting-started.html:44
 msgid ""
 "Hardcore Mode, in the same Achievements settings, turns off save states, "
 "cheats and rewind. Unlocks earned that way carry the hardcore seal and are "
 "shown apart from softcore ones; they are worth the same points."
+msgstr ""
+
+#: templates/docs/getting-started.html:45
+msgid ""
+"An achievement unlocked in hardcore also counts as unlocked in softcore, so "
+"its points go to both totals. One unlocked in softcore can still be earned "
+"again in hardcore later. Leaderboards only run in hardcore."
+msgstr ""
+
+#: templates/docs/getting-started.html:49
+msgid "Softcore mode"
+msgstr ""
+
+#: templates/docs/getting-started.html:50
+msgid ""
+"With Hardcore Mode off you play in softcore: save states, cheats and rewind "
+"work, and unlocks count only toward your softcore total."
+msgstr ""
+
+#: templates/docs/getting-started.html:55
+#, python-format
+msgid ""
+"Something did not unlock? See the <a href=\"%(faq_url)s\" class=\"text-"
+"brand\">frequently asked questions</a>."
+msgstr ""
+
+#: templates/docs/index.html:4
+msgid "Guides for playing on RetroPlatinas and for writing its achievements."
+msgstr ""
+
+#: templates/docs/index.html:8
+msgid "Pages"
+msgstr ""
+
+#: templates/docs/layout.html:8 templates/docs/layout.html:12
+#: templates/docs/layout.html:13 templates/docs/layout.html:28
+msgid "Documentation"
+msgstr ""
+
+#: templates/docs/leaderboards-and-rich-presence.html:4
+msgid ""
+"Besides achievements, a game can have leaderboards, which rank scores and "
+"times, and a rich presence script, which tells others what you are doing in "
+"the game."
+msgstr ""
+
+#: templates/docs/leaderboards-and-rich-presence.html:10
+msgid ""
+"A leaderboard starts when its start condition becomes true, is cancelled by "
+"its cancel condition and submits the value it tracks when its submit "
+"condition becomes true. The emulator shows the running value while it is "
+"active."
+msgstr ""
+
+#: templates/docs/leaderboards-and-rich-presence.html:11
+msgid ""
+"Leaderboards only run in hardcore mode: in softcore the emulator neither "
+"tracks nor submits them."
+msgstr ""
+
+#: templates/docs/leaderboards-and-rich-presence.html:12
+msgid ""
+"Each player keeps one entry, their best: the highest score, or the lowest "
+"value when lower is better, as with times. A worse attempt does not replace "
+"it."
+msgstr ""
+
+#: templates/docs/leaderboards-and-rich-presence.html:13
+msgid ""
+"The game page's Leaderboards tab lists them; each has its own page with "
+"every rank."
+msgstr ""
+
+#: templates/docs/leaderboards-and-rich-presence.html:14
+msgid ""
+"Staff add new leaderboards. To propose one, describe it in the game page's "
+"comments."
+msgstr ""
+
+#: templates/docs/leaderboards-and-rich-presence.html:16
+msgid ""
+"A leaderboard is written as four condition strings, the same syntax as "
+"achievements:"
+msgstr ""
+
+#: templates/docs/leaderboards-and-rich-presence.html:18
+msgid "Leaderboards in the RetroAchievements docs"
+msgstr ""
+
+#: templates/docs/leaderboards-and-rich-presence.html:22
+msgid "Rich presence"
+msgstr ""
+
+#: templates/docs/leaderboards-and-rich-presence.html:24
+msgid ""
+"While you play, the emulator reads a few memory values and sends a short "
+"line about what you are doing, such as the level you are in. The site shows "
+"it as playing now on your profile and on the home page."
+msgstr ""
+
+#: templates/docs/leaderboards-and-rich-presence.html:25
+msgid ""
+"The emulator sends it about every two minutes, and only fetches the script "
+"when a game loads, so a change shows after the game is opened again."
+msgstr ""
+
+#: templates/docs/leaderboards-and-rich-presence.html:26
+msgid ""
+"Each game has one script, which staff maintain. Without one, the site only "
+"shows which game you are playing."
+msgstr ""
+
+#: templates/docs/leaderboards-and-rich-presence.html:28
+msgid ""
+"A script defines formats and lookups, then the line to display, reading "
+"memory with macros:"
+msgstr ""
+
+#: templates/docs/leaderboards-and-rich-presence.html:34
+msgid "Rich presence in the RetroAchievements docs"
+msgstr ""
+
+#: templates/docs/statuses-and-contributing.html:4
+msgid ""
+"Every achievement has a status that decides who receives it and whether it "
+"is worth points. Sets grow from players writing, testing and reviewing them."
+msgstr ""
+
+#: templates/docs/statuses-and-contributing.html:8
+msgid "Statuses"
+msgstr ""
+
+#: templates/docs/statuses-and-contributing.html:12
+msgid ""
+"Reaches only its author, in the emulator's unofficial list with Test "
+"Unofficial Achievements on. It is never recorded and never worth points. "
+"Other players do not see it on the site."
+msgstr ""
+
+#: templates/docs/statuses-and-contributing.html:16
+msgid ""
+"Published: every player receives it as an official achievement, and "
+"unlocking it is recorded and worth its points."
+msgstr ""
+
+#: templates/docs/statuses-and-contributing.html:20
+msgid ""
+"Published, like community, and worth the same points. Verified is a quality "
+"seal staff give after reviewing the achievement; the game page lists "
+"verified achievements first."
+msgstr ""
+
+#: templates/docs/statuses-and-contributing.html:26
+msgid "Who changes a status"
+msgstr ""
+
+#: templates/docs/statuses-and-contributing.html:28
+msgid ""
+"The author moves an achievement between draft and community in the editor. "
+"Only staff mark it verified, and only staff change a verified achievement's "
+"status."
+msgstr ""
+
+#: templates/docs/statuses-and-contributing.html:29
+msgid ""
+"Moving a published achievement back to draft keeps everyone's unlocks but "
+"takes its points out of their totals; publishing it again counts them again."
+msgstr ""
+
+#: templates/docs/statuses-and-contributing.html:34 templates/home.html:86
+msgid "How to contribute"
+msgstr ""
+
+#: templates/docs/statuses-and-contributing.html:37
+msgid "Read the code notes"
+msgstr ""
+
+#: templates/docs/statuses-and-contributing.html:38
+msgid ""
+"Each game page links its code notes: what the community found at each memory "
+"address."
+msgstr ""
+
+#: templates/docs/statuses-and-contributing.html:41
+msgid "Write and test a draft"
+msgstr ""
+
+#: templates/docs/statuses-and-contributing.html:42
+msgid ""
+"Follow the creating achievements guide, and test the draft in the game "
+"before publishing it."
+msgstr ""
+
+#: templates/docs/statuses-and-contributing.html:43
+msgid "Creating achievements →"
+msgstr ""
+
+#: templates/docs/statuses-and-contributing.html:46
+msgid "Publish it as community"
+msgstr ""
+
+#: templates/docs/statuses-and-contributing.html:47
+msgid ""
+"Once it fires at the right moment, publish it. Players can leave feedback in "
+"the comments on its page."
+msgstr ""
+
+#: templates/docs/statuses-and-contributing.html:50
+msgid "Share what you found"
+msgstr ""
+
+#: templates/docs/statuses-and-contributing.html:51
+msgid ""
+"Add a code note for every address you worked out, so the next author starts "
+"from it."
+msgstr ""
+
+#: templates/docs/statuses-and-contributing.html:59
+msgid ""
+"A code note describes one memory address of a game: its size, the values it "
+"takes and what they mean."
+msgstr ""
+
+#: templates/docs/statuses-and-contributing.html:60
+msgid ""
+"Anyone can read and search them. A logged-in player adds new ones; the "
+"author or staff edit or delete a note."
+msgstr ""
+
+#: templates/docs/statuses-and-contributing.html:61
+msgid ""
+"Notes are a starting point, not the truth: many come from RetroAchievements "
+"and describe another region or revision of the game. Check each address in "
+"the game before relying on it."
 msgstr ""
 
 #: templates/feed/feed.html:12
@@ -1888,10 +2445,6 @@ msgid "%(shown)s player"
 msgid_plural "%(shown)s players"
 msgstr[0] ""
 msgstr[1] ""
-
-#: templates/home.html:86
-msgid "How to contribute"
-msgstr ""
 
 #: templates/home.html:89
 msgid "Create achievement sets"

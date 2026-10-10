@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RetroPlatinas\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 23:27-0300\n"
+"POT-Creation-Date: 2026-10-09 23:37-0300\n"
 "PO-Revision-Date: 2026-05-23 18:15-0300\n"
 "Last-Translator: RetroPlatinas\n"
 "Language-Team: Brazilian Portuguese\n"
@@ -534,6 +534,53 @@ msgstr "comentário"
 msgid "comments"
 msgstr "comentários"
 
+#: apps/core/docs.py:49 templates/home.html:105
+msgid "How to start playing"
+msgstr "Como começar a jogar"
+
+#: apps/core/docs.py:50
+msgid "Create an account, point DuckStation at this site, log in and play."
+msgstr "Crie uma conta, aponte o DuckStation para este site, entre e jogue."
+
+#: apps/core/docs.py:55
+msgid "Creating achievements"
+msgstr "Criando conquistas"
+
+#: apps/core/docs.py:56
+msgid "Write a condition in the web editor, test it as a draft and publish it."
+msgstr ""
+"Escreva uma condição no editor do site, teste como rascunho e publique."
+
+#: apps/core/docs.py:60
+msgid "Statuses and contributing"
+msgstr "Status e como contribuir"
+
+#: apps/core/docs.py:61
+msgid "What draft, community and verified mean, and how code notes help a set."
+msgstr ""
+"O que significam rascunho, comunidade e verificado, e como as anotações de "
+"código ajudam um set."
+
+#: apps/core/docs.py:66
+msgid "Leaderboards and rich presence"
+msgstr "Placares e rich presence"
+
+#: apps/core/docs.py:67
+msgid "How scores and times are ranked, and what the playing-now line shows."
+msgstr ""
+"Como pontuações e tempos são classificados, e o que mostra a linha de "
+"jogando agora."
+
+#: apps/core/docs.py:71
+msgid "Frequently asked questions"
+msgstr "Perguntas frequentes"
+
+#: apps/core/docs.py:72
+msgid ""
+"Supported discs, achievements that did not unlock, hardcore and softcore."
+msgstr ""
+"Discos suportados, conquistas que não desbloquearam, hardcore e softcore."
+
 #: apps/core/feed.py:15
 msgctxt "feed filter"
 msgid "All"
@@ -544,7 +591,7 @@ msgctxt "feed filter"
 msgid "Friends"
 msgstr "Amigos"
 
-#: apps/core/views.py:28
+#: apps/core/views.py:29
 msgid "Unknown feed filter"
 msgstr "Filtro de feed desconhecido"
 
@@ -682,7 +729,7 @@ msgstr "jogos dos jogadores"
 msgid "Achievements"
 msgstr "Conquistas"
 
-#: apps/games/page.py:18
+#: apps/games/page.py:18 templates/docs/leaderboards-and-rich-presence.html:8
 msgid "Leaderboards"
 msgstr "Placares"
 
@@ -957,7 +1004,7 @@ msgid "No account yet?"
 msgstr "Ainda não tem conta?"
 
 #: templates/accounts/login.html:14 templates/accounts/register.html:4
-#: templates/accounts/register.html:12 templates/components/site-menu.html:25
+#: templates/accounts/register.html:12 templates/components/site-menu.html:26
 msgid "Register"
 msgstr "Cadastrar"
 
@@ -1297,7 +1344,7 @@ msgstr "Voltar ao início"
 #: templates/accounts/password-change-form.html:4
 #: templates/accounts/password-change-form.html:8
 #: templates/accounts/password-change-form.html:12
-#: templates/components/site-menu.html:18
+#: templates/components/site-menu.html:19
 msgid "Change password"
 msgstr "Alterar senha"
 
@@ -1392,7 +1439,9 @@ msgid "Back to the code notes"
 msgstr "Voltar às anotações de código"
 
 #: templates/achievements/code-notes.html:4
-#: templates/achievements/code-notes.html:10 templates/games/detail.html:36
+#: templates/achievements/code-notes.html:10
+#: templates/docs/statuses-and-contributing.html:57
+#: templates/games/detail.html:36
 msgid "Code notes"
 msgstr "Anotações de código"
 
@@ -1558,6 +1607,10 @@ msgstr "Feed"
 msgid "How to start"
 msgstr "Como começar"
 
+#: templates/base.html:66 templates/components/site-menu.html:13
+msgid "Docs"
+msgstr "Documentação"
+
 #: templates/comments/partials/thread.html:7
 #, python-format
 msgid "%(comments)s comment"
@@ -1593,28 +1646,381 @@ msgstr "RetroPlatinas"
 msgid "Main navigation"
 msgstr "Navegação principal"
 
-#: templates/components/site-menu.html:21
+#: templates/components/site-menu.html:22
 msgid "Logout"
 msgstr "Sair"
 
-#: templates/components/site-menu.html:24
+#: templates/components/site-menu.html:25
 msgid "Login"
 msgstr "Entrar"
 
-#: templates/components/site-menu.html:31
+#: templates/components/site-menu.html:32
 msgid "Language"
 msgstr "Idioma"
 
-#: templates/components/site-menu.html:37
+#: templates/components/site-menu.html:38
 msgid "Change language"
 msgstr "Mudar idioma"
 
-#: templates/docs/getting-started.html:4 templates/docs/getting-started.html:8
-#: templates/home.html:105
-msgid "How to start playing"
-msgstr "Como começar a jogar"
+#: templates/docs/creating-achievements.html:4
+msgid ""
+"Every logged-in player can write achievements for a game on the site. A new "
+"achievement starts as a draft that only you receive, so you can test it in "
+"the emulator before anyone else sees it."
+msgstr ""
+"Todo jogador logado pode escrever conquistas para um jogo no site. Uma "
+"conquista nova começa como rascunho, que só você recebe, então dá para testá-"
+"la no emulador antes de qualquer outra pessoa vê-la."
 
-#: templates/docs/getting-started.html:9
+#: templates/docs/creating-achievements.html:9
+msgid "From draft to published"
+msgstr "Do rascunho à publicação"
+
+#: templates/docs/creating-achievements.html:12
+msgid "Open the editor"
+msgstr "Abra o editor"
+
+#: templates/docs/creating-achievements.html:13
+msgid ""
+"Log in, open the game's page and press New achievement. The editor asks for "
+"a title, a description, the points, the type, a badge image, the condition "
+"and the status."
+msgstr ""
+"Entre, abra a página do jogo e clique em Nova conquista. O editor pede um "
+"título, uma descrição, os pontos, o tipo, uma imagem de emblema, a condição "
+"e o status."
+
+#: templates/docs/creating-achievements.html:14
+msgid "See the games →"
+msgstr "Ver os jogos →"
+
+#: templates/docs/creating-achievements.html:17
+msgid "Write the condition"
+msgstr "Escreva a condição"
+
+#: templates/docs/creating-achievements.html:18
+msgid ""
+"The condition (mem_addr) tells the emulator which memory values unlock the "
+"achievement. The syntax is the same as on RetroAchievements; the pointers "
+"below cover the basics."
+msgstr ""
+"A condição (mem_addr) diz ao emulador quais valores da memória desbloqueiam "
+"a conquista. A sintaxe é a mesma do RetroAchievements; as dicas abaixo "
+"cobrem o básico."
+
+#: templates/docs/creating-achievements.html:21
+msgid "Save it as a draft"
+msgstr "Salve como rascunho"
+
+#: templates/docs/creating-achievements.html:22
+msgid ""
+"On save, the editor checks the condition with the same rcheevos parser the "
+"emulators run and refuses a malformed one, showing the parser's reason. A "
+"condition that parses can still be wrong: only the game proves it."
+msgstr ""
+"Ao salvar, o editor confere a condição com o mesmo parser do rcheevos que os "
+"emuladores rodam e recusa uma malformada, mostrando o motivo dado pelo "
+"parser. Uma condição válida ainda pode estar errada: só o jogo prova que "
+"funciona."
+
+#: templates/docs/creating-achievements.html:25
+msgid "Test it in DuckStation"
+msgstr "Teste no DuckStation"
+
+#: templates/docs/creating-achievements.html:26
+msgid ""
+"Log in to DuckStation as the draft's author, turn on Test Unofficial "
+"Achievements in Settings → Achievements, then close the game and open it "
+"again: the emulator only fetches the achievements when a game loads."
+msgstr ""
+"Entre no DuckStation como autor do rascunho, ative Testar Conquistas Não "
+"Oficiais (Test Unofficial Achievements) em Configurações → Conquistas, "
+"depois feche o jogo e abra de novo: o emulador só busca as conquistas quando "
+"um jogo carrega."
+
+#: templates/docs/creating-achievements.html:27
+msgid ""
+"Drafts appear in the achievement list marked (Unofficial); the pause "
+"screen's counter only counts official ones. The pop-up fires when the "
+"condition is met, which proves it works, but a draft is never recorded or "
+"worth points."
+msgstr ""
+"Os rascunhos aparecem na lista de conquistas marcados como (Unofficial); o "
+"contador da tela de pausa só conta as oficiais. O pop-up aparece quando a "
+"condição é atendida, o que prova que ela funciona, mas um rascunho nunca é "
+"registrado nem vale pontos."
+
+#: templates/docs/creating-achievements.html:30
+msgid "Publish it"
+msgstr "Publique"
+
+#: templates/docs/creating-achievements.html:31
+msgid ""
+"Back in the editor, set the status to Community. Every player then receives "
+"it as an official achievement, and unlocking it counts and scores."
+msgstr ""
+"De volta ao editor, mude o status para Comunidade. A partir daí todo jogador "
+"a recebe como conquista oficial, e desbloqueá-la conta e vale pontos."
+
+#: templates/docs/creating-achievements.html:32
+msgid "What each status means →"
+msgstr "O que cada status significa →"
+
+#: templates/docs/creating-achievements.html:38
+#: templates/docs/creating-achievements.html:70
+msgid "Condition syntax"
+msgstr "Sintaxe das condições"
+
+#: templates/docs/creating-achievements.html:39
+msgid ""
+"A condition compares memory values. These are the pieces most conditions use:"
+msgstr ""
+"Uma condição compara valores da memória. Estas são as peças que a maioria "
+"das condições usa:"
+
+#: templates/docs/creating-achievements.html:43
+msgid ""
+"The 8-bit value at address 0x1234. 0x is 16-bit, 0xW 24-bit and 0xX 32-bit; "
+"0xM to 0xT read single bits."
+msgstr ""
+"O valor de 8 bits no endereço 0x1234. 0x é 16 bits, 0xW 24 bits e 0xX 32 "
+"bits; de 0xM a 0xT leem bits individuais."
+
+#: templates/docs/creating-achievements.html:47
+msgid "The delta: the value the address held on the previous frame."
+msgstr "O delta: o valor que o endereço tinha no quadro anterior."
+
+#: templates/docs/creating-achievements.html:51
+msgid "Joins conditions: all of them must be true on the same frame."
+msgstr "Junta condições: todas precisam ser verdadeiras no mesmo quadro."
+
+#: templates/docs/creating-achievements.html:55
+msgid ""
+"Starts an alternative group: the core conditions plus any one group must be "
+"true."
+msgstr ""
+"Inicia um grupo alternativo: as condições principais e mais um grupo "
+"qualquer precisam ser verdadeiros."
+
+#: templates/docs/creating-achievements.html:59
+msgid ""
+"Flags before a condition: ResetIf clears every hit count when it is true, "
+"PauseIf suspends the check while it is true."
+msgstr ""
+"Flags antes de uma condição: ResetIf zera todas as contagens de hits quando "
+"é verdadeira, PauseIf suspende a verificação enquanto é verdadeira."
+
+#: templates/docs/creating-achievements.html:63
+msgid ""
+"A hit count after a condition: it must be true on that many frames before it "
+"counts."
+msgstr ""
+"Uma contagem de hits depois de uma condição: ela precisa ser verdadeira "
+"nessa quantidade de quadros antes de contar."
+
+#: templates/docs/creating-achievements.html:66
+msgid ""
+"For example, this condition fires on the frame the byte at 0x61998 changes "
+"from 0 to 1:"
+msgstr ""
+"Por exemplo, esta condição dispara no quadro em que o byte em 0x61998 muda "
+"de 0 para 1:"
+
+#: templates/docs/creating-achievements.html:68
+msgid ""
+"RetroAchievements' developer documentation covers every size, prefix and "
+"flag:"
+msgstr ""
+"A documentação de desenvolvedor do RetroAchievements cobre todos os "
+"tamanhos, prefixos e flags:"
+
+#: templates/docs/creating-achievements.html:71
+msgid "Why delta"
+msgstr "Por que delta"
+
+#: templates/docs/creating-achievements.html:72
+msgid "Hit counts"
+msgstr "Contagens de hits"
+
+#: templates/docs/creating-achievements.html:74
+msgid "Alt groups"
+msgstr "Grupos alternativos"
+
+#: templates/docs/creating-achievements.html:75
+msgid "All developer docs"
+msgstr "Toda a documentação de desenvolvedor"
+
+#: templates/docs/creating-achievements.html:80
+msgid "Good practices"
+msgstr "Boas práticas"
+
+#: templates/docs/creating-achievements.html:82
+msgid ""
+"Describe the moment something happens, not a state: compare the value with "
+"its delta, as in the example above. A plain comparison can be true for a "
+"frame while the game boots and unlock the achievement on load."
+msgstr ""
+"Descreva o momento em que algo acontece, não um estado: compare o valor com "
+"o delta dele, como no exemplo acima. Uma comparação simples pode ficar "
+"verdadeira por um quadro enquanto o jogo inicia e desbloquear a conquista ao "
+"carregar."
+
+#: templates/docs/creating-achievements.html:83
+msgid ""
+"Console memory is zeroed at reset, so a 0 often means the game is not "
+"running yet. Guard the condition with a value that is only non-zero during "
+"play, such as a pointer."
+msgstr ""
+"A memória do console é zerada no reset, então um 0 muitas vezes significa "
+"que o jogo ainda não está rodando. Proteja a condição com um valor que só é "
+"diferente de zero durante o jogo, como um ponteiro."
+
+#: templates/docs/creating-achievements.html:84
+msgid ""
+"The emulator holds back an achievement whose condition is already true when "
+"the game loads. Test from a save state made before the moment it should fire."
+msgstr ""
+"O emulador segura uma conquista cuja condição já é verdadeira quando o jogo "
+"carrega. Teste a partir de um save state feito antes do momento em que ela "
+"deve disparar."
+
+#: templates/docs/creating-achievements.html:85
+msgid ""
+"Check each address you rely on: code notes describe what the community "
+"found, often on another region of the game."
+msgstr ""
+"Confira cada endereço que você usa: as anotações de código descrevem o que a "
+"comunidade encontrou, muitas vezes em outra região do jogo."
+
+#: templates/docs/creating-achievements.html:86
+msgid ""
+"Every save keeps a revision. The History link on the game page shows them, "
+"and the author or staff can revert to one."
+msgstr ""
+"Cada vez que você salva, uma revisão é guardada. O link Histórico na página "
+"do jogo mostra as revisões, e o autor ou a equipe pode voltar para uma delas."
+
+#: templates/docs/faq.html:4
+msgid "Short answers to what players and authors ask most."
+msgstr "Respostas curtas para o que jogadores e autores mais perguntam."
+
+#: templates/docs/faq.html:9
+msgid "Which discs are supported?"
+msgstr "Quais discos são suportados?"
+
+#: templates/docs/faq.html:10
+msgid ""
+"The emulator recognises a game by a hash of its disc: for PlayStation, the "
+"hash of the boot executable named in SYSTEM.CNF. A disc only gets "
+"achievements when its hash is registered for a game here, so another region "
+"or revision of the same game, with a different executable, is not recognised."
+msgstr ""
+"O emulador reconhece um jogo por um hash do disco: no PlayStation, o hash do "
+"executável de boot indicado no SYSTEM.CNF. Um disco só recebe conquistas "
+"quando o hash dele está cadastrado para um jogo aqui, então outra região ou "
+"revisão do mesmo jogo, com um executável diferente, não é reconhecida."
+
+#: templates/docs/faq.html:22
+msgid "No disc registered yet"
+msgstr "Nenhum disco cadastrado ainda"
+
+#: templates/docs/faq.html:28
+msgid "Why did an achievement not unlock?"
+msgstr "Por que uma conquista não desbloqueou?"
+
+#: templates/docs/faq.html:30
+msgid ""
+"The emulator did not recognise the disc, so it loaded no achievements for "
+"it. Check that your disc is in the list above."
+msgstr ""
+"O emulador não reconheceu o disco, então não carregou nenhuma conquista para "
+"ele. Confira se o seu disco está na lista acima."
+
+#: templates/docs/faq.html:31
+#, python-format
+msgid ""
+"The emulator is not connected to this site: check the Host in DuckStation's "
+"settings.ini and that you are logged in, as the <a href=\"%(start_url)s\" "
+"class=\"text-brand\">getting started guide</a> shows."
+msgstr ""
+"O emulador não está conectado a este site: confira o Host no settings.ini do "
+"DuckStation e se você está logado, como mostra o <a href=\"%(start_url)s\" "
+"class=\"text-brand\">guia de como começar</a>."
+
+#: templates/docs/faq.html:32
+msgid ""
+"It is a draft: only its author receives it, and a draft is never recorded or "
+"worth points."
+msgstr ""
+"É um rascunho: só o autor o recebe, e um rascunho nunca é registrado nem "
+"vale pontos."
+
+#: templates/docs/faq.html:33
+msgid ""
+"Its condition was already true when the game loaded, for example from a save "
+"state made after the moment: the emulator holds it back until the condition "
+"turns false and true again."
+msgstr ""
+"A condição dela já era verdadeira quando o jogo carregou, por exemplo a "
+"partir de um save state feito depois do momento: o emulador a segura até a "
+"condição ficar falsa e verdadeira de novo."
+
+#: templates/docs/faq.html:34
+msgid ""
+"It changed after you opened the game: the emulator only fetches achievements "
+"when a game loads, so close the game and open it again."
+msgstr ""
+"Ela mudou depois que você abriu o jogo: o emulador só busca as conquistas "
+"quando um jogo carrega, então feche o jogo e abra de novo."
+
+#: templates/docs/faq.html:35
+msgid ""
+"It has a bug. Tell its author in the comments on the achievement's page."
+msgstr "Ela tem um bug. Avise o autor nos comentários da página da conquista."
+
+#: templates/docs/faq.html:40
+msgid "Hardcore or softcore?"
+msgstr "Hardcore ou softcore?"
+
+#: templates/docs/faq.html:41
+msgid ""
+"Both are worth the same points, and the site shows each total apart. "
+"Hardcore turns off save states, cheats and rewind; an achievement unlocked "
+"in hardcore also counts in softcore. Leaderboards only run in hardcore."
+msgstr ""
+"Os dois valem os mesmos pontos, e o site mostra cada total separado. O "
+"hardcore desliga save states, trapaças e rebobinar; uma conquista "
+"desbloqueada no hardcore também conta no softcore. Os placares só funcionam "
+"no hardcore."
+
+#: templates/docs/faq.html:45
+msgid "Do I need a RetroAchievements account?"
+msgstr "Preciso de uma conta no RetroAchievements?"
+
+#: templates/docs/faq.html:46
+msgid ""
+"No. RetroPlatinas speaks the same protocol as RetroAchievements, so the "
+"emulator works unchanged, but accounts, achievements and progress are "
+"separate: log in with your RetroPlatinas account."
+msgstr ""
+"Não. O RetroPlatinas usa o mesmo protocolo do RetroAchievements, então o "
+"emulador funciona sem mudanças, mas contas, conquistas e progresso são "
+"separados: entre com a sua conta do RetroPlatinas."
+
+#: templates/docs/faq.html:50
+msgid "Can I use another emulator?"
+msgstr "Posso usar outro emulador?"
+
+#: templates/docs/faq.html:51
+msgid ""
+"Today DuckStation is the only emulator we test. Others built on rcheevos may "
+"work if they let you change the server address, but they are not supported."
+msgstr ""
+"Hoje o DuckStation é o único emulador que testamos. Outros baseados no "
+"rcheevos podem funcionar se deixarem você mudar o endereço do servidor, mas "
+"não têm suporte."
+
+#: templates/docs/getting-started.html:4
 msgid ""
 "RetroPlatinas works with an unmodified DuckStation: point it at this site, "
 "log in and play."
@@ -1622,15 +2028,15 @@ msgstr ""
 "O RetroPlatinas funciona com o DuckStation sem modificações: aponte-o para "
 "este site, entre e jogue."
 
-#: templates/docs/getting-started.html:12
+#: templates/docs/getting-started.html:8
 msgid "Step by step"
 msgstr "Passo a passo"
 
-#: templates/docs/getting-started.html:15
+#: templates/docs/getting-started.html:11
 msgid "Create an account"
 msgstr "Crie uma conta"
 
-#: templates/docs/getting-started.html:16
+#: templates/docs/getting-started.html:12
 msgid ""
 "Pick a username and a password. They are the same ones you will type into "
 "the emulator."
@@ -1638,20 +2044,20 @@ msgstr ""
 "Escolha um nome de usuário e uma senha. São os mesmos que você vai digitar "
 "no emulador."
 
-#: templates/docs/getting-started.html:18
+#: templates/docs/getting-started.html:14
 #, python-format
 msgid "You're already logged in as %(username)s."
 msgstr "Você já está conectado como %(username)s."
 
-#: templates/docs/getting-started.html:20 templates/home.html:91
+#: templates/docs/getting-started.html:16 templates/home.html:91
 msgid "Create account →"
 msgstr "Criar conta →"
 
-#: templates/docs/getting-started.html:24
+#: templates/docs/getting-started.html:20
 msgid "Get DuckStation"
 msgstr "Baixe o DuckStation"
 
-#: templates/docs/getting-started.html:25
+#: templates/docs/getting-started.html:21
 msgid ""
 "Download DuckStation for your system from its official site and open it "
 "once, so it creates its settings file. Today it is the only emulator we "
@@ -1661,11 +2067,11 @@ msgstr ""
 "para que ele crie o arquivo de configurações. Hoje é o único emulador que "
 "testamos, para jogos de PlayStation (PS1)."
 
-#: templates/docs/getting-started.html:29
+#: templates/docs/getting-started.html:25
 msgid "Point DuckStation at RetroPlatinas"
 msgstr "Aponte o DuckStation para o RetroPlatinas"
 
-#: templates/docs/getting-started.html:30
+#: templates/docs/getting-started.html:26
 msgid ""
 "Close DuckStation, open its settings.ini in a text editor and set the server "
 "address in the [Cheevos] section (add the section if it isn't there):"
@@ -1673,7 +2079,7 @@ msgstr ""
 "Feche o DuckStation, abra o settings.ini dele em um editor de texto e defina "
 "o endereço do servidor na seção [Cheevos] (crie a seção se ela não existir):"
 
-#: templates/docs/getting-started.html:33
+#: templates/docs/getting-started.html:29
 msgid ""
 "settings.ini lives in DuckStation's user folder: Documents\\DuckStation on "
 "Windows, ~/.local/share/duckstation on Linux, ~/Library/Application Support/"
@@ -1684,11 +2090,11 @@ msgstr ""
 "share/duckstation no Linux, ~/Library/Application Support/DuckStation no "
 "macOS."
 
-#: templates/docs/getting-started.html:36
+#: templates/docs/getting-started.html:32
 msgid "Log in from the emulator"
 msgstr "Entre pelo emulador"
 
-#: templates/docs/getting-started.html:37
+#: templates/docs/getting-started.html:33
 msgid ""
 "Open DuckStation, go to Settings → Achievements, enable achievements and log "
 "in with your RetroPlatinas username and password. DuckStation remembers the "
@@ -1698,11 +2104,11 @@ msgstr ""
 "entre com o seu usuário e senha do RetroPlatinas. O DuckStation lembra o "
 "login, então você só faz isso uma vez."
 
-#: templates/docs/getting-started.html:40
+#: templates/docs/getting-started.html:36
 msgid "Play"
 msgstr "Jogue"
 
-#: templates/docs/getting-started.html:41
+#: templates/docs/getting-started.html:37
 msgid ""
 "Load a game that has a set — today, Crash Bandicoot (PS1). Achievements pop "
 "up as you unlock them and show up on your profile."
@@ -1711,11 +2117,11 @@ msgstr ""
 "conquistas aparecem na tela quando você as desbloqueia e vão para o seu "
 "perfil."
 
-#: templates/docs/getting-started.html:47
+#: templates/docs/getting-started.html:43
 msgid "Hardcore mode"
 msgstr "Modo hardcore"
 
-#: templates/docs/getting-started.html:48
+#: templates/docs/getting-started.html:44
 msgid ""
 "Hardcore Mode, in the same Achievements settings, turns off save states, "
 "cheats and rewind. Unlocks earned that way carry the hardcore seal and are "
@@ -1724,6 +2130,306 @@ msgstr ""
 "O Modo Hardcore, nas mesmas configurações de Conquistas, desativa save "
 "states, cheats e rewind. Os desbloqueios feitos assim levam o selo hardcore "
 "e aparecem à parte dos softcore; eles valem os mesmos pontos."
+
+#: templates/docs/getting-started.html:45
+msgid ""
+"An achievement unlocked in hardcore also counts as unlocked in softcore, so "
+"its points go to both totals. One unlocked in softcore can still be earned "
+"again in hardcore later. Leaderboards only run in hardcore."
+msgstr ""
+"Uma conquista desbloqueada no hardcore também conta como desbloqueada no "
+"softcore, então os pontos dela vão para os dois totais. Uma desbloqueada no "
+"softcore ainda pode ser conquistada de novo no hardcore depois. Os placares "
+"só funcionam no hardcore."
+
+#: templates/docs/getting-started.html:49
+msgid "Softcore mode"
+msgstr "Modo softcore"
+
+#: templates/docs/getting-started.html:50
+msgid ""
+"With Hardcore Mode off you play in softcore: save states, cheats and rewind "
+"work, and unlocks count only toward your softcore total."
+msgstr ""
+"Com o Modo Hardcore desligado você joga no softcore: save states, trapaças e "
+"rebobinar funcionam, e os desbloqueios contam só para o seu total softcore."
+
+#: templates/docs/getting-started.html:55
+#, python-format
+msgid ""
+"Something did not unlock? See the <a href=\"%(faq_url)s\" class=\"text-"
+"brand\">frequently asked questions</a>."
+msgstr ""
+"Algo não desbloqueou? Veja as <a href=\"%(faq_url)s\" class=\"text-"
+"brand\">perguntas frequentes</a>."
+
+#: templates/docs/index.html:4
+msgid "Guides for playing on RetroPlatinas and for writing its achievements."
+msgstr "Guias para jogar no RetroPlatinas e para escrever as conquistas dele."
+
+#: templates/docs/index.html:8
+msgid "Pages"
+msgstr "Páginas"
+
+#: templates/docs/layout.html:8 templates/docs/layout.html:12
+#: templates/docs/layout.html:13 templates/docs/layout.html:28
+msgid "Documentation"
+msgstr "Documentação"
+
+#: templates/docs/leaderboards-and-rich-presence.html:4
+msgid ""
+"Besides achievements, a game can have leaderboards, which rank scores and "
+"times, and a rich presence script, which tells others what you are doing in "
+"the game."
+msgstr ""
+"Além das conquistas, um jogo pode ter placares, que classificam pontuações e "
+"tempos, e um script de rich presence, que conta aos outros o que você está "
+"fazendo no jogo."
+
+#: templates/docs/leaderboards-and-rich-presence.html:10
+msgid ""
+"A leaderboard starts when its start condition becomes true, is cancelled by "
+"its cancel condition and submits the value it tracks when its submit "
+"condition becomes true. The emulator shows the running value while it is "
+"active."
+msgstr ""
+"Um placar começa quando a condição de início fica verdadeira, é cancelado "
+"pela condição de cancelamento e envia o valor que acompanha quando a "
+"condição de envio fica verdadeira. O emulador mostra o valor atual enquanto "
+"ele está ativo."
+
+#: templates/docs/leaderboards-and-rich-presence.html:11
+msgid ""
+"Leaderboards only run in hardcore mode: in softcore the emulator neither "
+"tracks nor submits them."
+msgstr ""
+"Os placares só funcionam no modo hardcore: no softcore o emulador não os "
+"acompanha nem os envia."
+
+#: templates/docs/leaderboards-and-rich-presence.html:12
+msgid ""
+"Each player keeps one entry, their best: the highest score, or the lowest "
+"value when lower is better, as with times. A worse attempt does not replace "
+"it."
+msgstr ""
+"Cada jogador tem uma entrada, a melhor: a maior pontuação, ou o menor valor "
+"quando menor é melhor, como nos tempos. Uma tentativa pior não a substitui."
+
+#: templates/docs/leaderboards-and-rich-presence.html:13
+msgid ""
+"The game page's Leaderboards tab lists them; each has its own page with "
+"every rank."
+msgstr ""
+"A aba Placares da página do jogo lista os placares; cada um tem a própria "
+"página com todas as posições."
+
+#: templates/docs/leaderboards-and-rich-presence.html:14
+msgid ""
+"Staff add new leaderboards. To propose one, describe it in the game page's "
+"comments."
+msgstr ""
+"A equipe adiciona novos placares. Para sugerir um, descreva a ideia nos "
+"comentários da página do jogo."
+
+#: templates/docs/leaderboards-and-rich-presence.html:16
+msgid ""
+"A leaderboard is written as four condition strings, the same syntax as "
+"achievements:"
+msgstr ""
+"Um placar é escrito como quatro textos de condição, com a mesma sintaxe das "
+"conquistas:"
+
+#: templates/docs/leaderboards-and-rich-presence.html:18
+msgid "Leaderboards in the RetroAchievements docs"
+msgstr "Placares na documentação do RetroAchievements"
+
+#: templates/docs/leaderboards-and-rich-presence.html:22
+msgid "Rich presence"
+msgstr "Rich presence"
+
+#: templates/docs/leaderboards-and-rich-presence.html:24
+msgid ""
+"While you play, the emulator reads a few memory values and sends a short "
+"line about what you are doing, such as the level you are in. The site shows "
+"it as playing now on your profile and on the home page."
+msgstr ""
+"Enquanto você joga, o emulador lê alguns valores da memória e envia uma "
+"linha curta sobre o que você está fazendo, como a fase em que você está. O "
+"site mostra essa linha em jogando agora, no seu perfil e na página inicial."
+
+#: templates/docs/leaderboards-and-rich-presence.html:25
+msgid ""
+"The emulator sends it about every two minutes, and only fetches the script "
+"when a game loads, so a change shows after the game is opened again."
+msgstr ""
+"O emulador envia a linha mais ou menos a cada dois minutos e só busca o "
+"script quando um jogo carrega, então uma mudança aparece depois que o jogo é "
+"aberto de novo."
+
+#: templates/docs/leaderboards-and-rich-presence.html:26
+msgid ""
+"Each game has one script, which staff maintain. Without one, the site only "
+"shows which game you are playing."
+msgstr ""
+"Cada jogo tem um script, que a equipe mantém. Sem ele, o site só mostra qual "
+"jogo você está jogando."
+
+#: templates/docs/leaderboards-and-rich-presence.html:28
+msgid ""
+"A script defines formats and lookups, then the line to display, reading "
+"memory with macros:"
+msgstr ""
+"Um script define formatos e tabelas de consulta, depois a linha a exibir, "
+"lendo a memória com macros:"
+
+#: templates/docs/leaderboards-and-rich-presence.html:34
+msgid "Rich presence in the RetroAchievements docs"
+msgstr "Rich presence na documentação do RetroAchievements"
+
+#: templates/docs/statuses-and-contributing.html:4
+msgid ""
+"Every achievement has a status that decides who receives it and whether it "
+"is worth points. Sets grow from players writing, testing and reviewing them."
+msgstr ""
+"Toda conquista tem um status que decide quem a recebe e se ela vale pontos. "
+"Os sets crescem com jogadores escrevendo, testando e revisando conquistas."
+
+#: templates/docs/statuses-and-contributing.html:8
+msgid "Statuses"
+msgstr "Status"
+
+#: templates/docs/statuses-and-contributing.html:12
+msgid ""
+"Reaches only its author, in the emulator's unofficial list with Test "
+"Unofficial Achievements on. It is never recorded and never worth points. "
+"Other players do not see it on the site."
+msgstr ""
+"Chega só ao autor, na lista de não oficiais do emulador, com Testar "
+"Conquistas Não Oficiais ativado. Nunca é registrada e nunca vale pontos. Os "
+"outros jogadores não a veem no site."
+
+#: templates/docs/statuses-and-contributing.html:16
+msgid ""
+"Published: every player receives it as an official achievement, and "
+"unlocking it is recorded and worth its points."
+msgstr ""
+"Publicada: todo jogador a recebe como conquista oficial, e o desbloqueio é "
+"registrado e vale os pontos dela."
+
+#: templates/docs/statuses-and-contributing.html:20
+msgid ""
+"Published, like community, and worth the same points. Verified is a quality "
+"seal staff give after reviewing the achievement; the game page lists "
+"verified achievements first."
+msgstr ""
+"Publicada, como comunidade, e vale os mesmos pontos. Verificado é um selo de "
+"qualidade que a equipe dá depois de revisar a conquista; a página do jogo "
+"lista as verificadas primeiro."
+
+#: templates/docs/statuses-and-contributing.html:26
+msgid "Who changes a status"
+msgstr "Quem muda um status"
+
+#: templates/docs/statuses-and-contributing.html:28
+msgid ""
+"The author moves an achievement between draft and community in the editor. "
+"Only staff mark it verified, and only staff change a verified achievement's "
+"status."
+msgstr ""
+"O autor move uma conquista entre rascunho e comunidade no editor. Só a "
+"equipe marca como verificada, e só a equipe muda o status de uma conquista "
+"verificada."
+
+#: templates/docs/statuses-and-contributing.html:29
+msgid ""
+"Moving a published achievement back to draft keeps everyone's unlocks but "
+"takes its points out of their totals; publishing it again counts them again."
+msgstr ""
+"Voltar uma conquista publicada para rascunho mantém os desbloqueios de "
+"todos, mas tira os pontos dela dos totais; publicá-la de novo volta a contá-"
+"los."
+
+#: templates/docs/statuses-and-contributing.html:34 templates/home.html:86
+msgid "How to contribute"
+msgstr "Como contribuir"
+
+#: templates/docs/statuses-and-contributing.html:37
+msgid "Read the code notes"
+msgstr "Leia as anotações de código"
+
+#: templates/docs/statuses-and-contributing.html:38
+msgid ""
+"Each game page links its code notes: what the community found at each memory "
+"address."
+msgstr ""
+"Cada página de jogo leva às anotações de código dele: o que a comunidade "
+"encontrou em cada endereço de memória."
+
+#: templates/docs/statuses-and-contributing.html:41
+msgid "Write and test a draft"
+msgstr "Escreva e teste um rascunho"
+
+#: templates/docs/statuses-and-contributing.html:42
+msgid ""
+"Follow the creating achievements guide, and test the draft in the game "
+"before publishing it."
+msgstr ""
+"Siga o guia de criação de conquistas e teste o rascunho no jogo antes de "
+"publicá-lo."
+
+#: templates/docs/statuses-and-contributing.html:43
+msgid "Creating achievements →"
+msgstr "Criando conquistas →"
+
+#: templates/docs/statuses-and-contributing.html:46
+msgid "Publish it as community"
+msgstr "Publique como comunidade"
+
+#: templates/docs/statuses-and-contributing.html:47
+msgid ""
+"Once it fires at the right moment, publish it. Players can leave feedback in "
+"the comments on its page."
+msgstr ""
+"Quando ela disparar no momento certo, publique. Os jogadores podem deixar "
+"opiniões nos comentários da página dela."
+
+#: templates/docs/statuses-and-contributing.html:50
+msgid "Share what you found"
+msgstr "Compartilhe o que você descobriu"
+
+#: templates/docs/statuses-and-contributing.html:51
+msgid ""
+"Add a code note for every address you worked out, so the next author starts "
+"from it."
+msgstr ""
+"Adicione uma anotação de código para cada endereço que você desvendou, para "
+"o próximo autor começar dali."
+
+#: templates/docs/statuses-and-contributing.html:59
+msgid ""
+"A code note describes one memory address of a game: its size, the values it "
+"takes and what they mean."
+msgstr ""
+"Uma anotação de código descreve um endereço de memória de um jogo: o "
+"tamanho, os valores que ele assume e o que eles significam."
+
+#: templates/docs/statuses-and-contributing.html:60
+msgid ""
+"Anyone can read and search them. A logged-in player adds new ones; the "
+"author or staff edit or delete a note."
+msgstr ""
+"Qualquer pessoa pode ler e buscar as anotações. Um jogador logado adiciona "
+"novas; o autor ou a equipe edita ou apaga uma anotação."
+
+#: templates/docs/statuses-and-contributing.html:61
+msgid ""
+"Notes are a starting point, not the truth: many come from RetroAchievements "
+"and describe another region or revision of the game. Check each address in "
+"the game before relying on it."
+msgstr ""
+"As anotações são um ponto de partida, não a verdade: muitas vêm do "
+"RetroAchievements e descrevem outra região ou revisão do jogo. Confira cada "
+"endereço no jogo antes de confiar nele."
 
 #: templates/feed/feed.html:12
 #, python-format
@@ -1945,10 +2651,6 @@ msgid "%(shown)s player"
 msgid_plural "%(shown)s players"
 msgstr[0] "%(shown)s jogador"
 msgstr[1] "%(shown)s jogadores"
-
-#: templates/home.html:86
-msgid "How to contribute"
-msgstr "Como contribuir"
 
 #: templates/home.html:89
 msgid "Create achievement sets"

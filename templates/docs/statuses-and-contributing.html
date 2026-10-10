@@ -1,0 +1,64 @@
+{% extends "docs/layout.html" %}
+{% load i18n %}
+
+{% block doc_intro %}{% trans "Every achievement has a status that decides who receives it and whether it is worth points. Sets grow from players writing, testing and reviewing them." %}{% endblock %}
+
+{% block doc_body %}
+  <div class="mt-8">
+    {% include "components/section-heading.html" with title=_("Statuses") %}
+    <dl class="mt-1">
+      <div class="border-t border-line py-3 first:border-t-0">
+        <dt>{% include "components/status-chip.html" with achievement=status_samples.draft %}</dt>
+        <dd class="mt-2 text-sm leading-relaxed text-txt-muted">{% trans "Reaches only its author, in the emulator's unofficial list with Test Unofficial Achievements on. It is never recorded and never worth points. Other players do not see it on the site." %}</dd>
+      </div>
+      <div class="border-t border-line py-3 first:border-t-0">
+        <dt>{% include "components/status-chip.html" with achievement=status_samples.community %}</dt>
+        <dd class="mt-2 text-sm leading-relaxed text-txt-muted">{% trans "Published: every player receives it as an official achievement, and unlocking it is recorded and worth its points." %}</dd>
+      </div>
+      <div class="border-t border-line py-3 first:border-t-0">
+        <dt>{% include "components/status-chip.html" with achievement=status_samples.verified %}</dt>
+        <dd class="mt-2 text-sm leading-relaxed text-txt-muted">{% trans "Published, like community, and worth the same points. Verified is a quality seal staff give after reviewing the achievement; the game page lists verified achievements first." %}</dd>
+      </div>
+    </dl>
+  </div>
+
+  <div class="mt-10">
+    {% include "components/section-heading.html" with title=_("Who changes a status") %}
+    <ul class="mt-1">
+      <li class="border-t border-line py-3 text-sm leading-relaxed text-txt-muted first:border-t-0">{% trans "The author moves an achievement between draft and community in the editor. Only staff mark it verified, and only staff change a verified achievement's status." %}</li>
+      <li class="border-t border-line py-3 text-sm leading-relaxed text-txt-muted first:border-t-0">{% trans "Moving a published achievement back to draft keeps everyone's unlocks but takes its points out of their totals; publishing it again counts them again." %}</li>
+    </ul>
+  </div>
+
+  <div class="mt-10">
+    {% include "components/section-heading.html" with title=_("How to contribute") accent="gold" %}
+    <ol class="mt-4 flex flex-col gap-6 border-l-2 border-brand-dim pl-4">
+      <li>
+        <h3 class="font-display text-base font-semibold text-txt"><span class="mr-2 font-mono text-brand">1</span>{% trans "Read the code notes" %}</h3>
+        <p class="mt-1 text-sm leading-relaxed text-txt-muted">{% trans "Each game page links its code notes: what the community found at each memory address." %}</p>
+      </li>
+      <li>
+        <h3 class="font-display text-base font-semibold text-txt"><span class="mr-2 font-mono text-brand">2</span>{% trans "Write and test a draft" %}</h3>
+        <p class="mt-1 text-sm leading-relaxed text-txt-muted">{% trans "Follow the creating achievements guide, and test the draft in the game before publishing it." %}</p>
+        <a href="{% url 'docs_page' 'creating-achievements' %}" class="mt-1 inline-block font-mono text-xs text-brand">{% trans "Creating achievements →" %}</a>
+      </li>
+      <li>
+        <h3 class="font-display text-base font-semibold text-txt"><span class="mr-2 font-mono text-brand">3</span>{% trans "Publish it as community" %}</h3>
+        <p class="mt-1 text-sm leading-relaxed text-txt-muted">{% trans "Once it fires at the right moment, publish it. Players can leave feedback in the comments on its page." %}</p>
+      </li>
+      <li>
+        <h3 class="font-display text-base font-semibold text-txt"><span class="mr-2 font-mono text-brand">4</span>{% trans "Share what you found" %}</h3>
+        <p class="mt-1 text-sm leading-relaxed text-txt-muted">{% trans "Add a code note for every address you worked out, so the next author starts from it." %}</p>
+      </li>
+    </ol>
+  </div>
+
+  <div class="mt-10">
+    {% include "components/section-heading.html" with title=_("Code notes") %}
+    <ul class="mt-1">
+      <li class="border-t border-line py-3 text-sm leading-relaxed text-txt-muted first:border-t-0">{% trans "A code note describes one memory address of a game: its size, the values it takes and what they mean." %}</li>
+      <li class="border-t border-line py-3 text-sm leading-relaxed text-txt-muted first:border-t-0">{% trans "Anyone can read and search them. A logged-in player adds new ones; the author or staff edit or delete a note." %}</li>
+      <li class="border-t border-line py-3 text-sm leading-relaxed text-txt-muted first:border-t-0">{% trans "Notes are a starting point, not the truth: many come from RetroAchievements and describe another region or revision of the game. Check each address in the game before relying on it." %}</li>
+    </ul>
+  </div>
+{% endblock %}

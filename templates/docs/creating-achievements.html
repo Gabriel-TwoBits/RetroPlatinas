@@ -1,0 +1,89 @@
+{% extends "docs/layout.html" %}
+{% load i18n %}
+
+{% block doc_intro %}{% trans "Every logged-in player can write achievements for a game on the site. A new achievement starts as a draft that only you receive, so you can test it in the emulator before anyone else sees it." %}{% endblock %}
+
+{% block doc_body %}
+  {% url 'docs_page' 'statuses-and-contributing' as statuses_url %}
+  <div class="mt-8">
+    {% include "components/section-heading.html" with title=_("From draft to published") accent="gold" %}
+    <ol class="mt-4 flex flex-col gap-6 border-l-2 border-brand-dim pl-4">
+      <li>
+        <h3 class="font-display text-base font-semibold text-txt"><span class="mr-2 font-mono text-brand">1</span>{% trans "Open the editor" %}</h3>
+        <p class="mt-1 text-sm leading-relaxed text-txt-muted">{% trans "Log in, open the game's page and press New achievement. The editor asks for a title, a description, the points, the type, a badge image, the condition and the status." %}</p>
+        <a href="{% url 'games_list' %}" class="mt-1 inline-block font-mono text-xs text-brand">{% trans "See the games →" %}</a>
+      </li>
+      <li>
+        <h3 class="font-display text-base font-semibold text-txt"><span class="mr-2 font-mono text-brand">2</span>{% trans "Write the condition" %}</h3>
+        <p class="mt-1 text-sm leading-relaxed text-txt-muted">{% trans "The condition (mem_addr) tells the emulator which memory values unlock the achievement. The syntax is the same as on RetroAchievements; the pointers below cover the basics." %}</p>
+      </li>
+      <li>
+        <h3 class="font-display text-base font-semibold text-txt"><span class="mr-2 font-mono text-brand">3</span>{% trans "Save it as a draft" %}</h3>
+        <p class="mt-1 text-sm leading-relaxed text-txt-muted">{% trans "On save, the editor checks the condition with the same rcheevos parser the emulators run and refuses a malformed one, showing the parser's reason. A condition that parses can still be wrong: only the game proves it." %}</p>
+      </li>
+      <li>
+        <h3 class="font-display text-base font-semibold text-txt"><span class="mr-2 font-mono text-brand">4</span>{% trans "Test it in DuckStation" %}</h3>
+        <p class="mt-1 text-sm leading-relaxed text-txt-muted">{% trans "Log in to DuckStation as the draft's author, turn on Test Unofficial Achievements in Settings → Achievements, then close the game and open it again: the emulator only fetches the achievements when a game loads." %}</p>
+        <p class="mt-2 text-sm leading-relaxed text-txt-muted">{% trans "Drafts appear in the achievement list marked (Unofficial); the pause screen's counter only counts official ones. The pop-up fires when the condition is met, which proves it works, but a draft is never recorded or worth points." %}</p>
+      </li>
+      <li>
+        <h3 class="font-display text-base font-semibold text-txt"><span class="mr-2 font-mono text-brand">5</span>{% trans "Publish it" %}</h3>
+        <p class="mt-1 text-sm leading-relaxed text-txt-muted">{% trans "Back in the editor, set the status to Community. Every player then receives it as an official achievement, and unlocking it counts and scores." %}</p>
+        <a href="{{ statuses_url }}" class="mt-1 inline-block font-mono text-xs text-brand">{% trans "What each status means →" %}</a>
+      </li>
+    </ol>
+  </div>
+
+  <div class="mt-10">
+    {% include "components/section-heading.html" with title=_("Condition syntax") %}
+    <p class="mt-3 text-sm leading-relaxed text-txt-muted">{% trans "A condition compares memory values. These are the pieces most conditions use:" %}</p>
+    <dl class="mt-3">
+      <div class="flex flex-col gap-1 border-t border-line py-3 first:border-t-0 sm:flex-row sm:gap-4">
+        <dt class="shrink-0 font-mono text-sm text-brand sm:w-40">0xH1234</dt>
+        <dd class="text-sm leading-relaxed text-txt-muted">{% trans "The 8-bit value at address 0x1234. 0x is 16-bit, 0xW 24-bit and 0xX 32-bit; 0xM to 0xT read single bits." %}</dd>
+      </div>
+      <div class="flex flex-col gap-1 border-t border-line py-3 first:border-t-0 sm:flex-row sm:gap-4">
+        <dt class="shrink-0 font-mono text-sm text-brand sm:w-40">d0xH1234</dt>
+        <dd class="text-sm leading-relaxed text-txt-muted">{% trans "The delta: the value the address held on the previous frame." %}</dd>
+      </div>
+      <div class="flex flex-col gap-1 border-t border-line py-3 first:border-t-0 sm:flex-row sm:gap-4">
+        <dt class="shrink-0 font-mono text-sm text-brand sm:w-40">_</dt>
+        <dd class="text-sm leading-relaxed text-txt-muted">{% trans "Joins conditions: all of them must be true on the same frame." %}</dd>
+      </div>
+      <div class="flex flex-col gap-1 border-t border-line py-3 first:border-t-0 sm:flex-row sm:gap-4">
+        <dt class="shrink-0 font-mono text-sm text-brand sm:w-40">S</dt>
+        <dd class="text-sm leading-relaxed text-txt-muted">{% trans "Starts an alternative group: the core conditions plus any one group must be true." %}</dd>
+      </div>
+      <div class="flex flex-col gap-1 border-t border-line py-3 first:border-t-0 sm:flex-row sm:gap-4">
+        <dt class="shrink-0 font-mono text-sm text-brand sm:w-40">R: P:</dt>
+        <dd class="text-sm leading-relaxed text-txt-muted">{% trans "Flags before a condition: ResetIf clears every hit count when it is true, PauseIf suspends the check while it is true." %}</dd>
+      </div>
+      <div class="flex flex-col gap-1 border-t border-line py-3 first:border-t-0 sm:flex-row sm:gap-4">
+        <dt class="shrink-0 font-mono text-sm text-brand sm:w-40">.10.</dt>
+        <dd class="text-sm leading-relaxed text-txt-muted">{% trans "A hit count after a condition: it must be true on that many frames before it counts." %}</dd>
+      </div>
+    </dl>
+    <p class="mt-3 text-sm leading-relaxed text-txt-muted">{% trans "For example, this condition fires on the frame the byte at 0x61998 changes from 0 to 1:" %}</p>
+    <pre class="mt-2 overflow-x-auto rounded-card border border-line px-3 py-2 font-mono text-sm text-txt">0xH61998=1_d0xH61998=0</pre>
+    <p class="mt-3 text-sm leading-relaxed text-txt-muted">{% trans "RetroAchievements' developer documentation covers every size, prefix and flag:" %}</p>
+    <ul class="mt-2 flex flex-col gap-1 font-mono text-xs">
+      <li><a href="https://docs.retroachievements.org/developer-docs/condition-syntax" target="_blank" rel="noopener" class="text-brand">{% trans "Condition syntax" %} ↗</a></li>
+      <li><a href="https://docs.retroachievements.org/developer-docs/why-delta" target="_blank" rel="noopener" class="text-brand">{% trans "Why delta" %} ↗</a></li>
+      <li><a href="https://docs.retroachievements.org/developer-docs/hit-counts" target="_blank" rel="noopener" class="text-brand">{% trans "Hit counts" %} ↗</a></li>
+      <li><a href="https://docs.retroachievements.org/developer-docs/flags/resetif" target="_blank" rel="noopener" class="text-brand">ResetIf ↗</a></li>
+      <li><a href="https://docs.retroachievements.org/developer-docs/alt-groups" target="_blank" rel="noopener" class="text-brand">{% trans "Alt groups" %} ↗</a></li>
+      <li><a href="https://docs.retroachievements.org/developer-docs/" target="_blank" rel="noopener" class="text-brand">{% trans "All developer docs" %} ↗</a></li>
+    </ul>
+  </div>
+
+  <div class="mt-10">
+    {% include "components/section-heading.html" with title=_("Good practices") %}
+    <ul class="mt-1">
+      <li class="border-t border-line py-3 text-sm leading-relaxed text-txt-muted first:border-t-0">{% trans "Describe the moment something happens, not a state: compare the value with its delta, as in the example above. A plain comparison can be true for a frame while the game boots and unlock the achievement on load." %}</li>
+      <li class="border-t border-line py-3 text-sm leading-relaxed text-txt-muted first:border-t-0">{% trans "Console memory is zeroed at reset, so a 0 often means the game is not running yet. Guard the condition with a value that is only non-zero during play, such as a pointer." %}</li>
+      <li class="border-t border-line py-3 text-sm leading-relaxed text-txt-muted first:border-t-0">{% trans "The emulator holds back an achievement whose condition is already true when the game loads. Test from a save state made before the moment it should fire." %}</li>
+      <li class="border-t border-line py-3 text-sm leading-relaxed text-txt-muted first:border-t-0">{% trans "Check each address you rely on: code notes describe what the community found, often on another region of the game." %}</li>
+      <li class="border-t border-line py-3 text-sm leading-relaxed text-txt-muted first:border-t-0">{% trans "Every save keeps a revision. The History link on the game page shows them, and the author or staff can revert to one." %}</li>
+    </ul>
+  </div>
+{% endblock %}

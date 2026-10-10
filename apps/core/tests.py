@@ -6,7 +6,7 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 GETTING_STARTED = "/docs/getting-started/"
-NAV_LINKS = ["/games/", "/ranking/", "/feed/", GETTING_STARTED]
+NAV_LINKS = ["/games/", "/ranking/", "/feed/", GETTING_STARTED, "/docs/"]
 LANGUAGES = [("pt-br", "Como começar"), ("en", "How to start")]
 
 

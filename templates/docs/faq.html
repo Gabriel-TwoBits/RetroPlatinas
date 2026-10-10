@@ -1,0 +1,53 @@
+{% extends "docs/layout.html" %}
+{% load i18n %}
+
+{% block doc_intro %}{% trans "Short answers to what players and authors ask most." %}{% endblock %}
+
+{% block doc_body %}
+  {% url 'getting_started' as start_url %}
+  <div class="mt-8">
+    {% include "components/section-heading.html" with title=_("Which discs are supported?") %}
+    <p class="mt-3 text-sm leading-relaxed text-txt-muted">{% trans "The emulator recognises a game by a hash of its disc: for PlayStation, the hash of the boot executable named in SYSTEM.CNF. A disc only gets achievements when its hash is registered for a game here, so another region or revision of the same game, with a different executable, is not recognised." %}</p>
+    <ul class="mt-3">
+      {% for disc in supported_discs %}
+        <li class="border-t border-line py-3 first:border-t-0">
+          <div class="flex flex-wrap items-baseline gap-x-2">
+            <a href="{% url 'game_detail' disc.game.pk %}" class="font-display text-sm font-semibold text-brand">{{ disc.game.title }}</a>
+            <span class="font-mono text-xs text-txt-faint">{{ disc.game.console.short_name }}</span>
+          </div>
+          <div class="mt-1 text-sm text-txt-muted">{{ disc.label }}</div>
+          <div class="mt-1 break-all font-mono text-xs text-txt-faint">{{ disc.md5 }}</div>
+        </li>
+      {% empty %}
+        <li>{% include "components/empty-state.html" with title=_("No disc registered yet") %}</li>
+      {% endfor %}
+    </ul>
+  </div>
+
+  <div class="mt-10">
+    {% include "components/section-heading.html" with title=_("Why did an achievement not unlock?") %}
+    <ul class="mt-1">
+      <li class="border-t border-line py-3 text-sm leading-relaxed text-txt-muted first:border-t-0">{% trans "The emulator did not recognise the disc, so it loaded no achievements for it. Check that your disc is in the list above." %}</li>
+      <li class="border-t border-line py-3 text-sm leading-relaxed text-txt-muted first:border-t-0">{% blocktrans trimmed %}The emulator is not connected to this site: check the Host in DuckStation's settings.ini and that you are logged in, as the <a href="{{ start_url }}" class="text-brand">getting started guide</a> shows.{% endblocktrans %}</li>
+      <li class="border-t border-line py-3 text-sm leading-relaxed text-txt-muted first:border-t-0">{% trans "It is a draft: only its author receives it, and a draft is never recorded or worth points." %}</li>
+      <li class="border-t border-line py-3 text-sm leading-relaxed text-txt-muted first:border-t-0">{% trans "Its condition was already true when the game loaded, for example from a save state made after the moment: the emulator holds it back until the condition turns false and true again." %}</li>
+      <li class="border-t border-line py-3 text-sm leading-relaxed text-txt-muted first:border-t-0">{% trans "It changed after you opened the game: the emulator only fetches achievements when a game loads, so close the game and open it again." %}</li>
+      <li class="border-t border-line py-3 text-sm leading-relaxed text-txt-muted first:border-t-0">{% trans "It has a bug. Tell its author in the comments on the achievement's page." %}</li>
+    </ul>
+  </div>
+
+  <div class="mt-10">
+    {% include "components/section-heading.html" with title=_("Hardcore or softcore?") accent="state-hardcore" %}
+    <p class="mt-3 text-sm leading-relaxed text-txt-muted">{% trans "Both are worth the same points, and the site shows each total apart. Hardcore turns off save states, cheats and rewind; an achievement unlocked in hardcore also counts in softcore. Leaderboards only run in hardcore." %}</p>
+  </div>
+
+  <div class="mt-10">
+    {% include "components/section-heading.html" with title=_("Do I need a RetroAchievements account?") %}
+    <p class="mt-3 text-sm leading-relaxed text-txt-muted">{% trans "No. RetroPlatinas speaks the same protocol as RetroAchievements, so the emulator works unchanged, but accounts, achievements and progress are separate: log in with your RetroPlatinas account." %}</p>
+  </div>
+
+  <div class="mt-10">
+    {% include "components/section-heading.html" with title=_("Can I use another emulator?") %}
+    <p class="mt-3 text-sm leading-relaxed text-txt-muted">{% trans "Today DuckStation is the only emulator we test. Others built on rcheevos may work if they let you change the server address, but they are not supported." %}</p>
+  </div>
+{% endblock %}

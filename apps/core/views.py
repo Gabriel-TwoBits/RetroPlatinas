@@ -1,8 +1,9 @@
-from django.http import HttpResponseBadRequest
+from django.http import Http404, HttpResponseBadRequest
 from django.shortcuts import render
 from django.utils.translation import gettext
 from django.views.decorators.http import require_safe
 
+from .docs import DOC_PAGES, DOC_PAGES_BY_SLUG
 from .feed import (
     FEED_UNLOCKS_SHOWN,
     FILTER_ALL,
@@ -49,7 +50,16 @@ def feed_list(request):
     return _render_feed(request, "feed/partials/feed-list.html")
 
 
-def getting_started(request):
-    # The address DuckStation needs as its [Cheevos] Host: this site's origin, no trailing slash.
-    server_url = request.build_absolute_uri("/").rstrip("/")
-    return render(request, "docs/getting-started.html", {"server_url": server_url})
+@require_safe
+def docs_index(request):
+    return render(request, "docs/index.html", {"doc_pages": DOC_PAGES})
+
+
+@require_safe
+def docs_page(request, slug):
+    page = DOC_PAGES_BY_SLUG.get(slug)
+    if page is None:
+        raise Http404("Unknown documentation page")
+    else:
+        context = {"doc_pages": DOC_PAGES, "doc_page": page, **page.extra_context(request)}
+        return render(request, page.template, context)
