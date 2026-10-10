@@ -26,9 +26,10 @@ The other first-island stages are left out: the harness has no clear of them (se
 
 - a missing leaderboard is created on the core set (`FRAMES`, lower is better, author `ra-import`); the
   bonus subset has no leaderboards;
-- an existing one, **matched by title** in any set of the Crash game, moves to the core set and gets the whole
-  current definition (description, `mem_addr`, format, lower is better): the format and the order only mean something with the value its
-  condition counts. Its author and entries are left alone;
+- an existing one, **matched by title** in the core set or the bonus subset (another subset of the game is
+  left alone), moves to the core set and gets the whole current definition (description, `mem_addr`, format,
+  lower is better): the format and the order only mean something with the value its condition counts. Its
+  author and entries are left alone;
 - two leaderboards with the same title make the command fail without writing anything.
 
 Like every Crash seed, it first gets or creates the game with the hash of its only supported disc. The titles

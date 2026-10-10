@@ -18,24 +18,27 @@ own.
 | Beach Diet | Bonus subset | 10 | N. Sanity Beach is finished without picking up a single Wumpa |
 
 **Sets.** The core set holds what any player meets on the way to the game's own 100%: Wumpa turn into lives
-and Aku Aku stacks up by themselves. `Bandicoot Reserve` (a grind) and `Beach Diet` (a self-imposed restriction)
-are challenges beyond it, so they live in the `bonus` subset titled `Bonus` (the game
-`Crash Bandicoot [Subset - Bonus]`), which a player opts into on the game page. Every subset is off until then.
+and Aku Aku stacks up by themselves. `Bandicoot Reserve` (a grind) and `Beach Diet` (a self-imposed
+restriction) are challenges beyond it, so they live in the `bonus` subset titled `Bonus` (the game
+`Crash Bandicoot [Subset - Bonus]`), which a player opts into on the game page. Every subset is off
+until then.
 
 ## Seeding
 
 `python manage.py seed_crash1_collectible_achievements` is idempotent and behaves like the level seed
-(`crash-bandicoot-1-level-achievements.md`). It first gets or creates the bonus subset (`seed_crash1_bonus_subset`
-in `apps/achievements/management/crash1.py`: parent the core game, type `bonus`, title `Bonus`, no disc hash
-of its own; the emulator loads it with the core game's disc). A missing title is then created in its set
-(`official`, author `ra-import`); an existing one, matched by title in any set of the game, moves to its set
-and gets the current `mem_addr`, description and type (standard, `""`), keeping its id, status, points, author
-and unlocks, so a database seeded before the split gets the two challenges moved, not duplicated; their
-unlockers get a play record of the subset, as an award records one, so its rarity counts them. Two rows
-with one title in the game's sets fail the command without writing anything. Every Crash achievement seed
+(`crash-bandicoot-1-level-achievements.md`). It first gets or creates the bonus subset
+(`seed_crash1_bonus_subset` in `apps/achievements/management/crash1.py`: parent the core game, type `bonus`,
+title `Bonus`, no disc hash of its own; the emulator loads it with the core game's disc). The subset is found
+by its parent and type, so renaming it on the site keeps it; two bonus subsets of the game fail the command. A
+missing title is then created in its set (`official`, author `ra-import`); an existing one, matched by title
+in the core set or the bonus subset, moves to its set and gets the current `mem_addr`, description and type
+(standard, `""`), keeping its id, status, points, author and unlocks, so a database seeded before the split
+gets the two challenges moved, not duplicated; their unlockers get a play record of the subset, as an award
+records one, so its rarity counts them. Another subset of the game is left alone, and two rows with one title
+in the core set and the bonus subset fail the command without writing anything. Every Crash achievement seed
 shares `upsert_achievements` in `apps/achievements/management/crash1.py`; `BONUS_SUBSET_TITLES` in the command
-picks the set. The conditions are built by the command's
-`build_*_mem_addr` functions; the harness imports them, so it tests the strings the server serves.
+picks the set. The conditions are built by the command's `build_*_mem_addr` functions; the harness imports
+them, so it tests the strings the server serves.
 
 ## The mechanics, as measured
 

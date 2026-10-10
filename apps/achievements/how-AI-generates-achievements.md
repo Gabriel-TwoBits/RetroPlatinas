@@ -1,9 +1,9 @@
 # How AI generates achievements
 
-The recipe an AI agent (Claude Code) follows to design, validate and ship an achievement set without a
-human relaying screenshots from the emulator. It produced the Crash Bandicoot (USA) set: 16
-achievements (14 in the core set, 2 in a `Bonus` subset), 2 leaderboards and the rich presence script, each one validated against the real disc
-before a person ever booted the game.
+The recipe an AI agent (Claude Code) follows to design, validate and ship an achievement set without a human
+relaying screenshots from the emulator. It produced the Crash Bandicoot (USA) set: 16 achievements (14 in the
+core set, 2 in a `Bonus` subset), 2 leaderboards and the rich presence script, each one validated against the
+real disc before a person ever booted the game.
 
 The short version: **never write a condition the agent cannot run.** Every condition is evaluated by
 the real rcheevos runtime against the real game, frame by frame, in a headless emulator the agent
