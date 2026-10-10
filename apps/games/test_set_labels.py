@@ -20,6 +20,7 @@ POINTS = 10
 CORE_TITLE = "Crash Bandicoot"
 SUBSET_GAME_TITLE = "Crash Bandicoot [Subset - Bonus]"
 CHIP = ">Bonus subset</span>"
+CORE_PLAYERS = 2
 
 
 def _achievement(game, author, title):
@@ -106,12 +107,12 @@ def test_a_core_achievements_page_has_no_subset_chip(client, core, player):
 
 @pytest.mark.django_db
 def test_a_subset_achievement_counts_the_core_games_players(client, core, bonus, bonus_one):
-    for index in range(2):
+    for index in range(CORE_PLAYERS):
         user = User.objects.create_user(username=f"core-player-{index}")
         core.players.create(user=user)
     body = _get(client, f"/games/{bonus.pk}/achievements/{bonus_one.pk}/")
     line = body[body.index("Players of the game") :]
-    assert 'text-txt">2</span>' in line[: line.index("</span>") + len("</span>")]
+    assert f'text-txt">{CORE_PLAYERS}</span>' in line[: line.index("</span>") + len("</span>")]
 
 
 @pytest.mark.django_db
