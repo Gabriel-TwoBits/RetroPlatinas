@@ -1,10 +1,11 @@
 # Achievement harness (headless PS1 + real rcheevos)
 
 A scriptable, headless PlayStation that boots the real *Crash Bandicoot (USA)* disc and evaluates
-the repo's achievement conditions and rich presence script **frame by frame with the rcheevos
-runtime**, the same library DuckStation runs. It exists so a `mem_addr` is proven against real game
-RAM before anyone boots the game by hand: every scenario states which achievements must fire and
-which must not, and which rich presence strings the game must show.
+the repo's achievement conditions, leaderboards and rich presence script **frame by frame with the
+rcheevos runtime**, the same library DuckStation runs. It exists so a `mem_addr` is proven against
+real game RAM before anyone boots the game by hand: every scenario states which achievements must
+fire and which must not, how every leaderboard attempt it plays must end, and which rich presence
+strings the game must show.
 
 - **Emulation:** a libretro core loaded by a small C frontend (`src/harness.c`), driven from
   Python through `ctypes`. `pcsx_rearmed` (default) runs with its HLE BIOS in interpreter mode,
@@ -14,12 +15,16 @@ which must not, and which rich presence strings the game must show.
   `retro_run` it calls `rc_runtime_do_frame` with a peek callback that maps RA addresses
   `$000000-$1FFFFF` onto the 2 MiB main RAM; the scratchpad (`$200000+`) reads as 0. DuckStation's
   `rc_client_do_frame` does the same memref update and trigger evaluation per achievement.
+  The leaderboards are activated in the same runtime (`rc_runtime_activate_lboard`), which reports
+  their `LBOARD_STARTED`/`UPDATED`/`CANCELED`/`TRIGGERED` events with the value, as DuckStation's
+  client does per frame.
   The rich presence script is activated in the same runtime (`rc_runtime_activate_richpresence`),
   updated by the same `rc_runtime_do_frame` and read back after every frame
   (`rc_runtime_get_richpresence`), where DuckStation reads it once per ping.
 - **Definitions:** `achievements.py` imports the seed commands and calls their builders
-  (`build_mem_addr`, `collectible_achievements`, `advanced_achievements`, `build_rich_presence`),
-  so the harness tests exactly the strings the server serves. Nothing is copied.
+  (`build_mem_addr`, `collectible_achievements`, `advanced_achievements`, `leaderboards`,
+  `build_rich_presence`), so the harness tests exactly the strings the server serves. Nothing is
+  copied.
 
 The harness runs **inside the project container**, like everything else. Nothing it downloads or
 produces is committed: cores, the compiled shim, states, traces and screenshots live in
@@ -66,7 +71,7 @@ Add `-v /path/to/bios:/bios:ro -e CRASH1_BIOS_DIR=/bios` for swanstation. Every 
 | Command | What it does |
 | --- | --- |
 | `harness.py` | Boots the disc and prints the core, rcheevos and disc in use |
-| `achievements.py` | Lists the repo's achievements as the harness activates them (id, title, `mem_addr`), then the rich presence script |
+| `achievements.py` | Lists the repo's achievements and leaderboards as the harness activates them (id, title, `mem_addr`), then the rich presence script |
 | `states.py [--core C] [--fresh] [NAME ...]` | Derives the named states from a cold boot (all by default) and prints their digests |
 | `scenarios.py [--core C] NAME ... \| all` | Plays scenarios; prints `OK`/`FAIL` per scenario and exits non-zero on any `FAIL` |
 | `nav.py [--from STATE] "cmd; cmd"` | Drives the emulator by hand (see *Navigation DSL*) |
@@ -123,9 +128,9 @@ afresh instead of reusing a stale state; `--fresh` re-derives anyway.
 
 ## Scenarios
 
-Each scenario starts from a derivable state, activates every repo achievement, records a trace and
-judges every trigger against its expectation: an expected achievement must fire exactly once, while
-the game shows its expected level (lid), and nothing else may fire. A trigger on another level fails
+Each scenario starts from a derivable state, activates every repo achievement and leaderboard,
+records a trace and judges every trigger against its expectation: an expected achievement must fire
+exactly once, while the game shows its expected level (lid), and nothing else may fire. A trigger on another level fails
 even when its title was expected, so a completion that fires on a zone load or a death is caught. The
 `OK`/`FAIL` line lists each trigger with its frame and lid. Between attempts, `Session.rearm()`
 resets only the achievements that fired, so one run judges several deaths or quits on their own
@@ -154,6 +159,23 @@ while the others keep their hits, as in a live session.
 | `<stage>-early-death-gem-poked` | `<stage>-early-death-restart` | the stage's achievement and its gem achievement, on Stage Clear | **Secondary evidence (RAM poke):** `plans/<stage>-early-death-clear.json`, a clear searched from the restart after a death before any checkpoint, with the box count set to the stage's boxes before its last segment: the game still hands out the gem; then as `<stage>-clear` |
 | `<stage>-checkpoint-death` | `<stage>-start` | the stage's achievement on the switch to the map (lid `0x19`); `Beach Diet` on the clear (lid of the stage) for its stage, whose route picks up no Wumpa; never the gem | `plans/<stage>-checkpoint.json`, the death of `<stage>-checkpoint-respawn`, then `plans/<stage>-checkpoint-clear.json` from the checkpoint: the game skips Stage Clear after that death and goes straight to the map (game state `0x300`) |
 | `<stage>-checkpoint-death-fruit-poked` | `<stage>-start` | the stage's achievement only | **Secondary evidence (RAM poke):** the same with one Wumpa set (player and Wumpa HUD) after the respawn, which the clear commits. Only for the stage `Beach Diet` names |
+| `<stage>-timed-pause-quit` | `map` / `map-unlocked` | nothing; the stage's leaderboard canceled | The stage entered holding its heading from the frame its level loads: the leaderboard must start once, with Crash still on the ground until then and moving within 4 frames after; then the pause menu open 300 frames (left out of the time) and a quit. Only for a stage with a leaderboard |
+| `<stage>-timed-clear` | `map` / `map-unlocked` | the stage's achievement on Stage Clear; its leaderboard submitted | The stage entered from the map, then as `<stage>-clear`: the submitted time must be the frames played from the start to the win; the next stage's leaderboard, if any, canceled by its quit |
+| `<stage>-timed-checkpoint-death` | `map` | as `<stage>-checkpoint-death`; the leaderboard submitted on the map | The stage entered from the map, then as `<stage>-checkpoint-death` without the state reload after the death, so the death stays in the timed run |
+| `nsanity-beach-timed-game-over` | `map` | nothing; the leaderboard canceled | N. Sanity Beach entered from the map, then as `game-over`: one attempt through every death, canceled only when the title level loads |
+
+Every scenario also lists its leaderboard attempts (`leaderboards`: per title, how each attempt
+ends, `submitted`, `canceled`, `reset` by a state load, or still `running` at the end; the farming
+plans' quit-and-reenter moves each play one, `scenarios.farming_attempts`) and the judge checks
+each one: it must
+start on a frame where its stage's opening hands Crash to the player, before any respawn and with
+no demo (`session.handovers`): an intro when the game state turns playing, a spin-in when the same
+player object leaves its opening state (state flags bit 15, `probes.NO_CONTROL_STATE_FLAG`); the value it last showed or submitted must equal the frames of play since then (in a
+stage, game state playing, pause menu closed: `session.player_in_play`); a cancel must come on the
+title level and a submit on Stage Clear or the map. The verdict prints a line per attempt. The
+independent evidence of the start frame is the movement measured by `<stage>-timed-pause-quit`.
+`<stage>-start` states are saved inside a spin-in, so a scenario from one plays an attempt that
+starts when it ends (`scenarios.opening_attempt`).
 
 Every scenario also lists the rich presence strings the game must show on the way (`presence`,
 regular expressions matched in full): the title and demo strings in `cold-boot`, `attract` and
@@ -258,9 +280,10 @@ emu.deref(0x618A4, 0x6C, 0xE4, 0x0C)  # RA-style 24-bit pointer chain; None on a
 emu.screenshot(path)  # PNG of the last rendered frame
 emu.snapshot() / restore(blob) / save_state(path) / load_state(path)  # loads reset triggers
 emu.activate(id, mem_addr) / reset_achievement(id)  # reset: WAITING, zeroed hits
+emu.activate_leaderboard(id, mem_addr)  # its LBOARD_* events come out of emu.events()
 emu.achievement_state(id)  # 'waiting' | 'active' | 'primed' | 'triggered' | ...
 emu.achievement_hits(id)  # [[(type, required, current, is_true), ...] per condset]
-emu.events()  # [(frame, 'ACHIEVEMENT_TRIGGERED', id, value), ...]
+emu.events()  # [(frame, 'ACHIEVEMENT_TRIGGERED', id, value), ...]; LBOARD_* ids are leaderboards
 emu.activate_rich_presence(script) / rich_presence()  # the display string of the last frame
 emu.frame  # frames since boot or since the last state load
 emu.core_version / emu.rcheevos_version / emu.options()
@@ -268,10 +291,12 @@ emu.frame_hooks.append(callable)  # called with emu after every frame
 ```
 
 `states.load(emu, name)` derives or restores a state. `Session(name, state=None, core=...)` in
-`session.py` wraps an `Emu` with every repo achievement and the rich presence active and the tracer
-attached (`presence` lists every change of the display string); helpers:
-`step`, `press`, `wait_until`, `shot`, `note`, `rearm`, `close` (returns every `Trigger`: frame,
-title and the lid on that frame).
+`session.py` wraps an `Emu` with every repo achievement, leaderboard and the rich presence active
+and the tracer attached (`presence` lists every change of the display string; `leaderboard_events`
+every `LeaderboardEvent`, with `clock`, a frame count that survives state loads, and `played`, the
+frames of play so far; `handovers` the frames where a stage's opening handed Crash to the player);
+helpers: `step`, `press`, `wait_until`, `shot`, `note`, `rearm`, `close` (returns every `Trigger`:
+frame, title and the lid on that frame).
 `navigation.py` holds the menu moves (`boot_to_map`, `move_cursor_to`, `enter_stage`,
 `pause_and_quit`, `leave_stage_clear`).
 
@@ -283,7 +308,8 @@ engine's GOOL globals (global *n* at `0x6188C + 4n`) under their names in the c1
 most are 24.8 fixed point, which is why the RA code notes point at odd bytes (`0x618ED` lives,
 `0x61985` boxes, `0x619C5` stage). Object probes follow the Aku Aku, HUD and player pointers;
 `player_fruit` and `player_lives` are the player object's live Wumpa and lives, which the HUD
-digits only count up towards.
+digits only count up towards; `player_state_flags` its state flags, whose bit 15 marks the states
+that open a stage before Crash can move.
 
 ## Caveats
 
