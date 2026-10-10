@@ -30,36 +30,11 @@ FILTERS = [
 ]
 VALID_FILTERS = [slug for slug, _label in FILTERS]
 
-# Which statuses the list shows; drafts are only ever the viewer's own.
-SHOW_VERIFIED = "verified"
-SHOW_PUBLISHED = "published"
-SHOW_ALL = "all"
-SHOW_OPTIONS = [
-    (SHOW_VERIFIED, _("Verified only")),
-    (SHOW_PUBLISHED, _("Verified + Community")),
-    (SHOW_ALL, _("All incl. my drafts")),
-]
-VALID_SHOW_OPTIONS = [slug for slug, _label in SHOW_OPTIONS]
-ANONYMOUS_SHOW_OPTIONS = [(slug, label) for slug, label in SHOW_OPTIONS if slug != SHOW_ALL]
-SHOWN_STATUSES = {
-    SHOW_VERIFIED: (Achievement.STATUS_VERIFIED,),
-    SHOW_PUBLISHED: Achievement.PUBLISHED_STATUSES,
-    SHOW_ALL: (*Achievement.PUBLISHED_STATUSES, Achievement.STATUS_DRAFT),
-}
-# A game with nothing to show under a status choice is empty under every unlock filter.
-SHOW_EMPTY_TITLES = {
-    SHOW_VERIFIED: _("No verified achievements yet"),
-    SHOW_PUBLISHED: _("No published achievements yet"),
-    SHOW_ALL: _("No published achievements or drafts yet"),
-}
-# Under "verified only" the other statuses may still hold unlocks, so the title names the set.
+# A game with no achievement is empty under every unlock filter.
 EMPTY_TITLES = {
-    (SHOW_VERIFIED, FILTER_UNLOCKED): _("No verified achievements unlocked yet"),
-    (SHOW_VERIFIED, FILTER_LOCKED): _("Every verified achievement unlocked"),
-    (SHOW_PUBLISHED, FILTER_UNLOCKED): _("No achievements unlocked yet"),
-    (SHOW_PUBLISHED, FILTER_LOCKED): _("Every achievement unlocked"),
-    (SHOW_ALL, FILTER_UNLOCKED): _("No achievements unlocked yet"),
-    (SHOW_ALL, FILTER_LOCKED): _("Every achievement unlocked"),
+    FILTER_ALL: _("No achievements yet"),
+    FILTER_UNLOCKED: _("No achievements unlocked yet"),
+    FILTER_LOCKED: _("Every achievement unlocked"),
 }
 
 # The viewer's state on an achievement; an anonymous visitor's rows carry none.
@@ -68,15 +43,10 @@ STATE_SOFTCORE = "softcore"
 STATE_LOCKED = "locked"
 UNLOCKED_STATES = (STATE_HARDCORE, STATE_SOFTCORE)
 
-# Verified first, as the quality seal, then community; drafts reach only their author.
+# Official first, the set that is awarded; unofficial achievements reach everyone too.
 GROUPS = [
-    (
-        Achievement.STATUS_VERIFIED,
-        pgettext_lazy("achievement section", "Verified"),
-        "state-platinum",
-    ),
-    (Achievement.STATUS_COMMUNITY, _("Community"), "brand"),
-    (Achievement.STATUS_DRAFT, _("Your drafts"), "gold"),
+    (Achievement.STATUS_OFFICIAL, pgettext_lazy("achievement section", "Official"), "brand"),
+    (Achievement.STATUS_UNOFFICIAL, pgettext_lazy("achievement section", "Unofficial"), "gold"),
 ]
 
 RECENT_PLAYERS_SHOWN = 20
@@ -117,9 +87,9 @@ def _row(achievement, unlocks, viewer):
 
 
 def _achievement_rows(game, viewer):
-    """A row per achievement the viewer may see, in the order the emulator receives them."""
+    """A row per achievement of the game, in the order the emulator receives them."""
     unlock_times = _unlock_times(game, viewer)
-    achievements = Achievement.objects.visible_to(viewer).filter(game=game).order_by("id")
+    achievements = Achievement.objects.filter(game=game).order_by("id")
     return [
         _row(achievement, unlock_times.get(achievement.pk, {}), viewer)
         for achievement in achievements
@@ -138,16 +108,8 @@ def _matches(row, achievement_filter):
         raise ValueError(f"Unknown achievement filter: {achievement_filter}")
 
 
-def _achievements_panel(rows, viewer, show, achievement_filter):
-    if viewer.is_authenticated:
-        show_options = SHOW_OPTIONS
-    elif show == SHOW_ALL:
-        # An anonymous visitor has no drafts, so including them is the published set.
-        show_options, show = ANONYMOUS_SHOW_OPTIONS, SHOW_PUBLISHED
-    else:
-        show_options = ANONYMOUS_SHOW_OPTIONS
-    in_status = [row for row in rows if row["achievement"].status in SHOWN_STATUSES[show]]
-    shown = [row for row in in_status if _matches(row, achievement_filter)]
+def _achievements_panel(rows, achievement_filter):
+    shown = [row for row in rows if _matches(row, achievement_filter)]
     groups = [
         {
             "title": title,
@@ -156,13 +118,11 @@ def _achievements_panel(rows, viewer, show, achievement_filter):
         }
         for status, title, accent in GROUPS
     ]
-    if not in_status or achievement_filter == FILTER_ALL:
-        empty_title = SHOW_EMPTY_TITLES[show]
+    if rows:
+        empty_title = EMPTY_TITLES[achievement_filter]
     else:
-        empty_title = EMPTY_TITLES[show, achievement_filter]
+        empty_title = EMPTY_TITLES[FILTER_ALL]
     return {
-        "show": show,
-        "show_options": show_options,
         "achievement_filter": achievement_filter,
         "filters": FILTERS,
         "groups": [group for group in groups if group["rows"]],
@@ -176,7 +136,7 @@ def _leaderboards_panel(game):
 
 def _players_panel(game):
     return {
-        "published_achievements": stats.published_achievement_count(game),
+        "official_achievements": stats.official_achievement_count(game),
         "players": [
             {"played": played, "avatar_url": avatar_path(played.user.username)}
             for played in stats.game_players_with_progress(game, RECENT_PLAYERS_SHOWN)
@@ -194,12 +154,11 @@ def _frame(game, viewer, tab):
     }
 
 
-def panel_context(game, viewer, tab, show, achievement_filter):
-    """One tab of the page, for its HTMX swap; `show` and `achievement_filter` apply to
-    achievements."""
+def panel_context(game, viewer, tab, achievement_filter):
+    """One tab of the page, for its HTMX swap; `achievement_filter` applies to achievements."""
     if tab == TAB_ACHIEVEMENTS:
         rows = _achievement_rows(game, viewer)
-        panel = _achievements_panel(rows, viewer, show, achievement_filter)
+        panel = _achievements_panel(rows, achievement_filter)
     elif tab == TAB_LEADERBOARDS:
         panel = _leaderboards_panel(game)
     elif tab == TAB_PLAYERS:
@@ -210,19 +169,18 @@ def panel_context(game, viewer, tab, show, achievement_filter):
 
 
 def game_context(game, viewer):
-    """The full page: the game's header, its achievements tab, published and unfiltered, and its
-    comments."""
+    """The full page: the game's header, its achievements tab unfiltered, and its comments."""
     rows = _achievement_rows(game, viewer)
-    published = [
+    official = [
         row["achievement"]
         for row in rows
-        if row["achievement"].status in Achievement.PUBLISHED_STATUSES
+        if row["achievement"].status == Achievement.STATUS_OFFICIAL
     ]
     return {
         **_frame(game, viewer, TAB_ACHIEVEMENTS),
-        **_achievements_panel(rows, viewer, SHOW_PUBLISHED, FILTER_ALL),
+        **_achievements_panel(rows, FILTER_ALL),
         "icon_url": versioned_game_icon_path(game),
-        "published_achievements": len(published),
-        "published_points": sum(achievement.points for achievement in published),
+        "official_achievements": len(official),
+        "official_points": sum(achievement.points for achievement in official),
         "thread": thread(game, viewer),
     }

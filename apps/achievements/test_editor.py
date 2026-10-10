@@ -83,7 +83,7 @@ def game(db):
     return Game.objects.create(title="Crash Bandicoot", console=console)
 
 
-def _achievement(game, author, status=Achievement.STATUS_DRAFT, points=ORIGINAL_POINTS):
+def _achievement(game, author, status=Achievement.STATUS_UNOFFICIAL, points=ORIGINAL_POINTS):
     return Achievement.objects.create(
         game=game,
         author=author,
@@ -110,7 +110,7 @@ def _fields(**changes):
         "points": NEW_POINTS,
         "type": Achievement.TYPE_PROGRESSION,
         "mem_addr": VALID_TRIGGER,
-        "status": Achievement.STATUS_DRAFT,
+        "status": Achievement.STATUS_UNOFFICIAL,
     }
     fields.update(changes)
     return fields
@@ -199,13 +199,13 @@ def test_new_achievement_sends_an_anonymous_visitor_to_login(client, game):
 
 
 @pytest.mark.django_db
-def test_new_achievement_form_starts_as_a_draft(client, author, game):
+def test_new_achievement_form_starts_unofficial(client, author, game):
     client.force_login(author)
 
     response = client.get(_new_url(game), HTTP_ACCEPT_LANGUAGE="en")
 
     assert response.status_code == HTTPStatus.OK
-    assert response.context["form"]["status"].value() == Achievement.STATUS_DRAFT
+    assert response.context["form"]["status"].value() == Achievement.STATUS_UNOFFICIAL
     assert game.title in response.content.decode()
 
 
@@ -219,7 +219,7 @@ def test_new_achievement_for_an_unknown_game_is_not_found(client, author):
 
 
 @pytest.mark.django_db
-def test_creating_an_achievement_saves_a_draft_by_its_author(client, author, game):
+def test_creating_an_achievement_saves_it_unofficial_by_its_author(client, author, game):
     client.force_login(author)
 
     response = _post(client, _new_url(game))
@@ -228,7 +228,7 @@ def test_creating_an_achievement_saves_a_draft_by_its_author(client, author, gam
     assert response.status_code == HTTPStatus.FOUND
     assert response.url == _edit_url(achievement)
     assert (achievement.game, achievement.author) == (game, author)
-    assert achievement.status == Achievement.STATUS_DRAFT
+    assert achievement.status == Achievement.STATUS_UNOFFICIAL
     assert (achievement.title, achievement.description) == ("Beach", "Clear N. Sanity Beach")
     assert (achievement.points, achievement.type) == (NEW_POINTS, Achievement.TYPE_PROGRESSION)
     assert achievement.mem_addr == VALID_TRIGGER
@@ -236,46 +236,42 @@ def test_creating_an_achievement_saves_a_draft_by_its_author(client, author, gam
 
 
 @pytest.mark.django_db
-def test_an_author_may_create_an_achievement_already_published_as_community(
-    client, author, other, game
-):
+def test_an_author_may_create_an_achievement_already_official(client, author, other, game):
     client.force_login(author)
 
-    _post(client, _new_url(game), status=Achievement.STATUS_COMMUNITY)
+    _post(client, _new_url(game), status=Achievement.STATUS_OFFICIAL)
 
     achievement = Achievement.objects.get()
-    assert achievement.status == Achievement.STATUS_COMMUNITY
+    assert achievement.status == Achievement.STATUS_OFFICIAL
     assert _served(client, other, OTHER_TOKEN, game)[achievement.pk]["Flags"] == (
         ACHIEVEMENT_FLAGS_CORE
     )
 
 
 @pytest.mark.django_db
-def test_a_created_draft_is_listed_on_the_game_page_for_its_author_only(
-    client, author, other, game
-):
+def test_a_created_achievement_is_listed_on_the_game_page_for_everyone(client, author, other, game):
     client.force_login(author)
     _post(client, _new_url(game))
     panel = reverse("game_panel", args=[game.pk, "achievements"])
 
-    authors_view = client.get(panel, {"show": "all"}, HTTP_ACCEPT_LANGUAGE="en")
+    authors_view = client.get(panel, HTTP_ACCEPT_LANGUAGE="en")
     client.force_login(other)
-    others_view = client.get(panel, {"show": "all"}, HTTP_ACCEPT_LANGUAGE="en")
+    others_view = client.get(panel, HTTP_ACCEPT_LANGUAGE="en")
 
     assert "Beach" in authors_view.content.decode()
-    assert "Beach" not in others_view.content.decode()
+    assert "Beach" in others_view.content.decode()
 
 
 @pytest.mark.django_db
-def test_a_created_draft_reaches_only_its_author_as_unofficial(client, author, other, game):
+def test_a_created_achievement_reaches_everyone_as_unofficial(client, author, other, game):
     client.force_login(author)
     _post(client, _new_url(game))
     achievement = Achievement.objects.get()
 
-    assert _served(client, author, AUTHOR_TOKEN, game)[achievement.pk]["Flags"] == (
-        ACHIEVEMENT_FLAGS_UNOFFICIAL
-    )
-    assert achievement.pk not in _served(client, other, OTHER_TOKEN, game)
+    for user, token in ((author, AUTHOR_TOKEN), (other, OTHER_TOKEN)):
+        assert _served(client, user, token, game)[achievement.pk]["Flags"] == (
+            ACHIEVEMENT_FLAGS_UNOFFICIAL
+        )
 
 
 @pytest.mark.django_db
@@ -311,10 +307,11 @@ def test_creating_rejects_points_off_the_scale(client, author, game):
 
 
 @pytest.mark.django_db
-def test_an_author_cannot_create_a_verified_achievement(client, author, game):
+@pytest.mark.parametrize("status", ["draft", "community", "verified"])
+def test_creating_rejects_a_status_other_than_official_or_unofficial(client, author, game, status):
     client.force_login(author)
 
-    response = _post(client, _new_url(game), status=Achievement.STATUS_VERIFIED)
+    response = _post(client, _new_url(game), status=status)
 
     assert response.context["form"].has_error("status")
     assert not Achievement.objects.exists()
@@ -403,8 +400,9 @@ def test_editing_keeps_points_off_the_scale_while_unchanged(client, author, game
 
 
 @pytest.mark.django_db
-def test_editing_another_users_published_achievement_is_forbidden(client, author, other, game):
-    achievement = _achievement(game, author, status=Achievement.STATUS_COMMUNITY)
+@pytest.mark.parametrize("status", [Achievement.STATUS_OFFICIAL, Achievement.STATUS_UNOFFICIAL])
+def test_editing_another_users_achievement_is_forbidden(client, author, other, game, status):
+    achievement = _achievement(game, author, status=status)
     client.force_login(other)
 
     get = client.get(_edit_url(achievement))
@@ -414,16 +412,6 @@ def test_editing_another_users_published_achievement_is_forbidden(client, author
     assert get.status_code == HTTPStatus.FORBIDDEN
     assert post.status_code == HTTPStatus.FORBIDDEN
     assert achievement.title == "Old title"
-
-
-@pytest.mark.django_db
-def test_another_users_draft_does_not_exist_for_the_editor(client, author, other, game):
-    achievement = _achievement(game, author)
-    client.force_login(other)
-
-    response = client.get(_edit_url(achievement))
-
-    assert response.status_code == HTTPStatus.NOT_FOUND
 
 
 @pytest.mark.django_db
@@ -448,54 +436,37 @@ def test_editing_sends_an_anonymous_visitor_to_login(client, author, game):
 
 
 @pytest.mark.django_db
-def test_staff_edit_any_achievement_and_set_verified(client, author, staff, game):
+def test_staff_edit_any_achievement_and_make_it_official(client, author, staff, game):
     achievement = _achievement(game, author)
     client.force_login(staff)
 
-    response = _post(client, _edit_url(achievement), status=Achievement.STATUS_VERIFIED)
+    response = _post(client, _edit_url(achievement), status=Achievement.STATUS_OFFICIAL)
 
     achievement.refresh_from_db()
     assert response.status_code == HTTPStatus.FOUND
-    assert achievement.status == Achievement.STATUS_VERIFIED
+    assert achievement.status == Achievement.STATUS_OFFICIAL
     assert achievement.author == author
 
 
 @pytest.mark.django_db
-def test_an_author_cannot_verify_an_achievement(client, author, game):
-    achievement = _achievement(game, author, status=Achievement.STATUS_COMMUNITY)
-    client.force_login(author)
-
-    response = _post(client, _edit_url(achievement), status=Achievement.STATUS_VERIFIED)
-
-    achievement.refresh_from_db()
-    assert response.context["form"].has_error("status")
-    assert achievement.status == Achievement.STATUS_COMMUNITY
-
-
-@pytest.mark.django_db
-def test_an_author_leaves_the_verified_seal_to_staff(client, author, game):
-    achievement = _achievement(game, author, status=Achievement.STATUS_VERIFIED)
+def test_the_editor_offers_an_author_both_statuses(client, author, game):
+    achievement = _achievement(game, author, status=Achievement.STATUS_OFFICIAL)
     client.force_login(author)
 
     form = client.get(_edit_url(achievement)).context["form"]
-    response = _post(client, _edit_url(achievement), status=Achievement.STATUS_DRAFT)
 
-    achievement.refresh_from_db()
     assert [value for value, _label in form.fields["status"].choices] == [
-        Achievement.STATUS_VERIFIED
+        Achievement.STATUS_OFFICIAL,
+        Achievement.STATUS_UNOFFICIAL,
     ]
-    assert response.context["form"].has_error("status")
-    assert achievement.status == Achievement.STATUS_VERIFIED
 
 
 @pytest.mark.django_db
-def test_publishing_a_draft_as_community_serves_it_to_everyone_as_official(
-    client, author, other, game
-):
+def test_making_an_achievement_official_serves_it_to_everyone_as_core(client, author, other, game):
     achievement = _achievement(game, author)
     client.force_login(author)
 
-    _post(client, _edit_url(achievement), status=Achievement.STATUS_COMMUNITY)
+    _post(client, _edit_url(achievement), status=Achievement.STATUS_OFFICIAL)
 
     assert _served(client, other, OTHER_TOKEN, game)[achievement.pk]["Flags"] == (
         ACHIEVEMENT_FLAGS_CORE
@@ -503,10 +474,10 @@ def test_publishing_a_draft_as_community_serves_it_to_everyone_as_official(
 
 
 @pytest.mark.django_db
-def test_moving_a_published_achievement_back_to_draft_recounts_its_unlockers(
+def test_making_an_official_achievement_unofficial_recounts_its_unlockers(
     client, author, other, game
 ):
-    achievement = _achievement(game, author, status=Achievement.STATUS_COMMUNITY)
+    achievement = _achievement(game, author, status=Achievement.STATUS_OFFICIAL)
     UserUnlock.objects.create(user=other, achievement=achievement, hardcore=False)
     UserUnlock.objects.create(user=other, achievement=achievement, hardcore=True)
     User.objects.filter(pk=other.pk).update(
@@ -515,7 +486,9 @@ def test_moving_a_published_achievement_back_to_draft_recounts_its_unlockers(
     unlocks = set(UserUnlock.objects.values_list("pk", flat=True))
     client.force_login(author)
 
-    _post(client, _edit_url(achievement), status=Achievement.STATUS_DRAFT, points=ORIGINAL_POINTS)
+    _post(
+        client, _edit_url(achievement), status=Achievement.STATUS_UNOFFICIAL, points=ORIGINAL_POINTS
+    )
 
     other.refresh_from_db()
     assert (other.softcore_points, other.hardcore_points) == (0, 0)
@@ -523,15 +496,15 @@ def test_moving_a_published_achievement_back_to_draft_recounts_its_unlockers(
 
 
 @pytest.mark.django_db
-def test_changing_a_published_achievements_points_recounts_its_unlockers(
+def test_changing_an_official_achievements_points_recounts_its_unlockers(
     client, author, other, game
 ):
-    achievement = _achievement(game, author, status=Achievement.STATUS_COMMUNITY)
+    achievement = _achievement(game, author, status=Achievement.STATUS_OFFICIAL)
     UserUnlock.objects.create(user=other, achievement=achievement, hardcore=False)
     User.objects.filter(pk=other.pk).update(softcore_points=ORIGINAL_POINTS)
     client.force_login(author)
 
-    _post(client, _edit_url(achievement), status=Achievement.STATUS_COMMUNITY, points=NEW_POINTS)
+    _post(client, _edit_url(achievement), status=Achievement.STATUS_OFFICIAL, points=NEW_POINTS)
 
     other.refresh_from_db()
     assert other.softcore_points == NEW_POINTS
@@ -552,8 +525,8 @@ def test_game_page_offers_a_new_achievement_to_a_logged_in_user_only(client, aut
 
 @pytest.mark.django_db
 def test_game_page_offers_edit_on_the_viewers_own_achievements_only(client, author, other, game):
-    own = _achievement(game, author, status=Achievement.STATUS_COMMUNITY)
-    others = _achievement(game, other, status=Achievement.STATUS_COMMUNITY)
+    own = _achievement(game, author, status=Achievement.STATUS_OFFICIAL)
+    others = _achievement(game, other, status=Achievement.STATUS_OFFICIAL)
     client.force_login(author)
 
     body = client.get(reverse("game_detail", args=[game.pk])).content.decode()
@@ -564,7 +537,7 @@ def test_game_page_offers_edit_on_the_viewers_own_achievements_only(client, auth
 
 @pytest.mark.django_db
 def test_game_page_offers_staff_edit_on_every_achievement(client, author, staff, game):
-    achievement = _achievement(game, author, status=Achievement.STATUS_COMMUNITY)
+    achievement = _achievement(game, author, status=Achievement.STATUS_OFFICIAL)
     client.force_login(staff)
 
     body = client.get(reverse("game_detail", args=[game.pk])).content.decode()

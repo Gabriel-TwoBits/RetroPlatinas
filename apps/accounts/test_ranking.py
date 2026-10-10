@@ -30,7 +30,7 @@ LARGE_SITE_USERS = 1_050
 UNLOCKING_USERS = 300
 LARGE_SITE_ACHIEVEMENTS = 3
 # An uncached board: page count, the page's users, the first row's rank, unlock tallies and
-# the published achievement counts of their games.
+# the official achievement counts of their games.
 BOARD_QUERIES = 5
 
 
@@ -44,7 +44,7 @@ def _user(username, hardcore_points=0, softcore_points=0, is_active=True):
     )
 
 
-def _achievement(game, title, status=Achievement.STATUS_COMMUNITY):
+def _achievement(game, title, status=Achievement.STATUS_OFFICIAL):
     return Achievement.objects.create(
         game=game,
         author=User.objects.get(username=SYSTEM_ACCOUNT),
@@ -185,28 +185,28 @@ def test_row_shows_avatar_profile_link_and_points_of_the_mode(client):
 
 
 @pytest.mark.django_db
-def test_achievements_count_each_published_one_once_per_mode(client, crash):
+def test_achievements_count_each_official_one_once_per_mode(client, crash):
     player = _user("player", hardcore_points=10, softcore_points=15)
-    hardcore_one, softcore_one, draft = (
+    hardcore_one, softcore_one, unofficial = (
         _achievement(crash, "Hardcore one"),
         _achievement(crash, "Softcore one"),
-        _achievement(crash, "Draft", status=Achievement.STATUS_DRAFT),
+        _achievement(crash, "Unofficial", status=Achievement.STATUS_UNOFFICIAL),
     )
     _unlock(player, hardcore_one, hardcore=True)
     _unlock(player, softcore_one, hardcore=False)
-    _unlock(player, draft, hardcore=True)
+    _unlock(player, unofficial, hardcore=True)
     assert "1 achievement ·" in _row_of(_body(client), "player")
     assert "2 achievements ·" in _row_of(_body(client, mode="softcore"), "player")
 
 
 @pytest.mark.django_db
-def test_platinums_are_games_with_every_published_achievement_in_hardcore(client, crash):
+def test_platinums_are_games_with_every_official_achievement_in_hardcore(client, crash):
     other_game = Game.objects.create(title="Crash 2", console=crash.console)
     third_game = Game.objects.create(title="Crash 3", console=crash.console)
     player = _user("player", hardcore_points=30, softcore_points=30)
     for achievement in (_achievement(crash, "Beach"), _achievement(crash, "Jungle")):
         _unlock(player, achievement, hardcore=True)
-    _achievement(crash, "Unreleased", status=Achievement.STATUS_DRAFT)
+    _achievement(crash, "Unreleased", status=Achievement.STATUS_UNOFFICIAL)
     _unlock(player, _achievement(other_game, "Softcore only"), hardcore=False)
     _unlock(player, _achievement(third_game, "Half"), hardcore=True)
     _achievement(third_game, "Missing")

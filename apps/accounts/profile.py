@@ -228,7 +228,7 @@ def _activity(user, now):
     A hardcore unlock writes its softcore twin, so the softcore rows cover both modes and give
     the heat each achievement once, at its first unlock.
     """
-    recent = stats.published_unlocks().filter(user=user, unlocked_at__gte=now - LONG_WINDOW)
+    recent = stats.official_unlocks().filter(user=user, unlocked_at__gte=now - LONG_WINDOW)
     short_window = {True: 0, False: 0}
     long_window = {True: 0, False: 0}
     points_by_day = defaultdict(int)

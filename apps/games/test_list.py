@@ -30,8 +30,8 @@ EXTRA_GAMES = 1
 UNKNOWN_CONSOLE_ID = 999_999
 SPYRO_ACHIEVEMENTS = 3
 CRASH_ACHIEVEMENTS = 2
-# Crash, Spyro and Mario: the `catalog` game with only a draft is not listed.
-PUBLISHED_CATALOG_GAMES = 3
+# Crash, Spyro and Mario: the `catalog` game with only an unofficial achievement is not listed.
+OFFICIAL_CATALOG_GAMES = 3
 # `many_games` fills one page and spills onto a second.
 LAST_PAGE = 2
 
@@ -40,7 +40,7 @@ def _user(username, is_active=True):
     return User.objects.create_user(username=username, password=PASSWORD, is_active=is_active)
 
 
-def _achievements(game, count, status=Achievement.STATUS_COMMUNITY):
+def _achievements(game, count, status=Achievement.STATUS_OFFICIAL):
     for index in range(count):
         Achievement.objects.create(
             game=game,
@@ -53,9 +53,9 @@ def _achievements(game, count, status=Achievement.STATUS_COMMUNITY):
         )
 
 
-def _game(title, console, published=1):
+def _game(title, console, official=1):
     game = Game.objects.create(title=title, console=console)
-    _achievements(game, published)
+    _achievements(game, official)
     return game
 
 
@@ -80,14 +80,14 @@ def nintendo_64(db):
 
 @pytest.fixture
 def catalog(playstation, nintendo_64):
-    """Crash and Spyro on PS1 with published sets, Mario 64 on N64, and a PS1 game whose only
-    achievement is a draft."""
+    """Crash and Spyro on PS1 with official sets, Mario 64 on N64, and a PS1 game whose only
+    achievement is unofficial."""
     crash = _game("Crash Bandicoot", playstation, CRASH_ACHIEVEMENTS)
     spyro = _game("Spyro the Dragon", playstation, SPYRO_ACHIEVEMENTS)
     mario = _game("Super Mario 64", nintendo_64)
-    drafted = _game("Ape Escape", playstation, published=0)
-    _achievements(drafted, 1, status=Achievement.STATUS_DRAFT)
-    return {"crash": crash, "spyro": spyro, "mario": mario, "drafted": drafted}
+    unofficial_only = _game("Ape Escape", playstation, official=0)
+    _achievements(unofficial_only, 1, status=Achievement.STATUS_UNOFFICIAL)
+    return {"crash": crash, "spyro": spyro, "mario": mario, "unofficial_only": unofficial_only}
 
 
 # --- Cards and defaults ---
@@ -95,7 +95,7 @@ def catalog(playstation, nintendo_64):
 
 @pytest.mark.django_db
 @pytest.mark.parametrize("path", PATHS)
-def test_list_shows_games_with_a_published_set_by_title(client, catalog, path):
+def test_list_shows_games_with_an_official_set_by_title(client, catalog, path):
     resp = _get(client, path)
 
     assert resp.status_code == HTTPStatus.OK
@@ -106,12 +106,12 @@ def test_list_shows_games_with_a_published_set_by_title(client, catalog, path):
     assert f'src="{versioned_game_icon_path(crash)}"' in body
     assert f"{CRASH_ACHIEVEMENTS} achievements" in body
     assert ">PS1<" in body
-    assert f"{PUBLISHED_CATALOG_GAMES} games" in body
+    assert f"{OFFICIAL_CATALOG_GAMES} games" in body
     assert "Ape Escape" not in body
 
 
 @pytest.mark.django_db
-def test_minimum_of_zero_lists_games_without_a_published_set(client, catalog):
+def test_minimum_of_zero_lists_games_without_an_official_set(client, catalog):
     resp = _get(client, LIST_PATH, {"min_achievements": 0})
 
     assert "Ape Escape" in _titles(resp)
@@ -119,8 +119,8 @@ def test_minimum_of_zero_lists_games_without_a_published_set(client, catalog):
 
 
 @pytest.mark.django_db
-def test_minimum_achievements_counts_only_published_ones(client, catalog):
-    _achievements(catalog["crash"], SPYRO_ACHIEVEMENTS, status=Achievement.STATUS_DRAFT)
+def test_minimum_achievements_counts_only_official_ones(client, catalog):
+    _achievements(catalog["crash"], SPYRO_ACHIEVEMENTS, status=Achievement.STATUS_UNOFFICIAL)
 
     resp = _get(client, LIST_PATH, {"min_achievements": SPYRO_ACHIEVEMENTS})
 
@@ -161,10 +161,10 @@ def test_no_match_shows_an_empty_state_that_clears_the_filters(client, catalog):
 
 
 @pytest.mark.django_db
-def test_without_published_sets_the_list_says_so(client, playstation):
+def test_without_official_sets_the_list_says_so(client, playstation):
     body = _get(client, LIST_PATH).content.decode()
 
-    assert "No sets published yet" in body
+    assert "No official sets yet" in body
     assert "No games match these filters" not in body
 
 
@@ -323,7 +323,7 @@ def test_nav_footer_and_home_link_the_games_list(client, catalog):
 def test_list_is_translated_to_brazilian_portuguese(client, catalog):
     body = _get(client, LIST_PATH, language="pt-br").content.decode()
 
-    assert f"{PUBLISHED_CATALOG_GAMES} jogos" in body
+    assert f"{OFFICIAL_CATALOG_GAMES} jogos" in body
     assert f"{CRASH_ACHIEVEMENTS} conquistas" in body
     assert "Mínimo de conquistas" in body
     assert "Ordem alfabética" in body

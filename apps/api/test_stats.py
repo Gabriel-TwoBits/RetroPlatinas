@@ -39,7 +39,7 @@ def _user(username, hardcore_points=0, softcore_points=0, is_active=True):
     )
 
 
-def _achievement(game, title, points=5, status=Achievement.STATUS_COMMUNITY):
+def _achievement(game, title, points=5, status=Achievement.STATUS_OFFICIAL):
     return Achievement.objects.create(
         game=game,
         author=User.objects.get(username=SYSTEM_ACCOUNT),
@@ -87,10 +87,10 @@ def test_user_summary_reports_points_ranks_games_and_unlocks(client, crash, ape_
     now = timezone.now()
     hardcore = _achievement(crash, "Hardcore one", points=10)
     softcore = _achievement(crash, "Softcore one", points=5)
-    draft = _achievement(crash, "Draft", status=Achievement.STATUS_DRAFT)
+    unofficial = _achievement(crash, "Unofficial", status=Achievement.STATUS_UNOFFICIAL)
     _unlock(player, hardcore, hardcore=True, unlocked_at=now)
     _unlock(player, softcore, hardcore=False, unlocked_at=now)
-    _unlock(player, draft, hardcore=True, unlocked_at=now)
+    _unlock(player, unofficial, hardcore=True, unlocked_at=now)
     PlayerGame.objects.create(user=player, game=crash)
     PlayerGame.objects.create(user=player, game=ape_escape)
 
@@ -196,7 +196,7 @@ def test_recent_unlocks_newest_first_one_entry_per_unlock(client, crash, ape_esc
     beach = _achievement(crash, "Beach", points=5)
     jungle = _achievement(crash, "Jungle", points=10)
     monkey = _achievement(ape_escape, "Monkey", points=25)
-    draft = _achievement(crash, "Draft", status=Achievement.STATUS_DRAFT)
+    unofficial = _achievement(crash, "Unofficial", status=Achievement.STATUS_UNOFFICIAL)
     _unlock(player, beach, hardcore=False, unlocked_at=now - timedelta(hours=3))
     # A later hardcore unlock of an achievement already unlocked in softcore is its own unlock.
     UserUnlock.objects.create(
@@ -204,7 +204,7 @@ def test_recent_unlocks_newest_first_one_entry_per_unlock(client, crash, ape_esc
     )
     _unlock(player, jungle, hardcore=True, unlocked_at=now - timedelta(hours=2))
     _unlock(player, monkey, hardcore=False, unlocked_at=now)
-    _unlock(player, draft, hardcore=True, unlocked_at=now)
+    _unlock(player, unofficial, hardcore=True, unlocked_at=now)
 
     response = client.get("/api/users/player/recent/")
 
@@ -369,7 +369,7 @@ def test_game_players_most_recent_first_with_progress(client, crash, ape_escape)
     now = timezone.now()
     hardcore = _achievement(crash, "Hardcore one")
     softcore = _achievement(crash, "Softcore one")
-    draft = _achievement(crash, "Draft", status=Achievement.STATUS_DRAFT)
+    unofficial = _achievement(crash, "Unofficial", status=Achievement.STATUS_UNOFFICIAL)
     monkey = _achievement(ape_escape, "Monkey")
     veteran = _user("veteran")
     newcomer = _user("newcomer")
@@ -391,7 +391,7 @@ def test_game_players_most_recent_first_with_progress(client, crash, ape_escape)
     PlayerGame.objects.create(user=_user("elsewhere"), game=ape_escape)
     _unlock(veteran, hardcore, hardcore=True, unlocked_at=now)
     _unlock(veteran, softcore, hardcore=False, unlocked_at=now)
-    _unlock(veteran, draft, hardcore=True, unlocked_at=now)
+    _unlock(veteran, unofficial, hardcore=True, unlocked_at=now)
     _unlock(veteran, monkey, hardcore=True, unlocked_at=now)
 
     response = client.get(f"/api/games/{crash.pk}/players/")

@@ -218,7 +218,7 @@ ORIGINAL_POINTS = 5
 
 
 def _achievement(
-    game, author, status=Achievement.STATUS_COMMUNITY, points=ORIGINAL_POINTS, **fields
+    game, author, status=Achievement.STATUS_OFFICIAL, points=ORIGINAL_POINTS, **fields
 ):
     return Achievement.objects.create(
         game=game,
@@ -267,12 +267,14 @@ def test_achievement_upload_checksum_matches_rcheevos():
 
 
 @pytest.mark.django_db
-def test_uploadachievement_creates_a_draft_by_its_uploader(client, player, game, badge):
+def test_uploadachievement_creates_an_unofficial_achievement_by_its_uploader(
+    client, player, game, badge
+):
     data = _raw(client, RCHEEVOS_NEW_ACHIEVEMENT)
 
     achievement = Achievement.objects.get()
     assert data == {"Success": True, "AchievementID": achievement.pk}
-    assert achievement.status == Achievement.STATUS_DRAFT
+    assert achievement.status == Achievement.STATUS_UNOFFICIAL
     assert achievement.author == player
     assert achievement.game == game
     assert (achievement.title, achievement.description) == ("Beach", "Clear it")
@@ -283,28 +285,26 @@ def test_uploadachievement_creates_a_draft_by_its_uploader(client, player, game,
 
 
 @pytest.mark.django_db
-def test_uploaded_achievement_reaches_only_its_author_as_unofficial(
-    client, player, other, game, badge
-):
+def test_uploaded_achievement_reaches_everyone_as_unofficial(client, player, other, game, badge):
     achievement_id = _raw(client, RCHEEVOS_NEW_ACHIEVEMENT)["AchievementID"]
 
     def served(user, token):
         data = _post(client, r="achievementsets", u=user.username, t=token, g=GAME_ID)
         return {a["ID"]: a for a in data["Sets"][0]["Achievements"]}
 
-    authors_view = served(player, PLAYER_TOKEN)
-    assert authors_view[achievement_id]["Flags"] == ACHIEVEMENT_FLAGS_UNOFFICIAL
-    assert authors_view[achievement_id]["BadgeName"] == BADGE_NAME
-    assert authors_view[achievement_id]["Type"] == Achievement.TYPE_PROGRESSION
-    assert achievement_id not in served(other, OTHER_TOKEN)
+    for user, token in ((player, PLAYER_TOKEN), (other, OTHER_TOKEN)):
+        view = served(user, token)
+        assert view[achievement_id]["Flags"] == ACHIEVEMENT_FLAGS_UNOFFICIAL
+        assert view[achievement_id]["BadgeName"] == BADGE_NAME
+        assert view[achievement_id]["Type"] == Achievement.TYPE_PROGRESSION
 
 
 @pytest.mark.django_db
-def test_uploadachievement_never_publishes_a_new_achievement(client, player, game):
+def test_uploadachievement_never_makes_a_new_achievement_official(client, player, game):
     params = _signed_achievement(PLAYER, PLAYER_TOKEN, f=ACHIEVEMENT_FLAGS_CORE)
 
     assert _post(client, **params)["Success"] is True
-    assert Achievement.objects.get().status == Achievement.STATUS_DRAFT
+    assert Achievement.objects.get().status == Achievement.STATUS_UNOFFICIAL
 
 
 @pytest.mark.django_db
@@ -317,7 +317,7 @@ def test_uploadachievement_updates_its_authors_achievement_and_keeps_its_status(
 
     assert data == {"Success": True, "AchievementID": ACHIEVEMENT_ID}
     achievement = Achievement.objects.get(pk=ACHIEVEMENT_ID)
-    assert achievement.status == Achievement.STATUS_COMMUNITY
+    assert achievement.status == Achievement.STATUS_OFFICIAL
     assert achievement.title == "Beach"
     assert achievement.mem_addr == RCHEEVOS_TRIGGER
     assert achievement.points == RCHEEVOS_POINTS
@@ -406,16 +406,20 @@ def test_uploadachievement_cannot_change_another_authors_achievement(client, pla
 
 
 @pytest.mark.django_db
-def test_uploadachievement_hides_another_authors_draft(client, player, other, game):
-    draft = _achievement(game, other, status=Achievement.STATUS_DRAFT)
+def test_uploadachievement_refuses_another_authors_unofficial_achievement(
+    client, player, other, game
+):
+    unofficial = _achievement(game, other, status=Achievement.STATUS_UNOFFICIAL)
 
-    data = _post(client, **_signed_achievement(PLAYER, PLAYER_TOKEN, draft.pk))
+    data = _post(client, **_signed_achievement(PLAYER, PLAYER_TOKEN, unofficial.pk))
 
-    assert data == _not_found("achievement")
+    assert data == NOT_THE_AUTHOR
+    unofficial.refresh_from_db()
+    assert unofficial.title == "Old"
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize("status", [Achievement.STATUS_DRAFT, Achievement.STATUS_VERIFIED])
+@pytest.mark.parametrize("status", [Achievement.STATUS_UNOFFICIAL, Achievement.STATUS_OFFICIAL])
 def test_uploadachievement_lets_staff_change_any_achievement(client, staff, other, game, status):
     achievement = _achievement(game, other, status=status)
 
@@ -1092,12 +1096,17 @@ def test_achievementwondata_friends_only_pages_past_the_followed_winners(
 
 
 @pytest.mark.django_db
-def test_achievementwondata_hides_unknown_and_other_users_drafts(client, player, other, game):
-    draft = _achievement(game, other, status=Achievement.STATUS_DRAFT)
+def test_achievementwondata_answers_another_users_unofficial_achievement(
+    client, player, other, game
+):
+    unofficial = _achievement(game, other, status=Achievement.STATUS_UNOFFICIAL)
 
-    for achievement_id in (draft.pk, draft.pk + 1):
-        data = _post(client, r="achievementwondata", u=PLAYER, t=PLAYER_TOKEN, a=achievement_id)
-        assert data == _not_found("achievement")
+    known = _post(client, r="achievementwondata", u=PLAYER, t=PLAYER_TOKEN, a=unofficial.pk)
+    unknown = _post(client, r="achievementwondata", u=PLAYER, t=PLAYER_TOKEN, a=unofficial.pk + 1)
+
+    assert known["Success"] is True
+    assert known["AchievementID"] == unofficial.pk
+    assert unknown == _not_found("achievement")
 
 
 @pytest.mark.django_db

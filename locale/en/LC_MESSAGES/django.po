@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RetroPlatinas\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 23:37-0300\n"
+"POT-Creation-Date: 2026-10-10 13:09-0300\n"
 "PO-Revision-Date: 2026-05-23 18:15-0300\n"
 "Last-Translator: RetroPlatinas\n"
 "Language-Team: English\n"
@@ -29,7 +29,7 @@ msgstr ""
 msgid "bio"
 msgstr ""
 
-#: apps/accounts/models.py:38 apps/achievements/models.py:378
+#: apps/accounts/models.py:38 apps/achievements/models.py:365
 #: apps/anticheat/models.py:24 apps/games/models.py:122
 #: apps/leaderboards/models.py:93 apps/notifications/models.py:35
 msgid "user"
@@ -40,7 +40,7 @@ msgid "friend"
 msgstr ""
 
 #: apps/accounts/models.py:43 apps/achievements/models.py:113
-#: apps/achievements/models.py:204 apps/achievements/models.py:278
+#: apps/achievements/models.py:193 apps/achievements/models.py:265
 #: apps/anticheat/models.py:28 apps/comments/models.py:43
 #: apps/games/models.py:59 apps/leaderboards/models.py:54
 #: apps/notifications/models.py:42
@@ -106,54 +106,57 @@ msgstr ""
 msgid "Unknown ranking mode"
 msgstr ""
 
-#: apps/achievements/admin.py:30
+#: apps/achievements/admin.py:29
 msgid "Locked badge"
 msgstr ""
 
-#: apps/achievements/admin.py:30
+#: apps/achievements/admin.py:29
 msgid "Badge"
 msgstr ""
 
-#: apps/achievements/admin.py:79 apps/achievements/models.py:195
-#: apps/achievements/models.py:269
+#: apps/achievements/admin.py:78 apps/achievements/models.py:184
+#: apps/achievements/models.py:256
 msgid "status"
 msgstr ""
 
-#: apps/achievements/admin.py:85 apps/achievements/admin.py:147
+#: apps/achievements/admin.py:84 apps/achievements/admin.py:146
 #: apps/achievements/models.py:118
 msgid "badge"
 msgstr ""
 
-#: apps/achievements/admin.py:89
+#: apps/achievements/admin.py:88
 msgid "badge preview"
 msgstr ""
 
-#: apps/achievements/admin.py:93 apps/games/admin.py:62
-#: apps/images/tests.py:394
+#: apps/achievements/admin.py:92 apps/games/admin.py:62
+#: apps/images/tests.py:392
 msgid "Available after saving."
 msgstr ""
 
-#: apps/achievements/admin.py:102
-msgid "Publish selected achievements as community"
+#: apps/achievements/admin.py:100
+msgid "Make selected achievements official"
 msgstr ""
 
-#: apps/achievements/admin.py:107
-msgid "Mark selected achievements as verified"
-msgstr ""
-
-#: apps/achievements/admin.py:112
-msgid "Move selected achievements back to draft"
-msgstr ""
-
-#: apps/achievements/admin.py:134
+#: apps/achievements/admin.py:104
 #, python-format
-msgid "%(count)d achievement moved to %(status)s."
-msgid_plural "%(count)d achievements moved to %(status)s."
+msgid "%(count)d achievement made official."
+msgid_plural "%(count)d achievements made official."
 msgstr[0] ""
 msgstr[1] ""
 
-#: apps/achievements/admin.py:151 apps/achievements/models.py:188
-#: apps/achievements/models.py:265
+#: apps/achievements/admin.py:108
+msgid "Make selected achievements unofficial"
+msgstr ""
+
+#: apps/achievements/admin.py:113
+#, python-format
+msgid "%(count)d achievement made unofficial."
+msgid_plural "%(count)d achievements made unofficial."
+msgstr[0] ""
+msgstr[1] ""
+
+#: apps/achievements/admin.py:150 apps/achievements/models.py:177
+#: apps/achievements/models.py:252
 msgid "badge name"
 msgstr ""
 
@@ -177,40 +180,40 @@ msgstr ""
 
 #: apps/achievements/forms.py:50
 msgid ""
-"A draft reaches only its author, in the emulator's unofficial list, and is "
-"never awarded. Community and verified reach every player and are worth "
-"points."
+"Every player receives both. An official achievement is awarded and worth "
+"points; an unofficial one sits in the emulator's unofficial list and is "
+"never awarded."
 msgstr ""
 
-#: apps/achievements/forms.py:68
+#: apps/achievements/forms.py:64
 #, python-format
 msgid ""
 "PNG, JPEG or GIF, at most %(megabytes)s MiB and %(pixels)s pixels a side. "
 "Leave empty to keep the current badge."
 msgstr ""
 
-#: apps/achievements/forms.py:86 templates/achievements/code-notes.html:22
+#: apps/achievements/forms.py:82 templates/achievements/code-notes.html:22
 #: templates/components/site-menu.html:11
 msgid "Search"
 msgstr ""
 
-#: apps/achievements/forms.py:93
+#: apps/achievements/forms.py:89
 msgid "Note"
 msgstr ""
 
-#: apps/achievements/forms.py:95
+#: apps/achievements/forms.py:91
 msgid "What the address holds: its size, its values and what they mean."
 msgstr ""
 
-#: apps/achievements/forms.py:103 templates/achievements/code-note-edit.html:16
+#: apps/achievements/forms.py:99 templates/achievements/code-note-edit.html:16
 msgid "Address"
 msgstr ""
 
-#: apps/achievements/forms.py:105
+#: apps/achievements/forms.py:101
 msgid "In hexadecimal, such as 0x001234."
 msgstr ""
 
-#: apps/achievements/forms.py:114
+#: apps/achievements/forms.py:110
 #, python-format
 msgid "Enter a hexadecimal address from 0x0 to 0x%(max)x, such as 0x001234."
 msgstr ""
@@ -242,148 +245,144 @@ msgstr ""
 msgid "badges"
 msgstr ""
 
-#: apps/achievements/models.py:150
-msgid "Draft"
+#: apps/achievements/models.py:140
+msgid "Official"
 msgstr ""
 
-#: apps/achievements/models.py:151 apps/games/page.py:78 templates/home.html:52
-msgid "Community"
+#: apps/achievements/models.py:141
+msgid "Unofficial"
 msgstr ""
 
-#: apps/achievements/models.py:152
-msgid "Verified"
-msgstr ""
-
-#: apps/achievements/models.py:164
+#: apps/achievements/models.py:153
 msgid "None"
 msgstr ""
 
-#: apps/achievements/models.py:165
+#: apps/achievements/models.py:154
 msgid "Progression"
 msgstr ""
 
-#: apps/achievements/models.py:166
+#: apps/achievements/models.py:155
 msgid "Win condition"
 msgstr ""
 
-#: apps/achievements/models.py:167
+#: apps/achievements/models.py:156
 msgid "Missable"
 msgstr ""
 
-#: apps/achievements/models.py:174 apps/achievements/models.py:405
+#: apps/achievements/models.py:163 apps/achievements/models.py:392
 #: apps/comments/models.py:51 apps/games/models.py:62 apps/games/models.py:75
 #: apps/games/models.py:128 apps/leaderboards/models.py:37
 msgid "game"
 msgstr ""
 
-#: apps/achievements/models.py:179 apps/achievements/models.py:410
+#: apps/achievements/models.py:168 apps/achievements/models.py:397
 #: apps/comments/models.py:39 apps/leaderboards/models.py:52
 msgid "author"
 msgstr ""
 
-#: apps/achievements/models.py:181 apps/achievements/models.py:260
+#: apps/achievements/models.py:170 apps/achievements/models.py:247
 #: apps/games/models.py:49 apps/leaderboards/models.py:39
 msgid "title"
 msgstr ""
 
-#: apps/achievements/models.py:182 apps/achievements/models.py:262
+#: apps/achievements/models.py:171 apps/achievements/models.py:249
 #: apps/games/models.py:57 apps/leaderboards/models.py:40
 msgid "description"
 msgstr ""
 
-#: apps/achievements/models.py:183 apps/achievements/models.py:263
+#: apps/achievements/models.py:172 apps/achievements/models.py:250
 msgid "points"
 msgstr ""
 
-#: apps/achievements/models.py:184 apps/achievements/models.py:264
+#: apps/achievements/models.py:173 apps/achievements/models.py:251
 #: apps/leaderboards/models.py:41
 msgid "memory address expression"
 msgstr ""
 
-#: apps/achievements/models.py:189
+#: apps/achievements/models.py:178
 msgid "The number of an uploaded badge, or 00000 for the placeholder."
 msgstr ""
 
-#: apps/achievements/models.py:202 apps/achievements/models.py:275
+#: apps/achievements/models.py:191 apps/achievements/models.py:262
 msgid "type"
 msgstr ""
 
-#: apps/achievements/models.py:205 apps/achievements/models.py:423
+#: apps/achievements/models.py:194 apps/achievements/models.py:410
 #: apps/leaderboards/models.py:55
 msgid "updated at"
 msgstr ""
 
-#: apps/achievements/models.py:210 apps/achievements/models.py:248
-#: apps/achievements/models.py:383 apps/comments/models.py:59
+#: apps/achievements/models.py:197 apps/achievements/models.py:235
+#: apps/achievements/models.py:370 apps/comments/models.py:59
 msgid "achievement"
 msgstr ""
 
-#: apps/achievements/models.py:211
+#: apps/achievements/models.py:198
 msgid "achievements"
 msgstr ""
 
-#: apps/achievements/models.py:221
+#: apps/achievements/models.py:208
 msgid "No badge has this name; upload the badge first."
 msgstr ""
 
-#: apps/achievements/models.py:257
+#: apps/achievements/models.py:244
 msgid "editor"
 msgstr ""
 
-#: apps/achievements/models.py:282
+#: apps/achievements/models.py:269
 msgid "achievement revision"
 msgstr ""
 
-#: apps/achievements/models.py:283
+#: apps/achievements/models.py:270
 msgid "achievement revisions"
 msgstr ""
 
-#: apps/achievements/models.py:385 apps/achievements/models.py:396
+#: apps/achievements/models.py:372 apps/achievements/models.py:383
 #: templates/accounts/partials/identity-header.html:64
 #: templates/accounts/partials/sec-recent-unlocks.html:15
 #: templates/feed/partials/feed-list.html:14
-#: templates/games/partials/panel-achievements.html:38 templates/home.html:69
+#: templates/games/partials/panel-achievements.html:29 templates/home.html:69
 #: templates/home.html:141
 msgid "hardcore"
 msgstr ""
 
-#: apps/achievements/models.py:387
+#: apps/achievements/models.py:374
 msgid "unlocked at"
 msgstr ""
 
-#: apps/achievements/models.py:391
+#: apps/achievements/models.py:378
 msgid "user unlock"
 msgstr ""
 
-#: apps/achievements/models.py:392
+#: apps/achievements/models.py:379
 msgid "user unlocks"
 msgstr ""
 
-#: apps/achievements/models.py:396
+#: apps/achievements/models.py:383
 #: templates/accounts/partials/identity-header.html:64
 #: templates/accounts/partials/sec-recent-unlocks.html:15
-#: templates/games/partials/panel-achievements.html:38 templates/home.html:70
+#: templates/games/partials/panel-achievements.html:29 templates/home.html:70
 #: templates/home.html:141
 msgid "softcore"
 msgstr ""
 
-#: apps/achievements/models.py:412
+#: apps/achievements/models.py:399
 msgid "address"
 msgstr ""
 
-#: apps/achievements/models.py:413
+#: apps/achievements/models.py:400
 msgid "note"
 msgstr ""
 
-#: apps/achievements/models.py:421
+#: apps/achievements/models.py:408
 msgid "updated by"
 msgstr ""
 
-#: apps/achievements/models.py:426
+#: apps/achievements/models.py:413
 msgid "code note"
 msgstr ""
 
-#: apps/achievements/models.py:427
+#: apps/achievements/models.py:414
 msgid "code notes"
 msgstr ""
 
@@ -405,31 +404,31 @@ msgstr ""
 msgid "rcheevos cannot parse this condition: %(reason)s."
 msgstr ""
 
-#: apps/achievements/views.py:57
+#: apps/achievements/views.py:55
 msgid "Achievement saved."
 msgstr ""
 
-#: apps/achievements/views.py:151
+#: apps/achievements/views.py:143
 msgid "Achievement reverted."
 msgstr ""
 
-#: apps/achievements/views.py:198
+#: apps/achievements/views.py:190
 msgid "Invalid code note search"
 msgstr ""
 
-#: apps/achievements/views.py:232
+#: apps/achievements/views.py:224
 msgid "This game already has a note at this address: edit it."
 msgstr ""
 
-#: apps/achievements/views.py:236
+#: apps/achievements/views.py:228
 msgid "Code note added."
 msgstr ""
 
-#: apps/achievements/views.py:254
+#: apps/achievements/views.py:246
 msgid "Code note saved."
 msgstr ""
 
-#: apps/achievements/views.py:266
+#: apps/achievements/views.py:258
 msgid "Code note deleted."
 msgstr ""
 
@@ -537,7 +536,8 @@ msgid "Creating achievements"
 msgstr ""
 
 #: apps/core/docs.py:56
-msgid "Write a condition in the web editor, test it as a draft and publish it."
+msgid ""
+"Write a condition in the web editor, test it unofficial and make it official."
 msgstr ""
 
 #: apps/core/docs.py:60
@@ -545,7 +545,7 @@ msgid "Statuses and contributing"
 msgstr ""
 
 #: apps/core/docs.py:61
-msgid "What draft, community and verified mean, and how code notes help a set."
+msgid "What official and unofficial mean, and how code notes help a set."
 msgstr ""
 
 #: apps/core/docs.py:66
@@ -733,64 +733,33 @@ msgstr ""
 msgid "Locked"
 msgstr ""
 
-#: apps/games/page.py:38
-msgid "Verified only"
+#: apps/games/page.py:35
+msgid "No achievements yet"
 msgstr ""
 
-#: apps/games/page.py:39
-msgid "Verified + Community"
-msgstr ""
-
-#: apps/games/page.py:40
-msgid "All incl. my drafts"
-msgstr ""
-
-#: apps/games/page.py:51
-msgid "No verified achievements yet"
-msgstr ""
-
-#: apps/games/page.py:52
-msgid "No published achievements yet"
-msgstr ""
-
-#: apps/games/page.py:53
-msgid "No published achievements or drafts yet"
-msgstr ""
-
-#: apps/games/page.py:57
-msgid "No verified achievements unlocked yet"
-msgstr ""
-
-#: apps/games/page.py:58
-msgid "Every verified achievement unlocked"
-msgstr ""
-
-#: apps/games/page.py:59 apps/games/page.py:61
+#: apps/games/page.py:36
 msgid "No achievements unlocked yet"
 msgstr ""
 
-#: apps/games/page.py:60 apps/games/page.py:62
+#: apps/games/page.py:37
 msgid "Every achievement unlocked"
 msgstr ""
 
-#: apps/games/page.py:75
+#: apps/games/page.py:48
 msgctxt "achievement section"
-msgid "Verified"
+msgid "Official"
 msgstr ""
 
-#: apps/games/page.py:79
-msgid "Your drafts"
+#: apps/games/page.py:49
+msgctxt "achievement section"
+msgid "Unofficial"
 msgstr ""
 
 #: apps/games/views.py:24
 msgid "Invalid games filter"
 msgstr ""
 
-#: apps/games/views.py:74
-msgid "Unknown achievement status choice"
-msgstr ""
-
-#: apps/games/views.py:76
+#: apps/games/views.py:73
 msgid "Unknown achievement filter"
 msgstr ""
 
@@ -906,19 +875,24 @@ msgstr ""
 msgid "leaderboard entries"
 msgstr ""
 
-#: apps/notifications/display.py:22
+#: apps/notifications/display.py:18
+#, python-format
+msgid "Your achievement “%(achievement)s” is now official."
+msgstr ""
+
+#: apps/notifications/display.py:20
+#, python-format
+msgid "Your achievement “%(achievement)s” is now unofficial."
+msgstr ""
+
+#: apps/notifications/display.py:30
 #, python-format
 msgid "%(actor)s commented on your achievement “%(achievement)s”."
 msgstr ""
 
-#: apps/notifications/display.py:24
+#: apps/notifications/display.py:32
 #, python-format
 msgid "%(actor)s unlocked your achievement “%(achievement)s”."
-msgstr ""
-
-#: apps/notifications/display.py:26
-#, python-format
-msgid "Your achievement “%(achievement)s” moved from %(old)s to %(new)s."
 msgstr ""
 
 #: apps/notifications/models.py:26
@@ -1219,7 +1193,7 @@ msgstr ""
 
 #: templates/accounts/partials/sec-recent-unlocks.html:14
 #: templates/achievements/detail.html:18
-#: templates/games/partials/panel-achievements.html:44
+#: templates/games/partials/panel-achievements.html:35
 #, python-format
 msgid "%(points)s pt"
 msgid_plural "%(points)s pts"
@@ -1346,7 +1320,7 @@ msgstr ""
 msgid "Awards"
 msgstr ""
 
-#: templates/accounts/profile.html:31 templates/base.html:62
+#: templates/accounts/profile.html:31 templates/base.html:64
 #: templates/components/site-menu.html:8 templates/games/list.html:4
 #: templates/games/list.html:9 templates/home.html:7
 msgid "Games"
@@ -1357,16 +1331,16 @@ msgid "Progress"
 msgstr ""
 
 #: templates/accounts/ranking.html:4 templates/accounts/ranking.html:9
-#: templates/base.html:63 templates/components/site-menu.html:9
+#: templates/base.html:65 templates/components/site-menu.html:9
 #: templates/leaderboards/detail.html:31
 msgid "Ranking"
 msgstr ""
 
 #: templates/accounts/ranking.html:11
 #, python-format
-msgid "Players by points from published achievements, refreshed every minute."
+msgid "Players by points from official achievements, refreshed every minute."
 msgid_plural ""
-"Players by points from published achievements, refreshed every %(minutes)s "
+"Players by points from official achievements, refreshed every %(minutes)s "
 "minutes."
 msgstr[0] ""
 msgstr[1] ""
@@ -1418,7 +1392,7 @@ msgstr ""
 
 #: templates/achievements/code-notes.html:4
 #: templates/achievements/code-notes.html:10
-#: templates/docs/statuses-and-contributing.html:57
+#: templates/docs/statuses-and-contributing.html:53
 #: templates/games/detail.html:36
 msgid "Code notes"
 msgstr ""
@@ -1448,7 +1422,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: templates/achievements/code-notes.html:37
-#: templates/games/partials/panel-achievements.html:46
+#: templates/games/partials/panel-achievements.html:37
 msgid "Edit"
 msgstr ""
 
@@ -1480,7 +1454,7 @@ msgid "Edit achievement"
 msgstr ""
 
 #: templates/achievements/detail.html:29 templates/achievements/edit.html:45
-#: templates/games/partials/panel-achievements.html:48
+#: templates/games/partials/panel-achievements.html:39
 msgid "History"
 msgstr ""
 
@@ -1489,7 +1463,9 @@ msgid "Unlocks"
 msgstr ""
 
 #: templates/achievements/detail.html:36
-msgid "A draft is never awarded: it counts no unlocks until it is published."
+msgid ""
+"An unofficial achievement is never awarded: it counts no unlocks until it is "
+"made official."
 msgstr ""
 
 #: templates/achievements/detail.html:39
@@ -1567,20 +1543,20 @@ msgstr ""
 msgid "No change recorded yet"
 msgstr ""
 
-#: templates/base.html:39
+#: templates/base.html:41
 msgid "Menu"
 msgstr ""
 
-#: templates/base.html:64 templates/components/site-menu.html:10
+#: templates/base.html:66 templates/components/site-menu.html:10
 #: templates/feed/feed.html:4 templates/feed/feed.html:9
 msgid "Feed"
 msgstr ""
 
-#: templates/base.html:65 templates/components/site-menu.html:12
+#: templates/base.html:67 templates/components/site-menu.html:12
 msgid "How to start"
 msgstr ""
 
-#: templates/base.html:66 templates/components/site-menu.html:13
+#: templates/base.html:68 templates/components/site-menu.html:13
 msgid "Docs"
 msgstr ""
 
@@ -1638,12 +1614,12 @@ msgstr ""
 #: templates/docs/creating-achievements.html:4
 msgid ""
 "Every logged-in player can write achievements for a game on the site. A new "
-"achievement starts as a draft that only you receive, so you can test it in "
-"the emulator before anyone else sees it."
+"achievement starts unofficial: it is never awarded, so you can test it in "
+"the emulator before it counts for anyone."
 msgstr ""
 
 #: templates/docs/creating-achievements.html:9
-msgid "From draft to published"
+msgid "From unofficial to official"
 msgstr ""
 
 #: templates/docs/creating-achievements.html:12
@@ -1673,7 +1649,7 @@ msgid ""
 msgstr ""
 
 #: templates/docs/creating-achievements.html:21
-msgid "Save it as a draft"
+msgid "Save it unofficial"
 msgstr ""
 
 #: templates/docs/creating-achievements.html:22
@@ -1689,26 +1665,27 @@ msgstr ""
 
 #: templates/docs/creating-achievements.html:26
 msgid ""
-"Log in to DuckStation as the draft's author, turn on Test Unofficial "
-"Achievements in Settings → Achievements, then close the game and open it "
-"again: the emulator only fetches the achievements when a game loads."
+"Log in to DuckStation, turn on Test Unofficial Achievements in Settings → "
+"Achievements, then close the game and open it again: the emulator only "
+"fetches the achievements when a game loads."
 msgstr ""
 
 #: templates/docs/creating-achievements.html:27
 msgid ""
-"Drafts appear in the achievement list marked (Unofficial); the pause "
-"screen's counter only counts official ones. The pop-up fires when the "
-"condition is met, which proves it works, but a draft is never recorded or "
-"worth points."
+"Unofficial achievements appear in the achievement list marked (Unofficial); "
+"the pause screen's counter only counts official ones. The pop-up fires when "
+"the condition is met, which proves it works, but an unofficial achievement "
+"is never recorded or worth points."
 msgstr ""
 
 #: templates/docs/creating-achievements.html:30
-msgid "Publish it"
+#: templates/docs/statuses-and-contributing.html:42
+msgid "Make it official"
 msgstr ""
 
 #: templates/docs/creating-achievements.html:31
 msgid ""
-"Back in the editor, set the status to Community. Every player then receives "
+"Back in the editor, set the status to Official. Every player then receives "
 "it as an official achievement, and unlocking it counts and scores."
 msgstr ""
 
@@ -1862,8 +1839,9 @@ msgstr ""
 
 #: templates/docs/faq.html:32
 msgid ""
-"It is a draft: only its author receives it, and a draft is never recorded or "
-"worth points."
+"It is unofficial: the emulator lists it only with Test Unofficial "
+"Achievements on, and an unofficial achievement is never recorded or worth "
+"points."
 msgstr ""
 
 #: templates/docs/faq.html:33
@@ -2127,8 +2105,9 @@ msgstr ""
 
 #: templates/docs/statuses-and-contributing.html:4
 msgid ""
-"Every achievement has a status that decides who receives it and whether it "
-"is worth points. Sets grow from players writing, testing and reviewing them."
+"Every achievement is official or unofficial: its status decides whether "
+"unlocking it is recorded and worth points. Sets grow from players writing, "
+"testing and reviewing them."
 msgstr ""
 
 #: templates/docs/statuses-and-contributing.html:8
@@ -2137,102 +2116,91 @@ msgstr ""
 
 #: templates/docs/statuses-and-contributing.html:12
 msgid ""
-"Reaches only its author, in the emulator's unofficial list with Test "
-"Unofficial Achievements on. It is never recorded and never worth points. "
-"Other players do not see it on the site."
+"Every player receives it as an official achievement, and unlocking it is "
+"recorded and worth its points. Only official achievements count towards "
+"rankings, completion and platinums."
 msgstr ""
 
 #: templates/docs/statuses-and-contributing.html:16
 msgid ""
-"Published: every player receives it as an official achievement, and "
-"unlocking it is recorded and worth its points."
+"Every player receives it too, in the emulator's unofficial list with Test "
+"Unofficial Achievements on, and the game page lists it in its own section. "
+"It is never recorded and never worth points. A new achievement starts "
+"unofficial."
 msgstr ""
 
-#: templates/docs/statuses-and-contributing.html:20
-msgid ""
-"Published, like community, and worth the same points. Verified is a quality "
-"seal staff give after reviewing the achievement; the game page lists "
-"verified achievements first."
-msgstr ""
-
-#: templates/docs/statuses-and-contributing.html:26
+#: templates/docs/statuses-and-contributing.html:22
 msgid "Who changes a status"
 msgstr ""
 
-#: templates/docs/statuses-and-contributing.html:28
+#: templates/docs/statuses-and-contributing.html:24
 msgid ""
-"The author moves an achievement between draft and community in the editor. "
-"Only staff mark it verified, and only staff change a verified achievement's "
-"status."
+"The author or staff make an achievement official or unofficial in the editor."
 msgstr ""
 
-#: templates/docs/statuses-and-contributing.html:29
+#: templates/docs/statuses-and-contributing.html:25
 msgid ""
-"Moving a published achievement back to draft keeps everyone's unlocks but "
-"takes its points out of their totals; publishing it again counts them again."
+"Making an official achievement unofficial keeps everyone's unlocks but takes "
+"its points out of their totals; making it official again counts them again."
 msgstr ""
 
-#: templates/docs/statuses-and-contributing.html:34 templates/home.html:86
+#: templates/docs/statuses-and-contributing.html:30 templates/home.html:86
 msgid "How to contribute"
 msgstr ""
 
-#: templates/docs/statuses-and-contributing.html:37
+#: templates/docs/statuses-and-contributing.html:33
 msgid "Read the code notes"
 msgstr ""
 
-#: templates/docs/statuses-and-contributing.html:38
+#: templates/docs/statuses-and-contributing.html:34
 msgid ""
 "Each game page links its code notes: what the community found at each memory "
 "address."
 msgstr ""
 
-#: templates/docs/statuses-and-contributing.html:41
-msgid "Write and test a draft"
+#: templates/docs/statuses-and-contributing.html:37
+msgid "Write and test it unofficial"
 msgstr ""
 
-#: templates/docs/statuses-and-contributing.html:42
+#: templates/docs/statuses-and-contributing.html:38
 msgid ""
-"Follow the creating achievements guide, and test the draft in the game "
-"before publishing it."
+"Follow the creating achievements guide, and test it in the game before "
+"making it official."
 msgstr ""
 
-#: templates/docs/statuses-and-contributing.html:43
+#: templates/docs/statuses-and-contributing.html:39
 msgid "Creating achievements →"
 msgstr ""
 
-#: templates/docs/statuses-and-contributing.html:46
-msgid "Publish it as community"
-msgstr ""
-
-#: templates/docs/statuses-and-contributing.html:47
+#: templates/docs/statuses-and-contributing.html:43
 msgid ""
-"Once it fires at the right moment, publish it. Players can leave feedback in "
-"the comments on its page."
+"Once it fires at the right moment, make it official. Players can leave "
+"feedback in the comments on its page."
 msgstr ""
 
-#: templates/docs/statuses-and-contributing.html:50
+#: templates/docs/statuses-and-contributing.html:46
 msgid "Share what you found"
 msgstr ""
 
-#: templates/docs/statuses-and-contributing.html:51
+#: templates/docs/statuses-and-contributing.html:47
 msgid ""
 "Add a code note for every address you worked out, so the next author starts "
 "from it."
 msgstr ""
 
-#: templates/docs/statuses-and-contributing.html:59
+#: templates/docs/statuses-and-contributing.html:55
 msgid ""
 "A code note describes one memory address of a game: its size, the values it "
 "takes and what they mean."
 msgstr ""
 
-#: templates/docs/statuses-and-contributing.html:60
+#: templates/docs/statuses-and-contributing.html:56
 msgid ""
 "Anyone can read and search them. A logged-in player adds new ones; the "
 "author or staff edit or delete a note."
 msgstr ""
 
-#: templates/docs/statuses-and-contributing.html:61
+#: templates/docs/statuses-and-contributing.html:57
 msgid ""
 "Notes are a starting point, not the truth: many come from RetroAchievements "
 "and describe another region or revision of the game. Check each address in "
@@ -2294,9 +2262,9 @@ msgstr ""
 
 #: templates/games/list.html:10
 msgid ""
-"By default, games with a published achievement set; a minimum of 0 "
-"achievements lists every game. Search by title, or narrow the list by "
-"console and set size."
+"By default, games with an official achievement; a minimum of 0 achievements "
+"lists every game. Search by title, or narrow the list by console and set "
+"size."
 msgstr ""
 
 #: templates/games/list.html:19
@@ -2308,10 +2276,6 @@ msgid "Apply filters"
 msgstr ""
 
 #: templates/games/partials/panel-achievements.html:3
-msgid "Show achievements by status"
-msgstr ""
-
-#: templates/games/partials/panel-achievements.html:11
 msgid "Filter achievements"
 msgstr ""
 
@@ -2352,11 +2316,11 @@ msgid "Clear the filters →"
 msgstr ""
 
 #: templates/games/partials/results.html:33 templates/home.html:80
-msgid "No sets published yet"
+msgid "No official sets yet"
 msgstr ""
 
 #: templates/games/partials/results.html:33 templates/home.html:80
-msgid "A game shows up here as soon as its first achievement is published."
+msgid "A game shows up here as soon as it has an official achievement."
 msgstr ""
 
 #: templates/games/partials/results.html:38
@@ -2425,6 +2389,10 @@ msgstr ""
 msgid ""
 "Unlocks without save states get the hardcore seal, shown apart from softcore "
 "ones."
+msgstr ""
+
+#: templates/home.html:52
+msgid "Community"
 msgstr ""
 
 #: templates/home.html:53

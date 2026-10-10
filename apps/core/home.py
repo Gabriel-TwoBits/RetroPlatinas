@@ -1,4 +1,4 @@
-"""What the home page shows, built from published sets, unlocks and live sessions."""
+"""What the home page shows, built from official sets, unlocks and live sessions."""
 
 from apps.core import stats
 from apps.images.catalog import avatar_path, badge_path, versioned_game_icon_path
@@ -11,8 +11,8 @@ def _set(game):
     return {
         "game": game,
         "icon_url": versioned_game_icon_path(game),
-        "achievements": game.published_achievements,
-        "points": game.published_points,
+        "achievements": game.official_achievements,
+        "points": game.official_points,
         "players": game.player_count,
     }
 
@@ -36,9 +36,9 @@ def _playing_now():
 
 
 def home_context():
-    # TRADEOFF: every published set, unpaginated; cap it with a link to /games/ once sets reach
+    # TRADEOFF: every official set, unpaginated; cap it with a link to /games/ once sets reach
     # dozens.
-    sets = [_set(game) for game in stats.published_games()]
+    sets = [_set(game) for game in stats.official_games()]
     return {
         "numbers": {
             "games": len(sets),

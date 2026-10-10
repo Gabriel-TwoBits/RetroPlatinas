@@ -18,7 +18,7 @@
                   <div class="break-words font-display text-base font-semibold text-txt group-hover:text-brand-hi">{{ game.title }}</div>
                   <div class="mt-2 flex flex-wrap items-center gap-2 font-data text-xs text-txt-faint">
                     {% include "components/console-tag.html" with label=game.console.short_name %}
-                    <span>{% blocktrans count achievements=game.published_achievements with shown=game.published_achievements|intcomma %}{{ shown }} achievement{% plural %}{{ shown }} achievements{% endblocktrans %}</span>
+                    <span>{% blocktrans count achievements=game.official_achievements with shown=game.official_achievements|intcomma %}{{ shown }} achievement{% plural %}{{ shown }} achievements{% endblocktrans %}</span>
                   </div>
                 </div>
               </a>
@@ -30,7 +30,7 @@
       {% url 'games_list' as list_url %}
       {% include "components/empty-state.html" with title=_("No games match these filters") href=list_url cta=_("Clear the filters →") %}
     {% else %}
-      {% include "components/empty-state.html" with title=_("No sets published yet") body=_("A game shows up here as soon as its first achievement is published.") %}
+      {% include "components/empty-state.html" with title=_("No official sets yet") body=_("A game shows up here as soon as it has an official achievement.") %}
     {% endif %}
   </section>
 

@@ -23,8 +23,8 @@ from apps.anticheat.detection import (
 from apps.api.auth import is_expired_token, user_from_token
 from apps.core.stats import (
     leaderboard_entries,
-    published_achievement_count,
-    published_unlocks,
+    official_achievement_count,
+    official_unlocks,
     rank_by_score,
     ranked_entries,
 )
@@ -73,9 +73,9 @@ _MISSING_PARAMETER = {
     "Status": HTTPStatus.UNPROCESSABLE_ENTITY,
     "Code": "missing_parameter",
 }
-_ACHIEVEMENT_UNPUBLISHED = {
+_ACHIEVEMENT_UNOFFICIAL = {
     "Success": False,
-    "Error": "Unpublished achievements cannot be unlocked.",
+    "Error": "Unofficial achievements cannot be unlocked.",
     "Status": HTTPStatus.CONFLICT,
     "Code": "invalid_state",
 }
@@ -252,10 +252,9 @@ def _game_from_request(request):
         return None
 
 
-def _served_achievements(user, game):
+def _served_achievements(game):
     return (
-        Achievement.objects.visible_to(user)
-        .filter(game=game)
+        Achievement.objects.filter(game=game)
         .select_related("author")
         .annotate(
             unlockers=Count("userunlock__user", distinct=True),
@@ -280,9 +279,9 @@ def _rarity(unlockers, players):
 
 
 def _achievement_flags(achievement):
-    if achievement.status in Achievement.PUBLISHED_STATUSES:
+    if achievement.status == Achievement.STATUS_OFFICIAL:
         return ACHIEVEMENT_FLAGS_CORE
-    elif achievement.status == Achievement.STATUS_DRAFT:
+    elif achievement.status == Achievement.STATUS_UNOFFICIAL:
         return ACHIEVEMENT_FLAGS_UNOFFICIAL
     else:
         raise ValueError(f"Achievement {achievement.pk} has unknown status {achievement.status!r}")
@@ -336,7 +335,7 @@ def handle_patch(request):
     if game is None:
         return _GAME_NOT_FOUND
 
-    achievements = _served_achievements(user, game)
+    achievements = _served_achievements(game)
     players = _player_count(game)
     return {
         "Success": True,
@@ -367,7 +366,7 @@ def handle_achievementsets(request):
         )
         return _GAME_NOT_FOUND
 
-    achievements = _served_achievements(user, game)
+    achievements = _served_achievements(game)
     players = _player_count(game)
     icon_url = _game_icon_url(request, game)
     return {
@@ -466,9 +465,9 @@ def handle_startsession(request):
 
 
 def _remaining_in_set(user, game, hardcore):
-    total = published_achievement_count(game)
+    total = official_achievement_count(game)
     unlocked = (
-        published_unlocks().filter(user=user, hardcore=hardcore, achievement__game=game).count()
+        official_unlocks().filter(user=user, hardcore=hardcore, achievement__game=game).count()
     )
     return max(total - unlocked, 0)
 
@@ -514,17 +513,13 @@ def handle_awardachievement(request):
     if error is not None:
         return error
 
-    # Another user's draft answers as unknown, so drafts stay invisible to everyone but the author.
     achievement = (
-        Achievement.objects.visible_to(user)
-        .select_related("game", "author")
-        .filter(pk=achievement_id)
-        .first()
+        Achievement.objects.select_related("game", "author").filter(pk=achievement_id).first()
     )
     if achievement is None:
         return _ACHIEVEMENT_NOT_FOUND
-    if achievement.status not in Achievement.PUBLISHED_STATUSES:
-        return _ACHIEVEMENT_UNPUBLISHED
+    if achievement.status != Achievement.STATUS_OFFICIAL:
+        return _ACHIEVEMENT_UNOFFICIAL
 
     now = timezone.now()
     unlocked_at = now - min(timedelta(seconds=seconds_since_unlock), UNLOCK_MAX_AGE)
@@ -787,7 +782,7 @@ def handle_systemgames(request):
     achievement_totals = {
         row["game"]: row
         for row in Achievement.objects.filter(
-            game__console=console, status__in=Achievement.PUBLISHED_STATUSES
+            game__console=console, status=Achievement.STATUS_OFFICIAL
         )
         .order_by()
         .values("game")
@@ -908,12 +903,7 @@ def handle_achievementwondata(request):
         return error
     count = min(count, ACHIEVEMENTWONDATA_MAX_COUNT)
 
-    achievement = (
-        Achievement.objects.visible_to(user)
-        .select_related("game")
-        .filter(pk=achievement_id)
-        .first()
-    )
+    achievement = Achievement.objects.select_related("game").filter(pk=achievement_id).first()
     if achievement is None:
         return _ACHIEVEMENT_NOT_FOUND
 

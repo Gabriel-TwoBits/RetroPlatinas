@@ -10,7 +10,7 @@ from django.db.models import Max, Min
 from django.utils import translation
 
 from apps.achievements.code_notes import code_notes_by_address, save_code_notes, served_address
-from apps.achievements.editing import achievements_reachable_by, can_edit
+from apps.achievements.editing import can_edit
 from apps.achievements.models import (
     ACHIEVEMENT_POINT_VALUES,
     BADGE_NAME_MAX_CHARS,
@@ -202,7 +202,7 @@ def handle_submitcodenotes(request):
 
 # rcheevos signs points * 3 into the uploadachievement checksum.
 CHECKSUM_POINTS_MULTIPLIER = 3
-# The category RAIntegration files the achievement under; publishing happens on the site only.
+# The category RAIntegration files the achievement under; only the site changes the status.
 UPLOAD_CATEGORIES = frozenset({ACHIEVEMENT_FLAGS_CORE, ACHIEVEMENT_FLAGS_UNOFFICIAL})
 ACHIEVEMENT_TYPES = frozenset(value for value, _ in Achievement.TYPE_CHOICES)
 ACHIEVEMENT_TITLE_MAX_LENGTH = Achievement._meta.get_field("title").max_length
@@ -266,11 +266,11 @@ def _create_achievement(user, game_id, fields):
     game = _game(game_id)
     if game is None:
         return _GAME_NOT_FOUND
-    # New achievements are drafts whatever `f` asks: only the site publishes them.
+    # New achievements are unofficial whatever `f` asks: only the site makes them official.
     achievement = Achievement(
         game=game,
         author=user,
-        status=Achievement.STATUS_DRAFT,
+        status=Achievement.STATUS_UNOFFICIAL,
         title=fields["title"],
         description=fields["description"],
         mem_addr=fields["mem_addr"],
@@ -284,7 +284,7 @@ def _create_achievement(user, game_id, fields):
 
 def _update_achievement(user, achievement_id, game_id, fields):
     with transaction.atomic():
-        achievement = achievements_reachable_by(user).filter(pk=achievement_id).first()
+        achievement = Achievement.objects.filter(pk=achievement_id).first()
         if achievement is None:
             return _ACHIEVEMENT_NOT_FOUND
         elif game_id not in (0, achievement.game_id):
@@ -306,9 +306,9 @@ def _update_achievement(user, achievement_id, game_id, fields):
             achievement.badge_name = fields["badge_name"]
             if fields["type"] is not None:
                 achievement.type = fields["type"]
-            # The status stays: `f` never publishes or unpublishes.
+            # The status stays: `f` never makes an achievement official or unofficial.
             achievement.save(editor=user)
-            if points_changed and achievement.status in Achievement.PUBLISHED_STATUSES:
+            if points_changed and achievement.status == Achievement.STATUS_OFFICIAL:
                 recalculate_unlocker_points([achievement.pk])
             return {"Success": True, "AchievementID": achievement.pk}
 
@@ -428,7 +428,7 @@ def handle_uploadleaderboard(request):
     if leaderboard_id == 0 and game_id == 0:
         return _MISSING_PARAMETER
     elif leaderboard_id == 0 and not user.is_staff:
-        # A leaderboard has no draft state: a new one reaches every player at once.
+        # A leaderboard has no status: a new one is official for every player at once.
         return _STAFF_ONLY
     elif leaderboard_id == 0:
         game = _game(game_id)

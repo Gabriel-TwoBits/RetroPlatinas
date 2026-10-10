@@ -53,12 +53,12 @@ DOC_PAGES = (
     DocPage(
         "creating-achievements",
         _("Creating achievements"),
-        _("Write a condition in the web editor, test it as a draft and publish it."),
+        _("Write a condition in the web editor, test it unofficial and make it official."),
     ),
     DocPage(
         "statuses-and-contributing",
         _("Statuses and contributing"),
-        _("What draft, community and verified mean, and how code notes help a set."),
+        _("What official and unofficial mean, and how code notes help a set."),
         _statuses_context,
     ),
     DocPage(

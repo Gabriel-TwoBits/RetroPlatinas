@@ -1,5 +1,5 @@
 """Comments on games and achievements: shown at the bottom of their pages, added and deleted
-through HTMX, deleted only by their author or staff, never reachable on another user's draft."""
+through HTMX, deleted only by their author or staff, on official and unofficial achievements."""
 
 from http import HTTPStatus
 
@@ -49,7 +49,7 @@ def game(db):
     return Game.objects.create(title="Crash Bandicoot", console=console)
 
 
-def _achievement(game, author, status=Achievement.STATUS_COMMUNITY):
+def _achievement(game, author, status=Achievement.STATUS_OFFICIAL):
     return Achievement.objects.create(
         game=game,
         author=author,
@@ -331,22 +331,13 @@ def test_adding_a_comment_to_an_achievement_of_another_game_is_404(client, other
 
 
 @pytest.mark.django_db
-def test_comments_on_another_users_draft_do_not_exist(client, author, other, staff, game):
-    draft = _achievement(game, author, status=Achievement.STATUS_DRAFT)
-    for user in (other, staff):
-        client.force_login(user)
-        response = _post(client, _achievement_add_url(draft), {"content": "Peek"})
-        assert response.status_code == HTTPStatus.NOT_FOUND
-    assert not Comment.objects.exists()
-
-
-@pytest.mark.django_db
-def test_the_author_comments_on_their_own_draft(client, author, game):
-    draft = _achievement(game, author, status=Achievement.STATUS_DRAFT)
-    client.force_login(author)
-    response = _post(client, _achievement_add_url(draft), {"content": "Note to self"})
+def test_anyone_comments_on_an_unofficial_achievement(client, author, other, game):
+    unofficial = _achievement(game, author, status=Achievement.STATUS_UNOFFICIAL)
+    client.force_login(other)
+    response = _post(client, _achievement_add_url(unofficial), {"content": "Fires too early"})
     assert response.status_code == HTTPStatus.OK
-    assert "Note to self" in _achievement_page(client, draft)
+    client.logout()
+    assert "Fires too early" in _achievement_page(client, unofficial)
 
 
 # --- Deleting ---
@@ -421,27 +412,22 @@ def test_deleting_an_unknown_comment_is_404(client, author):
 
 
 @pytest.mark.django_db
-def test_a_comment_on_a_draft_another_user_cannot_see_is_404_to_them(
-    client, author, other, staff, game
-):
-    """A published achievement moved back to draft keeps its comments, out of reach on the site
-    of all but the draft's author; staff moderate them in the admin."""
+def test_a_comment_survives_its_achievement_becoming_unofficial(client, author, other, game):
     achievement = _achievement(game, author)
-    comment = _comment(other, target_achievement=achievement)
-    achievement.status = Achievement.STATUS_DRAFT
+    comment = _comment(other, target_achievement=achievement, content="Still here")
+    achievement.status = Achievement.STATUS_UNOFFICIAL
     achievement.save()
-    for user in (other, staff):
-        client.force_login(user)
-        assert _post(client, _delete_url(comment)).status_code == HTTPStatus.NOT_FOUND
+    assert "Still here" in _achievement_page(client, achievement)
     client.force_login(author)
     assert _post(client, _delete_url(comment)).status_code == HTTPStatus.FORBIDDEN
-    assert Comment.objects.exists()
+    client.force_login(other)
+    assert _post(client, _delete_url(comment)).status_code == HTTPStatus.OK
+    assert not Comment.objects.exists()
 
 
 @pytest.mark.django_db
-def test_staff_delete_a_comment_on_a_draft_in_the_admin(admin_client, author, other, game):
-    """The admin is the moderation path for comments no page shows."""
-    achievement = _achievement(game, author, status=Achievement.STATUS_DRAFT)
+def test_staff_delete_a_comment_in_the_admin(admin_client, author, other, game):
+    achievement = _achievement(game, author, status=Achievement.STATUS_UNOFFICIAL)
     comment = _comment(other, target_achievement=achievement)
     response = admin_client.post(f"/admin/comments/comment/{comment.pk}/delete/", {"post": "yes"})
     assert response.status_code == HTTPStatus.FOUND

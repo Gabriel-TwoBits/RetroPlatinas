@@ -1,22 +1,13 @@
 {% load i18n %}
-<div class="mb-4 flex flex-col gap-2">
-  <div role="group" aria-label="{% trans 'Show achievements by status' %}" class="flex flex-wrap gap-2">
-    {% for slug, label in show_options %}
-      <button type="button" aria-pressed="{% if slug == show %}true{% else %}false{% endif %}"
-              class="rounded-chip border px-3 py-1 font-data text-xs {% if slug == show %}border-brand text-brand{% else %}border-line2 text-txt-muted hover:text-brand-hi{% endif %}"
-              hx-get="{% url 'game_panel' game.pk 'achievements' %}?show={{ slug }}&amp;filter={{ achievement_filter }}" hx-target="#game-tabs">{{ label }}</button>
+{% if viewer_tracked %}
+  <div role="group" aria-label="{% trans 'Filter achievements' %}" class="mb-4 flex flex-wrap gap-2">
+    {% for slug, label in filters %}
+      <button type="button" aria-pressed="{% if slug == achievement_filter %}true{% else %}false{% endif %}"
+              class="rounded-chip border px-3 py-1 font-data text-xs {% if slug == achievement_filter %}border-brand text-brand{% else %}border-line2 text-txt-muted hover:text-brand-hi{% endif %}"
+              hx-get="{% url 'game_panel' game.pk 'achievements' %}?filter={{ slug }}" hx-target="#game-tabs">{{ label }}</button>
     {% endfor %}
   </div>
-  {% if viewer_tracked %}
-    <div role="group" aria-label="{% trans 'Filter achievements' %}" class="flex flex-wrap gap-2">
-      {% for slug, label in filters %}
-        <button type="button" aria-pressed="{% if slug == achievement_filter %}true{% else %}false{% endif %}"
-                class="rounded-chip border px-3 py-1 font-data text-xs {% if slug == achievement_filter %}border-brand text-brand{% else %}border-line2 text-txt-muted hover:text-brand-hi{% endif %}"
-                hx-get="{% url 'game_panel' game.pk 'achievements' %}?show={{ show }}&amp;filter={{ slug }}" hx-target="#game-tabs">{{ label }}</button>
-      {% endfor %}
-    </div>
-  {% endif %}
-</div>
+{% endif %}
 <div class="flex flex-col gap-8">
   {% for group in groups %}
     <section>

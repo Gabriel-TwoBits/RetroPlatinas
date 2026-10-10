@@ -32,8 +32,8 @@
 
   <section class="mt-6">
     {% include "components/section-heading.html" with title=_("Unlocks") %}
-    {% if achievement.status == "draft" %}
-      <p class="py-4 text-sm text-txt-muted">{% trans "A draft is never awarded: it counts no unlocks until it is published." %}</p>
+    {% if achievement.status == "unofficial" %}
+      <p class="py-4 text-sm text-txt-muted">{% trans "An unofficial achievement is never awarded: it counts no unlocks until it is made official." %}</p>
     {% else %}
       <div>
         {% include "components/stat-line.html" with label=_("Players who unlocked it") value=unlockers.softcore|intcomma %}

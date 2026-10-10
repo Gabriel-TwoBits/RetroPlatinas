@@ -210,7 +210,7 @@ def game_players(request, game_id):
         {
             "GameID": game.pk,
             "Title": game.title,
-            "AchievementsTotal": stats.published_achievement_count(game),
+            "AchievementsTotal": stats.official_achievement_count(game),
             "TotalPlayers": stats.game_players(game).count(),
             "Players": [
                 {

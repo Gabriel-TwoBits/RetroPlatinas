@@ -14,7 +14,7 @@ from apps.achievements.code_notes import (
     search_code_notes,
     served_address,
 )
-from apps.achievements.editing import achievements_reachable_by, can_edit
+from apps.achievements.editing import can_edit
 from apps.achievements.forms import (
     AchievementForm,
     CodeNoteForm,
@@ -46,11 +46,9 @@ def _save(form, editor):
 
 def _editor(request, achievement):
     if request.method == "POST":
-        form = AchievementForm(
-            request.POST, request.FILES, instance=achievement, editor=request.user
-        )
+        form = AchievementForm(request.POST, request.FILES, instance=achievement)
     else:
-        form = AchievementForm(instance=achievement, editor=request.user)
+        form = AchievementForm(instance=achievement)
 
     if form.is_bound and form.is_valid():
         saved = _save(form, request.user)
@@ -69,10 +67,9 @@ def _editor(request, achievement):
         )
 
 
-def _reachable_achievement(user, game_id, achievement_id):
-    """The achievement `user` may look up, else 404: another user's draft does not exist."""
+def _achievement(game_id, achievement_id):
     return get_object_or_404(
-        achievements_reachable_by(user).select_related("game", "author"),
+        Achievement.objects.select_related("game", "author"),
         pk=achievement_id,
         game_id=game_id,
     )
@@ -80,12 +77,7 @@ def _reachable_achievement(user, game_id, achievement_id):
 
 @require_safe
 def achievement_detail(request, game_id, achievement_id):
-    # Unlike the editor's lookup, staff do not reach another user's draft: its page is the author's.
-    achievement = get_object_or_404(
-        Achievement.objects.visible_to(request.user).select_related("game", "author"),
-        pk=achievement_id,
-        game_id=game_id,
-    )
+    achievement = _achievement(game_id, achievement_id)
     return render(
         request,
         "achievements/detail.html",
@@ -111,7 +103,7 @@ def new_achievement(request, game_id):
 @login_required
 @require_http_methods(["GET", "POST"])
 def edit_achievement(request, game_id, achievement_id):
-    achievement = _reachable_achievement(request.user, game_id, achievement_id)
+    achievement = _achievement(game_id, achievement_id)
     if not can_edit(request.user, achievement.author_id):
         raise PermissionDenied("Only the author or staff edit an achievement.")
     else:
@@ -120,7 +112,7 @@ def edit_achievement(request, game_id, achievement_id):
 
 @require_safe
 def achievement_history(request, game_id, achievement_id):
-    achievement = _reachable_achievement(request.user, game_id, achievement_id)
+    achievement = _achievement(game_id, achievement_id)
     return render(
         request,
         "achievements/history.html",
@@ -139,7 +131,7 @@ def achievement_history(request, game_id, achievement_id):
 def revert_achievement(request, game_id, achievement_id, revision_id):
     # The lock serializes this revert with another change to the achievement.
     achievement = get_object_or_404(
-        achievements_reachable_by(request.user).select_for_update(),
+        Achievement.objects.select_for_update(),
         pk=achievement_id,
         game_id=game_id,
     )

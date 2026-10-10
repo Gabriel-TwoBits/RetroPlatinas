@@ -21,6 +21,7 @@ from apps.notifications.display import (
     MENU_NOTIFICATIONS_SHOWN,
     NOTIFICATIONS_PER_PAGE,
     POLL_SECONDS,
+    message,
 )
 from apps.notifications.models import Notification
 from apps.notifications.views import HTMX_STOP_POLLING
@@ -73,7 +74,7 @@ def game(db):
     return Game.objects.create(title="Crash Bandicoot", console=console)
 
 
-def _achievement(game, author, status=Achievement.STATUS_COMMUNITY, title="Beach"):
+def _achievement(game, author, status=Achievement.STATUS_OFFICIAL, title="Beach"):
     return Achievement.objects.create(
         game=game,
         author=author,
@@ -282,9 +283,8 @@ def test_the_unlock_notification_adds_one_insert_to_the_award(client, author, pl
 @pytest.mark.parametrize(
     ("action", "start", "end"),
     [
-        ("mark_verified", Achievement.STATUS_COMMUNITY, Achievement.STATUS_VERIFIED),
-        ("move_to_draft", Achievement.STATUS_COMMUNITY, Achievement.STATUS_DRAFT),
-        ("publish_as_community", Achievement.STATUS_DRAFT, Achievement.STATUS_COMMUNITY),
+        ("make_unofficial", Achievement.STATUS_OFFICIAL, Achievement.STATUS_UNOFFICIAL),
+        ("make_official", Achievement.STATUS_UNOFFICIAL, Achievement.STATUS_OFFICIAL),
     ],
 )
 def test_an_admin_status_action_notifies_each_author(
@@ -313,7 +313,7 @@ def test_an_admin_status_action_notifies_no_inactive_author(admin_client, game, 
 
     admin_client.post(
         ACHIEVEMENT_CHANGELIST_URL,
-        {"action": "mark_verified", "_selected_action": [achievement.pk]},
+        {"action": "make_unofficial", "_selected_action": [achievement.pk]},
     )
 
     assert not Notification.objects.exists()
@@ -323,7 +323,7 @@ def test_an_admin_status_action_notifies_no_inactive_author(admin_client, game, 
 def test_an_admin_action_that_changes_nothing_notifies_nobody(admin_client, achievement):
     admin_client.post(
         ACHIEVEMENT_CHANGELIST_URL,
-        {"action": "publish_as_community", "_selected_action": [achievement.pk]},
+        {"action": "make_official", "_selected_action": [achievement.pk]},
     )
 
     assert not Notification.objects.exists()
@@ -340,14 +340,14 @@ def test_the_admin_change_form_status_change_notifies_the_author(admin_client, a
             "description": achievement.description,
             "points": achievement.points,
             "mem_addr": achievement.mem_addr,
-            "status": Achievement.STATUS_VERIFIED,
+            "status": Achievement.STATUS_UNOFFICIAL,
             "badge_name": achievement.badge_name,
         },
     )
 
     notification = Notification.objects.get()
     assert notification.user == achievement.author
-    assert notification.params["new_status"] == Achievement.STATUS_VERIFIED
+    assert notification.params["new_status"] == Achievement.STATUS_UNOFFICIAL
 
 
 def _edit(client, achievement, status):
@@ -369,7 +369,7 @@ def _edit(client, achievement, status):
 def test_staff_changing_the_status_in_the_editor_notifies_the_author(client, staff, achievement):
     client.force_login(staff)
 
-    response = _edit(client, achievement, Achievement.STATUS_VERIFIED)
+    response = _edit(client, achievement, Achievement.STATUS_UNOFFICIAL)
 
     assert response.status_code == HTTPStatus.FOUND
     notification = Notification.objects.get()
@@ -382,7 +382,7 @@ def test_staff_changing_the_status_in_the_editor_notifies_the_author(client, sta
 def test_the_author_changing_their_own_status_notifies_nobody(client, author, achievement):
     client.force_login(author)
 
-    response = _edit(client, achievement, Achievement.STATUS_DRAFT)
+    response = _edit(client, achievement, Achievement.STATUS_UNOFFICIAL)
 
     assert response.status_code == HTTPStatus.FOUND
     assert not Notification.objects.exists()
@@ -392,7 +392,7 @@ def test_the_author_changing_their_own_status_notifies_nobody(client, author, ac
 def test_an_edit_that_keeps_the_status_notifies_nobody(client, staff, achievement):
     client.force_login(staff)
 
-    _edit(client, achievement, Achievement.STATUS_COMMUNITY)
+    _edit(client, achievement, Achievement.STATUS_OFFICIAL)
 
     assert not Notification.objects.exists()
 
@@ -400,31 +400,31 @@ def test_an_edit_that_keeps_the_status_notifies_nobody(client, staff, achievemen
 @pytest.mark.django_db
 def test_a_staff_revert_that_restores_another_status_notifies_the_author(staff, achievement):
     first = achievement.revisions.get()
-    achievement.status = Achievement.STATUS_VERIFIED
+    achievement.status = Achievement.STATUS_UNOFFICIAL
     achievement.save(editor=staff)
     Notification.objects.all().delete()
 
     revert(achievement, first, staff)
 
     notification = Notification.objects.get()
-    assert notification.params["old_status"] == Achievement.STATUS_VERIFIED
-    assert notification.params["new_status"] == Achievement.STATUS_COMMUNITY
+    assert notification.params["old_status"] == Achievement.STATUS_UNOFFICIAL
+    assert notification.params["new_status"] == Achievement.STATUS_OFFICIAL
 
 
 @pytest.mark.django_db
 def test_a_status_change_by_an_unknown_editor_notifies_the_author(author, achievement):
-    achievement.status = Achievement.STATUS_VERIFIED
+    achievement.status = Achievement.STATUS_UNOFFICIAL
     achievement.save()
 
     notification = Notification.objects.get()
     assert notification.user == author
     assert notification.kind == Notification.KIND_STATUS
-    assert notification.params["new_status"] == Achievement.STATUS_VERIFIED
+    assert notification.params["new_status"] == Achievement.STATUS_UNOFFICIAL
 
 
 @pytest.mark.django_db
 def test_creating_an_achievement_notifies_nobody(game, author):
-    _achievement(game, author, status=Achievement.STATUS_VERIFIED)
+    _achievement(game, author, status=Achievement.STATUS_OFFICIAL)
 
     assert not Notification.objects.exists()
 
@@ -435,13 +435,6 @@ def test_creating_an_achievement_notifies_nobody(game, author):
 @pytest.mark.django_db
 def test_messages_are_rendered_in_the_readers_language(client, author):
     _notification(author, Notification.KIND_UNLOCK)
-    _notification(
-        author,
-        Notification.KIND_STATUS,
-        achievement="Beach",
-        old_status=Achievement.STATUS_COMMUNITY,
-        new_status=Achievement.STATUS_VERIFIED,
-    )
     _notification(author, Notification.KIND_COMMENT)
     client.force_login(author)
 
@@ -450,10 +443,56 @@ def test_messages_are_rendered_in_the_readers_language(client, author):
 
     assert "other commented on your achievement “Beach”." in english
     assert "other unlocked your achievement “Beach”." in english
-    assert "Your achievement “Beach” moved from Community to Verified." in english
     assert "other comentou na sua conquista “Beach”." in portuguese
     assert "other desbloqueou a sua conquista “Beach”." in portuguese
-    assert "Sua conquista “Beach” passou de Comunidade para Verificado." in portuguese
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    ("old_status", "new_status", "english", "portuguese"),
+    [
+        (
+            Achievement.STATUS_UNOFFICIAL,
+            Achievement.STATUS_OFFICIAL,
+            "Your achievement “Beach” is now official.",
+            "Sua conquista “Beach” agora é oficial.",
+        ),
+        (
+            Achievement.STATUS_OFFICIAL,
+            Achievement.STATUS_UNOFFICIAL,
+            "Your achievement “Beach” is now unofficial.",
+            "Sua conquista “Beach” deixou de ser oficial.",
+        ),
+    ],
+)
+def test_status_messages_name_the_new_status_in_the_readers_language(
+    client, author, old_status, new_status, english, portuguese
+):
+    _notification(
+        author,
+        Notification.KIND_STATUS,
+        achievement="Beach",
+        old_status=old_status,
+        new_status=new_status,
+    )
+    client.force_login(author)
+
+    assert english in _get(client, LIST_URL).content.decode()
+    assert portuguese in client.get(LIST_URL, HTTP_ACCEPT_LANGUAGE="pt-br").content.decode()
+
+
+@pytest.mark.django_db
+def test_a_status_message_with_an_unknown_status_fails_loudly(author):
+    notification = _notification(
+        author,
+        Notification.KIND_STATUS,
+        achievement="Beach",
+        old_status=Achievement.STATUS_OFFICIAL,
+        new_status="verified",
+    )
+
+    with pytest.raises(ValueError, match="unknown status 'verified'"):
+        message(notification)
 
 
 @pytest.mark.django_db

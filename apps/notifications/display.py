@@ -12,8 +12,16 @@ NOTIFICATIONS_PER_PAGE = 50
 POLL_SECONDS = 60
 
 
-def _status_label(status):
-    return dict(Achievement.STATUS_CHOICES).get(status, status)
+def _status_message(notification):
+    params = notification.params
+    if params["new_status"] == Achievement.STATUS_OFFICIAL:
+        return gettext("Your achievement “%(achievement)s” is now official.") % params
+    elif params["new_status"] == Achievement.STATUS_UNOFFICIAL:
+        return gettext("Your achievement “%(achievement)s” is now unofficial.") % params
+    else:
+        raise ValueError(
+            f"Notification {notification.pk} has unknown status {params['new_status']!r}"
+        )
 
 
 def message(notification):
@@ -23,11 +31,7 @@ def message(notification):
     elif notification.kind == Notification.KIND_UNLOCK:
         return gettext("%(actor)s unlocked your achievement “%(achievement)s”.") % params
     elif notification.kind == Notification.KIND_STATUS:
-        return gettext("Your achievement “%(achievement)s” moved from %(old)s to %(new)s.") % {
-            "achievement": params["achievement"],
-            "old": _status_label(params["old_status"]),
-            "new": _status_label(params["new_status"]),
-        }
+        return _status_message(notification)
     else:
         raise ValueError(f"Notification {notification.pk} has unknown kind {notification.kind!r}")
 

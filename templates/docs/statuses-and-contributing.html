@@ -1,23 +1,19 @@
 {% extends "docs/layout.html" %}
 {% load i18n %}
 
-{% block doc_intro %}{% trans "Every achievement has a status that decides who receives it and whether it is worth points. Sets grow from players writing, testing and reviewing them." %}{% endblock %}
+{% block doc_intro %}{% trans "Every achievement is official or unofficial: its status decides whether unlocking it is recorded and worth points. Sets grow from players writing, testing and reviewing them." %}{% endblock %}
 
 {% block doc_body %}
   <div class="mt-8">
     {% include "components/section-heading.html" with title=_("Statuses") %}
     <dl class="mt-1">
       <div class="border-t border-line py-3 first:border-t-0">
-        <dt>{% include "components/status-chip.html" with achievement=status_samples.draft %}</dt>
-        <dd class="mt-2 text-sm leading-relaxed text-txt-muted">{% trans "Reaches only its author, in the emulator's unofficial list with Test Unofficial Achievements on. It is never recorded and never worth points. Other players do not see it on the site." %}</dd>
+        <dt>{% include "components/status-chip.html" with achievement=status_samples.official %}</dt>
+        <dd class="mt-2 text-sm leading-relaxed text-txt-muted">{% trans "Every player receives it as an official achievement, and unlocking it is recorded and worth its points. Only official achievements count towards rankings, completion and platinums." %}</dd>
       </div>
       <div class="border-t border-line py-3 first:border-t-0">
-        <dt>{% include "components/status-chip.html" with achievement=status_samples.community %}</dt>
-        <dd class="mt-2 text-sm leading-relaxed text-txt-muted">{% trans "Published: every player receives it as an official achievement, and unlocking it is recorded and worth its points." %}</dd>
-      </div>
-      <div class="border-t border-line py-3 first:border-t-0">
-        <dt>{% include "components/status-chip.html" with achievement=status_samples.verified %}</dt>
-        <dd class="mt-2 text-sm leading-relaxed text-txt-muted">{% trans "Published, like community, and worth the same points. Verified is a quality seal staff give after reviewing the achievement; the game page lists verified achievements first." %}</dd>
+        <dt>{% include "components/status-chip.html" with achievement=status_samples.unofficial %}</dt>
+        <dd class="mt-2 text-sm leading-relaxed text-txt-muted">{% trans "Every player receives it too, in the emulator's unofficial list with Test Unofficial Achievements on, and the game page lists it in its own section. It is never recorded and never worth points. A new achievement starts unofficial." %}</dd>
       </div>
     </dl>
   </div>
@@ -25,8 +21,8 @@
   <div class="mt-10">
     {% include "components/section-heading.html" with title=_("Who changes a status") %}
     <ul class="mt-1">
-      <li class="border-t border-line py-3 text-sm leading-relaxed text-txt-muted first:border-t-0">{% trans "The author moves an achievement between draft and community in the editor. Only staff mark it verified, and only staff change a verified achievement's status." %}</li>
-      <li class="border-t border-line py-3 text-sm leading-relaxed text-txt-muted first:border-t-0">{% trans "Moving a published achievement back to draft keeps everyone's unlocks but takes its points out of their totals; publishing it again counts them again." %}</li>
+      <li class="border-t border-line py-3 text-sm leading-relaxed text-txt-muted first:border-t-0">{% trans "The author or staff make an achievement official or unofficial in the editor." %}</li>
+      <li class="border-t border-line py-3 text-sm leading-relaxed text-txt-muted first:border-t-0">{% trans "Making an official achievement unofficial keeps everyone's unlocks but takes its points out of their totals; making it official again counts them again." %}</li>
     </ul>
   </div>
 
@@ -38,13 +34,13 @@
         <p class="mt-1 text-sm leading-relaxed text-txt-muted">{% trans "Each game page links its code notes: what the community found at each memory address." %}</p>
       </li>
       <li>
-        <h3 class="font-display text-base font-semibold text-txt"><span class="mr-2 font-data text-brand">2</span>{% trans "Write and test a draft" %}</h3>
-        <p class="mt-1 text-sm leading-relaxed text-txt-muted">{% trans "Follow the creating achievements guide, and test the draft in the game before publishing it." %}</p>
+        <h3 class="font-display text-base font-semibold text-txt"><span class="mr-2 font-data text-brand">2</span>{% trans "Write and test it unofficial" %}</h3>
+        <p class="mt-1 text-sm leading-relaxed text-txt-muted">{% trans "Follow the creating achievements guide, and test it in the game before making it official." %}</p>
         <a href="{% url 'docs_page' 'creating-achievements' %}" class="mt-1 inline-block font-data text-xs text-brand">{% trans "Creating achievements →" %}</a>
       </li>
       <li>
-        <h3 class="font-display text-base font-semibold text-txt"><span class="mr-2 font-data text-brand">3</span>{% trans "Publish it as community" %}</h3>
-        <p class="mt-1 text-sm leading-relaxed text-txt-muted">{% trans "Once it fires at the right moment, publish it. Players can leave feedback in the comments on its page." %}</p>
+        <h3 class="font-display text-base font-semibold text-txt"><span class="mr-2 font-data text-brand">3</span>{% trans "Make it official" %}</h3>
+        <p class="mt-1 text-sm leading-relaxed text-txt-muted">{% trans "Once it fires at the right moment, make it official. Players can leave feedback in the comments on its page." %}</p>
       </li>
       <li>
         <h3 class="font-display text-base font-semibold text-txt"><span class="mr-2 font-data text-brand">4</span>{% trans "Share what you found" %}</h3>

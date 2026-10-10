@@ -2,7 +2,7 @@ from django import forms
 from django.utils.translation import gettext_lazy as _
 
 from apps.achievements.code_notes import MAX_CODE_NOTE_ADDRESS, typed_address
-from apps.achievements.editing import settable_points, settable_statuses
+from apps.achievements.editing import settable_points
 from apps.achievements.models import (
     BADGE_UPLOAD_FORMATS,
     BYTES_PER_MIB,
@@ -23,7 +23,7 @@ MEM_ADDR_ROWS = 4
 
 
 class AchievementForm(forms.ModelForm):
-    """An achievement as its author or staff edits it on the site; `editor` is who submits it.
+    """An achievement as its author or staff edits it on the site.
 
     A new badge upload becomes a `Badge`, which the view names the achievement after.
     """
@@ -47,8 +47,8 @@ class AchievementForm(forms.ModelForm):
                 "The trigger in rcheevos syntax, checked with the same parser the emulators run."
             ),
             "status": _(
-                "A draft reaches only its author, in the emulator's unofficial list, and is never "
-                "awarded. Community and verified reach every player and are worth points."
+                "Every player receives both. An official achievement is awarded and worth points; "
+                "an unofficial one sits in the emulator's unofficial list and is never awarded."
             ),
         }
         widgets = {
@@ -56,14 +56,10 @@ class AchievementForm(forms.ModelForm):
             "mem_addr": forms.Textarea(attrs={"rows": MEM_ADDR_ROWS, "spellcheck": "false"}),
         }
 
-    def __init__(self, *args, editor, **kwargs):
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         points = sorted(settable_points(self.instance.points))
         self.fields["points"].choices = [(value, value) for value in points]
-        allowed = settable_statuses(editor, self.instance.status)
-        self.fields["status"].choices = [
-            (status, label) for status, label in Achievement.STATUS_CHOICES if status in allowed
-        ]
         self.fields["badge"].help_text = _(
             "PNG, JPEG or GIF, at most %(megabytes)s MiB and %(pixels)s pixels a side. "
             "Leave empty to keep the current badge."

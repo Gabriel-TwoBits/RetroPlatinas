@@ -20,9 +20,8 @@ from apps.images.catalog import badge_path
 from apps.images.rendering import ADMIN_LIST_THUMBNAIL_PX, BADGE_SIZE_PX
 
 _STATUS_COLORS = {
-    Achievement.STATUS_DRAFT: "#888888",
-    Achievement.STATUS_COMMUNITY: "#d97706",
-    Achievement.STATUS_VERIFIED: "#16a34a",
+    Achievement.STATUS_OFFICIAL: "#16a34a",
+    Achievement.STATUS_UNOFFICIAL: "#888888",
 }
 
 
@@ -74,7 +73,7 @@ class AchievementAdmin(admin.ModelAdmin):
     list_filter = ("status", "type", "game__console")
     search_fields = ("title", "description", "mem_addr")
     autocomplete_fields = ("author", "game")
-    actions = ("publish_as_community", "mark_verified", "move_to_draft")
+    actions = ("make_official", "make_unofficial")
 
     @admin.display(description=_("status"))
     def colored_status(self, obj):
@@ -98,21 +97,24 @@ class AchievementAdmin(admin.ModelAdmin):
                 _badge_img(obj.badge_name, locked=True, size=BADGE_SIZE_PX),
             )
 
-    @admin.action(
-        description=_("Publish selected achievements as community"), permissions=("change",)
-    )
-    def publish_as_community(self, request, queryset):
-        self._change_status(request, queryset, Achievement.STATUS_COMMUNITY)
+    @admin.action(description=_("Make selected achievements official"), permissions=("change",))
+    def make_official(self, request, queryset):
+        changed = self._change_status(request, queryset, Achievement.STATUS_OFFICIAL)
+        message = ngettext(
+            "%(count)d achievement made official.", "%(count)d achievements made official.", changed
+        )
+        self.message_user(request, message % {"count": changed})
 
-    @admin.action(description=_("Mark selected achievements as verified"), permissions=("change",))
-    def mark_verified(self, request, queryset):
-        self._change_status(request, queryset, Achievement.STATUS_VERIFIED)
-
-    @admin.action(
-        description=_("Move selected achievements back to draft"), permissions=("change",)
-    )
-    def move_to_draft(self, request, queryset):
-        self._change_status(request, queryset, Achievement.STATUS_DRAFT)
+    @admin.action(description=_("Make selected achievements unofficial"), permissions=("change",))
+    def make_unofficial(self, request, queryset):
+        """Keeps the unlocks; `_change_status` takes the points out of every unlocker's total."""
+        changed = self._change_status(request, queryset, Achievement.STATUS_UNOFFICIAL)
+        message = ngettext(
+            "%(count)d achievement made unofficial.",
+            "%(count)d achievements made unofficial.",
+            changed,
+        )
+        self.message_user(request, message % {"count": changed})
 
     def save_model(self, request, obj, form, change):
         obj.save(editor=request.user)
@@ -122,6 +124,8 @@ class AchievementAdmin(admin.ModelAdmin):
             _record_unlockers_as_players(UserUnlock.objects.filter(achievement=obj))
 
     def _change_status(self, request, queryset, status):
+        """Gives the selected achievements `status`, recounting their unlockers' points; returns
+        how many changed."""
         with transaction.atomic():
             changing_ids = list(queryset.exclude(status=status).values_list("pk", flat=True))
             record_baselines(changing_ids)
@@ -130,12 +134,7 @@ class AchievementAdmin(admin.ModelAdmin):
             )
             record_revisions(changing_ids, request.user)
             recalculate_unlocker_points(changing_ids)
-        message = ngettext(
-            "%(count)d achievement moved to %(status)s.",
-            "%(count)d achievements moved to %(status)s.",
-            changed,
-        ) % {"count": changed, "status": dict(Achievement.STATUS_CHOICES)[status]}
-        self.message_user(request, message)
+        return changed
 
 
 @admin.register(Badge)

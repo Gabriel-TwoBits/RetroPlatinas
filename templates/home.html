@@ -77,7 +77,7 @@
               </div>
             </a>
           {% empty %}
-            {% include "components/empty-state.html" with title=_("No sets published yet") body=_("A game shows up here as soon as its first achievement is published.") %}
+            {% include "components/empty-state.html" with title=_("No official sets yet") body=_("A game shows up here as soon as it has an official achievement.") %}
           {% endfor %}
         </div>
       </section>

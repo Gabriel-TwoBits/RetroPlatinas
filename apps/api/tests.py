@@ -566,35 +566,35 @@ def game_with_achievements(authed_user, achievement_author):
     Achievement.objects.create(
         game=game,
         author=achievement_author,
-        title="Draft One",
+        title="Unofficial One",
         description="d",
         points=5,
         mem_addr="0xH0001=1",
-        status=Achievement.STATUS_DRAFT,
+        status=Achievement.STATUS_UNOFFICIAL,
     )
     Achievement.objects.create(
         game=game,
         author=achievement_author,
-        title="Community One",
+        title="Official One",
         description="c",
         points=10,
         mem_addr="0xH0002=1",
-        status=Achievement.STATUS_COMMUNITY,
+        status=Achievement.STATUS_OFFICIAL,
     )
     Achievement.objects.create(
         game=game,
         author=achievement_author,
-        title="Verified One",
+        title="Official Two",
         description="v",
         points=25,
         mem_addr="0xH0003=1",
-        status=Achievement.STATUS_VERIFIED,
+        status=Achievement.STATUS_OFFICIAL,
     )
     return game
 
 
 @pytest.mark.django_db
-def test_patch_serves_published_achievements_as_core(client, authed_user, game_with_achievements):
+def test_patch_serves_official_achievements_as_core(client, authed_user, game_with_achievements):
     _, token = authed_user
     game = game_with_achievements
     response = client.post(
@@ -604,8 +604,9 @@ def test_patch_serves_published_achievements_as_core(client, authed_user, game_w
     assert data["Success"] is True
     served = {a["Title"]: a["Flags"] for a in data["PatchData"]["Achievements"]}
     assert served == {
-        "Community One": ACHIEVEMENT_FLAGS_CORE,
-        "Verified One": ACHIEVEMENT_FLAGS_CORE,
+        "Unofficial One": ACHIEVEMENT_FLAGS_UNOFFICIAL,
+        "Official One": ACHIEVEMENT_FLAGS_CORE,
+        "Official Two": ACHIEVEMENT_FLAGS_CORE,
     }
 
 
@@ -748,15 +749,19 @@ def test_patch_serves_each_achievements_badge_name(
     settings.MEDIA_ROOT = tmp_path
     _, token = authed_user
     game = game_with_achievements
-    badge = Badge.objects.create(image=_png_upload("verified.png"))
-    game.achievements.filter(title="Verified One").update(badge_name=badge.name)
+    badge = Badge.objects.create(image=_png_upload("official.png"))
+    game.achievements.filter(title="Official Two").update(badge_name=badge.name)
     response = client.post(
         "/dorequest.php", {"r": "patch", "u": PLAYER_USERNAME, "t": token, "g": game.pk}
     )
     badge_names = {
         ach["Title"]: ach["BadgeName"] for ach in response.json()["PatchData"]["Achievements"]
     }
-    assert badge_names == {"Community One": PLACEHOLDER_BADGE_NAME, "Verified One": badge.name}
+    assert badge_names == {
+        "Unofficial One": PLACEHOLDER_BADGE_NAME,
+        "Official One": PLACEHOLDER_BADGE_NAME,
+        "Official Two": badge.name,
+    }
 
 
 @pytest.mark.django_db
@@ -792,7 +797,7 @@ def test_achievementsets_by_hash_returns_core_set(client, authed_user, game_with
     assert core["GameId"] == game.pk
     assert core["Leaderboards"] == []
     titles = {a["Title"] for a in core["Achievements"]}
-    assert titles == {"Community One", "Verified One"}
+    assert titles == {"Unofficial One", "Official One", "Official Two"}
 
 
 @pytest.mark.django_db
@@ -874,10 +879,9 @@ def test_achievementsets_missing_token(client, game_with_achievements):
     assert data["Error"] == "Credentials invalid."
 
 
-# --- publish semantics (patch + achievementsets) ---
+# --- status semantics (patch + achievementsets) ---
 
 SET_ACTIONS = ("patch", "achievementsets")
-NOT_SERVED = None
 EXTRA_ACHIEVEMENT_POINTS = 5
 
 
@@ -913,12 +917,10 @@ def _create_achievement(game, author, title, status, achievement_type=Achievemen
 @pytest.mark.parametrize(
     ("status", "requested_by_author", "expected_flags"),
     [
-        (Achievement.STATUS_DRAFT, True, ACHIEVEMENT_FLAGS_UNOFFICIAL),
-        (Achievement.STATUS_DRAFT, False, NOT_SERVED),
-        (Achievement.STATUS_COMMUNITY, True, ACHIEVEMENT_FLAGS_CORE),
-        (Achievement.STATUS_COMMUNITY, False, ACHIEVEMENT_FLAGS_CORE),
-        (Achievement.STATUS_VERIFIED, True, ACHIEVEMENT_FLAGS_CORE),
-        (Achievement.STATUS_VERIFIED, False, ACHIEVEMENT_FLAGS_CORE),
+        (Achievement.STATUS_UNOFFICIAL, True, ACHIEVEMENT_FLAGS_UNOFFICIAL),
+        (Achievement.STATUS_UNOFFICIAL, False, ACHIEVEMENT_FLAGS_UNOFFICIAL),
+        (Achievement.STATUS_OFFICIAL, True, ACHIEVEMENT_FLAGS_CORE),
+        (Achievement.STATUS_OFFICIAL, False, ACHIEVEMENT_FLAGS_CORE),
     ],
 )
 def test_set_serves_achievement_by_status_and_requester(
@@ -938,16 +940,18 @@ def test_set_serves_achievement_by_status_and_requester(
 
     served = {a["ID"]: a["Flags"] for a in _served_achievements(client, action, requester, game)}
 
-    assert served.get(achievement.pk, NOT_SERVED) == expected_flags
+    assert served[achievement.pk] == expected_flags
 
 
 @pytest.mark.django_db
 @pytest.mark.parametrize("action", SET_ACTIONS)
-def test_set_serves_own_drafts_but_never_other_users_drafts(
+def test_set_serves_every_users_unofficial_achievements(
     client, authed_user, game_with_achievements, action
 ):
     player, _ = authed_user
-    _create_achievement(game_with_achievements, player, "Own Draft", Achievement.STATUS_DRAFT)
+    _create_achievement(
+        game_with_achievements, player, "Own Unofficial", Achievement.STATUS_UNOFFICIAL
+    )
 
     served = {
         a["Title"]: a["Flags"]
@@ -955,9 +959,10 @@ def test_set_serves_own_drafts_but_never_other_users_drafts(
     }
 
     assert served == {
-        "Own Draft": ACHIEVEMENT_FLAGS_UNOFFICIAL,
-        "Community One": ACHIEVEMENT_FLAGS_CORE,
-        "Verified One": ACHIEVEMENT_FLAGS_CORE,
+        "Own Unofficial": ACHIEVEMENT_FLAGS_UNOFFICIAL,
+        "Unofficial One": ACHIEVEMENT_FLAGS_UNOFFICIAL,
+        "Official One": ACHIEVEMENT_FLAGS_CORE,
+        "Official Two": ACHIEVEMENT_FLAGS_CORE,
     }
 
 
@@ -987,7 +992,7 @@ def test_set_serializes_achievement_type(
     player, _ = authed_user
     game, _ = game_with_hash
     achievement = _create_achievement(
-        game, achievement_author, "Typed", Achievement.STATUS_COMMUNITY, achievement_type
+        game, achievement_author, "Typed", Achievement.STATUS_OFFICIAL, achievement_type
     )
 
     served = {a["ID"]: a["Type"] for a in _served_achievements(client, action, player, game)}
@@ -1005,9 +1010,9 @@ def test_set_serves_rarity_over_the_games_players(
 ):
     player, _ = authed_user
     game, _ = game_with_hash
-    common = _create_achievement(game, achievement_author, "Common", Achievement.STATUS_COMMUNITY)
-    rare = _create_achievement(game, achievement_author, "Rare", Achievement.STATUS_VERIFIED)
-    never = _create_achievement(game, achievement_author, "Never", Achievement.STATUS_VERIFIED)
+    common = _create_achievement(game, achievement_author, "Common", Achievement.STATUS_OFFICIAL)
+    rare = _create_achievement(game, achievement_author, "Rare", Achievement.STATUS_OFFICIAL)
+    never = _create_achievement(game, achievement_author, "Never", Achievement.STATUS_OFFICIAL)
     rival = _make_user("rival", "r" * API_TOKEN_HEX_LENGTH)
     third = _make_user("third", "h" * API_TOKEN_HEX_LENGTH)
     for user in (player, rival, third):
@@ -1039,18 +1044,21 @@ def test_set_serves_zero_rarity_when_the_game_has_no_players(
 
     served = _served_achievements(client, action, player, game_with_achievements)
 
-    assert [(a["Rarity"], a["RarityHardcore"]) for a in served] == [(0.0, 0.0), (0.0, 0.0)]
+    assert [(a["Rarity"], a["RarityHardcore"]) for a in served] == [(0.0, 0.0)] * len(served)
+    assert len(served) == game_with_achievements.achievements.count()
 
 
 @pytest.mark.django_db
 @pytest.mark.parametrize("action", SET_ACTIONS)
-def test_set_serves_zero_rarity_on_drafts_and_counts_only_published_unlockers(
+def test_set_serves_zero_rarity_on_unofficial_ones_and_counts_only_official_unlockers(
     client, authed_user, achievement_author, game_with_hash, action
 ):
     player, _ = authed_user
     game, _ = game_with_hash
-    common = _create_achievement(game, achievement_author, "Common", Achievement.STATUS_COMMUNITY)
-    demoted = _create_achievement(game, achievement_author, "Demoted", Achievement.STATUS_DRAFT)
+    common = _create_achievement(game, achievement_author, "Common", Achievement.STATUS_OFFICIAL)
+    demoted = _create_achievement(
+        game, achievement_author, "Demoted", Achievement.STATUS_UNOFFICIAL
+    )
     for user, achievement in ((player, common), (player, demoted), (achievement_author, demoted)):
         UserUnlock.objects.create(user=user, achievement=achievement, hardcore=True)
     for user in (player, achievement_author):
@@ -1072,7 +1080,7 @@ def test_set_rarity_counts_players_who_unlocked_nothing(
 ):
     player, _ = authed_user
     game, _ = game_with_hash
-    common = _create_achievement(game, achievement_author, "Common", Achievement.STATUS_COMMUNITY)
+    common = _create_achievement(game, achievement_author, "Common", Achievement.STATUS_OFFICIAL)
     UserUnlock.objects.create(user=player, achievement=common, hardcore=False)
     for user in (player, achievement_author):
         PlayerGame.objects.create(user=user, game=game)
@@ -1127,7 +1135,7 @@ def test_awardachievement_softcore_creates_unlock_and_points(
     client, authed_user, game_with_achievements
 ):
     user, token = authed_user
-    achievement = game_with_achievements.achievements.get(title="Community One")
+    achievement = game_with_achievements.achievements.get(title="Official One")
     response = client.post(
         "/dorequest.php",
         _award_params(token, achievement.pk, "0"),
@@ -1146,7 +1154,7 @@ def test_awardachievement_softcore_creates_unlock_and_points(
 @pytest.mark.django_db
 def test_awardachievement_is_idempotent(client, authed_user, game_with_achievements):
     user, token = authed_user
-    achievement = game_with_achievements.achievements.get(title="Community One")
+    achievement = game_with_achievements.achievements.get(title="Official One")
     payload = _award_params(token, achievement.pk, "0")
     client.post("/dorequest.php", payload)
     response = client.post("/dorequest.php", payload)
@@ -1163,7 +1171,7 @@ def test_awardachievement_hardcore_creates_both_unlocks(
     client, authed_user, game_with_achievements
 ):
     user, token = authed_user
-    achievement = game_with_achievements.achievements.get(title="Verified One")
+    achievement = game_with_achievements.achievements.get(title="Official Two")
     response = client.post(
         "/dorequest.php",
         _award_params(token, achievement.pk, "1"),
@@ -1182,7 +1190,7 @@ def test_awardachievement_hardcore_creates_both_unlocks(
 @pytest.mark.django_db
 def test_awardachievement_remaining_decrements(client, authed_user, game_with_achievements):
     _, token = authed_user
-    achievement = game_with_achievements.achievements.get(title="Community One")
+    achievement = game_with_achievements.achievements.get(title="Official One")
     response = client.post(
         "/dorequest.php",
         _award_params(token, achievement.pk, "0"),
@@ -1196,9 +1204,9 @@ ACHIEVEMENT_NOT_FOUND = {
     "Status": HTTPStatus.NOT_FOUND,
     "Code": "not_found",
 }
-ACHIEVEMENT_UNPUBLISHED = {
+ACHIEVEMENT_UNOFFICIAL = {
     "Success": False,
-    "Error": "Unpublished achievements cannot be unlocked.",
+    "Error": "Unofficial achievements cannot be unlocked.",
     "Status": HTTPStatus.CONFLICT,
     "Code": "invalid_state",
 }
@@ -1230,15 +1238,19 @@ def test_awardachievement_invalid_achievement_param(client, authed_user):
 
 @pytest.mark.django_db
 @pytest.mark.parametrize("hardcore", ["0", "1"])
-def test_awardachievement_rejects_the_authors_own_draft(
-    client, authed_user, game_with_achievements, hardcore
+@pytest.mark.parametrize("own", [True, False])
+def test_awardachievement_rejects_an_unofficial_achievement(
+    client, authed_user, game_with_achievements, hardcore, own
 ):
     player, token = authed_user
-    draft = _create_achievement(
-        game_with_achievements, player, "Own Draft", Achievement.STATUS_DRAFT
-    )
+    if own:
+        unofficial = _create_achievement(
+            game_with_achievements, player, "Own Unofficial", Achievement.STATUS_UNOFFICIAL
+        )
+    else:
+        unofficial = game_with_achievements.achievements.get(title="Unofficial One")
 
-    assert _award(client, token, draft.pk, hardcore) == ACHIEVEMENT_UNPUBLISHED
+    assert _award(client, token, unofficial.pk, hardcore) == ACHIEVEMENT_UNOFFICIAL
     assert not UserUnlock.objects.filter(user=player).exists()
     player.refresh_from_db()
     assert player.softcore_points == 0
@@ -1246,19 +1258,8 @@ def test_awardachievement_rejects_the_authors_own_draft(
 
 
 @pytest.mark.django_db
-def test_awardachievement_answers_another_users_draft_as_unknown(
-    client, authed_user, game_with_achievements
-):
-    player, token = authed_user
-    draft = game_with_achievements.achievements.get(title="Draft One")
-
-    assert _award(client, token, draft.pk, "0") == ACHIEVEMENT_NOT_FOUND
-    assert not UserUnlock.objects.filter(user=player).exists()
-
-
-@pytest.mark.django_db
-@pytest.mark.parametrize("title", ["Community One", "Verified One"])
-def test_awardachievement_awards_every_published_status(
+@pytest.mark.parametrize("title", ["Official One", "Official Two"])
+def test_awardachievement_awards_an_official_achievement(
     client, authed_user, game_with_achievements, title
 ):
     player, token = authed_user
@@ -1272,16 +1273,18 @@ def test_awardachievement_awards_every_published_status(
 
 
 @pytest.mark.django_db
-def test_awardachievement_remaining_reaches_zero_on_the_last_published(
+def test_awardachievement_remaining_reaches_zero_on_the_last_official(
     client, authed_user, game_with_achievements
 ):
     player, token = authed_user
-    _create_achievement(game_with_achievements, player, "Own Draft", Achievement.STATUS_DRAFT)
-    community = game_with_achievements.achievements.get(title="Community One")
-    verified = game_with_achievements.achievements.get(title="Verified One")
+    _create_achievement(
+        game_with_achievements, player, "Own Unofficial", Achievement.STATUS_UNOFFICIAL
+    )
+    first = game_with_achievements.achievements.get(title="Official One")
+    last = game_with_achievements.achievements.get(title="Official Two")
 
-    assert _award(client, token, community.pk, "0")["AchievementsRemaining"] == 1
-    assert _award(client, token, verified.pk, "0")["AchievementsRemaining"] == 0
+    assert _award(client, token, first.pk, "0")["AchievementsRemaining"] == 1
+    assert _award(client, token, last.pk, "0")["AchievementsRemaining"] == 0
 
 
 @pytest.mark.django_db
@@ -1289,18 +1292,18 @@ def test_awardachievement_remaining_counts_only_the_requested_mode(
     client, authed_user, game_with_achievements
 ):
     _, token = authed_user
-    community = game_with_achievements.achievements.get(title="Community One")
-    verified = game_with_achievements.achievements.get(title="Verified One")
+    first = game_with_achievements.achievements.get(title="Official One")
+    last = game_with_achievements.achievements.get(title="Official Two")
 
-    assert _award(client, token, community.pk, "0")["AchievementsRemaining"] == 1
+    assert _award(client, token, first.pk, "0")["AchievementsRemaining"] == 1
     # The hardcore unlock also unlocks softcore, completing softcore but not hardcore.
-    assert _award(client, token, verified.pk, "1")["AchievementsRemaining"] == 1
-    assert _award(client, token, verified.pk, "0")["AchievementsRemaining"] == 0
+    assert _award(client, token, last.pk, "1")["AchievementsRemaining"] == 1
+    assert _award(client, token, last.pk, "0")["AchievementsRemaining"] == 0
 
 
 @pytest.mark.django_db
 def test_awardachievement_missing_token(client, game_with_achievements):
-    achievement = game_with_achievements.achievements.get(title="Community One")
+    achievement = game_with_achievements.achievements.get(title="Official One")
     response = client.post(
         "/dorequest.php", {"r": "awardachievement", "a": achievement.pk, "h": "0"}
     )
@@ -1311,7 +1314,7 @@ def test_awardachievement_missing_token(client, game_with_achievements):
 
 @pytest.mark.django_db
 def test_awardachievement_invalid_token(client, game_with_achievements):
-    achievement = game_with_achievements.achievements.get(title="Community One")
+    achievement = game_with_achievements.achievements.get(title="Official One")
     response = client.post(
         "/dorequest.php",
         {"r": "awardachievement", "t": "z" * API_TOKEN_HEX_LENGTH, "a": achievement.pk, "h": "0"},
@@ -1324,7 +1327,7 @@ def test_awardachievement_invalid_token(client, game_with_achievements):
 @pytest.mark.django_db
 def test_awardachievement_records_the_game_as_played(client, authed_user, game_with_achievements):
     user, token = authed_user
-    achievement = game_with_achievements.achievements.get(title="Community One")
+    achievement = game_with_achievements.achievements.get(title="Official One")
 
     client.post(
         "/dorequest.php",
@@ -1343,7 +1346,7 @@ PREVIOUS_SESSION_AGE = timedelta(days=30)
 @pytest.mark.django_db
 def test_awardachievement_moves_last_played_only(client, authed_user, game_with_achievements):
     user, token = authed_user
-    achievement = game_with_achievements.achievements.get(title="Community One")
+    achievement = game_with_achievements.achievements.get(title="Official One")
     long_ago = timezone.now() - PREVIOUS_SESSION_AGE
     PlayerGame.objects.create(
         user=user,
@@ -1438,7 +1441,7 @@ def test_startsession_softcore_unlock_only_in_softcore_array(
     client, authed_user, game_with_achievements
 ):
     _, token = authed_user
-    achievement = game_with_achievements.achievements.get(title="Community One")
+    achievement = game_with_achievements.achievements.get(title="Official One")
     client.post(
         "/dorequest.php",
         _award_params(token, achievement.pk, "0"),
@@ -1457,7 +1460,7 @@ def test_startsession_softcore_unlock_only_in_softcore_array(
 @pytest.mark.django_db
 def test_startsession_hardcore_unlock_in_both_arrays(client, authed_user, game_with_achievements):
     _, token = authed_user
-    achievement = game_with_achievements.achievements.get(title="Verified One")
+    achievement = game_with_achievements.achievements.get(title="Official Two")
     client.post(
         "/dorequest.php",
         _award_params(token, achievement.pk, "1"),
@@ -1476,7 +1479,7 @@ def test_startsession_hardcore_unlock_in_both_arrays(client, authed_user, game_w
 @pytest.mark.django_db
 def test_startsession_unlock_entry_shape(client, authed_user, game_with_achievements):
     _, token = authed_user
-    achievement = game_with_achievements.achievements.get(title="Community One")
+    achievement = game_with_achievements.achievements.get(title="Official One")
     client.post(
         "/dorequest.php",
         _award_params(token, achievement.pk, "0"),
@@ -2361,7 +2364,7 @@ def _icon_url(game):
 
 @pytest.fixture
 def catalogue(game_with_achievements):
-    """Crash (3 achievements, 1 draft) plus an empty PS1 game and a game on another console."""
+    """Crash (3 achievements, 1 unofficial) plus an empty PS1 game and a game on another console."""
     crash = game_with_achievements
     ps1 = crash.console
     GameHash.objects.create(game=crash, md5="b" * MD5_HEX_DIGITS, label="NTSC-U")
@@ -2581,8 +2584,8 @@ def test_set_image_urls_change_when_art_is_uploaded(
     _, token = authed_user
     game = game_with_achievements
     before = _set_request(client, "achievementsets", token, game)
-    uploaded = game.achievements.get(title="Verified One")
-    uploaded.badge_name = Badge.objects.create(image=_png_upload("verified.png")).name
+    uploaded = game.achievements.get(title="Official Two")
+    uploaded.badge_name = Badge.objects.create(image=_png_upload("official.png")).name
     uploaded.save()
     game.icon = _png_upload("crash.png")
     game.save()

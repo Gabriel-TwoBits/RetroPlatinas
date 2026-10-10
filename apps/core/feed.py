@@ -28,7 +28,7 @@ def _unlocks(feed_filter, viewer):
 
 
 def feed_rows(feed_filter, viewer):
-    """The latest `FEED_UNLOCKS_SHOWN` unlocks of published achievements by active users (only
+    """The latest `FEED_UNLOCKS_SHOWN` unlocks of official achievements by active users (only
     those `viewer` follows under `FILTER_FRIENDS`), newest first, each once."""
     # TRADEOFF: no index on unlocked_at and no cache (relative times must stay current), so each
     # poll sorts every unlock; index unlocked_at once the unlock count makes that sort show.

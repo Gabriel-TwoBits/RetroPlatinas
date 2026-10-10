@@ -66,14 +66,11 @@ def game_detail(request, game_id):
 @require_safe
 def game_panel(request, game_id, tab):
     game = _game(game_id)
-    show = request.GET.get("show", page.SHOW_PUBLISHED)
     achievement_filter = request.GET.get("filter", page.FILTER_ALL)
     if tab not in page.VALID_TABS:
         raise Http404("Unknown game tab")
-    elif show not in page.VALID_SHOW_OPTIONS:
-        return HttpResponseBadRequest(gettext("Unknown achievement status choice"))
     elif achievement_filter not in page.VALID_FILTERS:
         return HttpResponseBadRequest(gettext("Unknown achievement filter"))
     else:
-        context = page.panel_context(game, request.user, tab, show, achievement_filter)
+        context = page.panel_context(game, request.user, tab, achievement_filter)
         return render(request, "games/partials/tabs.html", context)

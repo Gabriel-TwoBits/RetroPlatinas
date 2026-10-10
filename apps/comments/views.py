@@ -1,6 +1,5 @@
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
-from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
@@ -47,9 +46,8 @@ def add_game_comment(request, game_id):
 @login_required("#comments")
 @require_POST
 def add_achievement_comment(request, game_id, achievement_id):
-    # Another user's draft does not exist, so neither does its comments section.
     achievement = get_object_or_404(
-        Achievement.objects.visible_to(request.user).select_related("author"),
+        Achievement.objects.select_related("author"),
         pk=achievement_id,
         game_id=game_id,
     )
@@ -59,12 +57,9 @@ def add_achievement_comment(request, game_id, achievement_id):
 @login_required("#comments")
 @require_POST
 def delete_comment(request, comment_id):
-    """Only its author or staff delete a comment; one on a page the viewer cannot see is 404."""
-    on_visible_target = Q(game__isnull=False) | Q(
-        achievement__in=Achievement.objects.visible_to(request.user)
-    )
+    """Only its author or staff delete a comment."""
     comment = get_object_or_404(
-        Comment.objects.filter(on_visible_target).select_related("game", "achievement"),
+        Comment.objects.select_related("game", "achievement"),
         pk=comment_id,
     )
     if not can_edit(request.user, comment.author_id):

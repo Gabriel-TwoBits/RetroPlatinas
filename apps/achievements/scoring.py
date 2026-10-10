@@ -8,12 +8,12 @@ from apps.achievements.models import Achievement, UserUnlock
 SCORED_FIELDS = frozenset({"status", "points"})
 
 
-def _published_unlock_points(hardcore):
+def _official_unlock_points(hardcore):
     points = (
         UserUnlock.objects.filter(
             user=OuterRef("pk"),
             hardcore=hardcore,
-            achievement__status__in=Achievement.PUBLISHED_STATUSES,
+            achievement__status=Achievement.STATUS_OFFICIAL,
         )
         .values("user")
         .annotate(total=Sum("achievement__points"))
@@ -25,7 +25,8 @@ def _published_unlock_points(hardcore):
 def recalculate_unlocker_points(achievement_ids):
     """Recompute the point totals of everyone who unlocked these achievements from their unlocks.
 
-    Only published unlocks count; unlocks are kept, so a draft counts again once republished.
+    Only official unlocks count; unlocks are kept, so an unofficial achievement counts again once
+    made official.
     Must run inside a transaction, which holds the lock on the unlockers' rows.
     """
     unlockers = get_user_model().objects.filter(
@@ -34,6 +35,6 @@ def recalculate_unlocker_points(achievement_ids):
     # handle_awardachievement increments under this row lock, so a concurrent award is not lost.
     list(unlockers.select_for_update().values_list("pk", flat=True))
     unlockers.update(
-        softcore_points=_published_unlock_points(hardcore=False),
-        hardcore_points=_published_unlock_points(hardcore=True),
+        softcore_points=_official_unlock_points(hardcore=False),
+        hardcore_points=_official_unlock_points(hardcore=True),
     )

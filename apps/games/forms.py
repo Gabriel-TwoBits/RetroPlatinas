@@ -13,7 +13,7 @@ ORDERINGS = [
     (ORDER_PLAYERS, _("Most players")),
 ]
 DEFAULT_ORDER = ORDER_TITLE
-# A game without a published achievement has no set to play, so it is listed only on request.
+# A game without an official achievement has no set to play, so it is listed only on request.
 DEFAULT_MIN_ACHIEVEMENTS = 1
 TITLE_SEARCH_MAX_LENGTH = Game._meta.get_field("title").max_length
 

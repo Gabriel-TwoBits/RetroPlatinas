@@ -95,7 +95,7 @@ def achievement(game, player):
         description="d",
         points=10,
         mem_addr="0xH0001=1",
-        status=Achievement.STATUS_COMMUNITY,
+        status=Achievement.STATUS_OFFICIAL,
     )
 
 
@@ -367,7 +367,7 @@ def _achievements(game, author, count):
             description="d",
             points=1,
             mem_addr="0xH0001=1",
-            status=Achievement.STATUS_COMMUNITY,
+            status=Achievement.STATUS_OFFICIAL,
         )
         for number in range(count)
     )

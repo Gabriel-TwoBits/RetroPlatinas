@@ -42,7 +42,7 @@ def _user(username, is_active=True):
     return User.objects.create_user(username=username, password=PASSWORD, is_active=is_active)
 
 
-def _achievement(game, title, status=Achievement.STATUS_COMMUNITY):
+def _achievement(game, title, status=Achievement.STATUS_OFFICIAL):
     return Achievement.objects.create(
         game=game,
         author=User.objects.get(username=SYSTEM_ACCOUNT),
@@ -126,17 +126,17 @@ def test_feed_shows_a_hardcore_upgrade_of_an_earlier_softcore_unlock_apart(clien
 
 @pytest.mark.django_db
 @pytest.mark.parametrize("path", PATHS)
-def test_feed_leaves_out_drafts_and_inactive_users(client, crash, player, path):
-    draft = _achievement(crash, "Secret draft", status=Achievement.STATUS_DRAFT)
+def test_feed_leaves_out_unofficial_achievements_and_inactive_users(client, crash, player, path):
+    unofficial = _achievement(crash, "Secret unofficial", status=Achievement.STATUS_UNOFFICIAL)
     beach = _achievement(crash, "N. Sanity Beach")
-    _unlock(player, draft, hardcore=False)
+    _unlock(player, unofficial, hardcore=False)
     _unlock(_user("banned", is_active=False), beach, hardcore=True)
 
     resp = _get(client, path)
 
     assert resp.context["rows"] == []
     body = resp.content.decode()
-    assert "Secret draft" not in body
+    assert "Secret unofficial" not in body
     assert "banned" not in body
 
 
@@ -259,11 +259,11 @@ def test_friends_feed_lists_only_the_unlocks_of_followed_active_users(client, cr
     Friendship.objects.create(user=stranger, friend=player)
     beach = _achievement(crash, "N. Sanity Beach")
     rollers = _achievement(crash, "Jungle Rollers")
-    draft = _achievement(crash, "Secret draft", status=Achievement.STATUS_DRAFT)
+    unofficial = _achievement(crash, "Secret unofficial", status=Achievement.STATUS_UNOFFICIAL)
     now = timezone.now()
     _unlock(followed, beach, hardcore=True, unlocked_at=now - timedelta(hours=HOURS_AGO))
     _unlock(followed, rollers, hardcore=False, unlocked_at=now - timedelta(minutes=MINUTES_AGO))
-    _unlock(followed, draft, hardcore=False)
+    _unlock(followed, unofficial, hardcore=False)
     _unlock(banned, rollers, hardcore=False)
     User.objects.filter(pk=banned.pk).update(is_active=False)
     _unlock(stranger, beach, hardcore=False)

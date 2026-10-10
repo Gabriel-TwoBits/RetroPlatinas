@@ -47,7 +47,7 @@ def _user(username, hardcore_points=0, softcore_points=0, is_active=True):
     )
 
 
-def _achievement(game, title, points=5, status=Achievement.STATUS_COMMUNITY, type=""):
+def _achievement(game, title, points=5, status=Achievement.STATUS_OFFICIAL, type=""):
     return Achievement.objects.create(
         game=game,
         author=User.objects.get(username=SYSTEM_ACCOUNT),
@@ -236,10 +236,12 @@ def test_recent_unlock_badges_use_the_image_routes(client, crash, player):
 
 
 @pytest.mark.django_db
-def test_recent_unlocks_leave_out_drafts(client, crash, player):
-    _unlock(player, _achievement(crash, "Draft one", status=Achievement.STATUS_DRAFT), False)
+def test_recent_unlocks_leave_out_unofficial_achievements(client, crash, player):
+    _unlock(
+        player, _achievement(crash, "Unofficial one", status=Achievement.STATUS_UNOFFICIAL), False
+    )
     body = _get(client, "/users/teste/panel/overview/").content.decode()
-    assert "Draft one" not in body
+    assert "Unofficial one" not in body
     assert "No unlocks yet" in body
 
 
@@ -247,14 +249,14 @@ def test_recent_unlocks_leave_out_drafts(client, crash, player):
 
 
 @pytest.mark.django_db
-def test_completion_counts_distinct_published_achievements_per_mode(client, crash, player):
+def test_completion_counts_distinct_official_achievements_per_mode(client, crash, player):
     hardcore_one = _achievement(crash, "Hardcore one", points=10)
     softcore_one = _achievement(crash, "Softcore one", points=5)
     _achievement(crash, "Locked one", points=25)
-    draft = _achievement(crash, "Draft", status=Achievement.STATUS_DRAFT)
+    unofficial = _achievement(crash, "Unofficial", status=Achievement.STATUS_UNOFFICIAL)
     _unlock(player, hardcore_one, hardcore=True)
     _unlock(player, softcore_one, hardcore=False)
-    _unlock(player, draft, hardcore=True)
+    _unlock(player, unofficial, hardcore=True)
     _play(player, crash, playtime_seconds=TWO_HOURS_SECONDS)
 
     resp = _get(client, "/users/teste/")

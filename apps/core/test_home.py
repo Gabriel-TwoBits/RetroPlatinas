@@ -34,7 +34,7 @@ def _user(username, hardcore_points=0, softcore_points=0, is_active=True):
     )
 
 
-def _achievement(game, title, points=5, status=Achievement.STATUS_COMMUNITY):
+def _achievement(game, title, points=5, status=Achievement.STATUS_OFFICIAL):
     return Achievement.objects.create(
         game=game,
         author=User.objects.get(username=SYSTEM_ACCOUNT),
@@ -100,19 +100,19 @@ def player(db):
 
 
 @pytest.mark.django_db
-def test_numbers_count_only_published_sets_and_active_scoring_players(client, crash):
-    draft_only = Game.objects.create(title="Spyro", console=crash.console)
+def test_numbers_count_only_official_sets_and_active_scoring_players(client, crash):
+    unofficial_only = Game.objects.create(title="Spyro", console=crash.console)
     Game.objects.create(title="Ape Escape", console=crash.console)
     beach = _achievement(crash, "N. Sanity Beach")
-    _achievement(crash, "Jungle Rollers", status=Achievement.STATUS_VERIFIED)
-    draft = _achievement(crash, "Draft", status=Achievement.STATUS_DRAFT)
-    _achievement(draft_only, "Spyro draft", status=Achievement.STATUS_DRAFT)
+    _achievement(crash, "Jungle Rollers", status=Achievement.STATUS_OFFICIAL)
+    unofficial = _achievement(crash, "Unofficial", status=Achievement.STATUS_UNOFFICIAL)
+    _achievement(unofficial_only, "Spyro unofficial", status=Achievement.STATUS_UNOFFICIAL)
     scorer = _user("scorer", hardcore_points=5, softcore_points=5)
     _user("softie", softcore_points=5)
     _user("idle")
     banned = _user("banned", softcore_points=999, is_active=False)
     _unlock(scorer, beach, hardcore=True)
-    _unlock(scorer, draft, hardcore=False)
+    _unlock(scorer, unofficial, hardcore=False)
     _unlock(banned, beach, hardcore=False)
 
     numbers = _get(client).context["numbers"]
@@ -144,10 +144,10 @@ def test_numbers_show_zero_on_an_empty_site(client):
 
 
 @pytest.mark.django_db
-def test_sets_list_published_games_with_icon_link_and_counts(client, crash):
+def test_sets_list_official_games_with_icon_link_and_counts(client, crash):
     beach = _achievement(crash, "N. Sanity Beach", points=LARGE_POINTS)
-    rollers = _achievement(crash, "Jungle Rollers", points=10, status=Achievement.STATUS_VERIFIED)
-    _achievement(crash, "Draft", points=50, status=Achievement.STATUS_DRAFT)
+    rollers = _achievement(crash, "Jungle Rollers", points=10, status=Achievement.STATUS_OFFICIAL)
+    _achievement(crash, "Unofficial", points=50, status=Achievement.STATUS_UNOFFICIAL)
     for username in ("one", "two"):
         scorer = _user(username, softcore_points=LARGE_POINTS)
         _unlock(scorer, beach, hardcore=True)
@@ -173,10 +173,10 @@ def test_sets_list_published_games_with_icon_link_and_counts(client, crash):
 
 
 @pytest.mark.django_db
-def test_sets_leave_out_games_without_published_achievements(client, crash):
+def test_sets_leave_out_games_without_official_achievements(client, crash):
     _achievement(crash, "N. Sanity Beach")
     spyro = Game.objects.create(title="Spyro", console=crash.console)
-    _achievement(spyro, "Draft", status=Achievement.STATUS_DRAFT)
+    _achievement(spyro, "Unofficial", status=Achievement.STATUS_UNOFFICIAL)
     Game.objects.create(title="Ape Escape", console=crash.console)
 
     resp = _get(client)
@@ -202,12 +202,12 @@ def test_sets_are_ordered_by_title_across_consoles(client, crash):
 @pytest.mark.django_db
 def test_set_players_are_the_scoring_players_the_numbers_count(client, crash):
     beach = _achievement(crash, "N. Sanity Beach")
-    draft = _achievement(crash, "Draft", status=Achievement.STATUS_DRAFT)
+    unofficial = _achievement(crash, "Unofficial", status=Achievement.STATUS_UNOFFICIAL)
     scorer = _user("scorer", softcore_points=5)
     _unlock(scorer, beach, hardcore=False)
     _live(scorer, crash)
     _live(_user("idle"), crash)
-    _unlock(_user("drafter", softcore_points=5), draft, hardcore=False)
+    _unlock(_user("unofficial-player", softcore_points=5), unofficial, hardcore=False)
     _unlock(_user("banned", softcore_points=5, is_active=False), beach, hardcore=False)
 
     resp = _get(client)
@@ -229,13 +229,13 @@ def test_sets_use_singular_labels_for_one(client, crash):
 
 
 @pytest.mark.django_db
-def test_sets_show_an_honest_empty_state_without_published_games(client, crash):
-    _achievement(crash, "Draft", status=Achievement.STATUS_DRAFT)
+def test_sets_show_an_honest_empty_state_without_official_games(client, crash):
+    _achievement(crash, "Unofficial", status=Achievement.STATUS_UNOFFICIAL)
 
     body = _get(client).content.decode()
 
     section = _section(body, "Available sets")
-    assert "No sets published yet" in section
+    assert "No official sets yet" in section
     assert "/games/" not in section
     assert "First set" not in body
 
@@ -264,17 +264,17 @@ def test_activity_lists_unlocks_newest_first_once_each(client, crash, player):
 
 
 @pytest.mark.django_db
-def test_activity_leaves_out_drafts_and_inactive_users(client, crash, player):
-    draft = _achievement(crash, "Secret draft", status=Achievement.STATUS_DRAFT)
+def test_activity_leaves_out_unofficial_achievements_and_inactive_users(client, crash, player):
+    unofficial = _achievement(crash, "Secret unofficial", status=Achievement.STATUS_UNOFFICIAL)
     beach = _achievement(crash, "N. Sanity Beach")
-    _unlock(player, draft, hardcore=False)
+    _unlock(player, unofficial, hardcore=False)
     _unlock(_user("banned", is_active=False), beach, hardcore=True)
 
     resp = _get(client)
 
     assert resp.context["activity"] == []
     section = _section(resp.content.decode(), "Recent activity")
-    assert "Secret draft" not in section
+    assert "Secret unofficial" not in section
     assert "banned" not in section
 
 
@@ -399,5 +399,5 @@ def test_home_is_translated_to_brazilian_portuguese(client, crash, player):
 def test_home_empty_states_are_translated_to_brazilian_portuguese(client):
     body = _get(client, "pt-br").content.decode()
 
-    assert "Nenhum set publicado ainda" in body
+    assert "Nenhum set oficial ainda" in body
     assert "Nenhum desbloqueio ainda" in body

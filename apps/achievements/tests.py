@@ -131,13 +131,13 @@ def achievement(game, user):
         description="Complete N. Sanity Beach",
         points=5,
         mem_addr="0xH001234=5",
-        status=Achievement.STATUS_DRAFT,
+        status=Achievement.STATUS_UNOFFICIAL,
     )
 
 
 @pytest.mark.django_db
 def test_achievement_creation(achievement):
-    assert achievement.status == Achievement.STATUS_DRAFT
+    assert achievement.status == Achievement.STATUS_UNOFFICIAL
     assert "First Steps" in str(achievement)
 
 
@@ -150,9 +150,7 @@ def test_achievement_type_defaults_to_none(achievement):
 @pytest.mark.django_db
 def test_achievement_status_choices():
     values = [c[0] for c in Achievement.STATUS_CHOICES]
-    assert Achievement.STATUS_DRAFT in values
-    assert Achievement.STATUS_COMMUNITY in values
-    assert Achievement.STATUS_VERIFIED in values
+    assert values == [Achievement.STATUS_OFFICIAL, Achievement.STATUS_UNOFFICIAL]
 
 
 @pytest.mark.django_db
@@ -325,12 +323,12 @@ def player_token(db):
 
 
 @pytest.mark.django_db
-def test_seed_level_achievements_creates_community_set(seeded_game):
+def test_seed_level_achievements_creates_official_set(seeded_game):
     achievements = seeded_game.achievements.all()
     assert achievements.count() == LEVEL_COUNT
     for achievement in achievements:
         assert achievement.points == ACHIEVEMENT_POINTS
-        assert achievement.status == Achievement.STATUS_COMMUNITY
+        assert achievement.status == Achievement.STATUS_OFFICIAL
         assert achievement.type == Achievement.TYPE_PROGRESSION
         assert achievement.author.username == IMPORT_AUTHOR
 
@@ -375,7 +373,7 @@ def test_seed_level_achievements_updates_an_existing_condition_by_title(player_t
     stale.description = "Complete Jungle Rollers."
     stale.type = Achievement.TYPE_MISSABLE
     stale.points = EDITED_POINTS
-    stale.status = Achievement.STATUS_VERIFIED
+    stale.status = Achievement.STATUS_OFFICIAL
     stale.save()
     UserUnlock.objects.create(user=user, achievement=stale, hardcore=False)
 
@@ -385,7 +383,7 @@ def test_seed_level_achievements_updates_an_existing_condition_by_title(player_t
     assert updated.mem_addr == build_mem_addr(dict(LEVEL_ACHIEVEMENTS)["Jungle Rollers"])
     assert updated.description == build_description("Jungle Rollers")
     assert updated.type == Achievement.TYPE_PROGRESSION
-    assert (updated.points, updated.status) == (EDITED_POINTS, Achievement.STATUS_VERIFIED)
+    assert (updated.points, updated.status) == (EDITED_POINTS, Achievement.STATUS_OFFICIAL)
     assert UserUnlock.objects.filter(achievement=updated).count() == 1
     assert Achievement.objects.filter(game__title=GAME_TITLE).count() == LEVEL_COUNT
 
@@ -401,7 +399,7 @@ def test_seed_level_achievements_refuses_two_rows_with_one_title():
         description="old",
         points=ACHIEVEMENT_POINTS,
         mem_addr="0xH61998=1",
-        status=Achievement.STATUS_COMMUNITY,
+        status=Achievement.STATUS_OFFICIAL,
     )
 
     with pytest.raises(CommandError, match="2 achievements .* are titled 'Boulders'"):
@@ -495,7 +493,7 @@ def test_awardachievement_seeded_hardcore_creates_both_unlocks(client, seeded_ga
 
 ACHIEVEMENT_CHANGELIST_URL = "/admin/achievements/achievement/"
 ALL_STATUSES = [status for status, _ in Achievement.STATUS_CHOICES]
-STATUS_ACTIONS = ("publish_as_community", "mark_verified", "move_to_draft")
+STATUS_ACTIONS = ("make_official", "make_unofficial")
 
 
 def _create_with_status(game, user, status):
@@ -513,13 +511,8 @@ def _create_with_status(game, user, status):
 @pytest.mark.parametrize(
     ("action", "target_status", "expected_message"),
     [
-        (
-            "publish_as_community",
-            Achievement.STATUS_COMMUNITY,
-            "2 achievements moved to Community.",
-        ),
-        ("mark_verified", Achievement.STATUS_VERIFIED, "2 achievements moved to Verified."),
-        ("move_to_draft", Achievement.STATUS_DRAFT, "2 achievements moved to Draft."),
+        ("make_official", Achievement.STATUS_OFFICIAL, "1 achievement made official."),
+        ("make_unofficial", Achievement.STATUS_UNOFFICIAL, "1 achievement made unofficial."),
     ],
 )
 def test_admin_status_action_changes_only_the_selected_achievements(
@@ -555,11 +548,11 @@ def test_admin_status_action_changes_only_the_selected_achievements(
 def test_admin_status_action_message_is_in_brazilian_portuguese(admin_client, achievement):
     response = admin_client.post(
         ACHIEVEMENT_CHANGELIST_URL,
-        {"action": "mark_verified", "_selected_action": [achievement.pk]},
+        {"action": "make_official", "_selected_action": [achievement.pk]},
         follow=True,
     )
 
-    assert [str(m) for m in response.context["messages"]] == ["1 conquista movida para Verificado."]
+    assert [str(m) for m in response.context["messages"]] == ["1 conquista agora é oficial."]
 
 
 @pytest.mark.django_db
@@ -570,7 +563,7 @@ def test_admin_changelist_offers_status_actions_and_coloured_status(admin_client
     assert response.status_code == 200
     for action in STATUS_ACTIONS:
         assert f'value="{action}"' in body
-    assert 'font-weight: bold;">Draft</span>' in body
+    assert 'font-weight: bold;">Unofficial</span>' in body
     assert "column-flags" not in body
 
 
@@ -625,15 +618,15 @@ def test_admin_status_actions_require_change_permission(view_only_staff_client, 
 
     view_only_staff_client.post(
         ACHIEVEMENT_CHANGELIST_URL,
-        {"action": "publish_as_community", "_selected_action": [achievement.pk]},
+        {"action": "make_official", "_selected_action": [achievement.pk]},
     )
 
     achievement.refresh_from_db()
-    assert achievement.status == Achievement.STATUS_DRAFT
+    assert achievement.status == Achievement.STATUS_UNOFFICIAL
 
 
-COMMUNITY_POINTS = 10
-VERIFIED_POINTS = 25
+DEMOTED_POINTS = 10
+KEPT_POINTS = 25
 
 
 def _run_status_action(admin_client, action, achievement):
@@ -648,101 +641,100 @@ def _points_of(player):
 
 
 @pytest.fixture
-def unlocked_community_and_verified(client, game, user, player_token):
+def two_unlocked_official(client, game, user, player_token):
+    """A player who unlocked two official achievements; returns the player and the one the tests
+    change."""
     player, token = player_token
-    community = Achievement.objects.create(
+    demoted = Achievement.objects.create(
         game=game,
         author=user,
-        title="Community",
-        description="c",
-        points=COMMUNITY_POINTS,
+        title="Demoted",
+        description="d",
+        points=DEMOTED_POINTS,
         mem_addr="0xH0001=1",
-        status=Achievement.STATUS_COMMUNITY,
+        status=Achievement.STATUS_OFFICIAL,
     )
-    verified = Achievement.objects.create(
+    kept = Achievement.objects.create(
         game=game,
         author=user,
-        title="Verified",
-        description="v",
-        points=VERIFIED_POINTS,
+        title="Kept",
+        description="k",
+        points=KEPT_POINTS,
         mem_addr="0xH0002=1",
-        status=Achievement.STATUS_VERIFIED,
+        status=Achievement.STATUS_OFFICIAL,
     )
-    for achievement, hardcore in ((community, "1"), (verified, "0")):
+    for achievement, hardcore in ((demoted, "1"), (kept, "0")):
         client.post("/dorequest.php", _award_params(player, token, achievement, hardcore))
-    assert _points_of(player) == (COMMUNITY_POINTS + VERIFIED_POINTS, COMMUNITY_POINTS)
-    return player, community
+    assert _points_of(player) == (DEMOTED_POINTS + KEPT_POINTS, DEMOTED_POINTS)
+    return player, demoted
 
 
 @pytest.mark.django_db
-def test_admin_move_to_draft_drops_the_points_and_republishing_restores_them(
-    admin_client, unlocked_community_and_verified
+def test_admin_make_unofficial_drops_the_points_and_making_official_restores_them(
+    admin_client, two_unlocked_official
 ):
-    player, community = unlocked_community_and_verified
+    player, demoted = two_unlocked_official
 
-    _run_status_action(admin_client, "move_to_draft", community)
+    _run_status_action(admin_client, "make_unofficial", demoted)
 
-    assert _points_of(player) == (VERIFIED_POINTS, 0)
-    kept_modes = UserUnlock.objects.filter(user=player, achievement=community)
+    assert _points_of(player) == (KEPT_POINTS, 0)
+    kept_modes = UserUnlock.objects.filter(user=player, achievement=demoted)
     assert set(kept_modes.values_list("hardcore", flat=True)) == {False, True}
 
-    _run_status_action(admin_client, "publish_as_community", community)
+    _run_status_action(admin_client, "make_official", demoted)
 
-    assert _points_of(player) == (COMMUNITY_POINTS + VERIFIED_POINTS, COMMUNITY_POINTS)
+    assert _points_of(player) == (DEMOTED_POINTS + KEPT_POINTS, DEMOTED_POINTS)
 
 
 @pytest.mark.django_db
 def test_admin_change_form_status_change_recalculates_the_points(
-    admin_client, unlocked_community_and_verified
+    admin_client, two_unlocked_official
 ):
-    player, community = unlocked_community_and_verified
+    player, demoted = two_unlocked_official
 
     response = admin_client.post(
-        f"{ACHIEVEMENT_CHANGELIST_URL}{community.pk}/change/",
+        f"{ACHIEVEMENT_CHANGELIST_URL}{demoted.pk}/change/",
         {
-            "game": community.game_id,
-            "author": community.author_id,
-            "title": community.title,
-            "description": community.description,
-            "points": community.points,
-            "mem_addr": community.mem_addr,
-            "status": Achievement.STATUS_DRAFT,
-            "badge_name": community.badge_name,
+            "game": demoted.game_id,
+            "author": demoted.author_id,
+            "title": demoted.title,
+            "description": demoted.description,
+            "points": demoted.points,
+            "mem_addr": demoted.mem_addr,
+            "status": Achievement.STATUS_UNOFFICIAL,
+            "badge_name": demoted.badge_name,
         },
     )
 
     assert response.status_code == 302
-    assert _points_of(player) == (VERIFIED_POINTS, 0)
+    assert _points_of(player) == (KEPT_POINTS, 0)
 
 
-RAISED_COMMUNITY_POINTS = 50
+RAISED_POINTS = 50
 
 
 @pytest.mark.django_db
 def test_admin_change_form_points_change_recalculates_the_points(
-    admin_client, unlocked_community_and_verified
+    admin_client, two_unlocked_official
 ):
-    player, community = unlocked_community_and_verified
+    player, demoted = two_unlocked_official
 
     response = admin_client.post(
-        f"{ACHIEVEMENT_CHANGELIST_URL}{community.pk}/change/",
+        f"{ACHIEVEMENT_CHANGELIST_URL}{demoted.pk}/change/",
         {
-            "game": community.game_id,
-            "author": community.author_id,
-            "title": community.title,
-            "description": community.description,
-            "points": RAISED_COMMUNITY_POINTS,
-            "mem_addr": community.mem_addr,
-            "status": community.status,
-            "badge_name": community.badge_name,
+            "game": demoted.game_id,
+            "author": demoted.author_id,
+            "title": demoted.title,
+            "description": demoted.description,
+            "points": RAISED_POINTS,
+            "mem_addr": demoted.mem_addr,
+            "status": demoted.status,
+            "badge_name": demoted.badge_name,
         },
     )
 
     assert response.status_code == HTTPStatus.FOUND
-    assert _points_of(player) == (
-        RAISED_COMMUNITY_POINTS + VERIFIED_POINTS,
-        RAISED_COMMUNITY_POINTS,
-    )
+    assert _points_of(player) == (RAISED_POINTS + KEPT_POINTS, RAISED_POINTS)
 
 
 USER_UNLOCK_ADD_URL = "/admin/achievements/userunlock/add/"
@@ -877,12 +869,12 @@ def collectibles_game(db):
 
 
 @pytest.mark.django_db
-def test_seed_collectible_achievements_creates_community_set(collectibles_game):
+def test_seed_collectible_achievements_creates_official_set(collectibles_game):
     achievements = collectibles_game.achievements.all()
 
     assert {a.title: a.points for a in achievements} == COLLECTIBLE_POINTS
     for achievement in achievements:
-        assert achievement.status == Achievement.STATUS_COMMUNITY
+        assert achievement.status == Achievement.STATUS_OFFICIAL
         assert achievement.type == Achievement.TYPE_NONE
         assert achievement.author.username == IMPORT_AUTHOR
         assert achievement.description
@@ -948,7 +940,7 @@ def test_seed_collectible_achievements_updates_an_existing_condition_by_title(pl
     stale.mem_addr = "0xH000189=3"
     stale.description = "old"
     stale.points = EDITED_COLLECTIBLE_POINTS
-    stale.status = Achievement.STATUS_VERIFIED
+    stale.status = Achievement.STATUS_OFFICIAL
     stale.save()
     UserUnlock.objects.create(user=user, achievement=stale, hardcore=False)
 
@@ -962,7 +954,7 @@ def test_seed_collectible_achievements_updates_an_existing_condition_by_title(pl
     assert (updated.description, updated.mem_addr) == seeded[AKU_TITLE]
     assert (updated.points, updated.status) == (
         EDITED_COLLECTIBLE_POINTS,
-        Achievement.STATUS_VERIFIED,
+        Achievement.STATUS_OFFICIAL,
     )
     assert UserUnlock.objects.filter(achievement=updated).count() == 1
 
@@ -977,7 +969,7 @@ def test_seed_collectible_achievements_refuses_two_rows_with_one_title(collectib
         description="old",
         points=WUMPA_POINTS,
         mem_addr="0xH000161=0",
-        status=Achievement.STATUS_COMMUNITY,
+        status=Achievement.STATUS_OFFICIAL,
     )
 
     with pytest.raises(CommandError, match=f"2 achievements .* are titled '{WUMPA_TITLE}'"):
@@ -1035,7 +1027,7 @@ def advanced_game(db):
 
 
 @pytest.mark.django_db
-def test_seed_advanced_achievements_creates_community_set(advanced_game):
+def test_seed_advanced_achievements_creates_official_set(advanced_game):
     achievements = advanced_game.achievements.all()
 
     assert {a.title: a.points for a in achievements} == ADVANCED_POINTS
@@ -1044,7 +1036,7 @@ def test_seed_advanced_achievements_creates_community_set(advanced_game):
         BOSS_TITLE: Achievement.TYPE_PROGRESSION,
     }
     for achievement in achievements:
-        assert achievement.status == Achievement.STATUS_COMMUNITY
+        assert achievement.status == Achievement.STATUS_OFFICIAL
         assert achievement.author.username == IMPORT_AUTHOR
         assert achievement.description
 
@@ -1095,7 +1087,7 @@ def test_seed_advanced_achievements_updates_an_existing_condition_by_title(playe
     stale.mem_addr = "0xH000105=0"
     stale.description = "old"
     stale.points = EDITED_ADVANCED_POINTS
-    stale.status = Achievement.STATUS_VERIFIED
+    stale.status = Achievement.STATUS_OFFICIAL
     stale.save()
     UserUnlock.objects.create(user=user, achievement=stale, hardcore=False)
 
@@ -1107,7 +1099,7 @@ def test_seed_advanced_achievements_updates_an_existing_condition_by_title(playe
         for title, description, mem_addr, _, _ in advanced_achievements()
     }
     assert (updated.description, updated.mem_addr) == seeded[BOSS_TITLE]
-    assert (updated.points, updated.status) == (EDITED_ADVANCED_POINTS, Achievement.STATUS_VERIFIED)
+    assert (updated.points, updated.status) == (EDITED_ADVANCED_POINTS, Achievement.STATUS_OFFICIAL)
     assert UserUnlock.objects.filter(achievement=updated).count() == 1
 
 
@@ -1121,7 +1113,7 @@ def test_seed_advanced_achievements_refuses_two_rows_with_one_title(advanced_gam
         description="old",
         points=BOSS_POINTS,
         mem_addr="0xH000105=0",
-        status=Achievement.STATUS_COMMUNITY,
+        status=Achievement.STATUS_OFFICIAL,
     )
 
     with pytest.raises(CommandError, match=f"2 achievements .* are titled '{BOSS_TITLE}'"):

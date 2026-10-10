@@ -20,7 +20,7 @@ def _ordering(order):
     if order == ORDER_TITLE:
         return ("title", "id")
     elif order == ORDER_ACHIEVEMENTS:
-        return ("-published_achievements", "title", "id")
+        return ("-official_achievements", "title", "id")
     elif order == ORDER_PLAYERS:
         return ("-played_by", "title", "id")
     else:
@@ -33,7 +33,7 @@ def matching_games(filters):
     console_match = Q(console=filters["console"]) if filters["console"] is not None else Q()
     return (
         stats.catalog_games()
-        .filter(title_match, console_match, published_achievements__gte=filters["min_achievements"])
+        .filter(title_match, console_match, official_achievements__gte=filters["min_achievements"])
         .order_by(*_ordering(filters["order"]))
     )
 

@@ -5,8 +5,7 @@ from apps.comments.models import Comment
 
 @admin.register(Comment)
 class CommentAdmin(admin.ModelAdmin):
-    """Moderation only: staff delete any comment here, including one on a draft whose page
-    nobody but its author can open."""
+    """Moderation only: staff delete any comment here."""
 
     list_display = ("created_at", "author", "game", "achievement", "content")
     search_fields = ("author__username", "content")

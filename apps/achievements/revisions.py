@@ -6,7 +6,7 @@ from dataclasses import dataclass
 
 from django.db import transaction
 
-from apps.achievements.editing import can_edit, settable_points, settable_statuses
+from apps.achievements.editing import can_edit, settable_points
 from apps.achievements.models import REVISED_FIELDS, AchievementRevision
 from apps.achievements.scoring import SCORED_FIELDS, recalculate_unlocker_points
 
@@ -88,12 +88,10 @@ def changes_between(previous, revision):
 
 
 def can_revert(user, achievement, revision):
-    """Its author or staff may revert to a revision whose status and points they may also set in
-    the editor: an author cannot restore a verified seal, nor anyone points off RA's scale."""
-    return (
-        can_edit(user, achievement.author_id)
-        and revision.status in settable_statuses(user, achievement.status)
-        and revision.points in settable_points(achievement.points)
+    """Its author or staff may revert to a revision whose points they may also set in the editor:
+    nobody restores points off RA's scale."""
+    return can_edit(user, achievement.author_id) and revision.points in settable_points(
+        achievement.points
     )
 
 

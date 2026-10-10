@@ -1,5 +1,5 @@
-"""The achievement page: its badge, fields, status seal and unlock counts over real unlocks, a
-draft reaching only its author."""
+"""The achievement page: its badge, fields, status chip and unlock counts over real unlocks, an
+unofficial achievement reaching everyone."""
 
 from http import HTTPStatus
 
@@ -42,7 +42,7 @@ def game(db):
     return Game.objects.create(title="Crash Bandicoot", console=console)
 
 
-def _achievement(game, author, status=Achievement.STATUS_VERIFIED):
+def _achievement(game, author, status=Achievement.STATUS_OFFICIAL):
     return Achievement.objects.create(
         game=game,
         author=author,
@@ -95,7 +95,7 @@ def test_page_shows_the_achievement(client, author, game):
     assert "Ride the hog\nwithout a hit" in body
     assert f"{POINTS} pts" in body
     assert "Progression" in body
-    assert "Verified" in body
+    assert "Official" in body
     assert f'href="/users/{author.username}/"' in body
     assert badge_path(achievement.badge_name) in body
     assert f'href="/games/{game.pk}/"' in body
@@ -119,28 +119,24 @@ def test_page_counts_the_unlockers_by_mode_and_the_game_players(client, author, 
 
 
 @pytest.mark.django_db
-def test_achievement_unlockers_counts_nothing_while_a_draft(author, other, game):
+def test_achievement_unlockers_counts_nothing_while_unofficial(author, other, game):
     achievement = _achievement(game, author)
     _unlock(other, achievement, hardcore=True)
     assert stats.achievement_unlockers(achievement) == stats.ByMode(hardcore=1, softcore=1)
-    achievement.status = Achievement.STATUS_DRAFT
+    achievement.status = Achievement.STATUS_UNOFFICIAL
     achievement.save()
     assert stats.achievement_unlockers(achievement) == stats.ByMode(hardcore=0, softcore=0)
 
 
 @pytest.mark.django_db
-def test_a_draft_page_reaches_only_its_author(client, author, other, game):
-    draft = _achievement(game, author, status=Achievement.STATUS_DRAFT)
-    staff = _user("staff", is_staff=True)
-    assert _get(client, _url(draft)).status_code == HTTPStatus.NOT_FOUND
-    for user in (other, staff):
-        client.force_login(user)
-        assert _get(client, _url(draft)).status_code == HTTPStatus.NOT_FOUND
-    client.force_login(author)
-    body = _page(client, draft)
-    assert "Draft" in body
-    assert "A draft is never awarded" in body
-    assert "Players who unlocked it" not in body
+def test_an_unofficial_page_reaches_everyone_without_unlock_counts(client, author, other, game):
+    unofficial = _achievement(game, author, status=Achievement.STATUS_UNOFFICIAL)
+    anonymous_body = _page(client, unofficial)
+    client.force_login(other)
+    for body in (anonymous_body, _page(client, unofficial)):
+        assert "Unofficial" in body
+        assert "An unofficial achievement is never awarded" in body
+        assert "Players who unlocked it" not in body
 
 
 @pytest.mark.django_db

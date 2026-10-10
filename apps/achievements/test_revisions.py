@@ -1,5 +1,5 @@
 """Achievement revisions: one per real change from every write path, the history page with its
-diff, and reverting as a new revision within the editor's status permissions."""
+diff, and reverting as a new revision within the editor's permissions."""
 
 from http import HTTPStatus
 
@@ -71,7 +71,7 @@ def game(db):
     return Game.objects.create(title="Crash Bandicoot", console=console)
 
 
-def _achievement(game, author, status=Achievement.STATUS_DRAFT, editor=None, **fields):
+def _achievement(game, author, status=Achievement.STATUS_UNOFFICIAL, editor=None, **fields):
     achievement = Achievement(
         game=game,
         author=author,
@@ -206,20 +206,20 @@ def test_an_admin_change_records_a_revision_by_the_staff_member(
 def test_an_admin_status_action_records_one_revision_per_changed_achievement(
     admin_client, admin_user, game, author
 ):
-    draft = _achievement(game, author)
-    published = _achievement(game, author, status=Achievement.STATUS_COMMUNITY)
+    unofficial = _achievement(game, author)
+    official = _achievement(game, author, status=Achievement.STATUS_OFFICIAL)
 
     admin_client.post(
         ACHIEVEMENT_CHANGELIST_URL,
-        {"action": "publish_as_community", "_selected_action": [draft.pk, published.pk]},
+        {"action": "make_official", "_selected_action": [unofficial.pk, official.pk]},
     )
 
-    assert [revision.status for revision in _revisions(draft)] == [
-        Achievement.STATUS_DRAFT,
-        Achievement.STATUS_COMMUNITY,
+    assert [revision.status for revision in _revisions(unofficial)] == [
+        Achievement.STATUS_UNOFFICIAL,
+        Achievement.STATUS_OFFICIAL,
     ]
-    assert _revisions(draft)[-1].editor == admin_user
-    assert len(_revisions(published)) == 1
+    assert _revisions(unofficial)[-1].editor == admin_user
+    assert len(_revisions(official)) == 1
 
 
 def test_a_change_to_an_achievement_written_without_save_records_its_prior_state_first(
@@ -303,7 +303,7 @@ def test_uploadachievement_records_a_revision_per_upload_that_changes_it(client,
 
 
 def test_history_lists_every_revision_with_its_timestamp_and_editor(client, game, author):
-    achievement = _achievement(game, author, status=Achievement.STATUS_COMMUNITY)
+    achievement = _achievement(game, author, status=Achievement.STATUS_OFFICIAL)
     for trigger in (SECOND_TRIGGER, THIRD_TRIGGER):
         achievement.mem_addr = trigger
         achievement.save(editor=author)
@@ -321,7 +321,7 @@ def test_history_lists_every_revision_with_its_timestamp_and_editor(client, game
 
 
 def test_history_diffs_the_mem_addr_condition_by_condition(client, game, author):
-    achievement = _achievement(game, author, status=Achievement.STATUS_COMMUNITY)
+    achievement = _achievement(game, author, status=Achievement.STATUS_OFFICIAL)
     achievement.mem_addr = THIRD_TRIGGER
     achievement.save(editor=author)
 
@@ -349,32 +349,29 @@ def test_mem_addr_lines_start_alt_groups_on_new_lines_but_keep_the_bit6_size():
 
 
 def test_history_shows_choice_fields_by_their_label(client, game, author, staff):
-    achievement = _achievement(game, author, status=Achievement.STATUS_COMMUNITY)
-    achievement.status = Achievement.STATUS_VERIFIED
+    achievement = _achievement(game, author, status=Achievement.STATUS_OFFICIAL)
+    achievement.status = Achievement.STATUS_UNOFFICIAL
     achievement.save(editor=staff)
 
     response = client.get(_history_url(achievement), HTTP_ACCEPT_LANGUAGE="en")
 
     [change] = response.context["entries"][0].changes
-    assert change.lines == [("removed", "Community"), ("added", "Verified")]
+    assert change.lines == [("removed", "Official"), ("added", "Unofficial")]
 
 
-def test_history_of_another_users_draft_does_not_exist(client, game, author, other):
+def test_history_of_an_unofficial_achievement_is_public(client, game, author, other):
     achievement = _achievement(game, author)
 
     anonymous = client.get(_history_url(achievement))
     client.force_login(other)
     as_other = client.get(_history_url(achievement))
-    client.force_login(author)
-    as_author = client.get(_history_url(achievement))
 
-    assert anonymous.status_code == HTTPStatus.NOT_FOUND
-    assert as_other.status_code == HTTPStatus.NOT_FOUND
-    assert as_author.status_code == HTTPStatus.OK
+    assert anonymous.status_code == HTTPStatus.OK
+    assert as_other.status_code == HTTPStatus.OK
 
 
 def test_history_of_an_unknown_achievement_or_another_game_is_404(client, game, author):
-    achievement = _achievement(game, author, status=Achievement.STATUS_COMMUNITY)
+    achievement = _achievement(game, author, status=Achievement.STATUS_OFFICIAL)
     other_game = Game.objects.create(title="Spyro", console=game.console)
 
     unknown = client.get(reverse("achievement_history", args=[game.pk, UNKNOWN_ID]))
@@ -385,7 +382,7 @@ def test_history_of_an_unknown_achievement_or_another_game_is_404(client, game, 
 
 
 def test_history_offers_revert_only_to_whom_may_revert(client, game, author, other):
-    achievement = _achievement(game, author, status=Achievement.STATUS_COMMUNITY)
+    achievement = _achievement(game, author, status=Achievement.STATUS_OFFICIAL)
     first = _revisions(achievement)[0]
     achievement.mem_addr = SECOND_TRIGGER
     achievement.save(editor=author)
@@ -403,7 +400,7 @@ def test_history_offers_revert_only_to_whom_may_revert(client, game, author, oth
 
 
 def test_history_is_in_brazilian_portuguese(client, game, author):
-    achievement = _achievement(game, author, status=Achievement.STATUS_COMMUNITY)
+    achievement = _achievement(game, author, status=Achievement.STATUS_OFFICIAL)
     client.force_login(author)
 
     body = client.get(_history_url(achievement), HTTP_ACCEPT_LANGUAGE="pt-br").content.decode()
@@ -412,7 +409,7 @@ def test_history_is_in_brazilian_portuguese(client, game, author):
 
 
 def test_editor_and_game_page_link_to_the_history(client, game, author):
-    achievement = _achievement(game, author, status=Achievement.STATUS_COMMUNITY)
+    achievement = _achievement(game, author, status=Achievement.STATUS_OFFICIAL)
     anonymous_game_page = client.get(reverse("game_detail", args=[game.pk]))
     client.force_login(author)
 
@@ -428,7 +425,7 @@ def test_editor_and_game_page_link_to_the_history(client, game, author):
 
 
 def test_reverting_restores_the_revision_as_a_new_one(client, game, author):
-    achievement = _achievement(game, author, status=Achievement.STATUS_COMMUNITY)
+    achievement = _achievement(game, author, status=Achievement.STATUS_OFFICIAL)
     first = _revisions(achievement)[0]
     achievement.mem_addr = SECOND_TRIGGER
     achievement.title = "Renamed"
@@ -450,7 +447,7 @@ def test_reverting_restores_the_revision_as_a_new_one(client, game, author):
 
 
 def test_staff_reverts_another_authors_achievement(client, game, author, staff):
-    achievement = _achievement(game, author, status=Achievement.STATUS_COMMUNITY)
+    achievement = _achievement(game, author, status=Achievement.STATUS_OFFICIAL)
     first = _revisions(achievement)[0]
     achievement.mem_addr = SECOND_TRIGGER
     achievement.save(editor=author)
@@ -465,7 +462,7 @@ def test_staff_reverts_another_authors_achievement(client, game, author, staff):
 
 
 def test_another_user_cannot_revert(client, game, author, other):
-    achievement = _achievement(game, author, status=Achievement.STATUS_COMMUNITY)
+    achievement = _achievement(game, author, status=Achievement.STATUS_OFFICIAL)
     first = _revisions(achievement)[0]
     achievement.mem_addr = SECOND_TRIGGER
     achievement.save(editor=author)
@@ -480,7 +477,7 @@ def test_another_user_cannot_revert(client, game, author, other):
 
 
 def test_reverting_needs_a_login_and_a_post(client, game, author):
-    achievement = _achievement(game, author, status=Achievement.STATUS_COMMUNITY)
+    achievement = _achievement(game, author, status=Achievement.STATUS_OFFICIAL)
     first = _revisions(achievement)[0]
 
     anonymous = client.post(_revert_url(achievement, first))
@@ -493,8 +490,8 @@ def test_reverting_needs_a_login_and_a_post(client, game, author):
 
 
 def test_reverting_to_another_achievements_revision_is_404(client, game, author):
-    achievement = _achievement(game, author, status=Achievement.STATUS_COMMUNITY)
-    another = _achievement(game, author, status=Achievement.STATUS_COMMUNITY)
+    achievement = _achievement(game, author, status=Achievement.STATUS_OFFICIAL)
+    another = _achievement(game, author, status=Achievement.STATUS_OFFICIAL)
     client.force_login(author)
 
     response = client.post(_revert_url(achievement, _revisions(another)[0]))
@@ -502,56 +499,27 @@ def test_reverting_to_another_achievements_revision_is_404(client, game, author)
     assert response.status_code == HTTPStatus.NOT_FOUND
 
 
-def test_an_author_cannot_self_verify_by_reverting(client, game, author, staff):
-    achievement = _achievement(game, author, status=Achievement.STATUS_COMMUNITY)
-    achievement.status = Achievement.STATUS_VERIFIED
+def test_an_author_may_revert_the_status_staff_set(client, game, author, staff, other):
+    achievement = _achievement(game, author, status=Achievement.STATUS_OFFICIAL)
+    official = _revisions(achievement)[0]
+    achievement.status = Achievement.STATUS_UNOFFICIAL
     achievement.save(editor=staff)
-    verified = _revisions(achievement)[-1]
-    achievement.status = Achievement.STATUS_COMMUNITY
-    achievement.save(editor=staff)
-    client.force_login(author)
+    client.force_login(other)
 
+    forbidden = client.post(_revert_url(achievement, official))
+    client.force_login(author)
     history = client.get(_history_url(achievement)).content.decode()
-    response = client.post(_revert_url(achievement, verified))
+    response = client.post(_revert_url(achievement, official))
 
-    assert _revert_url(achievement, verified) not in history
-    assert response.status_code == HTTPStatus.FORBIDDEN
-    achievement.refresh_from_db()
-    assert achievement.status == Achievement.STATUS_COMMUNITY
-
-
-def test_an_author_cannot_lift_the_verified_seal_by_reverting(client, game, author, staff):
-    achievement = _achievement(game, author, status=Achievement.STATUS_COMMUNITY)
-    community = _revisions(achievement)[0]
-    achievement.status = Achievement.STATUS_VERIFIED
-    achievement.save(editor=staff)
-    client.force_login(author)
-
-    response = client.post(_revert_url(achievement, community))
-
-    assert response.status_code == HTTPStatus.FORBIDDEN
-    achievement.refresh_from_db()
-    assert achievement.status == Achievement.STATUS_VERIFIED
-
-
-def test_staff_may_revert_to_a_verified_revision(client, game, author, staff):
-    achievement = _achievement(game, author, status=Achievement.STATUS_COMMUNITY)
-    achievement.status = Achievement.STATUS_VERIFIED
-    achievement.save(editor=staff)
-    verified = _revisions(achievement)[-1]
-    achievement.status = Achievement.STATUS_COMMUNITY
-    achievement.save(editor=staff)
-    client.force_login(staff)
-
-    response = client.post(_revert_url(achievement, verified))
-
+    assert forbidden.status_code == HTTPStatus.FORBIDDEN
+    assert _revert_url(achievement, official) in history
     assert response.status_code == HTTPStatus.FOUND
     achievement.refresh_from_db()
-    assert achievement.status == Achievement.STATUS_VERIFIED
+    assert achievement.status == Achievement.STATUS_OFFICIAL
 
 
 def test_reverting_cannot_restore_points_off_the_editors_scale(client, game, author):
-    achievement = _achievement(game, author, status=Achievement.STATUS_COMMUNITY)
+    achievement = _achievement(game, author, status=Achievement.STATUS_OFFICIAL)
     achievement.points = OFF_SCALE_POINTS
     achievement.save()
     off_scale = _revisions(achievement)[-1]
@@ -569,7 +537,7 @@ def test_reverting_cannot_restore_points_off_the_editors_scale(client, game, aut
 
 
 def test_reverting_the_points_recounts_the_unlockers(client, game, author, other):
-    achievement = _achievement(game, author, status=Achievement.STATUS_COMMUNITY)
+    achievement = _achievement(game, author, status=Achievement.STATUS_OFFICIAL)
     first = _revisions(achievement)[0]
     achievement.points = NEW_POINTS
     achievement.save(editor=author)

@@ -131,29 +131,18 @@ def is_known_badge_name(name):
     return name == PLACEHOLDER_BADGE_NAME or Badge.objects.named(name) is not None
 
 
-class AchievementQuerySet(models.QuerySet):
-    def visible_to(self, user):
-        """The published achievements, plus `user`'s own drafts: another user's draft (and every
-        draft, for an anonymous visitor) does not exist outside the admin."""
-        published = models.Q(status__in=Achievement.PUBLISHED_STATUSES)
-        if user.is_authenticated:
-            return self.filter(published | models.Q(status=Achievement.STATUS_DRAFT, author=user))
-        else:
-            return self.filter(published)
-
-
 class Achievement(models.Model):
-    STATUS_DRAFT = "draft"
-    STATUS_COMMUNITY = "community"
-    STATUS_VERIFIED = "verified"
+    # Both reach every player and client; only an official achievement is awarded and worth
+    # points.
+    STATUS_OFFICIAL = "official"
+    STATUS_UNOFFICIAL = "unofficial"
     STATUS_CHOICES = [
-        (STATUS_DRAFT, _("Draft")),
-        (STATUS_COMMUNITY, _("Community")),
-        (STATUS_VERIFIED, _("Verified")),
+        (STATUS_OFFICIAL, _("Official")),
+        (STATUS_UNOFFICIAL, _("Unofficial")),
     ]
-    # Served to every client as official, awarded and worth points; a draft is served
-    # only to its author, as unofficial, and is never awarded.
-    PUBLISHED_STATUSES = (STATUS_COMMUNITY, STATUS_VERIFIED)
+    # Read by the Crash seed helpers in `management/crash1.py`; remove once they name
+    # STATUS_OFFICIAL.
+    STATUS_COMMUNITY = STATUS_OFFICIAL
 
     # The rcheevos achievement types, sent verbatim as `Type`; "" is a standard achievement.
     TYPE_NONE = ""
@@ -191,7 +180,7 @@ class Achievement(models.Model):
     status = models.CharField(
         max_length=16,
         choices=STATUS_CHOICES,
-        default=STATUS_DRAFT,
+        default=STATUS_UNOFFICIAL,
         verbose_name=_("status"),
     )
     type = models.CharField(
@@ -203,8 +192,6 @@ class Achievement(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("created at"))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=_("updated at"))
-
-    objects = AchievementQuerySet.as_manager()
 
     class Meta:
         verbose_name = _("achievement")

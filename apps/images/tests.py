@@ -84,7 +84,7 @@ def achievement(game):
         description="d",
         points=5,
         mem_addr="0xH0001=1",
-        status=Achievement.STATUS_COMMUNITY,
+        status=Achievement.STATUS_OFFICIAL,
     )
 
 
@@ -154,10 +154,8 @@ def test_achievement_without_a_badge_serves_the_placeholder(client, achievement)
 
 
 @pytest.mark.django_db
-def test_draft_badge_is_served_without_credentials_for_its_author_to_test(
-    client, achievement, uploaded_badge
-):
-    achievement.status = Achievement.STATUS_DRAFT
+def test_unofficial_badge_is_served_without_credentials(client, achievement, uploaded_badge):
+    achievement.status = Achievement.STATUS_UNOFFICIAL
     achievement.badge_name = uploaded_badge.name
     achievement.save()
 

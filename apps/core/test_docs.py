@@ -148,5 +148,5 @@ def test_statuses_page_shows_the_site_status_chips_in_brazilian_portuguese(clien
             "/docs/statuses-and-contributing/", HTTP_ACCEPT_LANGUAGE="pt-br"
         ).content.decode()
     )
-    for label in ("Rascunho", "Comunidade", "Verificado"):
+    for label in ("Oficial", "Não oficial"):
         assert f"{label}</span>" in article
