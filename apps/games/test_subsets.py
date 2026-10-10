@@ -429,7 +429,7 @@ def test_games_played_count_core_games_only(client, core, played):
 
 
 @pytest.mark.django_db
-def test_ranking_counts_subset_unlocks_but_platinums_of_core_games_only(played):
+def test_ranking_counts_subset_unlocks_but_platinums_of_core_games_only(core, bonus, played):
     tally = stats.ranking_tallies([played.pk], hardcore=True)[played.pk]
 
-    assert tally == stats.RankingTally(unlocked=2, platinums=1)
+    assert tally == stats.RankingTally(unlocked=len((core, bonus)), platinums=1)
