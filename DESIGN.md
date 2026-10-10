@@ -23,7 +23,7 @@ The one layout rule every screen follows:
 2. **Rows** — split by `border-t border-line` hairlines, the first row of a list without one
    (`first:border-t-0`; `components/stat-line.html` does it for statistics).
 3. **Procedural content** (how to start, how to contribute) — a numbered list behind a left
-   rule: `border-l-2 border-brand-dim pl-4`, the step number in `font-mono text-brand`.
+   rule: `border-l-2 border-brand-dim pl-4`, the step number in `font-data text-brand`.
 4. **Fill only on game objects** — game cards, covers and award tiles keep `bg-surface`
    (or the `.rp-hatch` artwork placeholder). Everything else sits on `bg`.
 5. **Flat** — no glows (`shadow-[…]`), radial fills, gradients or tinted washes. One flat
@@ -71,12 +71,22 @@ uses `rounded-2xl`.
 
 ## Typography
 
-Three system-font roles — **no web fonts are loaded** (deliberate; keeps it fast and
-period-appropriate):
+Two families, **self-hosted** from `static/fonts/` (SIL OFL 1.1, licences beside the files) —
+no request leaves the site for a font. Variable woff2, weights 400–700, `latin` and `latin-ext`
+subsets (Portuguese is in `latin`); the two `latin` files are preloaded in `base.html`.
 
-- `font-display` — 'Arial Narrow', 'Roboto Condensed', Arial, sans-serif — titles, labels, UI.
-- `font-sans` — Arial, Helvetica, sans-serif — body, bio, comments.
-- `font-mono` — 'Courier New', Courier, monospace — numbers, points, tags, step numbers.
+- [Oxanium](https://github.com/sevmeyer/oxanium) — chamfered, machined letterforms: the platinum
+  trophy and the console HUD. Two roles:
+  - `font-display` — titles, headings, navigation, tabs, buttons.
+  - `font-data` — points, ranks, counts, dates, tags, step numbers. Same face with tabular
+    figures (`tnum`), so numbers line up in columns.
+- [Atkinson Hyperlegible Next](https://github.com/googlefonts/atkinson-hyperlegible-next) —
+  `font-sans`: body, descriptions, bio, comments. Built for legibility at small sizes.
+
+Arial is the fallback of every role while a font loads (`font-display: swap`).
+
+Code — conditions, `settings.ini` snippets, memory addresses, code-note text, revision diffs, hashes —
+keeps Tailwind's default `font-mono` (the system monospace): its columns have to align.
 
 The smallest size is `text-xs` (12px); the source's 9–11px micro-labels are gone. The logo's
 `RP` monogram and the deferred console icons use Tahoma — a mark, not a UI role.
@@ -242,9 +252,9 @@ is one-way: following someone does not make them follow back.
 queries: only published achievements count, inactive accounts are left out, and a hardcore
 unlock's softcore twin is not counted again.
 
-- **Hero strip** — headline, sub, a mono status line and the dual CTA, over a `border-line2`
+- **Hero strip** — headline, sub, a `font-data` status line and the dual CTA, over a `border-line2`
   rule. One strip, never a full-height hero.
-- **Changelog entry** — a mono category label in its colour + title + body, as a ruled row.
+- **Changelog entry** — a `font-data` category label in its colour + title + body, as a ruled row.
   The new-set entry shows only once a set is published.
 - **Set card** — a game object, so it is filled (`bg-surface`). One per game with a published
   achievement, by title: the icon through the `/Images/` route, title, console, published
@@ -344,7 +354,7 @@ column; another user's draft answers 404, to staff as well: a draft's page is it
 
 - **Header** — a ruled section: a link back to the game, the badge (a game object, on
   `bg-surface`), the title with its status chip (`components/status-chip.html`, as on the game
-  page), a mono line with the points in `gold`, the type when it has one and the author's profile
+  page), a `font-data` line with the points in `gold`, the type when it has one and the author's profile
   link, then the description (escaped, line breaks kept). Outlined buttons under it: *Edit
   achievement* for its author or staff, and *History*.
 - **Unlocks** — stat lines: the active users who unlocked it in any mode, those in hardcore, and
@@ -359,8 +369,8 @@ the game page and of the achievement page, as `<section id="comments">`.
 
 - **Heading** — the comment count as a ruled section heading.
 - **Rows** — oldest first, split by hairlines: the author's identicon, profile link and local
-  timestamp on a mono line, the content under it (escaped, line breaks kept). Its author and
-  staff get a small *Delete* in `danger` at the right of the mono line, which asks to confirm.
+  timestamp on a `font-data` line, the content under it (escaped, line breaks kept). Its author and
+  staff get a small *Delete* in `danger` at the right of the `font-data` line, which asks to confirm.
   No comments shows the empty state.
 - **Form** — for a logged-in viewer, under a `border-line2` rule: the content textarea (at most
   2000 characters) and a filled *Post comment* button. An anonymous visitor gets a *Log in to
@@ -382,14 +392,14 @@ on it, unlocks it (a player's first unlock only) or changes its status; the mess
 in the reader's language when shown.
 
 - **Bell** — a native `<details id="notification-menu">`: an outlined bell icon with the unread
-  count in mono `brand` (none when everything is read). The count polls
+  count in `font-data` `brand` (none when everything is read). The count polls
   `/notifications/unread/` every `POLL_SECONDS` (60 s); once the session is gone it answers 286
   and htmx stops polling. Opening the bell fetches `/notifications/menu/` (the latest 10) into
   the panel, a ruled section with a *See all notifications* link; full width under the header
   below `lg`, a `w-96` panel under the bell from `lg`.
 - **Rows** (`partials/row.html`, shared by the menu and the page) — split by hairlines: a dot
   (`brand` unread, `line` read), the message (`txt` unread, `txt-muted` read) and the relative
-  time on a mono line. Each row is a form: posting it to `/notifications/<id>/read/` marks it
+  time on a `font-data` line. Each row is a form: posting it to `/notifications/<id>/read/` marks it
   read and opens what it is about.
 - **Page** — a ruled header with the title and, when something is unread, an outlined *Mark all
   as read* button (`POST /notifications/read/`); the rows newest first, 50 a page, with the
@@ -400,7 +410,7 @@ in the reader's language when shown.
 `/games/<id>/achievements/new/` and `/games/<id>/achievements/<aid>/edit/`
 (`templates/achievements/edit.html`): the auth-page shape below in a `max-w-2xl` column, the
 title over a `border-line2` rule with the game linked under it. Editing shows the author, created
-and last-updated times as hairline-split mono rows, then the current badge unlocked and locked
+and last-updated times as hairline-split `font-data` rows, then the current badge unlocked and locked
 (game objects, on `bg-surface`), then the form: title, description, points, type, a new badge
 upload, the condition (`mem_addr`, checked by the rcheevos parser) and the status. Saving returns
 to the edit page with the message *Achievement saved.*; *Back to the game* sits under a hairline,
@@ -415,15 +425,15 @@ achievement, another user's draft answering 404.
 - **Header** — a ruled section: a link back to the game, the title, one muted line on what the
   page lists and, for its author or staff, an outlined *Edit achievement* button.
 - **Revisions** — a section headed by the revision count, newest first, rows split by hairlines.
-  Each row's mono line carries the number (`#N`, bold `txt`), the local timestamp, the editor's
+  Each row's `font-data` line carries the number (`#N`, bold `txt`), the local timestamp, the editor's
   profile link in `brand` (or *unknown editor*) and, on the latest revision when the achievement
   still holds it, a `gold` *current* mark. Under it, each changed field's label (uppercase
-  `font-display`) over a mono line diff against the revision before: removed lines in `danger`
+  `font-display`) over a `font-data` line diff against the revision before: removed lines in `danger`
   prefixed `-`, added ones in `state-beaten` prefixed `+`, kept ones in `txt-faint`. `mem_addr`
   is split one condition per line, alt groups starting a new one; status and type show their
   labels. A row that changed nothing says so.
 - **Revert** — a small outlined *Revert to this revision* button (`rounded-tile`) at the right
-  of the mono line, POSTing to `…/history/<rid>/revert/`, only on rows the viewer may revert to:
+  of the `font-data` line, POSTing to `…/history/<rid>/revert/`, only on rows the viewer may revert to:
   their author or staff, a status and points they may set in the editor, values other than the
   current ones. Reverting adds a revision and returns to the page with *Achievement reverted.*
 

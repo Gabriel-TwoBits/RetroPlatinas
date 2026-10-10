@@ -39,7 +39,8 @@ Dark-first, mobile-first SSR: Django templates + **HTMX** (vendored, `static/js/
 - **`state-*` colour utilities are safelisted** — they're composed from data (`state='beaten'` →
   `text-state-beaten`), so scanning the markup can't find them.
 - **Reusable components are partials in `templates/components/`** (`{% include ... with ... %}`),
-  meant for reuse across screens. No web fonts — the type roles are system-font stacks.
+  meant for reuse across screens. Fonts are self-hosted in `static/fonts/` (Oxanium for
+  `font-display`/`font-data`, Atkinson Hyperlegible Next for `font-sans`) — never load them from a CDN.
 - After changing `input.css`/`tailwind.config.js`, rebuild the container (or re-run the CLI) so
   `output.css` regenerates; `podman-compose up` needs `--in-pod=false`.
 
