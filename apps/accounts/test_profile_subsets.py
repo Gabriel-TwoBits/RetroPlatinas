@@ -13,7 +13,14 @@ from django.utils import timezone
 
 from apps.achievements.models import Achievement, UserUnlock
 from apps.achievements.scoring import recalculate_unlocker_points
-from apps.games.models import SET_TYPE_BONUS, SET_TYPE_CHALLENGE, Console, Game, PlayerGame
+from apps.games.models import (
+    SET_TYPE_BONUS,
+    SET_TYPE_CHALLENGE,
+    SET_TYPE_EXCLUSIVE,
+    Console,
+    Game,
+    PlayerGame,
+)
 
 User = get_user_model()
 
@@ -153,6 +160,25 @@ def test_subsets_stay_inside_their_game_not_listed_as_games(client, crash, playe
 
     assert [game["game"] for game in context["completion"]] == [crash.core]
     assert context["games_played"] == 1
+
+
+@pytest.mark.django_db
+def test_a_player_of_an_exclusive_disc_alone_sees_its_seal_inside_the_core_game(client, crash):
+    """An exclusive disc's sessions are recorded on its subset, never on the core game."""
+    exclusive = _subset(crash.core, SET_TYPE_EXCLUSIVE, "Prototype")
+    exclusive_one = _achievement(exclusive, crash.core_one.author, "Prototype one", BONUS_POINTS)
+    disc_player = User.objects.create_user(username="disco", password="pw-secret-123")
+    PlayerGame.objects.create(user=disc_player, game=exclusive)
+    _unlock(disc_player, exclusive_one, hardcore=True)
+
+    response = _profile(client, "/users/disco/")
+    context = response.context
+
+    assert [game["game"] for game in context["completion"]] == [crash.core]
+    assert context["games_played"] == 1
+    assert context["platinums"] == 0
+    assert context["subsets_completed"] == 1
+    assert ">Prototype subset</span>" in response.content.decode()
 
 
 @pytest.mark.django_db

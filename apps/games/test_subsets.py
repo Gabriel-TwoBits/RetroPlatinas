@@ -429,6 +429,14 @@ def test_games_played_count_core_games_only(client, core, played):
 
 
 @pytest.mark.django_db
+def test_games_played_count_an_exclusive_disc_as_its_core_game(core, player):
+    exclusive = _subset(core, SET_TYPE_EXCLUSIVE, set_title="Prototype")
+    PlayerGame.objects.create(user=player, game=exclusive)
+
+    assert stats.games_played_count(player) == 1
+
+
+@pytest.mark.django_db
 def test_ranking_counts_subset_unlocks_but_platinums_of_core_games_only(core, bonus, played):
     tally = stats.ranking_tallies([played.pk], hardcore=True)[played.pk]
 

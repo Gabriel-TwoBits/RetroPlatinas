@@ -161,7 +161,10 @@ def unlocked_achievement_counts(user):
 
 
 def games_played_count(user):
-    return PlayerGame.objects.filter(user=user, game__set_type__isnull=True).count()
+    """The core games the user played, on any of their discs or subsets."""
+    return PlayerGame.objects.filter(user=user).aggregate(
+        games=Count(Coalesce("game__parent_game", "game"), distinct=True)
+    )["games"]
 
 
 def _one_row_per_unlock(unlocks):
@@ -365,17 +368,38 @@ def _started_subsets(subsets, achievements_by_game, hardcore_ids, softcore_ids):
     return [subset for subset in progress if subset.unlocked.softcore > 0]
 
 
+def _core_play_record(core, records):
+    """The user's play record of `core` from `records`, their rows on it and its subsets: the
+    core row alone as is, else an unsaved sum. A specialty or exclusive disc is recorded on its
+    own subset, so a player of that disc alone has no core row."""
+    if len(records) == 1 and records[0].game_id == core.pk:
+        return records[0]
+    else:
+        return PlayerGame(
+            user_id=records[0].user_id,
+            game=core,
+            first_played_at=min(record.first_played_at for record in records),
+            last_played_at=max(record.last_played_at for record in records),
+            playtime_seconds=sum(record.playtime_seconds for record in records),
+        )
+
+
 def played_games_progress(user):
-    """A `GameProgress` for each core game the user played, most recently played first.
+    """A `GameProgress` for each core game the user played, on any of its discs or subsets, most
+    recently played first.
 
     A game is beaten once every official progression and win-condition achievement is unlocked
     in any mode, and platinum once every official achievement is unlocked in hardcore; a subset
     is complete once every official achievement of it is unlocked in hardcore.
     """
-    played = list(
-        PlayerGame.objects.filter(user=user, game__set_type__isnull=True)
-        .select_related("game__console")
-        .order_by("-last_played_at", "id")
+    records_by_core = {}
+    for record in PlayerGame.objects.filter(user=user).select_related(
+        "game__console", "game__parent_game__console"
+    ):
+        records_by_core.setdefault(record.game.core_game, []).append(record)
+    played = sorted(
+        (_core_play_record(core, records) for core, records in records_by_core.items()),
+        key=lambda record: (-record.last_played_at.timestamp(), record.game_id),
     )
     core_ids = [played_game.game_id for played_game in played]
     subsets_by_core = {game_id: [] for game_id in core_ids}
