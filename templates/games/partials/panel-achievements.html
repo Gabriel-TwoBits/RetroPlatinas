@@ -48,6 +48,8 @@
               <p class="font-data text-xs text-txt-faint">{% trans "No disc is linked to this subset yet." %}</p>
             {% endfor %}
           </div>
+        {% else %}
+          {% comment %}The core set is always served: no switch, no disc.{% endcomment %}
         {% endif %}
         {% if user.is_authenticated and set.game.is_subset %}
           <a href="{% url 'achievement_new' set.game.pk %}" class="self-start font-data text-xs text-brand hover:text-brand-hi">{% trans "New achievement in this subset" %}</a>
