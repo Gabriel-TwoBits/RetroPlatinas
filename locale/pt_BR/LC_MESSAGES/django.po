@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RetroPlatinas\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 23:06-0300\n"
+"POT-Creation-Date: 2026-10-09 23:09-0300\n"
 "PO-Revision-Date: 2026-05-23 18:15-0300\n"
 "Last-Translator: RetroPlatinas\n"
 "Language-Team: Brazilian Portuguese\n"
@@ -533,6 +533,20 @@ msgstr "comentário"
 #: apps/comments/models.py:66
 msgid "comments"
 msgstr "comentários"
+
+#: apps/core/feed.py:15
+msgctxt "feed filter"
+msgid "All"
+msgstr "Todos"
+
+#: apps/core/feed.py:16
+msgctxt "feed filter"
+msgid "Friends"
+msgstr "Amigos"
+
+#: apps/core/views.py:28
+msgid "Unknown feed filter"
+msgstr "Filtro de feed desconhecido"
 
 #: apps/games/admin.py:15
 msgid "Game icon"
@@ -1166,7 +1180,7 @@ msgid "Completion"
 msgstr "Conclusão"
 
 #: templates/accounts/partials/sec-recent-unlocks.html:3
-#: templates/feed/feed.html:25
+#: templates/feed/feed.html:28
 msgid "Recent unlocks"
 msgstr "Desbloqueios recentes"
 
@@ -1181,7 +1195,7 @@ msgstr[1] "%(points)s pts"
 
 #: templates/accounts/partials/sec-recent-unlocks.html:22
 #: templates/accounts/partials/sec-recent-unlocks.html:24
-#: templates/feed/partials/feed-list.html:21 templates/home.html:170
+#: templates/feed/partials/feed-list.html:24 templates/home.html:170
 msgid "No unlocks yet"
 msgstr "Nenhum desbloqueio ainda"
 
@@ -1707,7 +1721,22 @@ msgstr ""
 "states, cheats e rewind. Os desbloqueios feitos assim levam o selo hardcore "
 "e aparecem à parte dos softcore; eles valem os mesmos pontos."
 
-#: templates/feed/feed.html:11
+#: templates/feed/feed.html:12
+#, python-format
+msgid ""
+"The latest %(shown)s unlocks by the players you follow, refreshed every "
+"second."
+msgid_plural ""
+"The latest %(shown)s unlocks by the players you follow, refreshed every "
+"%(seconds)s seconds."
+msgstr[0] ""
+"Os últimos %(shown)s desbloqueios dos jogadores que você segue, atualizados "
+"a cada segundo."
+msgstr[1] ""
+"Os últimos %(shown)s desbloqueios dos jogadores que você segue, atualizados "
+"a cada %(seconds)s segundos."
+
+#: templates/feed/feed.html:14
 #, python-format
 msgid "The latest %(shown)s unlocks across the site, refreshed every second."
 msgid_plural ""
@@ -1719,23 +1748,9 @@ msgstr[1] ""
 "Os últimos %(shown)s desbloqueios do site, atualizados a cada %(seconds)s "
 "segundos."
 
-#: templates/feed/feed.html:17
+#: templates/feed/feed.html:20
 msgid "Feed filter"
 msgstr "Filtro do feed"
-
-#: templates/feed/feed.html:18
-msgctxt "feed filter"
-msgid "All"
-msgstr "Todos"
-
-#: templates/feed/feed.html:19
-msgctxt "feed filter"
-msgid "Friends"
-msgstr "Amigos"
-
-#: templates/feed/feed.html:21
-msgid "The Friends filter arrives once you can follow other players."
-msgstr "O filtro Amigos chega quando você puder seguir outros jogadores."
 
 #: templates/feed/partials/feed-list.html:10 templates/home.html:163
 msgid "unlocked"
@@ -1746,11 +1761,23 @@ msgctxt "achievement unlocked in a game"
 msgid "in"
 msgstr "em"
 
-#: templates/feed/partials/feed-list.html:21 templates/home.html:170
+#: templates/feed/partials/feed-list.html:22
+msgid "No unlocks from the players you follow yet"
+msgstr "Nenhum desbloqueio dos jogadores que você segue ainda"
+
+#: templates/feed/partials/feed-list.html:22
+msgid "Follow players from their profiles and their unlocks show up here."
+msgstr "Siga jogadores pelos perfis deles e os desbloqueios aparecem aqui."
+
+#: templates/feed/partials/feed-list.html:22
+msgid "Find players in the ranking →"
+msgstr "Encontre jogadores no ranking →"
+
+#: templates/feed/partials/feed-list.html:24 templates/home.html:170
 msgid "As soon as someone plays, their unlocks show up here."
 msgstr "Assim que alguém jogar, os desbloqueios aparecem aqui."
 
-#: templates/feed/partials/feed-list.html:21 templates/home.html:170
+#: templates/feed/partials/feed-list.html:24 templates/home.html:170
 msgid "Be the first to play →"
 msgstr "Seja o primeiro a jogar →"
 
@@ -2051,6 +2078,9 @@ msgid "%(unread)s unread notification"
 msgid_plural "%(unread)s unread notifications"
 msgstr[0] "%(unread)s notificação não lida"
 msgstr[1] "%(unread)s notificações não lidas"
+
+#~ msgid "The Friends filter arrives once you can follow other players."
+#~ msgstr "O filtro Amigos chega quando você puder seguir outros jogadores."
 
 #~ msgid "hardcore points included"
 #~ msgstr "inclui os pontos hardcore"

@@ -8,23 +8,26 @@
   <section class="border-b border-line2 pb-6">
     <h1 class="font-display text-2xl font-bold leading-tight text-txt sm:text-3xl">{% trans "Feed" %}</h1>
     <p class="mt-2 text-sm leading-relaxed text-txt-muted">
-      {% blocktrans count seconds=poll_seconds %}The latest {{ shown }} unlocks across the site, refreshed every second.{% plural %}The latest {{ shown }} unlocks across the site, refreshed every {{ seconds }} seconds.{% endblocktrans %}
+      {% if feed_filter == "friends" %}
+        {% blocktrans count seconds=poll_seconds %}The latest {{ shown }} unlocks by the players you follow, refreshed every second.{% plural %}The latest {{ shown }} unlocks by the players you follow, refreshed every {{ seconds }} seconds.{% endblocktrans %}
+      {% else %}
+        {% blocktrans count seconds=poll_seconds %}The latest {{ shown }} unlocks across the site, refreshed every second.{% plural %}The latest {{ shown }} unlocks across the site, refreshed every {{ seconds }} seconds.{% endblocktrans %}
+      {% endif %}
     </p>
   </section>
 
   <div class="mt-6 flex flex-col gap-6">
-    <div>
-      <nav aria-label="{% trans 'Feed filter' %}" class="flex flex-wrap gap-2">
-        <a href="{% url 'feed' %}" aria-current="page" class="rounded-chip border border-brand px-3 py-1 font-mono text-xs text-brand no-underline hover:no-underline">{% translate "All" context "feed filter" %}</a>
-        <span aria-disabled="true" class="cursor-not-allowed rounded-chip border border-line px-3 py-1 font-mono text-xs text-txt-faint">{% translate "Friends" context "feed filter" %}</span>
-      </nav>
-      <p class="mt-2 font-mono text-xs text-txt-faint">{% trans "The Friends filter arrives once you can follow other players." %}</p>
-    </div>
+    <nav aria-label="{% trans 'Feed filter' %}" class="flex flex-wrap gap-2">
+      {% for slug, label in filters %}
+        <a href="{% url 'feed' %}{% if slug != 'all' %}?filter={{ slug }}{% endif %}"{% if slug == feed_filter %} aria-current="page"{% endif %}
+           class="rounded-chip border px-3 py-1 font-mono text-xs no-underline hover:no-underline {% if slug == feed_filter %}border-brand text-brand{% else %}border-line2 text-txt-muted hover:text-brand-hi{% endif %}">{{ label }}</a>
+      {% endfor %}
+    </nav>
 
     <section>
       {% include "components/section-heading.html" with title=_("Recent unlocks") %}
       {# Polls the list alone; the wrapper keeps the trigger across swaps. #}
-      <div hx-get="{% url 'feed_list' %}" hx-trigger="every {{ poll_seconds }}s" hx-swap="innerHTML">
+      <div hx-get="{% url 'feed_list' %}{% if feed_filter == 'friends' %}?filter=friends{% endif %}" hx-trigger="every {{ poll_seconds }}s" hx-swap="innerHTML">
         {% include "feed/partials/feed-list.html" %}
       </div>
     </section>

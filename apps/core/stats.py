@@ -191,14 +191,21 @@ def site_unlock_count():
     return _active_users_unlocks().count()
 
 
+def _newest_first(unlocks, limit):
+    return unlocks.select_related("user", "achievement__game__console").order_by(
+        "-unlocked_at", "-id"
+    )[:limit]
+
+
 def recent_site_unlocks(limit):
     """The latest `limit` unlocks of published achievements by active users, newest first, each
     once."""
-    return (
-        _active_users_unlocks()
-        .select_related("user", "achievement__game__console")
-        .order_by("-unlocked_at", "-id")[:limit]
-    )
+    return _newest_first(_active_users_unlocks(), limit)
+
+
+def recent_followed_unlocks(follower, limit):
+    """`recent_site_unlocks` of the users `follower` follows only."""
+    return _newest_first(_active_users_unlocks().filter(user__followed_by__user=follower), limit)
 
 
 def published_games():

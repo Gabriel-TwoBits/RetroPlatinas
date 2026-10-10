@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RetroPlatinas\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 23:06-0300\n"
+"POT-Creation-Date: 2026-10-09 23:09-0300\n"
 "PO-Revision-Date: 2026-05-23 18:15-0300\n"
 "Last-Translator: RetroPlatinas\n"
 "Language-Team: English\n"
@@ -522,6 +522,20 @@ msgstr ""
 
 #: apps/comments/models.py:66
 msgid "comments"
+msgstr ""
+
+#: apps/core/feed.py:15
+msgctxt "feed filter"
+msgid "All"
+msgstr ""
+
+#: apps/core/feed.py:16
+msgctxt "feed filter"
+msgid "Friends"
+msgstr ""
+
+#: apps/core/views.py:28
+msgid "Unknown feed filter"
 msgstr ""
 
 #: apps/games/admin.py:15
@@ -1154,7 +1168,7 @@ msgid "Completion"
 msgstr ""
 
 #: templates/accounts/partials/sec-recent-unlocks.html:3
-#: templates/feed/feed.html:25
+#: templates/feed/feed.html:28
 msgid "Recent unlocks"
 msgstr ""
 
@@ -1169,7 +1183,7 @@ msgstr[1] ""
 
 #: templates/accounts/partials/sec-recent-unlocks.html:22
 #: templates/accounts/partials/sec-recent-unlocks.html:24
-#: templates/feed/partials/feed-list.html:21 templates/home.html:170
+#: templates/feed/partials/feed-list.html:24 templates/home.html:170
 msgid "No unlocks yet"
 msgstr ""
 
@@ -1664,7 +1678,18 @@ msgid ""
 "shown apart from softcore ones; they are worth the same points."
 msgstr ""
 
-#: templates/feed/feed.html:11
+#: templates/feed/feed.html:12
+#, python-format
+msgid ""
+"The latest %(shown)s unlocks by the players you follow, refreshed every "
+"second."
+msgid_plural ""
+"The latest %(shown)s unlocks by the players you follow, refreshed every "
+"%(seconds)s seconds."
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/feed/feed.html:14
 #, python-format
 msgid "The latest %(shown)s unlocks across the site, refreshed every second."
 msgid_plural ""
@@ -1673,22 +1698,8 @@ msgid_plural ""
 msgstr[0] ""
 msgstr[1] ""
 
-#: templates/feed/feed.html:17
+#: templates/feed/feed.html:20
 msgid "Feed filter"
-msgstr ""
-
-#: templates/feed/feed.html:18
-msgctxt "feed filter"
-msgid "All"
-msgstr ""
-
-#: templates/feed/feed.html:19
-msgctxt "feed filter"
-msgid "Friends"
-msgstr ""
-
-#: templates/feed/feed.html:21
-msgid "The Friends filter arrives once you can follow other players."
 msgstr ""
 
 #: templates/feed/partials/feed-list.html:10 templates/home.html:163
@@ -1700,11 +1711,23 @@ msgctxt "achievement unlocked in a game"
 msgid "in"
 msgstr ""
 
-#: templates/feed/partials/feed-list.html:21 templates/home.html:170
+#: templates/feed/partials/feed-list.html:22
+msgid "No unlocks from the players you follow yet"
+msgstr ""
+
+#: templates/feed/partials/feed-list.html:22
+msgid "Follow players from their profiles and their unlocks show up here."
+msgstr ""
+
+#: templates/feed/partials/feed-list.html:22
+msgid "Find players in the ranking →"
+msgstr ""
+
+#: templates/feed/partials/feed-list.html:24 templates/home.html:170
 msgid "As soon as someone plays, their unlocks show up here."
 msgstr ""
 
-#: templates/feed/partials/feed-list.html:21 templates/home.html:170
+#: templates/feed/partials/feed-list.html:24 templates/home.html:170
 msgid "Be the first to play →"
 msgstr ""
 

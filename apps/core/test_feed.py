@@ -2,6 +2,7 @@
 
 from datetime import timedelta
 from http import HTTPStatus
+from urllib.parse import quote
 
 import pytest
 from django.contrib.auth import get_user_model
@@ -9,6 +10,7 @@ from django.db import connection
 from django.test.utils import CaptureQueriesContext
 from django.utils import timezone
 
+from apps.accounts.models import Friendship
 from apps.achievements.models import Achievement, UserUnlock
 from apps.core.feed import FEED_UNLOCKS_SHOWN, POLL_SECONDS
 from apps.games.models import Console, Game
@@ -24,6 +26,9 @@ PASSWORD = "pw-secret-123"
 EXTRA_ROWS = 3
 FEED_PATH = "/feed/"
 FEED_LIST_PATH = "/feed/list/"
+FRIENDS_FEED_PATH = "/feed/?filter=friends"
+FRIENDS_FEED_LIST_PATH = "/feed/list/?filter=friends"
+FRIENDS_PATHS = [FRIENDS_FEED_PATH, FRIENDS_FEED_LIST_PATH]
 PATHS = [FEED_PATH, FEED_LIST_PATH]
 # The desktop nav, the mobile nav and the footer.
 FEED_LINKS_PER_PAGE = 3
@@ -222,15 +227,93 @@ def test_feed_queries_do_not_grow_with_rows(client, crash, path):
 
 
 @pytest.mark.django_db
-def test_feed_shows_all_active_and_friends_disabled_with_a_note(client, crash):
+def test_feed_shows_all_active_and_links_friends(client, crash):
     body = _get(client, FEED_PATH).content.decode()
 
     assert f'<a href="{FEED_PATH}" aria-current="page"' in body
-    start = body.index('aria-disabled="true"')
-    friends = body[start : body.index("</nav>", start)]
-    assert "Friends" in friends
-    assert "href" not in friends
-    assert "The Friends filter arrives once you can follow other players." in body
+    assert f'<a href="{FRIENDS_FEED_PATH}"\n' in body
+    assert 'aria-disabled="true"' not in body
+    assert "unlocks across the site" in body
+
+
+@pytest.mark.django_db
+def test_friends_feed_marks_its_chip_and_polls_its_own_list(client, crash, player):
+    client.force_login(player)
+
+    body = _get(client, FRIENDS_FEED_PATH).content.decode()
+
+    assert f'<a href="{FRIENDS_FEED_PATH}" aria-current="page"' in body
+    assert f'<a href="{FEED_PATH}"\n' in body
+    assert f'hx-get="{FRIENDS_FEED_LIST_PATH}"' in body
+    assert "unlocks by the players you follow" in body
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("path", FRIENDS_PATHS)
+def test_friends_feed_lists_only_the_unlocks_of_followed_active_users(client, crash, player, path):
+    followed = _user("followed")
+    banned = _user("banned")
+    stranger = _user("stranger")
+    Friendship.objects.create(user=player, friend=followed)
+    Friendship.objects.create(user=player, friend=banned)
+    Friendship.objects.create(user=stranger, friend=player)
+    beach = _achievement(crash, "N. Sanity Beach")
+    rollers = _achievement(crash, "Jungle Rollers")
+    draft = _achievement(crash, "Secret draft", status=Achievement.STATUS_DRAFT)
+    now = timezone.now()
+    _unlock(followed, beach, hardcore=True, unlocked_at=now - timedelta(hours=HOURS_AGO))
+    _unlock(followed, rollers, hardcore=False, unlocked_at=now - timedelta(minutes=MINUTES_AGO))
+    _unlock(followed, draft, hardcore=False)
+    _unlock(banned, rollers, hardcore=False)
+    User.objects.filter(pk=banned.pk).update(is_active=False)
+    _unlock(stranger, beach, hardcore=False)
+    _unlock(player, rollers, hardcore=False)
+    client.force_login(player)
+
+    resp = _get(client, path)
+
+    assert resp.status_code == HTTPStatus.OK
+    assert _shown(resp) == [(rollers, False), (beach, True)]
+    assert {row["unlock"].user for row in resp.context["rows"]} == {followed}
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("path", FRIENDS_PATHS)
+def test_friends_feed_without_follows_points_to_the_ranking(client, crash, player, path):
+    _unlock(_user("stranger"), _achievement(crash, "N. Sanity Beach"), hardcore=False)
+    client.force_login(player)
+
+    body = _get(client, path).content.decode()
+
+    assert "No unlocks from the players you follow yet" in body
+    assert 'href="/ranking/"' in body
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("path", FRIENDS_PATHS)
+def test_friends_feed_sends_an_anonymous_visitor_to_log_in(client, crash, path):
+    resp = _get(client, path)
+
+    assert resp.status_code == HTTPStatus.FOUND
+    assert resp.url == f"/login/?next={quote(path, safe='/')}"
+
+
+@pytest.mark.django_db
+def test_friends_feed_poll_with_an_expired_session_returns_to_the_friends_feed(client, crash):
+    resp = client.get(
+        FRIENDS_FEED_LIST_PATH,
+        HTTP_HX_REQUEST="true",
+        HTTP_HX_CURRENT_URL=f"http://testserver{FRIENDS_FEED_PATH}",
+    )
+
+    assert resp.status_code == HTTPStatus.OK
+    assert resp["HX-Redirect"] == "/login/?next=/feed/%3Ffilter%3Dfriends"
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("path", PATHS)
+def test_feed_rejects_an_unknown_filter(client, crash, path):
+    assert _get(client, f"{path}?filter=rivals").status_code == HTTPStatus.BAD_REQUEST
 
 
 # --- Navigation and language ---

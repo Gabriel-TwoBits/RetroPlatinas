@@ -18,6 +18,10 @@
       </li>
     {% endwith %}
   {% empty %}
-    <li>{% url 'getting_started' as start_url %}{% include "components/empty-state.html" with title=_("No unlocks yet") body=_("As soon as someone plays, their unlocks show up here.") href=start_url cta=_("Be the first to play →") %}</li>
+    {% if feed_filter == "friends" %}
+      <li>{% url 'ranking' as ranking_url %}{% include "components/empty-state.html" with title=_("No unlocks from the players you follow yet") body=_("Follow players from their profiles and their unlocks show up here.") href=ranking_url cta=_("Find players in the ranking →") %}</li>
+    {% else %}
+      <li>{% url 'getting_started' as start_url %}{% include "components/empty-state.html" with title=_("No unlocks yet") body=_("As soon as someone plays, their unlocks show up here.") href=start_url cta=_("Be the first to play →") %}</li>
+    {% endif %}
   {% endfor %}
 </ol>
