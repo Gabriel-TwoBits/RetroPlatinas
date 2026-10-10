@@ -12,11 +12,16 @@ from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from django.utils import timezone
 
+from apps.accounts.models import API_TOKEN_HEX_LENGTH
 from apps.achievements.models import Achievement
 from apps.achievements.revisions import revert
 from apps.anticheat.detection import award_validation_hash
 from apps.games.models import Console, Game
-from apps.notifications.display import MENU_NOTIFICATIONS_SHOWN, NOTIFICATIONS_PER_PAGE
+from apps.notifications.display import (
+    MENU_NOTIFICATIONS_SHOWN,
+    NOTIFICATIONS_PER_PAGE,
+    POLL_SECONDS,
+)
 from apps.notifications.models import Notification
 from apps.notifications.views import HTMX_STOP_POLLING
 
@@ -26,7 +31,7 @@ PLAYSTATION_RA_ID = 12
 PASSWORD = "pw-secret-123"
 ACHIEVEMENT_POINTS = 5
 UNKNOWN_ID = 999_999
-API_TOKEN = "t" * 64
+API_TOKEN = "t" * API_TOKEN_HEX_LENGTH
 API_TOKEN_DAYS = 14
 HTMX = {"HTTP_HX_REQUEST": "true"}
 ACHIEVEMENT_CHANGELIST_URL = "/admin/achievements/achievement/"
@@ -446,7 +451,7 @@ def test_the_header_shows_the_bell_with_the_unread_count(client, author):
 
     assert 'id="notification-menu"' in page
     assert "2 unread notifications" in page
-    assert f'hx-get="{UNREAD_URL}" hx-trigger="every 60s"' in page
+    assert f'hx-get="{UNREAD_URL}" hx-trigger="every {POLL_SECONDS}s"' in page
 
 
 @pytest.mark.django_db
