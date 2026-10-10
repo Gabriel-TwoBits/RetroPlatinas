@@ -1,0 +1,31 @@
+{% load i18n %}
+{% comment %}
+  One achievement of a set on the game page. Args:
+    row : an achievement row of apps.games.page
+{% endcomment %}
+{% with achievement=row.achievement %}
+  <div class="flex items-start gap-3 border-t border-line py-3 first:border-t-0">
+    <img src="{{ row.badge_url }}" alt="" width="48" height="48"
+         class="h-12 w-12 shrink-0 rounded-tile {% if row.state == 'hardcore' %}border-2 border-state-hardcore{% elif row.state == 'softcore' %}border-2 border-state-softcore{% elif row.state == 'locked' %}border border-line opacity-60{% else %}border border-line2{% endif %}">
+    <div class="min-w-0 flex-1">
+      <div class="flex flex-wrap items-baseline gap-x-2 text-sm font-semibold {% if row.state == 'locked' %}text-txt-muted{% else %}text-txt{% endif %}">
+        <a href="{% url 'achievement_detail' achievement.game_id achievement.pk %}" class="break-words hover:text-brand-hi">{{ achievement.title }}</a>
+        {% include "components/status-chip.html" %}
+      </div>
+      <div class="mt-1 break-words text-xs leading-snug {% if row.state == 'locked' %}text-txt-faint{% else %}text-txt-muted{% endif %}">{{ achievement.description }}</div>
+      {% if row.unlocked_at %}
+        <div class="mt-1 font-data text-xs text-state-{{ row.state }}">
+          {% if row.state == "hardcore" %}{% trans "hardcore" %}{% else %}{% trans "softcore" %}{% endif %}
+          · <time datetime="{{ row.unlocked_at|date:'c' }}">{{ row.unlocked_at|date:"SHORT_DATETIME_FORMAT" }}</time>
+        </div>
+      {% endif %}
+    </div>
+    <div class="flex shrink-0 flex-col items-end gap-1 font-data text-xs">
+      <span class="{% if row.state == 'locked' %}text-txt-faint{% else %}text-gold{% endif %}">{% blocktrans count points=achievement.points %}{{ points }} pt{% plural %}{{ points }} pts{% endblocktrans %}</span>
+      {% if row.editable %}
+        <a href="{% url 'achievement_edit' achievement.game_id achievement.pk %}" class="text-brand">{% trans "Edit" %}</a>
+      {% endif %}
+      <a href="{% url 'achievement_history' achievement.game_id achievement.pk %}" class="text-brand">{% trans "History" %}</a>
+    </div>
+  </div>
+{% endwith %}

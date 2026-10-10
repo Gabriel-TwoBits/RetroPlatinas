@@ -4,6 +4,7 @@ from datetime import timedelta
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
@@ -59,6 +60,15 @@ SET_TYPE_CHOICES = [
 SUBSET_TYPES = [value for value, _label in SET_TYPE_CHOICES]
 # Played alongside the core set once the player opts in; these have no disc hash of their own.
 OPT_IN_SET_TYPES = [SET_TYPE_BONUS, SET_TYPE_CHALLENGE]
+
+
+def site_set_order(game):
+    """Sort key listing a game's sets on the site: the core set, then its subsets by type in
+    `SET_TYPE_CHOICES` order, oldest first."""
+    if game.set_type is None:
+        return (-1, game.pk)
+    else:
+        return (SUBSET_TYPES.index(game.set_type), game.pk)
 
 
 class GameQuerySet(models.QuerySet):
@@ -143,6 +153,18 @@ class Game(models.Model):
     @property
     def is_subset(self):
         return self.set_type is not None
+
+    @property
+    def anchor(self):
+        """The id of the set's section on its core game's page."""
+        return f"set-{self.pk}"
+
+    def get_absolute_url(self):
+        """The game page; a subset's is its section on its parent game's page."""
+        if self.is_subset:
+            return f"{reverse('game_detail', args=[self.parent_game_id])}#{self.anchor}"
+        else:
+            return reverse("game_detail", args=[self.pk])
 
     @property
     def core_game(self):

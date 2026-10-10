@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "New subset" %} — RetroPlatinas{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-2xl px-4 py-10">
+  <div class="border-b border-line2 pb-3">
+    <h1 class="font-display text-2xl font-bold text-txt">{% trans "New subset" %}</h1>
+    <a href="{% url 'game_detail' game.pk %}" class="mt-1 inline-block text-sm text-brand">{{ game.title }}</a>
+  </div>
+
+  <dl class="mt-4 text-xs leading-snug">
+    <div class="flex gap-3 border-b border-line py-2">
+      <dt class="w-20 shrink-0 font-data text-brand">{% trans "Bonus" %}</dt>
+      <dd class="text-txt-muted">{% trans "Challenges taken on while playing the game normally." %}</dd>
+    </div>
+    <div class="flex gap-3 border-b border-line py-2">
+      <dt class="w-20 shrink-0 font-data text-brand">{% trans "Challenge" %}</dt>
+      <dd class="text-txt-muted">{% trans "A specific challenge run, such as a deathless run." %}</dd>
+    </div>
+    <div class="flex gap-3 border-b border-line py-2">
+      <dt class="w-20 shrink-0 font-data text-brand">{% trans "Specialty" %}</dt>
+      <dd class="text-txt-muted">{% trans "A different disc or version, played alongside the core set. Link its disc hash in the admin." %}</dd>
+    </div>
+    <div class="flex gap-3 border-b border-line py-2">
+      <dt class="w-20 shrink-0 font-data text-brand">{% trans "Exclusive" %}</dt>
+      <dd class="text-txt-muted">{% trans "A different disc or version, played on its own. Link its disc hash in the admin." %}</dd>
+    </div>
+  </dl>
+
+  <form method="post" class="rp-form mt-6">
+    {% csrf_token %}
+    {% include "components/form-fields.html" %}
+    <button type="submit" class="mt-2 w-full rounded-tile bg-brand px-4 py-2.5 font-display text-sm font-bold text-brand-ink">{% trans "Add subset" %}</button>
+  </form>
+
+  <div class="mt-6 border-t border-line pt-4 text-sm text-txt-muted">
+    <a href="{% url 'game_detail' game.pk %}" class="text-brand">{% trans "Back to the game" %}</a>
+  </div>
+</div>
+{% endblock %}

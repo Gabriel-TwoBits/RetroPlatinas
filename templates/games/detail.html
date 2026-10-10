@@ -34,6 +34,9 @@
         <a href="{% url 'achievement_new' game.pk %}" class="inline-block rounded-card border border-line2 px-4 py-2 font-display text-sm font-semibold text-txt-muted no-underline hover:border-brand hover:text-brand-hi hover:no-underline">{% trans "New achievement" %}</a>
       {% endif %}
       <a href="{% url 'code_notes' game.pk %}" class="inline-block rounded-card border border-line2 px-4 py-2 font-display text-sm font-semibold text-txt-muted no-underline hover:border-brand hover:text-brand-hi hover:no-underline">{% trans "Code notes" %}</a>
+      {% if can_add_subsets %}
+        <a href="{% url 'subset_new' game.pk %}" class="inline-block rounded-card border border-line2 px-4 py-2 font-display text-sm font-semibold text-txt-muted no-underline hover:border-brand hover:text-brand-hi hover:no-underline">{% trans "New subset" %}</a>
+      {% endif %}
     </div>
   </section>
 

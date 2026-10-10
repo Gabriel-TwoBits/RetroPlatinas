@@ -244,23 +244,33 @@ def _served_flags(client, requester, token, game):
 
 @pytest.mark.django_db
 @pytest.mark.parametrize("viewer", VIEWERS)
-def test_every_viewer_sees_unofficial_achievements_after_the_official_ones(
+def test_every_viewer_sees_unofficial_achievements_collapsed_after_the_official_ones(
     client, crash, achievements, authors_unofficial, view_as, viewer
 ):
     view_as(viewer)
     body = _page(client, crash)
-    official = body.index(">Official\n")
-    unofficial = body.index(">Unofficial\n")
-    assert official < body.index(">Official one<") < unofficial
+    core = body.index(">Core set\n")
+    unofficial = body.index(f'<details id="unofficial-{crash.pk}"')
+    assert core < body.index(">Official one<") < unofficial
     assert body.index(">Official one<") < body.index(">Official two<")
     assert body.index(">Official three<") < unofficial < body.index(f">{UNOFFICIAL_TITLE}<")
+    assert f'<details id="unofficial-{crash.pk}" class="border-t border-line">' in body
 
 
 @pytest.mark.django_db
-def test_sections_without_achievements_are_hidden(client, crash, authors_unofficial):
+def test_a_set_without_unofficial_achievements_has_no_unofficial_part(client, crash, achievements):
     body = _page(client, crash)
-    assert ">Unofficial\n" in body
-    assert ">Official\n" not in body
+    assert "unofficial-" not in body
+    assert ">Official one<" in body
+
+
+@pytest.mark.django_db
+def test_a_set_with_only_unofficial_achievements_lists_them_collapsed(
+    client, crash, authors_unofficial
+):
+    body = _page(client, crash)
+    assert body.index(f'<details id="unofficial-{crash.pk}"') < body.index(f">{UNOFFICIAL_TITLE}<")
+    assert "No achievements yet" not in body
 
 
 @pytest.mark.django_db
@@ -292,18 +302,18 @@ def test_every_achievement_carries_its_status_chip(client, crash, achievements, 
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    ("language", "official", "unofficial", "chip"),
+    ("language", "core", "unofficial", "chip"),
     [
-        ("en", "Official", "Unofficial", "Official"),
-        ("pt-br", "Oficiais", "Não oficiais", "Oficial"),
+        ("en", "Core set", "Unofficial", "Official"),
+        ("pt-br", "Set principal", "Não oficiais", "Oficial"),
     ],
 )
 def test_sections_and_chips_follow_the_viewer_language(
-    client, crash, achievements, authors_unofficial, language, official, unofficial, chip
+    client, crash, achievements, authors_unofficial, language, core, unofficial, chip
 ):
     body = client.get(f"/games/{crash.pk}/", HTTP_ACCEPT_LANGUAGE=language).content.decode()
-    assert re.search(rf'bg-brand"></span>{official}\s*</h2>', body)
-    assert re.search(rf'bg-gold"></span>{unofficial}\s*</h2>', body)
+    assert re.search(rf'bg-brand"></span>{core}\s*</h2>', body)
+    assert re.search(rf'text-gold">{unofficial} <span', body)
     assert f">{chip}</span>" in _status_chip(body, "Official one")
 
 
@@ -321,7 +331,7 @@ def test_making_an_achievement_official_moves_it_and_serves_it_as_core(
     )
 
     body = _page(client, crash)
-    assert ">Unofficial\n" not in body
+    assert "unofficial-" not in body
     assert ">Official</span>" in _status_chip(body, UNOFFICIAL_TITLE)
     assert _served_flags(client, rival, RIVAL_TOKEN, crash) == {
         UNOFFICIAL_TITLE: ACHIEVEMENT_FLAGS_CORE

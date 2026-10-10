@@ -3,7 +3,10 @@
   {% for leaderboard in leaderboards %}
     <div class="flex items-start gap-3 border-t border-line py-3 first:border-t-0">
       <div class="min-w-0 flex-1">
-        <a href="{% url 'leaderboard_detail' game.pk leaderboard.pk %}" class="block break-words text-sm font-semibold text-txt hover:text-brand-hi">{{ leaderboard.title }}</a>
+        <div class="flex flex-wrap items-baseline gap-x-2">
+          <a href="{% url 'leaderboard_detail' leaderboard.game_id leaderboard.pk %}" class="break-words text-sm font-semibold text-txt hover:text-brand-hi">{{ leaderboard.title }}</a>
+          {% include "components/set-chip.html" with game=leaderboard.game %}
+        </div>
         {% if leaderboard.description %}
           <div class="mt-1 break-words text-xs leading-snug text-txt-muted">{{ leaderboard.description }}</div>
         {% endif %}

@@ -17,6 +17,7 @@ from django.db.models.functions import Coalesce
 
 from apps.achievements.models import Achievement, UserUnlock
 from apps.games.models import Game, PlayerGame
+from apps.leaderboards.models import Leaderboard
 
 
 class ByMode(NamedTuple):
@@ -280,6 +281,30 @@ BEATING_TYPES = (Achievement.TYPE_PROGRESSION, Achievement.TYPE_WIN_CONDITION)
 
 
 @dataclass
+class SetProgress:
+    """A user's progress on one set's official achievements. `complete` once every one is
+    unlocked in hardcore: a core set's platinum, a subset's completion seal."""
+
+    game: Game
+    achievements: int
+    unlocked: ByMode
+    complete: bool
+
+
+def set_progress(game, official_ids, hardcore_ids, softcore_ids):
+    """`official_ids` are the set's official achievements; the id sets hold what the user
+    unlocked in each mode, softcore covering both."""
+    return SetProgress(
+        game=game,
+        achievements=len(official_ids),
+        unlocked=ByMode(
+            hardcore=len(official_ids & hardcore_ids), softcore=len(official_ids & softcore_ids)
+        ),
+        complete=bool(official_ids) and official_ids <= hardcore_ids,
+    )
+
+
+@dataclass
 class GameProgress:
     """A user's progress on one played game's official achievements."""
 
@@ -402,11 +427,14 @@ def leaderboard_entries(leaderboard):
     return leaderboard.entries.filter(user__is_active=True)
 
 
-def game_leaderboards(game):
-    """`game`'s leaderboards, each annotated with `entry_count`: its entries by active users."""
-    return game.leaderboards.annotate(
-        entry_count=Count("entries", filter=Q(entries__user__is_active=True))
-    ).order_by("id")
+def game_leaderboards(games):
+    """The leaderboards of `games`, each annotated with `entry_count`: its entries by active
+    users."""
+    return (
+        Leaderboard.objects.filter(game__in=games)
+        .annotate(entry_count=Count("entries", filter=Q(entries__user__is_active=True)))
+        .order_by("id")
+    )
 
 
 def rank_by_score(entries, lower_is_better, score):

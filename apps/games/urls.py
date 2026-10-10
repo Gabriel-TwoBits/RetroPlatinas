@@ -7,4 +7,6 @@ urlpatterns = [
     path("games/results/", views.games_results, name="games_results"),
     path("games/<int:game_id>/", views.game_detail, name="game_detail"),
     path("games/<int:game_id>/panel/<slug:tab>/", views.game_panel, name="game_panel"),
+    path("games/<int:game_id>/play/", views.subset_opt_in, name="subset_opt_in"),
+    path("games/<int:game_id>/subsets/new/", views.new_subset, name="subset_new"),
 ]

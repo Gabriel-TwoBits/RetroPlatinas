@@ -1,21 +1,33 @@
 from http import HTTPStatus
 
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
 from django.core.paginator import InvalidPage
 from django.http import Http404, HttpResponseBadRequest
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.translation import gettext
-from django.views.decorators.http import require_safe
+from django.views.decorators.http import require_http_methods, require_POST, require_safe
 
+from apps.core import htmx
 from apps.games import listing, page
-from apps.games.forms import GameFilterForm
-from apps.games.models import Game
+from apps.games.forms import GameFilterForm, NewSubsetForm
+from apps.games.models import OPT_IN_SET_TYPES, Game, UserSetPreference
 
 PAGE_PARAM = "page"
+# The opt-in control posts `play`: whether the player plays the subset from the next load on.
+PLAY_PARAM = "play"
+PLAY_VALUES = {"on": True, "off": False}
 
 
 def _game(game_id):
     return get_object_or_404(Game.objects.select_related("console"), pk=game_id)
+
+
+def _core_game(game_id):
+    """The core game `game_id`; a subset has no page of its own."""
+    return get_object_or_404(Game.objects.core().select_related("console"), pk=game_id)
 
 
 def _games_listing(request, template):
@@ -60,12 +72,15 @@ def games_results(request):
 @require_safe
 def game_detail(request, game_id):
     game = _game(game_id)
-    return render(request, "games/detail.html", page.game_context(game, request.user))
+    if game.is_subset:
+        return redirect(game.get_absolute_url())
+    else:
+        return render(request, "games/detail.html", page.game_context(game, request.user))
 
 
 @require_safe
 def game_panel(request, game_id, tab):
-    game = _game(game_id)
+    game = _core_game(game_id)
     achievement_filter = request.GET.get("filter", page.FILTER_ALL)
     if tab not in page.VALID_TABS:
         raise Http404("Unknown game tab")
@@ -74,3 +89,49 @@ def game_panel(request, game_id, tab):
     else:
         context = page.panel_context(game, request.user, tab, achievement_filter)
         return render(request, "games/partials/tabs.html", context)
+
+
+@require_POST
+def subset_opt_in(request, game_id):
+    """Turns a bonus or challenge subset on or off for the player; the emulator serves it from
+    the next time the game loads."""
+    subset = get_object_or_404(
+        Game.objects.filter(set_type__in=OPT_IN_SET_TYPES).select_related("parent_game"),
+        pk=game_id,
+    )
+    play = request.POST.get(PLAY_PARAM)
+    if not request.user.is_authenticated:
+        return htmx.login_redirect(request, f"#{subset.anchor}")
+    elif play not in PLAY_VALUES:
+        return HttpResponseBadRequest(gettext("Choose whether to play the subset."))
+    else:
+        UserSetPreference.objects.update_or_create(
+            user=request.user, subset_game=subset, defaults={"opted_in": PLAY_VALUES[play]}
+        )
+        if htmx.is_htmx(request):
+            return render(
+                request,
+                "games/partials/opt-in.html",
+                page.opt_in_context(subset, PLAY_VALUES[play]),
+            )
+        else:
+            return redirect(subset.get_absolute_url())
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def new_subset(request, game_id):
+    parent = _core_game(game_id)
+    if not request.user.is_staff:
+        raise PermissionDenied("Only staff add subsets.")
+    elif request.method == "POST":
+        form = NewSubsetForm(request.POST, parent=parent)
+    else:
+        form = NewSubsetForm(parent=parent)
+
+    if form.is_bound and form.is_valid():
+        subset = form.save()
+        messages.success(request, gettext("Subset added."))
+        return redirect(subset.get_absolute_url())
+    else:
+        return render(request, "games/subset-new.html", {"form": form, "game": parent})

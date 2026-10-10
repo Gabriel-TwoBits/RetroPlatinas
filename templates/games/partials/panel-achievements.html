@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n humanize %}
 {% if viewer_tracked %}
   <div role="group" aria-label="{% trans 'Filter achievements' %}" class="mb-4 flex flex-wrap gap-2">
     {% for slug, label in filters %}
@@ -8,42 +8,69 @@
     {% endfor %}
   </div>
 {% endif %}
-<div class="flex flex-col gap-8">
-  {% for group in groups %}
-    <section>
-      {% include "components/section-heading.html" with title=group.title accent=group.accent %}
-      <div>
-        {% for row in group.rows %}
-          {% with achievement=row.achievement %}
-            <div class="flex items-start gap-3 border-t border-line py-3 first:border-t-0">
-              <img src="{{ row.badge_url }}" alt="" width="48" height="48"
-                   class="h-12 w-12 shrink-0 rounded-tile {% if row.state == 'hardcore' %}border-2 border-state-hardcore{% elif row.state == 'softcore' %}border-2 border-state-softcore{% elif row.state == 'locked' %}border border-line opacity-60{% else %}border border-line2{% endif %}">
-              <div class="min-w-0 flex-1">
-                <div class="flex flex-wrap items-baseline gap-x-2 text-sm font-semibold {% if row.state == 'locked' %}text-txt-muted{% else %}text-txt{% endif %}">
-                  <a href="{% url 'achievement_detail' game.pk achievement.pk %}" class="break-words hover:text-brand-hi">{{ achievement.title }}</a>
-                  {% include "components/status-chip.html" %}
-                </div>
-                <div class="mt-1 break-words text-xs leading-snug {% if row.state == 'locked' %}text-txt-faint{% else %}text-txt-muted{% endif %}">{{ achievement.description }}</div>
-                {% if row.unlocked_at %}
-                  <div class="mt-1 font-data text-xs text-state-{{ row.state }}">
-                    {% if row.state == "hardcore" %}{% trans "hardcore" %}{% else %}{% trans "softcore" %}{% endif %}
-                    · <time datetime="{{ row.unlocked_at|date:'c' }}">{{ row.unlocked_at|date:"SHORT_DATETIME_FORMAT" }}</time>
-                  </div>
-                {% endif %}
-              </div>
-              <div class="flex shrink-0 flex-col items-end gap-1 font-data text-xs">
-                <span class="{% if row.state == 'locked' %}text-txt-faint{% else %}text-gold{% endif %}">{% blocktrans count points=achievement.points %}{{ points }} pt{% plural %}{{ points }} pts{% endblocktrans %}</span>
-                {% if row.editable %}
-                  <a href="{% url 'achievement_edit' game.pk achievement.pk %}" class="text-brand">{% trans "Edit" %}</a>
-                {% endif %}
-                <a href="{% url 'achievement_history' game.pk achievement.pk %}" class="text-brand">{% trans "History" %}</a>
-              </div>
+<div class="flex flex-col gap-10">
+  {% for set in sets %}
+    <section id="{{ set.game.anchor }}" class="scroll-mt-20">
+      {% include "components/section-heading.html" with title=set.title accent=set.accent %}
+      <div class="mt-3 flex flex-col gap-3">
+        <p class="text-sm leading-snug text-txt-muted">{{ set.explanation }}</p>
+        {% if set.game.is_subset and set.game.description %}
+          <p class="whitespace-pre-line break-words text-sm leading-relaxed text-txt-muted">{{ set.game.description }}</p>
+        {% endif %}
+        <div class="font-data text-xs text-txt-faint">
+          {% blocktrans count achievements=set.official_achievements with shown=set.official_achievements|intcomma %}{{ shown }} official achievement{% plural %}{{ shown }} official achievements{% endblocktrans %}
+          · <span class="text-gold">{% blocktrans count points=set.official_points with shown=set.official_points|intcomma %}{{ shown }} pt{% plural %}{{ shown }} pts{% endblocktrans %}</span>
+        </div>
+        {% if set.progress and set.official_achievements %}
+          <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
+            <div class="h-1.5 min-w-24 flex-1 overflow-hidden rounded-full bg-elevated">
+              <div class="h-full {% if set.progress.complete %}bg-{{ set.seal_tone }}{% else %}bg-state-progress{% endif %}" style="width:{{ set.percent }}%"></div>
             </div>
-          {% endwith %}
+            <span class="font-data text-xs text-txt-muted">
+              {% blocktrans with unlocked=set.progress.unlocked.softcore total=set.progress.achievements hardcore=set.progress.unlocked.hardcore percent=set.percent %}{{ unlocked }}/{{ total }} unlocked ({{ hardcore }} hardcore) · {{ percent }}%{% endblocktrans %}
+            </span>
+            {% if set.progress.complete %}
+              <span class="rounded-chip border border-current px-1.5 font-data text-xs font-semibold text-{{ set.seal_tone }}">{{ set.seal }}</span>
+            {% endif %}
+          </div>
+        {% endif %}
+        {% if set.opt_in %}
+          {% include "games/partials/opt-in.html" with subset=set.opt_in.subset opted_in=set.opt_in.opted_in %}
+        {% elif set.discs is not None %}
+          <div class="flex flex-col gap-1">
+            <p class="text-xs leading-snug text-txt-muted">{% trans "Plays when you open the game from one of these discs:" %}</p>
+            {% for disc in set.discs %}
+              <div class="flex flex-wrap items-baseline gap-x-2 text-xs">
+                <span class="font-data text-txt">{{ disc.label }}</span>
+                <code class="break-all font-mono text-txt-faint">{{ disc.md5 }}</code>
+              </div>
+            {% empty %}
+              <p class="font-data text-xs text-txt-faint">{% trans "No disc is linked to this subset yet." %}</p>
+            {% endfor %}
+          </div>
+        {% endif %}
+        {% if user.is_authenticated and set.game.is_subset %}
+          <a href="{% url 'achievement_new' set.game.pk %}" class="self-start font-data text-xs text-brand hover:text-brand-hi">{% trans "New achievement in this subset" %}</a>
+        {% endif %}
+      </div>
+      <div class="mt-3">
+        {% for row in set.official_rows %}
+          {% include "games/partials/achievement-row.html" %}
         {% endfor %}
+        {% if set.unofficial_rows %}
+          <details id="unofficial-{{ set.game.pk }}" class="border-t border-line">
+            <summary class="cursor-pointer py-3 font-display text-sm font-semibold text-gold">{% translate "Unofficial" context "achievement section" %} <span class="font-data text-xs font-normal text-txt-faint">{{ set.unofficial_rows|length }}</span></summary>
+            <div>
+              {% for row in set.unofficial_rows %}
+                {% include "games/partials/achievement-row.html" %}
+              {% endfor %}
+            </div>
+          </details>
+        {% endif %}
+        {% if not set.official_rows and not set.unofficial_rows %}
+          {% include "components/empty-state.html" with title=set.empty_title %}
+        {% endif %}
       </div>
     </section>
-  {% empty %}
-    {% include "components/empty-state.html" with title=empty_title %}
   {% endfor %}
 </div>

@@ -1,0 +1,29 @@
+{% load i18n %}
+{% comment %}
+  Whether the viewer plays a bonus or challenge subset; swapped whole after a change. Args:
+    subset   : the subset's Game
+    opted_in : whether the viewer plays it
+{% endcomment %}
+<div id="opt-in-{{ subset.pk }}" class="flex flex-col gap-2">
+  {% if user.is_authenticated %}
+    <form method="post" action="{% url 'subset_opt_in' subset.pk %}" hx-post="{% url 'subset_opt_in' subset.pk %}" hx-target="#opt-in-{{ subset.pk }}" hx-swap="outerHTML">
+      {% csrf_token %}
+      {% if opted_in %}
+        <input type="hidden" name="play" value="off">
+        <button type="submit" role="switch" aria-checked="true" class="inline-flex items-center gap-2 rounded-card border border-brand px-4 py-2 font-display text-sm font-semibold text-brand hover:text-brand-hi">
+          <span class="h-2 w-2 rounded-full bg-brand" aria-hidden="true"></span>{% trans "Play this subset" %}
+          <span class="font-data text-xs">{% trans "On" context "subset opt-in" %}</span>
+        </button>
+      {% else %}
+        <input type="hidden" name="play" value="on">
+        <button type="submit" role="switch" aria-checked="false" class="inline-flex items-center gap-2 rounded-card border border-line2 px-4 py-2 font-display text-sm font-semibold text-txt-muted hover:border-brand hover:text-brand-hi">
+          <span class="h-2 w-2 rounded-full border border-line2" aria-hidden="true"></span>{% trans "Play this subset" %}
+          <span class="font-data text-xs">{% trans "Off" context "subset opt-in" %}</span>
+        </button>
+      {% endif %}
+    </form>
+  {% else %}
+    <a href="{% url 'login' %}?next={{ subset.get_absolute_url|urlencode }}" class="self-start rounded-card border border-line2 px-4 py-2 font-display text-sm font-semibold text-txt-muted no-underline hover:border-brand hover:text-brand-hi hover:no-underline">{% trans "Log in to play this subset" %}</a>
+  {% endif %}
+  <p class="text-xs leading-snug text-txt-faint">{% trans "Off until you turn it on. A change applies the next time you open the game in the emulator." %}</p>
+</div>

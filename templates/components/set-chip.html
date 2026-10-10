@@ -1,0 +1,8 @@
+{% load i18n %}
+{% comment %}
+  Outlined violet chip naming the subset an achievement or leaderboard belongs to; nothing for a
+  core set. Args: game (the set's Game)
+{% endcomment %}
+{% if game.is_subset %}
+  <span class="rounded-chip border border-brand2 px-1.5 font-data text-xs font-normal text-brand2" title="{{ game.get_set_type_display }}">{% blocktrans with name=game.set_title %}{{ name }} subset{% endblocktrans %}</span>
+{% endif %}
