@@ -102,8 +102,8 @@ def upsert_achievements(game, author, rows):
     `rows` holds `(title, description, mem_addr, points, type)`. A missing title is created as
     `official`; an existing one, matched by title in any set of the game, moves to `game` and gets
     the current condition, description and type while its id, status, points, author and unlocks
-    are left alone. Raises `CommandError` on two
-    achievements with one title: the caller's transaction then writes nothing.
+    are left alone. Raises `CommandError` on two achievements with one title: the caller's
+    transaction then writes nothing.
     """
     return _upsert_by_title(
         Achievement,
