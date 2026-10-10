@@ -150,12 +150,13 @@ A game's own achievements are its **core set**: the accessible 100%. Challenges 
 **subsets**, `Game` rows with a parent game (`parent_game`, always a core game), a type
 (`set_type`) and the title the emulator shows (`set_title`), as RetroAchievements' "supporting
 games": achievements, leaderboards, players, rarity and `AchievementsRemaining` are per subset.
-Staff add subsets inline on the core game's admin page; a subset is on its parent's console and
-moves with it.
+Staff add subsets inline on the core game's admin page or from the game page
+(`/games/<core id>/subsets/new/`); a subset is on its parent's console and moves with it. A
+subset's page, `/games/<subset id>/`, redirects to its section of the core game's page.
 
 | Type | Loaded |
 | --- | --- |
-| `bonus`, `challenge` | with the core set's discs, once the player opts in (`UserSetPreference`, off without a row; editable in the admin). They take no hash of their own |
+| `bonus`, `challenge` | with the core set's discs, once the player opts in with *Play this subset* in its section of the game page (`POST /games/<subset id>/play/` with `play=on` or `off`, stored as a `UserSetPreference`: off without a row, also editable in the admin); it applies the next time the game is opened in the emulator. They take no hash of their own |
 | `specialty` | by its own disc hash: the core set, the specialty set and the opted-in bonus and challenge subsets |
 | `exclusive` | by its own disc hash, alone |
 
@@ -175,8 +176,10 @@ hash falls back to `g`. `startsession` returns the unlocks of every set the hash
 A subset shares its parent's memory map, so its code notes are the parent's: `codenotes2`,
 `submitcodenote` and `submitcodenotes` with a subset's id read and write the parent's notes, and
 the site's code-notes pages of a subset redirect to the parent's. The games list, the home page
-and "games played" (profile, stats API) list core games only, and a platinum is a core set
-completed in hardcore; a subset's points and unlocks count everywhere.
+and "games played" (profile, stats API) list core games only, a specialty or exclusive disc
+counting as its core game, and a platinum is a core set completed in hardcore; a subset completed
+in hardcore earns its own *Completed* seal instead, and a subset's points and unlocks count
+everywhere.
 
 ## Stats API
 
