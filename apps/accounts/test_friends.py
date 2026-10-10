@@ -296,6 +296,13 @@ def test_follow_control_renders_in_brazilian_portuguese(client, alice, bob):
     assert "Deixar de seguir" in body
 
 
+@pytest.mark.django_db
+def test_a_profile_without_followers_reads_zero_followers_in_brazilian_portuguese(client, bob):
+    body = client.get(PROFILE_PATH, HTTP_ACCEPT_LANGUAGE="pt-br").content.decode()
+
+    assert "0 seguidores" in body
+
+
 # --- Friends page ---
 
 

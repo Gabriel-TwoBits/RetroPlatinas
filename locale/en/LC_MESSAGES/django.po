@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RetroPlatinas\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 23:09-0300\n"
+"POT-Creation-Date: 2026-10-09 23:27-0300\n"
 "PO-Revision-Date: 2026-05-23 18:15-0300\n"
 "Last-Translator: RetroPlatinas\n"
 "Language-Team: English\n"
@@ -967,24 +967,28 @@ msgstr ""
 msgid "How to start →"
 msgstr ""
 
-#: templates/accounts/partials/follow-control.html:5
+#: templates/accounts/partials/follow-control.html:6
+msgid "0 followers"
+msgstr ""
+
+#: templates/accounts/partials/follow-control.html:6
 #, python-format
 msgid "%(shown)s follower"
 msgid_plural "%(shown)s followers"
 msgstr[0] ""
 msgstr[1] ""
 
-#: templates/accounts/partials/follow-control.html:6
+#: templates/accounts/partials/follow-control.html:7
 #, python-format
 msgid "%(shown)s following"
 msgstr ""
 
-#: templates/accounts/partials/follow-control.html:11
-#: templates/accounts/partials/follow-control.html:19
+#: templates/accounts/partials/follow-control.html:12
+#: templates/accounts/partials/follow-control.html:20
 msgid "Follow"
 msgstr ""
 
-#: templates/accounts/partials/follow-control.html:16
+#: templates/accounts/partials/follow-control.html:17
 msgid "Unfollow"
 msgstr ""
 
