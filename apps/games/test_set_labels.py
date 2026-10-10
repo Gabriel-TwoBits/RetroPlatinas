@@ -10,7 +10,7 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 
 from apps.achievements.models import Achievement, UserUnlock
-from apps.games.models import SET_TYPE_BONUS, Console, Game
+from apps.games.models import SET_TYPE_BONUS, SET_TYPE_EXCLUSIVE, Console, Game
 from apps.leaderboards.models import Leaderboard
 
 User = get_user_model()
@@ -112,6 +112,23 @@ def test_a_subset_achievement_counts_the_core_games_players(client, core, bonus,
     body = _get(client, f"/games/{bonus.pk}/achievements/{bonus_one.pk}/")
     line = body[body.index("Players of the game") :]
     assert 'text-txt">2</span>' in line[: line.index("</span>") + len("</span>")]
+
+
+@pytest.mark.django_db
+def test_an_exclusive_achievement_counts_the_players_of_its_own_disc(client, core, player):
+    exclusive = Game.objects.create(
+        title="Crash Bandicoot [Subset - Prototype]",
+        console=core.console,
+        parent_game=core,
+        set_type=SET_TYPE_EXCLUSIVE,
+        set_title="Prototype",
+    )
+    exclusive_one = _achievement(exclusive, player, "Prototype one")
+    core.players.create(user=User.objects.create_user(username="core-player"))
+    exclusive.players.create(user=player)
+    body = _get(client, f"/games/{exclusive.pk}/achievements/{exclusive_one.pk}/")
+    line = body[body.index("Players of the game") :]
+    assert 'text-txt">1</span>' in line[: line.index("</span>") + len("</span>")]
 
 
 @pytest.mark.django_db

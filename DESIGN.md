@@ -424,7 +424,8 @@ column; every achievement, official or unofficial, has a page anyone opens.
   link, then the description (escaped, line breaks kept). Outlined buttons under it: *Edit
   achievement* for its author or staff, and *History*.
 - **Unlocks** — stat lines: the active users who unlocked it in any mode, those in hardcore, and
-  the active users who played the core game. An unofficial achievement shows one muted line
+  the active users who played the game it is recorded on (the core game for a core, bonus or
+  challenge achievement; the subset's own disc for a specialty or exclusive one). An unofficial achievement shows one muted line
   instead: it is never awarded.
 - **Comments** — the shared comments section (see *Comments*).
 

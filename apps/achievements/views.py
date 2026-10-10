@@ -28,6 +28,7 @@ from apps.achievements.scoring import SCORED_FIELDS, recalculate_unlocker_points
 from apps.comments.threads import thread
 from apps.core import stats
 from apps.games.models import Game
+from apps.games.sets import session_game
 from apps.images.catalog import badge_path
 
 
@@ -87,8 +88,7 @@ def achievement_detail(request, game_id, achievement_id):
             "game": achievement.game,
             "badge_url": badge_path(achievement.badge_name),
             "unlockers": stats.achievement_unlockers(achievement),
-            # A subset's own players are only those who unlocked one of its achievements.
-            "players": stats.game_players(achievement.game.core_game).count(),
+            "players": stats.game_players(session_game(achievement.game)).count(),
             "editable": can_edit(request.user, achievement.author_id),
             "thread": thread(achievement, request.user),
         },
