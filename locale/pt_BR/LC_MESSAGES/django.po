@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RetroPlatinas\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-10 13:38-0300\n"
+"POT-Creation-Date: 2026-10-10 13:59-0300\n"
 "PO-Revision-Date: 2026-05-23 18:15-0300\n"
 "Last-Translator: RetroPlatinas\n"
 "Language-Team: Brazilian Portuguese\n"
@@ -30,8 +30,8 @@ msgid "bio"
 msgstr "bio"
 
 #: apps/accounts/models.py:38 apps/achievements/models.py:365
-#: apps/anticheat/models.py:24 apps/games/models.py:247
-#: apps/games/models.py:316 apps/leaderboards/models.py:93
+#: apps/anticheat/models.py:24 apps/games/models.py:267
+#: apps/games/models.py:336 apps/leaderboards/models.py:93
 #: apps/notifications/models.py:35
 msgid "user"
 msgstr "usuário"
@@ -281,8 +281,8 @@ msgid "Missable"
 msgstr "Perdível"
 
 #: apps/achievements/models.py:163 apps/achievements/models.py:392
-#: apps/comments/models.py:51 apps/games/models.py:112 apps/games/models.py:184
-#: apps/games/models.py:253 apps/leaderboards/models.py:37
+#: apps/comments/models.py:51 apps/games/models.py:112 apps/games/models.py:204
+#: apps/games/models.py:273 apps/leaderboards/models.py:37
 msgid "game"
 msgstr "jogo"
 
@@ -399,7 +399,8 @@ msgstr "anotações de código"
 
 #: apps/achievements/models.py:424
 msgid "A subset shares its parent game's code notes: note the parent game."
-msgstr "Um subset compartilha as anotações de código do jogo pai: anote no jogo pai."
+msgstr ""
+"Um subset compartilha as anotações de código do jogo pai: anote no jogo pai."
 
 #: apps/achievements/triggers.py:40
 msgid "The condition could not be checked right now; try again later."
@@ -605,7 +606,7 @@ msgstr "Filtro de feed desconhecido"
 msgid "Game icon"
 msgstr "Ícone do jogo"
 
-#: apps/games/admin.py:68 apps/games/models.py:323
+#: apps/games/admin.py:68 apps/games/models.py:343
 msgid "subset"
 msgstr "subset"
 
@@ -717,106 +718,116 @@ msgstr "O nome que o emulador mostra para o subset, como \"Bônus\"."
 msgid "games"
 msgstr "jogos"
 
-#: apps/games/models.py:154
+#: apps/games/models.py:163
 msgid "A game with a parent game is a subset: choose its type."
 msgstr "Um jogo com jogo pai é um subset: escolha o tipo dele."
 
-#: apps/games/models.py:157
+#: apps/games/models.py:166
 msgid "A subset needs a parent game."
 msgstr "Um subset precisa de um jogo pai."
 
-#: apps/games/models.py:164
+#: apps/games/models.py:173
 msgid "A game cannot be its own parent."
 msgstr "Um jogo não pode ser pai de si mesmo."
 
-#: apps/games/models.py:166
+#: apps/games/models.py:175
 msgid "The parent game must be a core game, not a subset."
 msgstr "O jogo pai precisa ser um jogo principal, não um subset."
 
-#: apps/games/models.py:168
+#: apps/games/models.py:177
 msgid "A subset is on its parent game's console."
 msgstr "Um subset fica no console do jogo pai."
 
-#: apps/games/models.py:172
+#: apps/games/models.py:181
 msgid "This game has subsets of its own, so it cannot be a subset."
 msgstr "Este jogo tem subsets próprios, então não pode ser um subset."
 
-#: apps/games/models.py:174
+#: apps/games/models.py:188
+msgid ""
+"A bonus or challenge subset loads with its parent game's discs: move this "
+"game's hashes to the parent game first."
+msgstr ""
+"Um subset bônus ou de desafio carrega com os discos do jogo pai: mova antes "
+"os hashes deste jogo para o jogo pai."
+
+#: apps/games/models.py:194
 msgid "A subset needs a title."
 msgstr "Um subset precisa de um título."
 
-#: apps/games/models.py:187
+#: apps/games/models.py:207
 msgid "MD5"
 msgstr "MD5"
 
-#: apps/games/models.py:189
+#: apps/games/models.py:209
 msgid "label"
 msgstr "rótulo"
 
-#: apps/games/models.py:192
+#: apps/games/models.py:212
 msgid "game hash"
 msgstr "hash do jogo"
 
-#: apps/games/models.py:193
+#: apps/games/models.py:213
 msgid "game hashes"
 msgstr "hashes do jogo"
 
-#: apps/games/models.py:205
+#: apps/games/models.py:225
 #, python-format
 msgid "Enter an MD5 hash: %(digits)s hexadecimal digits."
 msgstr "Informe um hash MD5: %(digits)s dígitos hexadecimais."
 
-#: apps/games/models.py:213
+#: apps/games/models.py:233
 msgid ""
 "A bonus or challenge subset loads with its parent game's discs: link the "
 "hash to the parent game."
-msgstr "Um subset bônus ou de desafio carrega com os discos do jogo pai: vincule o hash ao jogo pai."
+msgstr ""
+"Um subset bônus ou de desafio carrega com os discos do jogo pai: vincule o "
+"hash ao jogo pai."
 
-#: apps/games/models.py:255
+#: apps/games/models.py:275
 msgid "first played at"
 msgstr "jogou pela primeira vez em"
 
-#: apps/games/models.py:256
+#: apps/games/models.py:276
 msgid "last played at"
 msgstr "jogou pela última vez em"
 
-#: apps/games/models.py:257
+#: apps/games/models.py:277
 msgid "playtime (seconds)"
 msgstr "tempo de jogo (segundos)"
 
-#: apps/games/models.py:259
+#: apps/games/models.py:279
 msgid "last rich presence"
 msgstr "último rich presence"
 
-#: apps/games/models.py:261
+#: apps/games/models.py:281
 msgid "last ping at"
 msgstr "último ping em"
 
-#: apps/games/models.py:263
+#: apps/games/models.py:283
 msgid "session started at"
 msgstr "sessão iniciada em"
 
-#: apps/games/models.py:265
+#: apps/games/models.py:285
 msgid "hardcore session"
 msgstr "sessão hardcore"
 
-#: apps/games/models.py:270
+#: apps/games/models.py:290
 msgid "player game"
 msgstr "jogo do jogador"
 
-#: apps/games/models.py:271
+#: apps/games/models.py:291
 msgid "player games"
 msgstr "jogos dos jogadores"
 
-#: apps/games/models.py:325
+#: apps/games/models.py:345
 msgid "opted in"
 msgstr "ativado"
 
-#: apps/games/models.py:328
+#: apps/games/models.py:348
 msgid "subset preference"
 msgstr "preferência de subset"
 
-#: apps/games/models.py:329
+#: apps/games/models.py:349
 msgid "subset preferences"
 msgstr "preferências de subset"
 

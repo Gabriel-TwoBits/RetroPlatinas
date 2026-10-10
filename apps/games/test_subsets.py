@@ -171,6 +171,41 @@ def test_a_game_with_subsets_cannot_become_a_subset(console, core, bonus):
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize("set_type", [SET_TYPE_BONUS, SET_TYPE_CHALLENGE])
+def test_a_game_with_hashes_cannot_become_a_bonus_or_challenge_subset(console, core, set_type):
+    hashed = Game.objects.create(title="Crash Prototype", console=console)
+    GameHash.objects.create(game=hashed, md5=MD5, label="Disc")
+    hashed.parent_game = core
+    hashed.set_type = set_type
+    hashed.set_title = "Bonus"
+
+    assert "set_type" in _errors(hashed)
+
+
+@pytest.mark.django_db
+def test_a_game_with_hashes_can_become_a_specialty_subset(console, core):
+    hashed = Game.objects.create(title="Crash Japan", console=console)
+    GameHash.objects.create(game=hashed, md5=MD5, label="Disc")
+    hashed.parent_game = core
+    hashed.set_type = SET_TYPE_SPECIALTY
+    hashed.set_title = "Japanese"
+
+    hashed.full_clean()
+
+
+@pytest.mark.django_db
+def test_a_core_games_subsets_follow_it_to_another_console(core, bonus):
+    saturn = Console.objects.create(ra_id=SATURN_RA_ID, name="Saturn", short_name="SAT")
+
+    core.console = saturn
+    core.save()
+
+    bonus.refresh_from_db()
+    assert bonus.console == saturn
+    bonus.full_clean()
+
+
+@pytest.mark.django_db
 def test_a_subset_needs_a_set_title(core):
     untitled = Game(
         title=BONUS_TITLE, console=core.console, parent_game=core, set_type=SET_TYPE_BONUS
@@ -302,6 +337,31 @@ def test_admin_refuses_a_hash_on_a_bonus_subset(client, admin_user, bonus):
 
     assert response.status_code == HTTPStatus.OK
     assert not GameHash.objects.exists()
+
+
+@pytest.mark.django_db
+def test_admin_moving_a_core_game_moves_its_subsets(client, admin_user, core, bonus):
+    saturn = Console.objects.create(ra_id=SATURN_RA_ID, name="Saturn", short_name="SAT")
+    client.force_login(admin_user)
+
+    response = client.post(
+        f"/admin/games/game/{core.pk}/change/",
+        {
+            "title": CORE_TITLE,
+            "console": saturn.pk,
+            **_management("hashes", 0),
+            **_management("subsets", 1, initial=1),
+            "subsets-0-id": bonus.pk,
+            "subsets-0-parent_game": core.pk,
+            "subsets-0-set_type": SET_TYPE_BONUS,
+            "subsets-0-set_title": "Bonus",
+            "subsets-0-title": BONUS_TITLE,
+        },
+    )
+
+    assert response.status_code == HTTPStatus.FOUND
+    bonus.refresh_from_db()
+    assert bonus.console == saturn
 
 
 @pytest.mark.django_db

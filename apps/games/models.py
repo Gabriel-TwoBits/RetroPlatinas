@@ -131,6 +131,15 @@ class Game(models.Model):
     def __str__(self):
         return self.title
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        # A subset is on its parent's console (`clean`), so a core game's subsets follow it.
+        if self.is_subset:
+            # A subset has no subsets of its own (`clean`).
+            pass
+        else:
+            self.subsets.exclude(console_id=self.console_id).update(console_id=self.console_id)
+
     @property
     def is_subset(self):
         return self.set_type is not None
@@ -170,6 +179,17 @@ class Game(models.Model):
             pass
         if self.pk is not None and Game.objects.filter(parent_game_id=self.pk).exists():
             errors["set_type"] = _("This game has subsets of its own, so it cannot be a subset.")
+        elif (
+            self.pk is not None
+            and self.set_type in OPT_IN_SET_TYPES
+            and GameHash.objects.filter(game_id=self.pk).exists()
+        ):
+            errors["set_type"] = _(
+                "A bonus or challenge subset loads with its parent game's discs: move this "
+                "game's hashes to the parent game first."
+            )
+        else:
+            pass
         if not self.set_title:
             errors["set_title"] = _("A subset needs a title.")
         if errors:
