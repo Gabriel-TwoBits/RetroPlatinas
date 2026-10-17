@@ -10,7 +10,7 @@
 {% trans "Unlocks" as l_unlocks %}
 {% url 'register' as register_url %}
 {% url 'getting_started' as start_url %}
-{% with codeberg_url="https://codeberg.org/Gabriel-TwoBits/retroplatinas" %}
+{% with repo_url="https://github.com/Gabriel-TwoBits/RetroPlatinas" %}
 <div class="mx-auto max-w-6xl px-4 py-6 sm:py-8">
 
   <section class="border-b border-line2 pb-6">
@@ -19,7 +19,7 @@
         <h1 class="font-display text-xl font-bold leading-tight tracking-tight text-txt sm:text-2xl">{% trans "Retro achievement sets anyone can start." %}</h1>
         <p class="mt-2 text-sm leading-relaxed text-txt-muted">{% trans "A game's core set is its normal 100%: what the game itself asks of you to finish it, without walls of missables and grinds." %}</p>
         <p class="mt-2 text-sm leading-relaxed text-txt-muted">{% trans "Deathless runs, no-hit bosses and other challenges live in subsets. Each one stays off until you turn it on." %}</p>
-        <p class="mt-3 font-data text-xs text-txt-faint"><span class="text-brand">{% trans "New project · under construction" %}</span> · AGPL-3.0 · Codeberg</p>
+        <p class="mt-3 font-data text-xs text-txt-faint"><span class="text-brand">{% trans "New project · under construction" %}</span> · AGPL-3.0 · GitHub</p>
         <p class="mt-1 font-data text-xs leading-relaxed text-txt-faint">{% trans "We're new: every number on this page is real, however small." %}</p>
       </div>
       <div class="flex shrink-0 flex-wrap gap-3">
@@ -56,7 +56,7 @@
           </div>
           <div class="border-t border-line py-3 first:border-t-0">
             <span class="font-data text-xs text-state-platinum">{% trans "Community" %}</span>
-            <div class="mt-1 font-display text-sm font-semibold text-txt">{% trans "Open source on Codeberg" %}</div>
+            <div class="mt-1 font-display text-sm font-semibold text-txt">{% trans "Open source on GitHub" %}</div>
             <div class="mt-1 text-xs leading-snug text-txt-muted">{% trans "RetroPlatinas is AGPL-3.0. Issues and roadmap are public." %}</div>
           </div>
         </div>
@@ -99,8 +99,8 @@
           </li>
           <li>
             <div class="font-display text-sm font-semibold text-txt"><span class="mr-2 font-data text-brand">2</span>{% trans "Contribute code" %}</div>
-            <div class="mt-1 text-xs leading-snug text-txt-muted">{% trans "AGPL-3.0 on Codeberg. Bugs, features and roadmap are open." %}</div>
-            <a href="{{ codeberg_url }}" target="_blank" rel="noopener" class="mt-1 inline-block font-data text-xs text-brand">{% trans "See the repository →" %}</a>
+            <div class="mt-1 text-xs leading-snug text-txt-muted">{% trans "AGPL-3.0 on GitHub. Bugs, features and roadmap are open." %}</div>
+            <a href="{{ repo_url }}" target="_blank" rel="noopener" class="mt-1 inline-block font-data text-xs text-brand">{% trans "See the repository →" %}</a>
           </li>
         </ol>
       </section>
@@ -183,9 +183,9 @@
       <section>
         {% include "components/section-heading.html" with title=_("Open source") accent="state-platinum" %}
         <div>
-          <a href="{{ codeberg_url }}" target="_blank" rel="noopener" class="flex items-center gap-3 border-t border-line py-3 text-txt no-underline first:border-t-0 hover:text-txt hover:no-underline">
+          <a href="{{ repo_url }}" target="_blank" rel="noopener" class="flex items-center gap-3 border-t border-line py-3 text-txt no-underline first:border-t-0 hover:text-txt hover:no-underline">
             <span class="w-4 font-data text-xs text-txt-faint">⌥</span>
-            <span class="flex-1 text-xs">{% trans "Codeberg — repository" %}</span>
+            <span class="flex-1 text-xs">{% trans "GitHub — repository" %}</span>
             <span class="font-data text-xs text-brand">↗</span>
           </a>
           <div class="flex items-center gap-3 border-t border-line py-3 text-txt">

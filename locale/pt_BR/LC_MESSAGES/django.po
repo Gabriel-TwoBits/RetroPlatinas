@@ -3078,8 +3078,8 @@ msgid "Community"
 msgstr "Comunidade"
 
 #: templates/home.html:59
-msgid "Open source on Codeberg"
-msgstr "Código aberto no Codeberg"
+msgid "Open source on GitHub"
+msgstr "Código aberto no GitHub"
 
 #: templates/home.html:60
 msgid "RetroPlatinas is AGPL-3.0. Issues and roadmap are public."
@@ -3123,8 +3123,8 @@ msgid "Contribute code"
 msgstr "Contribuir com código"
 
 #: templates/home.html:102
-msgid "AGPL-3.0 on Codeberg. Bugs, features and roadmap are open."
-msgstr "AGPL-3.0 no Codeberg. Bugs, features e roadmap são abertos."
+msgid "AGPL-3.0 on GitHub. Bugs, features and roadmap are open."
+msgstr "AGPL-3.0 no GitHub. Bugs, features e roadmap são abertos."
 
 #: templates/home.html:103
 msgid "See the repository →"
@@ -3177,8 +3177,8 @@ msgid "Open source"
 msgstr "Código aberto"
 
 #: templates/home.html:188
-msgid "Codeberg — repository"
-msgstr "Codeberg — repositório"
+msgid "GitHub — repository"
+msgstr "GitHub — repositório"
 
 #: templates/home.html:193
 msgid "Licensed under AGPL-3.0"

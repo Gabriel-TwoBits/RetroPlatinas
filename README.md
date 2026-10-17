@@ -22,8 +22,8 @@ pip install --user podman-compose
 
 ```bash
 # 1. Clone the repository
-git clone ssh://git@codeberg.org/Gabriel-TwoBits/retroplatinas.git
-cd retroplatinas
+git clone git@github.com:Gabriel-TwoBits/RetroPlatinas.git
+cd RetroPlatinas
 
 # 2. Copy environment variables
 cp .env.example .env

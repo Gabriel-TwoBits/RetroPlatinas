@@ -2869,7 +2869,7 @@ msgid "Community"
 msgstr ""
 
 #: templates/home.html:59
-msgid "Open source on Codeberg"
+msgid "Open source on GitHub"
 msgstr ""
 
 #: templates/home.html:60
@@ -2914,7 +2914,7 @@ msgid "Contribute code"
 msgstr ""
 
 #: templates/home.html:102
-msgid "AGPL-3.0 on Codeberg. Bugs, features and roadmap are open."
+msgid "AGPL-3.0 on GitHub. Bugs, features and roadmap are open."
 msgstr ""
 
 #: templates/home.html:103
@@ -2967,7 +2967,7 @@ msgid "Open source"
 msgstr ""
 
 #: templates/home.html:188
-msgid "Codeberg — repository"
+msgid "GitHub — repository"
 msgstr ""
 
 #: templates/home.html:193
