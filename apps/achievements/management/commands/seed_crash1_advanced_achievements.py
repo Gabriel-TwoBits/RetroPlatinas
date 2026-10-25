@@ -110,6 +110,12 @@ BOSS_FIGHTS = (
         0x08,
         "Defeat Pinstripe Potoroo in his office at the power plant.",
     ),
+    BossFight(
+        "Formula Spilled",
+        "Nitrus Brio",
+        0x1B,
+        "Defeat Dr. Nitrus Brio and the monster his potions make of him.",
+    ),
 )
 
 
