@@ -157,10 +157,16 @@ def checkpoint_reached(runner):
 
 def boss_hits(runner):
     """Whole health points the boss lost since the fight started; 0 while no boss object is
-    allocated, and on a frame whose health is not whole (Ripper Roo's reads 0x002 for one frame
-    on a hit that leaves him at 1)."""
+    allocated, on a frame whose health is not whole (Ripper Roo's reads 0x002 for one frame on a
+    hit that leaves him at 1), and from a respawn on (Koala Kong's new object reads 0 for a frame).
+    """
     health = boss_health(runner.emu)
-    if health is None or runner.start_boss_health is None or health & FIXED_POINT_FRACTION:
+    if (
+        health is None
+        or runner.start_boss_health is None
+        or health & FIXED_POINT_FRACTION
+        or runner.emu.s32(RESPAWN_COUNT) != runner.respawns
+    ):
         return 0
     return (runner.start_boss_health - health) >> FIXED_POINT_SHIFT
 
