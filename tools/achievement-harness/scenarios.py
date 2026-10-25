@@ -86,6 +86,9 @@ STAGE_CLEAR_SHOT_FRAMES = 60
 DEATH_SEED = 1
 PLAN_PREFIX_DIVISOR = 2  # deaths start halfway through a stage's clearing plan
 LAST_HIT_HEALTH = 1 << FIXED_POINT_SHIFT  # a boss one hit from defeat: 1.0 in 24.8
+# Koala Kong's health read flickers for single frames to other objects' words (measured: 0x300 and
+# 0x100 one frame each while he is at 3), so a boss's health counts once it holds this long.
+BOSS_HEALTH_HELD_FRAMES = 30
 # After a collectible event: the extra life of a Wumpa wrap lands about 110 frames later.
 AFTER_EVENT_FRAMES = 300
 # A held button moves Crash on the frame he gets control (after the spin-in) or 3 frames later
@@ -384,14 +387,21 @@ def quits(stage):
     return play
 
 
-def replay_until(s, inputs, predicate):
-    """Replays `inputs` frame by frame until `predicate(emu)`; returns whether it held."""
+def replay_until(s, inputs, predicate, held=1):
+    """Replays `inputs` frame by frame until `predicate(emu)` has held `held` frames in a row;
+    returns whether it did."""
+    streak = 0
     for frames, mask in inputs:
         for _ in range(frames):
-            if predicate(s.emu):
+            streak = streak + 1 if predicate(s.emu) else 0
+            if streak >= held:
                 return True
             s.emu.run(1, mask)
-    return predicate(s.emu)
+    return predicate(s.emu) and streak + 1 >= held
+
+
+def boss_at_last_hit(emu):
+    return boss_health(emu) == LAST_HIT_HEALTH
 
 
 def boss_deaths(stage, plan_path):
@@ -404,7 +414,7 @@ def boss_deaths(stage, plan_path):
     def play(s):
         rng = random.Random(DEATH_SEED)
         route = plans.load(plan_path).inputs
-        if not replay_until(s, route, lambda emu: boss_health(emu) == LAST_HIT_HEALTH):
+        if not replay_until(s, route, boss_at_last_hit, held=BOSS_HEALTH_HELD_FRAMES):
             raise RuntimeError(
                 f"{plan_path.name} never left the boss at {LAST_HIT_HEALTH:#x} health"
             )
