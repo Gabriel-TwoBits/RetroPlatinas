@@ -113,6 +113,8 @@ class Stage:
     map_state: str | None = None
     # False where Crash cannot stand still (Hog Wild's hog runs on by itself, into the hazards).
     can_idle: bool = True
+    # Extra lives in reach of the start (Castle Machinery): deaths need not bring the count low.
+    extra_lives_at_start: bool = False
     # A boss fight where Crash can die after the boss's last health is lost, restarting the fight.
     can_die_after_last_hit: bool = False
 
@@ -181,7 +183,14 @@ STAGES = (
     Stage("slippery-climb", LID_SLIPPERY_CLIMB, 23, "up", map_state="map-password-cortex"),
     Stage("lights-out", LID_LIGHTS_OUT, 24, "up", map_state="map-password-lab"),
     Stage("jaws-of-darkness", LID_JAWS_OF_DARKNESS, 25, "up", map_state="map-password-lab"),
-    Stage("castle-machinery", LID_CASTLE_MACHINERY, 26, "up", map_state="map-password-lab"),
+    Stage(
+        "castle-machinery",
+        LID_CASTLE_MACHINERY,
+        26,
+        "up",
+        map_state="map-password-lab",
+        extra_lives_at_start=True,
+    ),
     Stage("the-lab", LID_THE_LAB, 28, "up", map_state="map-password-lab"),
     # Its deaths walk sideways off the platform: walking up leaves through the arch, a clear.
     Stage("the-great-hall", LID_THE_GREAT_HALL, 29, "right", map_state="map-password-all"),

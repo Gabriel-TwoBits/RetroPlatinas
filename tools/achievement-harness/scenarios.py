@@ -807,7 +807,10 @@ for _stage in STAGES:
         NOTHING_FIRES,
         f"three deaths on {_stage.name}",
         deaths(_stage),
-        (in_stage(_name, NEW_GAME_LIVES), in_stage(_name, LOW_LIVES)),
+        (
+            in_stage(_name, NEW_GAME_LIVES),
+            in_stage(_name, ANY_COUNT if _stage.extra_lives_at_start else LOW_LIVES),
+        ),
         never=(NO_LIVES,),
         leaderboards=opening_attempt(_stage, RUNNING),
     )
