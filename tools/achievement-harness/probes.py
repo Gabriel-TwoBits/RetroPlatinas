@@ -55,8 +55,6 @@ PLAYER_POINTER = 0x566B4
 BOSS_POINTER = 0x60DDC  # the boss object of a boss fight; reallocated on every respawn
 
 AKU_LEVEL_OFFSET = 0x189
-# Integer byte of the boss's 24.8 health: Papu Papu starts at 3.
-BOSS_HEALTH_OFFSET = 0x105
 # The player object's counters, 24.8: Wumpa (wraps at 100 into an extra life), then lives (capped
 # at 99). The Wumpa HUD only animates towards the player's count, a few frames behind.
 PLAYER_FRUIT_OFFSET = 0x160
@@ -81,8 +79,16 @@ LID_BOULDERS = 0x0E
 LID_UPSTREAM = 0x0F
 LID_THE_GREAT_GATE = 0x12
 LID_ROLLING_STONES = 0x15
+LID_HOG_WILD = 0x11
+LID_NATIVE_FORTRESS = 0x1A
+LID_UP_THE_CREEK = 0x18
+LID_RIPPER_ROO = 0x17
 LID_STAGE_CLEAR = 0x2D  # c1 `LID_LEVELEND`
 NON_STAGE_LIDS = (LID_TITLE, LID_STAGE_CLEAR)
+# A boss's 24.8 health word, from BOSS_POINTER, by fight: Papu Papu's object is the pointed one;
+# Ripper Roo's is its first child's sibling (c1 `children` +0x6C, `sibling` +0x68; code notes). The
+# boss achievements do not read it (they fire on the fight's exit): the search scores the hits.
+BOSS_HEALTH_CHAINS = {LID_PAPU_PAPU: (0x104,), LID_RIPPER_ROO: (0x6C, 0x68, 0x104)}
 # Game states (c1 `GAME_STATE_*`, src/globals.h).
 GAME_STATE_PLAYING = 0x100
 GAME_STATE_GAME_OVER = 0x200
@@ -92,6 +98,7 @@ GAME_STATE_LEVEL_WON = 0x300
 GAME_STATE_QUIT = 0x400  # pause -> quit picked, until the title/map level loads
 GAME_STATE_STAGE_CLEARED = 0x500  # c1 `GAME_STATE_NEW_GEM`: a stage cleared, Stage Clear next
 TITLE_STATE_MAIN_MENU = 5
+TITLE_STATE_PASSWORD = 0xE  # the ENTER PASSWORD screen
 TITLE_STATE_WORLD_MAP = 0xF
 ON_THE_MAP = 1
 NO_CHECKPOINT = -1
@@ -125,7 +132,12 @@ def aku_level(emu):
 
 
 def boss_health(emu):
-    return emu.deref(BOSS_POINTER, BOSS_HEALTH_OFFSET)
+    """The 24.8 health word of the loaded boss fight's boss (BOSS_HEALTH_CHAINS); None outside a
+    known boss fight or on a null hop."""
+    chain = BOSS_HEALTH_CHAINS.get(emu.u8(LEVEL_ID))
+    if chain is None:
+        return None
+    return emu.deref(BOSS_POINTER, *chain, size=FIXED_POINT_BYTES)
 
 
 def has_gem(emu, map_index):

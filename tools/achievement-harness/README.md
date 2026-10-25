@@ -97,7 +97,8 @@ came from the cache or was derived moments earlier.
 | --- | --- | --- |
 | `map` | cold boot | Island map after NEW GAME, cursor on N. Sanity Beach |
 | `map-unlocked` | `map` | Island map with the stages up to Rolling Stones unlocked (see below) |
-| `<stage>-start` | `map` (N. Sanity Beach), `map-unlocked` (the others) | The stage, 30 frames after the player gains control |
+| `map-password` | cold boot | Island map up to Koala Kong, loaded by typing the password `XOOOXSXS` (see below) |
+| `<stage>-start` | `map` (N. Sanity Beach), `map-password` (Hog Wild on, and Ripper Roo), `map-unlocked` (the others) | The stage, 30 frames after the player gains control |
 | `<stage>-clear` | `<stage>-start` | Stage Clear screen after `plans/<stage>-clear.json`; only for a stage with a committed plan |
 | `nsanity-beach-two-masks` | `nsanity-beach-start` | N. Sanity Beach re-entered with 2 Aku Aku masks: twice, the clearing plan up to the first Aku Aku crate, then a quit and a re-entry |
 | `nsanity-beach-farmed-wumpa` | `nsanity-beach-start` | N. Sanity Beach re-entered with 36 Wumpa: twice, the clearing plan up to its 20th fruit, then a quit and a re-entry |
@@ -106,8 +107,15 @@ came from the cache or was derived moments earlier.
 
 `<stage>` is each level achievement's stage, in `states.STAGES` with its level id, map cursor and
 the direction it runs on screen: `nsanity-beach`, `jungle-rollers`, `the-great-gate`, `boulders`,
-`upstream`, `rolling-stones`. `states.BOSS_FIGHTS` adds `papu-papu` (map cursor 5, on the way to
-Rolling Stones), which only gets a `-start` state.
+`upstream`, `rolling-stones`, `hog-wild`, `native-fortress`, `up-the-creek`. `states.BOSS_FIGHTS` adds
+`papu-papu` (map cursor 5, on the way to Rolling Stones) and `ripper-roo` (map cursor 10), which only
+get a `-start` state.
+
+`map-password` makes no write: from the title menu it opens PASSWORD (title state `0e`), types the
+community's password for the Koala Kong save point and continues to the map, which then holds the
+stages up to Koala Kong, no gem and no key, with the cursor on Koala Kong (measured in
+`apps/achievements/crash-bandicoot-1-completion-inventory.md`). `navigation.move_cursor_to` walks
+back from there: Wumpa Island's screen runs right to left, so RIGHT moves the cursor back on it.
 
 `map-unlocked` is the only RAM write a state makes: it sets c1 `levels_unlocked` (`0x61948`) to 7,
 then enters and quits N. Sanity Beach so the map reloads with the paths to the later stages, which
@@ -142,10 +150,10 @@ while the others keep their hits, as in a live session.
 | `attract` | cold boot | nothing | 15 minutes of attract-mode demos, which play real stages with no player |
 | `game-over` | `nsanity-beach-start` | nothing | Deaths down to the game over and the title screen it returns to |
 | `attract-then-new-game` | cold boot | nothing | The first attract demo, then a new game into N. Sanity Beach: the attract game state must not leak into play |
-| `<stage>-deaths` | `<stage>-start` | nothing | Three deaths: the first, one re-armed right after the respawn, one after idling where the player respawned; each replays the stage's route first when it has one |
+| `<stage>-deaths` | `<stage>-start` | nothing | Three deaths: the first, one re-armed right after the respawn, one after idling where the player respawned (no idling in Hog Wild, whose hog runs on by itself); each replays the stage's route first when it has one |
 | `<stage>-quit` | `<stage>-start` | nothing | Pause -> SELECT quits: right after control, after running and standing, after standing |
 | `<stage>-clear` | `<stage>-start` | the stage's achievement, once, on Stage Clear (lid `0x2D`) | Replays the clearing plan (a real completion); after a re-arm, Stage Clear -> map, the next stage and a quit fire nothing |
-| `papu-papu-quit` | `papu-papu-start` | nothing | Standing in the Papu Papu boss fight, then pause -> SELECT |
+| `<boss>-quit` | `<boss>-start` | nothing | Standing in the boss fight, then pause -> SELECT |
 | `<boss>-boss` | `<boss>-start` | the boss achievement, once, on the last hit (lid of the fight) | Replays `plans/<boss>-boss.json`; then a state saved after the hit is loaded, the fight returns to the map, and the fight is entered again and quit |
 | `<boss>-deaths` | `<boss>-start` | nothing | The boss plan replayed until the boss has one health left, then a death; another death right after the respawn, which brings the boss back at full health |
 | `<stage>-no-wumpa` | `<stage>-start` | the stage's achievement on Stage Clear and `Beach Diet` on the clear (lid of the stage) | Replays `plans/<stage>-no-wumpa.json`, a clear without a Wumpa; then as `<stage>-clear`. Only for the stage `Beach Diet` names |
@@ -239,7 +247,7 @@ Great Gate). The goal (`--goal`, `explore.GOALS`) decides when a rollout wins:
 | `aku` | Aku Aku holds three masks | the masks | farms |
 | `gem` | the stage is cleared and the Stage Clear screen then hands out its gem (the bit of the stage under the map cursor, within 900 frames) | the boxes broken | a clear without the gem ends the rollout |
 | `checkpoint` | a checkpoint crate is broken (`0x619A0` leaves -1) | none | |
-| `boss` | the boss's health (`0x60DDC` object, `+0x105`) reaches 0 | the health lost | |
+| `boss` | the fight is won: the game state turns `0x300`, the fight leaving for the map (health 0 is not enough: a blast can take Crash with the boss and restart the fight) | the health lost (`probes.BOSS_HEALTH_CHAINS`) | |
 
 A goal that farms also plays `quit-and-reenter` on about one segment in fifty: stand, pause, SELECT
 and enter the stage again, which commits the counts and brings the crates back. The frames it took

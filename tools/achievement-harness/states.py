@@ -22,11 +22,15 @@ from probes import (
     CHECKPOINT_ID,
     LEVELS_UNLOCKED,
     LID_BOULDERS,
+    LID_HOG_WILD,
     LID_JUNGLE_ROLLERS,
+    LID_NATIVE_FORTRESS,
     LID_NSANITY_BEACH,
     LID_PAPU_PAPU,
+    LID_RIPPER_ROO,
     LID_ROLLING_STONES,
     LID_THE_GREAT_GATE,
+    LID_UP_THE_CREEK,
     LID_UPSTREAM,
     NO_CHECKPOINT,
     RESPAWN_COUNT,
@@ -40,6 +44,10 @@ NAME_COLUMN_WIDTH = 24
 FIRST_MAP_INDEX = 0
 # Map stages up to Rolling Stones (cursor 6), the last of the level achievements.
 MAP_STAGES_UNLOCKED = 7
+# The community's password for the Koala Kong save point (crashbandicoot.fandom.com/wiki/Password,
+# StrategyWiki Crash_Bandicoot/Secrets). Measured: it unlocks the map up to Koala Kong (17 stages),
+# with no gem and no key, and opens the map on Koala Kong. No RAM write.
+WUMPA_ISLAND_PASSWORD = "XOOOXSXS"
 # Farming N. Sanity Beach: its clearing plan, replayed up to a point, then a quit and a re-entry,
 # which commits what was collected and brings the crates back.
 # The plan breaks the stage's first Aku Aku crate at frame 2229.
@@ -68,6 +76,10 @@ class Stage:
     map_index: int  # map cursor (`0x619C5`) on the stage
     heading: str  # plan.HEADINGS key: the way the stage runs on screen
     early_death_seed: int | None = None  # dies before any checkpoint (`early_death_restart`)
+    # The map state the stage is entered from; None: `map` for the first stage, else `map-unlocked`.
+    map_state: str | None = None
+    # False where Crash cannot stand still (Hog Wild's hog runs on by itself, into the hazards).
+    can_idle: bool = True
 
     @property
     def start(self):
@@ -118,9 +130,15 @@ STAGES = (
     Stage("boulders", LID_BOULDERS, 3, "down"),
     Stage("upstream", LID_UPSTREAM, 4, "up"),
     Stage("rolling-stones", LID_ROLLING_STONES, 6, "up"),
+    Stage("hog-wild", LID_HOG_WILD, 7, "up", map_state="map-password", can_idle=False),
+    Stage("native-fortress", LID_NATIVE_FORTRESS, 8, "up", map_state="map-password"),
+    Stage("up-the-creek", LID_UP_THE_CREEK, 9, "up", map_state="map-password"),
 )
 # Boss fights on the map path of STAGES, entered only to judge what they show and fire.
-BOSS_FIGHTS = (Stage("papu-papu", LID_PAPU_PAPU, 5, "up"),)
+BOSS_FIGHTS = (
+    Stage("papu-papu", LID_PAPU_PAPU, 5, "up"),
+    Stage("ripper-roo", LID_RIPPER_ROO, 10, "up", map_state="map-password"),
+)
 # Every file that decides what a derived state holds, clearing plans included.
 RECIPE_SOURCES = (
     HARNESS_DIR / "states.py",
@@ -177,9 +195,15 @@ def _clear(stage):
 def _stage_recipes(stage):
     """`<stage>-start` and, when its plan is committed, `<stage>-clear`.
 
-    N. Sanity Beach is the first stage of a new game; the others are entered from `map-unlocked`.
+    N. Sanity Beach is the first stage of a new game; the others are entered from `map-unlocked`,
+    or from the map state the stage names.
     """
-    parent = "map" if stage.map_index == FIRST_MAP_INDEX else "map-unlocked"
+    if stage.map_state is not None:
+        parent = stage.map_state
+    elif stage.map_index == FIRST_MAP_INDEX:
+        parent = "map"
+    else:
+        parent = "map-unlocked"
     recipes = {
         stage.start: Recipe(
             parent, _enter(stage), f"{stage.name}, just after the player gains control"
@@ -282,6 +306,11 @@ RECIPES = {
         "map",
         _unlock_map,
         f"island map with {MAP_STAGES_UNLOCKED} stages unlocked by a RAM poke",
+    ),
+    "map-password": Recipe(
+        None,
+        lambda emu: navigation.boot_to_password_map(emu, WUMPA_ISLAND_PASSWORD),
+        f"island map up to Koala Kong, loaded by the password {WUMPA_ISLAND_PASSWORD}",
     ),
 }
 for _stage in (*STAGES, *BOSS_FIGHTS):

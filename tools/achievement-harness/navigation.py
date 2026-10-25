@@ -19,6 +19,7 @@ from probes import (
     STAGE_ID,
     TITLE_STATE,
     TITLE_STATE_MAIN_MENU,
+    TITLE_STATE_PASSWORD,
     TITLE_STATE_WORLD_MAP,
     in_a_stage,
 )
@@ -36,6 +37,19 @@ PAUSE_SETTLE_FRAMES = 60
 QUIT_STAND_FRAMES = 60  # SELECT does not quit while Crash is still moving or falling
 STAGE_CLEAR_TIMEOUT_FRAMES = 600
 CURSOR_MOVE_FRAMES = 90
+# A cursor move onto another island's screen passes through the "going to next/prev world" camera;
+# a CROSS pressed while Crash still walks the new screen's path is ignored.
+ISLAND_CHANGE_SETTLE_FRAMES = 360
+# Wumpa Island's screen (map stages Up the Creek to Koala Kong) runs right to left: RIGHT moves the
+# cursor back along the path there.
+REVERSED_MAP_CURSORS = range(0x09, 0x11)
+ENTER_ATTEMPTS = 2
+# The main menu ignores the pad while it slides in (measured: a DOWN 60 frames after it shows is
+# lost, one 400 frames after is taken).
+MAIN_MENU_INPUT_FRAMES = 400
+PASSWORD_MENU_DOWN_PRESSES = 2  # START, LOAD GAME, PASSWORD
+PASSWORD_SYMBOL_RELEASE_FRAMES = 20
+PASSWORD_BUTTONS = {"T": Btn.TRIANGLE, "S": Btn.SQUARE, "O": Btn.CIRCLE, "X": Btn.CROSS}
 
 
 def wait_until(emu, predicate, max_frames, what, buttons=()):
@@ -87,10 +101,47 @@ def boot_to_map(emu):
     emu.step(MAP_SETTLE_FRAMES)
 
 
+def boot_to_password_map(emu, password):
+    """Cold boot -> title menu -> PASSWORD -> `password` (T, S, O, X) -> island map."""
+    wait_until(
+        emu,
+        lambda e: level_id(e) == LID_TITLE and e.s32(TITLE_STATE) == TITLE_STATE_MAIN_MENU,
+        BOOT_TIMEOUT_FRAMES,
+        "title menu",
+    )
+    emu.step(MAIN_MENU_INPUT_FRAMES)
+    for _ in range(PASSWORD_MENU_DOWN_PRESSES):
+        press(emu, Btn.DOWN)
+    press_until(
+        emu, Btn.CROSS, lambda e: e.s32(TITLE_STATE) == TITLE_STATE_PASSWORD, "password screen"
+    )
+    for symbol in password:
+        press(emu, PASSWORD_BUTTONS[symbol], release=PASSWORD_SYMBOL_RELEASE_FRAMES)
+    press_until(
+        emu,
+        Btn.CROSS,
+        lambda e: e.s32(TITLE_STATE) == TITLE_STATE_WORLD_MAP,
+        f"island map after password {password} (an invalid one returns to the main menu)",
+    )
+    wait_until(emu, on_the_map, LOAD_TIMEOUT_FRAMES, "island map")
+    emu.step(MAP_SETTLE_FRAMES)
+
+
 def enter_stage(emu):
-    """From the map, enters the stage under the cursor; returns its level id once playable."""
-    press(emu, Btn.CROSS)
-    wait_until(emu, playing_a_stage, LOAD_TIMEOUT_FRAMES, "player control in a stage")
+    """From the map, enters the stage under the cursor; returns its level id once playable.
+
+    Presses CROSS again when the first press was ignored (Crash still walking the map's path).
+    """
+    for attempt in range(1, ENTER_ATTEMPTS + 1):
+        press(emu, Btn.CROSS)
+        try:
+            wait_until(emu, playing_a_stage, LOAD_TIMEOUT_FRAMES, "player control in a stage")
+            break
+        except TimeoutError:
+            if attempt == ENTER_ATTEMPTS or level_id(emu) != LID_TITLE or not on_the_map(emu):
+                raise
+            else:
+                pass  # Still on the map: the press was ignored.
     emu.step(CONTROL_SETTLE_FRAMES)
     return level_id(emu)
 
@@ -101,10 +152,17 @@ def move_cursor_to(emu, map_index):
         cursor = emu.u8(STAGE_ID)
         if cursor == map_index:
             return
-        if cursor < map_index:
-            press(emu, Btn.RIGHT, release=CURSOR_MOVE_FRAMES)
+        forward, back = Btn.RIGHT, Btn.LEFT
+        if cursor in REVERSED_MAP_CURSORS:
+            forward, back = back, forward
         else:
-            press(emu, Btn.LEFT, release=CURSOR_MOVE_FRAMES)
+            pass  # Left to right, as N. Sanity Island and Cortex Island run.
+        press(emu, forward if cursor < map_index else back, release=CURSOR_MOVE_FRAMES)
+        if not on_the_map(emu):
+            wait_until(emu, on_the_map, LOAD_TIMEOUT_FRAMES, "map after an island change")
+            emu.step(ISLAND_CHANGE_SETTLE_FRAMES)
+        else:
+            pass  # Same island: the move settles within CURSOR_MOVE_FRAMES.
     raise TimeoutError(
         f"map cursor on stage {emu.u8(STAGE_ID)}, not {map_index}, after {MENU_ATTEMPTS} moves"
     )
