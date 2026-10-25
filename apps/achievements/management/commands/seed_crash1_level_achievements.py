@@ -31,6 +31,16 @@ LEVEL_ACHIEVEMENTS = [
     ("Road to Nowhere", 0x14),
     ("Boulder Dash", 0x13),
     ("Sunset Vista", 0x23),
+    ("Heavy Machinery", 0x06),
+    ("Cortex Power", 0x03),
+    ("Generator Room", 0x05),
+    ("Toxic Waste", 0x07),
+    ("The High Road", 0x16),
+    ("Slippery Climb", 0x2E),
+    ("Lights Out", 0x28),
+    ("Jaws of Darkness", 0x1D),
+    ("Castle Machinery", 0x37),
+    ("The Lab", 0x29),
 ]
 
 
