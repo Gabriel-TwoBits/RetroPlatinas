@@ -48,6 +48,7 @@ MAP_STAGES_UNLOCKED = 7
 # StrategyWiki Crash_Bandicoot/Secrets). Measured: it unlocks the map up to Koala Kong (17 stages),
 # with no gem and no key, and opens the map on Koala Kong. No RAM write.
 WUMPA_ISLAND_PASSWORD = "XOOOXSXS"
+WUMPA_ISLAND_STAGES_UNLOCKED = 17
 # Farming N. Sanity Beach: its clearing plan, replayed up to a point, then a quit and a re-entry,
 # which commits what was collected and brings the crates back.
 # The plan breaks the stage's first Aku Aku crate at frame 2229.
@@ -168,6 +169,22 @@ def _unlock_map(emu):
     emu.write_u32(LEVELS_UNLOCKED, MAP_STAGES_UNLOCKED)
     navigation.enter_stage(emu)
     navigation.pause_and_quit(emu)
+
+
+def _password_map(password, stages_unlocked):
+    """The map a password loads, checked by the stages it unlocks."""
+
+    def derive(emu):
+        navigation.boot_to_password_map(emu, password)
+        if emu.s32(LEVELS_UNLOCKED) != stages_unlocked:
+            raise RuntimeError(
+                f"password {password} unlocked {emu.s32(LEVELS_UNLOCKED)} stages, "
+                f"not {stages_unlocked}"
+            )
+        else:
+            pass  # The map the password promises.
+
+    return derive
 
 
 def _enter(stage):
@@ -309,7 +326,7 @@ RECIPES = {
     ),
     "map-password": Recipe(
         None,
-        lambda emu: navigation.boot_to_password_map(emu, WUMPA_ISLAND_PASSWORD),
+        _password_map(WUMPA_ISLAND_PASSWORD, WUMPA_ISLAND_STAGES_UNLOCKED),
         f"island map up to Koala Kong, loaded by the password {WUMPA_ISLAND_PASSWORD}",
     ),
 }

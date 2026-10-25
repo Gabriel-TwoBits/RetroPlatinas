@@ -117,12 +117,20 @@ def boot_to_password_map(emu, password):
     )
     for symbol in password:
         press(emu, PASSWORD_BUTTONS[symbol], release=PASSWORD_SYMBOL_RELEASE_FRAMES)
+    # CROSS leaves the screen: to the map after a valid password, to the main menu after
+    # "INVALID PASSWORD". Pressing on from the main menu would start a new game instead.
     press_until(
         emu,
         Btn.CROSS,
-        lambda e: e.s32(TITLE_STATE) == TITLE_STATE_WORLD_MAP,
-        f"island map after password {password} (an invalid one returns to the main menu)",
+        lambda e: e.s32(TITLE_STATE) != TITLE_STATE_PASSWORD,
+        f"leaving the password screen after {password}",
     )
+    if emu.s32(TITLE_STATE) != TITLE_STATE_WORLD_MAP:
+        raise RuntimeError(
+            f"password {password} rejected: title state {emu.s32(TITLE_STATE):#x}, not the map"
+        )
+    else:
+        pass  # Accepted: the map loads.
     wait_until(emu, on_the_map, LOAD_TIMEOUT_FRAMES, "island map")
     emu.step(MAP_SETTLE_FRAMES)
 
