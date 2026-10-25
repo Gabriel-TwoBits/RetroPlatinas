@@ -21,15 +21,22 @@ from harness import CORE_DEFAULTS, DEFAULT_CORE, SHORT_HASH_CHARS, Emu
 from probes import (
     CHECKPOINT_ID,
     LEVELS_UNLOCKED,
+    LID_BOULDER_DASH,
     LID_BOULDERS,
     LID_HOG_WILD,
     LID_JUNGLE_ROLLERS,
+    LID_KOALA_KONG,
     LID_NATIVE_FORTRESS,
     LID_NSANITY_BEACH,
     LID_PAPU_PAPU,
+    LID_PINSTRIPE,
     LID_RIPPER_ROO,
+    LID_ROAD_TO_NOWHERE,
     LID_ROLLING_STONES,
+    LID_SUNSET_VISTA,
+    LID_TEMPLE_RUINS,
     LID_THE_GREAT_GATE,
+    LID_THE_LOST_CITY,
     LID_UP_THE_CREEK,
     LID_UPSTREAM,
     NO_CHECKPOINT,
@@ -49,6 +56,10 @@ MAP_STAGES_UNLOCKED = 7
 # with no gem and no key, and opens the map on Koala Kong. No RAM write.
 WUMPA_ISLAND_PASSWORD = "XOOOXSXS"
 WUMPA_ISLAND_STAGES_UNLOCKED = 17
+# The community's "skip to the third island" password (StrategyWiki Crash_Bandicoot/Secrets).
+# Measured: the map up to Slippery Climb (24 stages), Heavy Machinery's gem, no key.
+CORTEX_ISLAND_PASSWORD = "TTTTOXTTXXTOSOXTTOSXXSTT"
+CORTEX_ISLAND_STAGES_UNLOCKED = 24
 # Farming N. Sanity Beach: its clearing plan, replayed up to a point, then a quit and a re-entry,
 # which commits what was collected and brings the crates back.
 # The plan breaks the stage's first Aku Aku crate at frame 2229.
@@ -136,6 +147,11 @@ STAGES = (
     Stage("hog-wild", LID_HOG_WILD, 7, "up", map_state="map-password", can_idle=False),
     Stage("native-fortress", LID_NATIVE_FORTRESS, 8, "up", map_state="map-password"),
     Stage("up-the-creek", LID_UP_THE_CREEK, 9, "up", map_state="map-password"),
+    Stage("the-lost-city", LID_THE_LOST_CITY, 0x0B, "up", map_state="map-password"),
+    Stage("temple-ruins", LID_TEMPLE_RUINS, 0x0C, "up", map_state="map-password"),
+    Stage("road-to-nowhere", LID_ROAD_TO_NOWHERE, 0x0D, "up", map_state="map-password"),
+    Stage("boulder-dash", LID_BOULDER_DASH, 0x0E, "down", map_state="map-password"),
+    Stage("sunset-vista", LID_SUNSET_VISTA, 0x0F, "up", map_state="map-password"),
 )
 # Boss fights on the map path of STAGES, entered only to judge what they show and fire.
 BOSS_FIGHTS = (
@@ -148,6 +164,8 @@ BOSS_FIGHTS = (
         map_state="map-password",
         can_die_after_last_hit=True,
     ),
+    Stage("koala-kong", LID_KOALA_KONG, 0x10, "up", map_state="map-password"),
+    Stage("pinstripe", LID_PINSTRIPE, 0x15, "up", map_state="map-password-cortex"),
 )
 # Every file that decides what a derived state holds, clearing plans included.
 RECIPE_SOURCES = (
@@ -332,6 +350,11 @@ RECIPES = {
         "map",
         _unlock_map,
         f"island map with {MAP_STAGES_UNLOCKED} stages unlocked by a RAM poke",
+    ),
+    "map-password-cortex": Recipe(
+        None,
+        _password_map(CORTEX_ISLAND_PASSWORD, CORTEX_ISLAND_STAGES_UNLOCKED),
+        f"island map up to Slippery Climb, loaded by the password {CORTEX_ISLAND_PASSWORD}",
     ),
     "map-password": Recipe(
         None,
