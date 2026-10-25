@@ -97,7 +97,7 @@ came from the cache or was derived moments earlier.
 | --- | --- | --- |
 | `map` | cold boot | Island map after NEW GAME, cursor on N. Sanity Beach |
 | `map-unlocked` | `map` | Island map with the stages up to Rolling Stones unlocked (see below) |
-| `map-password` | cold boot | Island map up to Koala Kong, loaded by typing the password `XOOOXSXS` (see below) |
+| `map-password` | cold boot | Island map up to Koala Kong, loaded by typing the password `XOOOXSXS` and checked by its 17 unlocked stages (see below) |
 | `<stage>-start` | `map` (N. Sanity Beach), `map-password` (Hog Wild on, and Ripper Roo), `map-unlocked` (the others) | The stage, 30 frames after the player gains control |
 | `<stage>-clear` | `<stage>-start` | Stage Clear screen after `plans/<stage>-clear.json`; only for a stage with a committed plan |
 | `nsanity-beach-two-masks` | `nsanity-beach-start` | N. Sanity Beach re-entered with 2 Aku Aku masks: twice, the clearing plan up to the first Aku Aku crate, then a quit and a re-entry |
@@ -149,13 +149,15 @@ while the others keep their hits, as in a live session.
 | `cold-boot` | cold boot | nothing | Boot-time RAM noise (zeroed RAM reads as "stage 0") |
 | `attract` | cold boot | nothing | 15 minutes of attract-mode demos, which play real stages with no player |
 | `game-over` | `nsanity-beach-start` | nothing | Deaths down to the game over and the title screen it returns to |
+| `password-all-gems` | cold boot | nothing | The 100% password typed from the title menu: it must load the 26 gem and both key bits (`item_pool1` `0x2FBDF7BE`, `item_pool2` `0x00140500`) on the title level, where no gem condition can fire |
 | `attract-then-new-game` | cold boot | nothing | The first attract demo, then a new game into N. Sanity Beach: the attract game state must not leak into play |
 | `<stage>-deaths` | `<stage>-start` | nothing | Three deaths: the first, one re-armed right after the respawn, one after idling where the player respawned (no idling in Hog Wild, whose hog runs on by itself); each replays the stage's route first when it has one |
 | `<stage>-quit` | `<stage>-start` | nothing | Pause -> SELECT quits: right after control, after running and standing, after standing |
 | `<stage>-clear` | `<stage>-start` | the stage's achievement, once, on Stage Clear (lid `0x2D`) | Replays the clearing plan (a real completion); after a re-arm, Stage Clear -> map, the next stage and a quit fire nothing |
 | `<boss>-quit` | `<boss>-start` | nothing | Standing in the boss fight, then pause -> SELECT |
-| `<boss>-boss` | `<boss>-start` | the boss achievement, once, on the last hit (lid of the fight) | Replays `plans/<boss>-boss.json`; then a state saved after the hit is loaded, the fight returns to the map, and the fight is entered again and quit |
+| `<boss>-boss` | `<boss>-start` | the boss achievement, once, when the won fight switches to the map (lid `0x19`) | Replays `plans/<boss>-boss.json`; then a state saved on the map is loaded, and the fight is entered again and quit |
 | `<boss>-deaths` | `<boss>-start` | nothing | The boss plan replayed until the boss has one health left, then a death; another death right after the respawn, which brings the boss back at full health |
+| `<boss>-death-after-last-hit` | `<boss>-start` | nothing | The boss plan replayed until the boss's health is 0, then a death before the fight leaves: the respawn restarts the fight. Only for a boss whose last hit can kill Crash too (`Stage.last_hit_can_kill`, Ripper Roo) |
 | `<stage>-no-wumpa` | `<stage>-start` | the stage's achievement on Stage Clear and `Beach Diet` on the clear (lid of the stage) | Replays `plans/<stage>-no-wumpa.json`, a clear without a Wumpa; then as `<stage>-clear`. Only for the stage `Beach Diet` names |
 | `<stage>-aku` | the plan's start | `Mask Stack`, once, on the third mask (lid of the stage) | Replays `plans/<stage>-aku.json`; then a state saved after the event is loaded, and the stage is quit, re-entered with the masks committed and quit |
 | `<stage>-wumpa` | the plan's start | `Fruit Into Life`, once, on the wrap past 100 (lid of the stage) | Replays `plans/<stage>-wumpa.json`; then the same state load, quit, re-entry and quit |

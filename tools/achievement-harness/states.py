@@ -81,6 +81,8 @@ class Stage:
     map_state: str | None = None
     # False where Crash cannot stand still (Hog Wild's hog runs on by itself, into the hazards).
     can_idle: bool = True
+    # A boss fight whose last hit can kill Crash too (Ripper Roo's TNT), restarting the fight.
+    last_hit_can_kill: bool = False
 
     @property
     def start(self):
@@ -138,7 +140,7 @@ STAGES = (
 # Boss fights on the map path of STAGES, entered only to judge what they show and fire.
 BOSS_FIGHTS = (
     Stage("papu-papu", LID_PAPU_PAPU, 5, "up"),
-    Stage("ripper-roo", LID_RIPPER_ROO, 10, "up", map_state="map-password"),
+    Stage("ripper-roo", LID_RIPPER_ROO, 10, "up", map_state="map-password", last_hit_can_kill=True),
 )
 # Every file that decides what a derived state holds, clearing plans included.
 RECIPE_SOURCES = (

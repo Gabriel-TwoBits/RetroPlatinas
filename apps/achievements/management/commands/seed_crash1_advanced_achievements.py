@@ -1,10 +1,14 @@
+from dataclasses import dataclass
+
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
-from apps.achievements.management.commands.seed_crash1_collectible_achievements import in_play
 from apps.achievements.management.commands.seed_crash1_level_achievements import (
+    GAME_STATE_ADDRESS,
+    GAME_STATE_LEVEL_WON,
     LEVEL_ID_ADDRESS,
     STAGE_CLEAR_LEVEL_ID,
+    TITLE_LEVEL_ID,
     rcheevos_hex,
 )
 from apps.achievements.management.crash1 import seed_crash1_game, upsert_achievements
@@ -32,16 +36,30 @@ GEM_ACHIEVEMENTS = [
     ("Against the Current", "Upstream", 0x04, HARD_GEM_POINTS),
 ]
 
-# The boss object of a boss fight, reallocated on every respawn; the integer byte of its 24.8
-# health at +0x104. Papu Papu starts at 3 and loses one per hit; the fight then goes straight
-# back to the island map, with no Stage Clear screen.
-BOSS_POINTER_ADDRESS = "0xW60ddc"
-BOSS_HEALTH = "0xH105"
-PAPU_PAPU_LEVEL_ID = 0x0A  # c1 `LID_*`
-LAST_HIT_HEALTH = 1
+# A boss fight won goes straight back to the island map, with no Stage Clear screen: the level
+# switches from the fight to the title/map level with game state 3 (c1 `GAME_STATE_CONTINUE`). The
+# boss's health reaching 0 is not the win: a TNT blast that takes Ripper Roo's last health can take
+# Crash too, and his respawn restarts the fight at full health (harness scenario
+# `ripper-roo-death-after-last-hit`).
 BOSS_POINTS = 10
-BOSS_TITLE = "Chief Toppled"
-BOSS_NAME = "Papu Papu"
+
+
+@dataclass(frozen=True)
+class BossFight:
+    title: str
+    boss: str
+    level_id: int  # c1 `LID_*`
+    description: str
+
+
+BOSS_FIGHTS = (
+    BossFight(
+        "Chief Toppled",
+        "Papu Papu",
+        0x0A,
+        "Defeat Papu Papu, the tribal chief guarding the way to Rolling Stones.",
+    ),
+)
 
 
 def gem_bit_position(map_index):
@@ -78,23 +96,16 @@ def build_gem_description(stage):
     return f"Break every box in {stage} without dying past a checkpoint and win its clear gem."
 
 
-def boss_value(offset):
-    """A byte of the boss object; AddAddress applies the pointer to both sides of a compare."""
-    return f"I:{BOSS_POINTER_ADDRESS}_{offset}"
+def build_boss_mem_addr(fight):
+    """Fires on the frame the boss fight hands over to the island map as won.
 
-
-def build_boss_mem_addr(level_id):
-    """Fires on the frame the boss of this fight loses its last health, the boss object unchanged
-    since the previous frame (a respawn allocates a new one at full health)."""
-    return "_".join(
-        [
-            in_play(),
-            f"{LEVEL_ID_ADDRESS}={rcheevos_hex(level_id)}",
-            f"{BOSS_POINTER_ADDRESS}!=0",
-            f"{BOSS_POINTER_ADDRESS}=d{BOSS_POINTER_ADDRESS}",
-            f"{boss_value(BOSS_HEALTH)}=0",
-            f"{boss_value(f'd{BOSS_HEALTH}')}={LAST_HIT_HEALTH}",
-        ]
+    A quit (game state 4), a game over (2) and an attract demo of the fight (6) leave it for the
+    same level with another game state; a death respawns inside the fight.
+    """
+    return (
+        f"d{LEVEL_ID_ADDRESS}={rcheevos_hex(fight.level_id)}_"
+        f"{LEVEL_ID_ADDRESS}={rcheevos_hex(TITLE_LEVEL_ID)}_"
+        f"{GAME_STATE_ADDRESS}={GAME_STATE_LEVEL_WON}"
     )
 
 
@@ -110,15 +121,18 @@ def advanced_achievements():
         )
         for title, stage, map_index, points in GEM_ACHIEVEMENTS
     ]
-    boss = (
-        BOSS_TITLE,
-        f"Defeat {BOSS_NAME}, the tribal chief guarding the way to Rolling Stones.",
-        build_boss_mem_addr(PAPU_PAPU_LEVEL_ID),
-        BOSS_POINTS,
-        # Papu Papu bars the way on, so beating him is part of finishing the game.
-        Achievement.TYPE_PROGRESSION,
-    )
-    return [*gems, boss]
+    bosses = [
+        (
+            fight.title,
+            fight.description,
+            build_boss_mem_addr(fight),
+            BOSS_POINTS,
+            # Every boss bars the way on, so beating it is part of finishing the game.
+            Achievement.TYPE_PROGRESSION,
+        )
+        for fight in BOSS_FIGHTS
+    ]
+    return [*gems, *bosses]
 
 
 class Command(BaseCommand):

@@ -15,10 +15,9 @@ from django.utils import timezone
 from apps.accounts.models import User
 from apps.achievements.management.commands import seed_crash1_code_notes as seed_code_notes
 from apps.achievements.management.commands.seed_crash1_advanced_achievements import (
+    BOSS_FIGHTS,
     BOSS_POINTS,
-    BOSS_TITLE,
     GEM_ACHIEVEMENTS,
-    PAPU_PAPU_LEVEL_ID,
     advanced_achievements,
     build_boss_mem_addr,
     build_gem_mem_addr,
@@ -105,8 +104,10 @@ EDITED_COLLECTIBLE_POINTS = 15  # no collectible achievement is seeded with this
 ADVANCED_COUNT = len(advanced_achievements())
 ADVANCED_POINTS = {
     **{title: points for title, _stage, _map_index, points in GEM_ACHIEVEMENTS},
-    BOSS_TITLE: BOSS_POINTS,
+    **{fight.title: BOSS_POINTS for fight in BOSS_FIGHTS},
 }
+PAPU_PAPU = BOSS_FIGHTS[0]
+BOSS_TITLE = PAPU_PAPU.title
 EDITED_ADVANCED_POINTS = 50  # no advanced achievement is seeded with this value
 # Map cursor `0x619c5` of the first stage whose gem bit sits in the second byte (bit 8).
 HOG_WILD_MAP_INDEX = 0x07
@@ -1225,7 +1226,7 @@ def test_seed_advanced_achievements_creates_official_set(advanced_game):
     assert {a.title: a.points for a in achievements} == ADVANCED_POINTS
     assert {a.title: a.type for a in achievements} == {
         **{title: Achievement.TYPE_NONE for title, *_ in GEM_ACHIEVEMENTS},
-        BOSS_TITLE: Achievement.TYPE_PROGRESSION,
+        **{fight.title: Achievement.TYPE_PROGRESSION for fight in BOSS_FIGHTS},
     }
     for achievement in achievements:
         assert achievement.status == Achievement.STATUS_OFFICIAL
@@ -1252,11 +1253,8 @@ def test_gem_mem_addr_fires_when_the_stage_clear_screen_sets_the_gem_bit():
     assert build_gem_mem_addr(0x00) == "0xH6188d=h2d_d0xH6188d=h2d_0xN61988=1_d0xN61988=0"
 
 
-def test_boss_mem_addr_fires_on_the_last_hit_of_the_same_boss_object():
-    assert build_boss_mem_addr(PAPU_PAPU_LEVEL_ID) == (
-        f"{in_play()}_0xH6188d=h0a_0xW60ddc!=0_0xW60ddc=d0xW60ddc_"
-        "I:0xW60ddc_0xH105=0_I:0xW60ddc_d0xH105=1"
-    )
+def test_boss_mem_addr_fires_when_the_won_fight_switches_to_the_map():
+    assert build_boss_mem_addr(PAPU_PAPU) == "d0xH6188d=h0a_0xH6188d=h19_0xH618d1=3"
 
 
 @pytest.mark.django_db

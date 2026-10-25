@@ -41,6 +41,8 @@ from probes import (
     GAME_STATE_PLAYING,
     GAME_STATE_QUIT,
     HUD_COUNT_OFFSET,
+    ITEM_POOL1,
+    ITEM_POOL2,
     LID_STAGE_CLEAR,
     LID_TITLE,
     LIFE_HUD_POINTER,
@@ -83,6 +85,7 @@ STAGE_CLEAR_SHOTS = 8
 STAGE_CLEAR_SHOT_FRAMES = 60
 DEATH_SEED = 1
 PLAN_PREFIX_DIVISOR = 2  # deaths start halfway through a stage's clearing plan
+LAST_HIT_HEALTH = 1 << FIXED_POINT_SHIFT  # a boss one hit from defeat: 1.0 in 24.8
 # After a collectible event: the extra life of a Wumpa wrap lands about 110 frames later.
 AFTER_EVENT_FRAMES = 300
 # A held button moves Crash on the frame he gets control (after the spin-in) or 3 frames later
@@ -93,6 +96,14 @@ _X_OFFSET, _Y_OFFSET, _Z_OFFSET = PLAYER_POSITION_OFFSETS
 GROUND_AXES_OFFSETS = (_X_OFFSET, _Z_OFFSET)
 MOVE_TIMEOUT_FRAMES = 2 * FRAMES_PER_SECOND
 STAND_BEFORE_PAUSE_FRAMES = 60
+# The community's 100% password, every stage, gem and key (crashbandicoot.fandom.com/wiki/Password,
+# psxdatacenter.com/games/U/C/SCUS-94900.html). Measured: it sets all 26 gem bits and both keys
+# while the title level is loaded.
+ALL_GEMS_PASSWORD = "TTTTXSTTTTSXTOTTTOSTXXXX"
+# Its `item_pool1` and `item_pool2`: the 26 gems and both keys, the mask of DuckStation's all-gems
+# cheat for SCUS-94900.
+ALL_GEMS_POOLS = (0x2FBDF7BE, 0x00140500)
+AFTER_PASSWORD_FRAMES = 600
 PAUSE_OPEN_FRAMES = 5 * FRAMES_PER_SECOND
 
 HEADING_BUTTONS = {"up": Btn.UP, "down": Btn.DOWN, "right": Btn.RIGHT}
@@ -277,6 +288,19 @@ def play_attract_then_new_game(s):
     s.step(PLAY_AFTER_NEW_GAME_FRAMES)
 
 
+def play_password_all_gems(s):
+    """Types the 100% password from the title menu: every gem and key bit set on the title level."""
+    navigation.boot_to_password_map(s.emu, ALL_GEMS_PASSWORD)
+    pools = (s.emu.u32(ITEM_POOL1), s.emu.u32(ITEM_POOL2))
+    if pools != ALL_GEMS_POOLS:
+        raise RuntimeError(f"password {ALL_GEMS_PASSWORD} loaded gem bits {pools}, not all 26")
+    else:
+        pass  # Every gem and key bit, set on the title level.
+    s.note(f"password {ALL_GEMS_PASSWORD} loaded: gem bits {pools[0]:#010x} {pools[1]:#010x}")
+    s.step(AFTER_PASSWORD_FRAMES)
+    s.shot("map")
+
+
 def death_route(s, stage):
     """The inputs replayed before each death, towards the middle of the stage.
 
@@ -302,8 +326,11 @@ def deaths(stage):
         s.rearm("death 2: re-armed right after the respawn")
         die(s, stage, rng, "death 2", route)
         s.step(AFTER_DEATH_FRAMES)
-        s.rearm("death 3: after idling where the player respawned")
-        s.step(IDLE_IN_SPAWN_ZONE_FRAMES)
+        if stage.can_idle:
+            s.rearm("death 3: after idling where the player respawned")
+            s.step(IDLE_IN_SPAWN_ZONE_FRAMES)
+        else:
+            s.rearm("death 3: no idling, the stage moves Crash on by itself")
         die(s, stage, rng, "death 3", route)
         s.step(AFTER_DEATH_FRAMES)
 
@@ -373,14 +400,15 @@ def boss_deaths(stage, plan_path):
     The winning plan is replayed up to the boss's last health; a respawn allocates a new boss at
     full health, so no death may pass for the final hit.
     """
-    last_hit = achievements.advanced_seed().LAST_HIT_HEALTH
 
     def play(s):
         rng = random.Random(DEATH_SEED)
         route = plans.load(plan_path).inputs
-        if not replay_until(s, route, lambda emu: boss_health(emu) == last_hit):
-            raise RuntimeError(f"{plan_path.name} never left the boss at {last_hit} health")
-        s.note(f"boss at {last_hit} health after replaying {plan_path.name}; dying")
+        if not replay_until(s, route, lambda emu: boss_health(emu) == LAST_HIT_HEALTH):
+            raise RuntimeError(
+                f"{plan_path.name} never left the boss at {LAST_HIT_HEALTH:#x} health"
+            )
+        s.note(f"boss at {LAST_HIT_HEALTH:#x} health after replaying {plan_path.name}; dying")
         die(s, stage, rng, "death 1", [])
         s.rearm("death 2: re-armed right after the respawn, the boss back at full health")
         die(s, stage, rng, "death 2", [])
@@ -389,16 +417,45 @@ def boss_deaths(stage, plan_path):
     return play
 
 
+def boss_death_after_last_hit(stage, plan_path):
+    """The winning plan replayed until the boss's health is 0, then a death before the fight
+    leaves: the respawn restarts the fight at full health, so the fight is not won.
+
+    A TNT blast can take the boss's last health and Crash together (measured on Ripper Roo); a
+    trigger on the health alone fires on that lost fight.
+    """
+
+    def play(s):
+        rng = random.Random(DEATH_SEED)
+        route = plans.load(plan_path).inputs
+        if not replay_until(s, route, lambda emu: boss_health(emu) == 0):
+            raise RuntimeError(f"{plan_path.name} never took the boss's last health")
+        s.note(f"boss at 0 health after replaying {plan_path.name}; dying before the fight leaves")
+        if not die(s, stage, rng, "death after the last hit", []):
+            raise RuntimeError("game over instead of a respawn after the last hit")
+        if navigation.level_id(s.emu) != stage.level_id:
+            raise RuntimeError(f"the fight left for lid {navigation.level_id(s.emu):#x}")
+        s.note(f"respawned in the fight, the boss back at {boss_health(s.emu):#x}")
+        s.step(AFTER_DEATH_FRAMES)
+
+    return play
+
+
 def boss_win(stage, plan_path):
-    """Replays the plan that beats the boss; a state saved after the hit is loaded back, the fight
-    returns to the map, and the boss fight is entered again and quit."""
+    """Replays the plan that wins the boss fight, up to the game state turning won; a state saved
+    after the switch to the map is loaded back, and the boss fight is entered again and quit."""
 
     def play(s):
         plan = plans.load(plan_path)
-        s.note(f"replaying {plan_path.name}: {plan.frames} frames, the last hit at its end")
+        s.note(f"replaying {plan_path.name}: {plan.frames} frames, the fight won at its end")
         plans.replay(s.emu, plan)
+        s.wait_until(
+            lambda e: navigation.level_id(e) == LID_TITLE,
+            navigation.LOAD_TIMEOUT_FRAMES,
+            "the map level after the won fight",
+        )
         s.step(AFTER_EVENT_FRAMES)
-        s.note("save a state after the last hit and load it: every trigger back to WAITING")
+        s.note("save a state after the switch to the map and load it: every trigger to WAITING")
         s.emu.restore(s.emu.snapshot())
         s.wait_until(navigation.on_the_map, navigation.LOAD_TIMEOUT_FRAMES, "map after the boss")
         s.step(navigation.MAP_SETTLE_FRAMES)
@@ -681,6 +738,13 @@ SCENARIOS = {
         (TITLE_SCREEN, INTRO, *(demo_of(name) for name in ATTRACT_DEMOS)),
     ),
 }
+SCENARIOS["password-all-gems"] = Scenario(
+    None,
+    NOTHING_FIRES,
+    "the 100% password typed from the title menu, then the island map",
+    play_password_all_gems,
+    (TITLE_SCREEN, ISLAND_MAP),
+)
 _beach = achievements.level_title(STAGES[0].level_id)
 SCENARIOS["game-over"] = Scenario(
     STAGES[0].start,
@@ -928,23 +992,25 @@ SCENARIOS["nsanity-beach-timed-game-over"] = Scenario(
     (in_stage(_beach, NEW_GAME_LIVES), in_stage(_beach, "0"), GAME_OVER),
     leaderboards=attempts_in(STAGES[0], CANCELED),
 )
-SCENARIOS["papu-papu-quit"] = Scenario(
-    BOSS_FIGHTS[0].start,
-    NOTHING_FIRES,
-    "the Papu Papu boss fight, quit with pause -> SELECT right after gaining control",
-    boss_quit,
-    (fighting("Papu Papu", NEW_GAME_LIVES), ISLAND_MAP),
-    never=(NO_LIVES,),
-)
-for _boss in BOSS_FIGHTS:
+_BOSS_STAGES = {stage.level_id: stage for stage in BOSS_FIGHTS}
+for _fight in _advanced.BOSS_FIGHTS:
+    _boss = _BOSS_STAGES[_fight.level_id]
+    SCENARIOS[f"{_boss.name}-quit"] = Scenario(
+        _boss.start,
+        NOTHING_FIRES,
+        f"the {_fight.boss} boss fight, quit with pause -> SELECT right after gaining control",
+        boss_quit,
+        (fighting(_fight.boss, NEW_GAME_LIVES), ISLAND_MAP),
+        never=(NO_LIVES,),
+    )
     _boss_plan = _boss.goal_plan_path("boss")
     if _boss_plan.is_file():
         SCENARIOS[f"{_boss.name}-boss"] = Scenario(
             _boss.start,
-            {_advanced.BOSS_TITLE: _boss.level_id},
+            {_fight.title: LID_TITLE},
             f"{_boss.name} beaten by its searched plan, a state load, the map, a re-entry, a quit",
             boss_win(_boss, _boss_plan),
-            (fighting(_advanced.BOSS_NAME, NEW_GAME_LIVES), ISLAND_MAP),
+            (fighting(_fight.boss, NEW_GAME_LIVES), ISLAND_MAP),
             never=(NO_LIVES,),
         )
         SCENARIOS[f"{_boss.name}-deaths"] = Scenario(
@@ -953,11 +1019,22 @@ for _boss in BOSS_FIGHTS:
             f"two deaths in the {_boss.name} fight, the first with the boss one hit from defeat",
             boss_deaths(_boss, _boss_plan),
             (
-                fighting(_advanced.BOSS_NAME, NEW_GAME_LIVES),
-                fighting(_advanced.BOSS_NAME, LOW_LIVES),
+                fighting(_fight.boss, NEW_GAME_LIVES),
+                fighting(_fight.boss, LOW_LIVES),
             ),
             never=(NO_LIVES,),
         )
+        if _boss.last_hit_can_kill:
+            SCENARIOS[f"{_boss.name}-death-after-last-hit"] = Scenario(
+                _boss.start,
+                NOTHING_FIRES,
+                f"the {_boss.name} plan up to the boss's last health lost, then a death",
+                boss_death_after_last_hit(_boss, _boss_plan),
+                (fighting(_fight.boss, NEW_GAME_LIVES), fighting(_fight.boss, LOW_LIVES)),
+                never=(NO_LIVES,),
+            )
+        else:
+            pass  # The boss's last hit cannot take Crash with it.
     else:
         pass  # No searched win: the boss achievement stays for the in-game check.
 

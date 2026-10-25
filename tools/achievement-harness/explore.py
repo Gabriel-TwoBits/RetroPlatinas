@@ -4,7 +4,7 @@ An archive maps cells (player position and the goal's score) to compressed save 
 iteration restores a rarely chosen cell and plays random 16-frame macros (the stage's
 plan.HEADINGS set) from it. A rollout wins when the goal is reached (GOALS: the stage cleared, a
 clear without a Wumpa, the Wumpa count wrapping at 100, a third Aku Aku mask, a clear the game
-rewards with the stage's gem, a checkpoint crate broken, the boss beaten); a death, a level
+rewards with the stage's gem, a checkpoint crate broken, the boss fight won); a death, a level
 change that is not the clear (a bonus round), or a move the goal forbids ends it. A goal that
 farms also plays QUIT_MOVE now and then: stand, quit from the pause menu and enter the stage
 again, which commits the player's Wumpa and masks and brings the stage's items back, as a player
@@ -35,6 +35,7 @@ from harness import SECONDS_PER_MINUTE, Emu, mask_of
 from probes import (
     CHECKPOINT_ID,
     DISPLAY_FLAGS_NORMAL,
+    FIXED_POINT_SHIFT,
     GAME_STATE,
     GAME_STATE_LEVEL_WON,
     GAME_STATE_STAGE_CLEARED,
@@ -55,6 +56,7 @@ from probes import (
 from provision import SHOTS_DIR
 
 CELL_SHIFT = 19
+FIXED_POINT_FRACTION = (1 << FIXED_POINT_SHIFT) - 1  # the fraction bits of a 24.8 value
 ROLLOUT_SEGMENTS = 40
 REPEAT_PROBABILITY = 0.7
 DEATH_CONFIRM_FRAMES = 300
@@ -154,15 +156,13 @@ def checkpoint_reached(runner):
 
 
 def boss_hits(runner):
-    """Health the boss lost since the fight started; 0 while no boss object is allocated."""
+    """Whole health points the boss lost since the fight started; 0 while no boss object is
+    allocated, and on a frame whose health is not whole (Ripper Roo's reads 0x002 for one frame
+    on a hit that leaves him at 1)."""
     health = boss_health(runner.emu)
-    if health is None or runner.start_boss_health is None:
+    if health is None or runner.start_boss_health is None or health & FIXED_POINT_FRACTION:
         return 0
-    return runner.start_boss_health - health
-
-
-def boss_beaten(runner):
-    return REACHED if boss_health(runner.emu) == 0 else None
+    return (runner.start_boss_health - health) >> FIXED_POINT_SHIFT
 
 
 GOALS = {
@@ -184,7 +184,9 @@ GOALS = {
         confirm=gem_awarded,
     ),
     "checkpoint": Goal("break a checkpoint crate", no_score, checkpoint_reached, clear_wins=False),
-    "boss": Goal("beat the boss", boss_hits, boss_beaten, clear_wins=False),
+    # The fight won: it leaves for the map (game state 0x300). The boss's health reaching 0 is not
+    # enough, as a blast that ends Ripper Roo can take Crash with it and restart the fight.
+    "boss": Goal("beat the boss", boss_hits, nothing_to_check, clear_wins=True),
 }
 
 
