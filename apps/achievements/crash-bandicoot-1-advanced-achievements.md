@@ -87,7 +87,8 @@ The win is the fight's exit, the same alt 2 the stage clears use for a clear tha
 health reaching 0 is not enough: on Ripper Roo the first searched win had Crash die near an exploding TNT
 about 260 frames after the last hit, and a death after the health is gone, before the fight leaves, restarts
 the fight (`ripper-roo-death-after-last-hit`); a condition on the health would fire on that lost fight. A quit
-leaves with game state `04`, a game over with `02`, an attract demo of the fight with `06`; a death respawns inside the fight.
+leaves with game state `04`, a game over with `02`, an attract demo of the fight with `06`; a death respawns
+inside the fight.
 
 ### Look-alikes
 

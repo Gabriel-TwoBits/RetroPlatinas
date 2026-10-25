@@ -1025,7 +1025,7 @@ for _fight in _advanced.BOSS_FIGHTS:
             ),
             never=(NO_LIVES,),
         )
-        if _boss.last_hit_can_kill:
+        if _boss.can_die_after_last_hit:
             SCENARIOS[f"{_boss.name}-death-after-last-hit"] = Scenario(
                 _boss.start,
                 NOTHING_FIRES,
