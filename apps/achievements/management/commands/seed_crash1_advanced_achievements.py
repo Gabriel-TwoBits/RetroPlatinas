@@ -25,9 +25,10 @@ BIT_SIZES = ("0xM", "0xN", "0xO", "0xP", "0xQ", "0xR", "0xS", "0xT")
 
 GEM_POINTS = 10
 HARD_GEM_POINTS = 15  # the later stages of the first island and on
-# A chase (Boulders, Boulder Dash), a coloured gem itself (The Lost City), boxes on a later coloured
-# gem's path (Native Fortress and Road to Nowhere: red; Boulder Dash: purple), or a stage the
-# community ranks among the hardest (Sunset Vista).
+# A chase (Boulders, Boulder Dash), a coloured gem in a hard stage (The Lost City, Slippery Climb,
+# Lights Out, The Lab), boxes on a later coloured gem's path (Native Fortress and Road to Nowhere:
+# red; Boulder Dash: purple), or a stage the community ranks among the hardest (Sunset Vista, The
+# High Road).
 HARDEST_GEM_POINTS = 25
 
 # (title, stage, map cursor `0x619c5`, points), in map order.
@@ -46,10 +47,27 @@ GEM_ACHIEVEMENTS = [
     ("Somewhere After All", "Road to Nowhere", 0x0D, HARDEST_GEM_POINTS),
     ("Outran the Rock", "Boulder Dash", 0x0E, HARDEST_GEM_POINTS),
     ("Dusk Collector", "Sunset Vista", 0x0F, HARDEST_GEM_POINTS),
+    ("Steam Cleaned", "Heavy Machinery", 0x11, HARD_GEM_POINTS),
+    ("Power Hoarder", "Cortex Power", 0x12, HARD_GEM_POINTS),
+    ("Amber Current", "Generator Room", 0x13, HARD_GEM_POINTS),
+    ("Barrels of Blue", "Toxic Waste", 0x14, HARD_GEM_POINTS),
+    ("Rope Bridge Riches", "The High Road", 0x16, HARDEST_GEM_POINTS),
+    ("Scarlet Summit", "Slippery Climb", 0x17, HARDEST_GEM_POINTS),
+    ("Violet After Dark", "Lights Out", 0x18, HARDEST_GEM_POINTS),
+    ("Out of the Jaws", "Jaws of Darkness", 0x19, HARD_GEM_POINTS),
+    ("Gears and Glitter", "Castle Machinery", 0x1A, HARD_GEM_POINTS),
+    ("Golden Experiment", "The Lab", 0x1C, HARDEST_GEM_POINTS),
 ]
 
 # Stages whose gem is coloured (community; the code notes agree): every other gem is clear.
-COLOURED_GEMS = {"The Lost City": "green"}
+COLOURED_GEMS = {
+    "The Lost City": "green",
+    "Generator Room": "orange",
+    "Toxic Waste": "blue",
+    "Slippery Climb": "red",
+    "Lights Out": "purple",
+    "The Lab": "yellow",
+}
 
 # A boss fight won goes straight back to the island map, with no Stage Clear screen: the level
 # switches from the fight to the title/map level with game state 3 (c1 `GAME_STATE_CONTINUE`). The
