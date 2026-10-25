@@ -51,7 +51,7 @@ harness imports them.
 | Box count | `0x61984` (24.8, integer at `0x61985`), c1 `box_count` | `+1` per box broken in the stage. **A death sets it back to 0** (after a checkpoint the checkpoint crate then counts again: 9 → 0 → 1 on the committed N. Sanity Beach route). A quit or a new level load also zeroes it. On the Stage Clear screen (`2d`) it is reused to count the missed boxes up, one per 18 frames |
 | Boxes per stage | Stage Clear screen | N. Sanity Beach **49** (8 broken by the clearing plan + 41 missed), Jungle Rollers **38** (12 + 26). The other stages were not measured |
 | Gem bits | `0x61988`… (c1 `item_pool1`) | Bit *n* + 1 is map stage *n* (`0x619c5`): N. Sanity Beach bit 1, Jungle Rollers bit 2, The Great Gate bit 3, Boulders bit 4, Upstream bit 5, Rolling Stones bit 7; then `0x61989` bit 0 Hog Wild, bit 1 Native Fortress, bit 2 Up the Creek. The **Stage Clear screen** sets the bit about 280 frames after it loads, when the box count reached the stage's boxes ("PERFECT"); one short leaves it clear. It persists through the map and the next stages |
-| Boss health | `0x60ddc` pointer: Papu Papu's object, `+0x104` (24.8); Ripper Roo's is two pointers further (`+0x6c`, `+0x68`, then `+0x104`) | Papu Papu starts at **3** and loses one per hit (3 → 2 → 1 → 0, then `ff` as the object winds down). Ripper Roo starts at 3 too; his word holds `0x002` for one frame on each hit that does not end him. A TNT blast that takes his last health can take Crash with it: health `0x100` → `0`, then the respawn restarts the fight at 3 (scenario `ripper-roo-death-after-last-hit`). A respawn allocates a new object. On other levels the pointer names other objects |
+| Boss health | `0x60ddc` pointer: Papu Papu's object, `+0x104` (24.8); Ripper Roo's is two pointers further (`+0x6c`, `+0x68`, then `+0x104`) | Papu Papu starts at **3** and loses one per hit (3 → 2 → 1 → 0, then `ff` as the object winds down). Ripper Roo starts at 3 too; his word holds `0x002` for one frame on each hit that does not end him. A death after his last health is lost, before the fight leaves (as when the arena's TNT catches Crash), restarts the fight at 3 (scenario `ripper-roo-death-after-last-hit`). A respawn allocates a new object. On other levels the pointer names other objects |
 | A clear after a death past a checkpoint | `0x618d1`, `0x6188d` | The game state turns `03` instead of `05` and the stage goes **straight to the island map** (`09` → `19`, no Stage Clear screen, so no gem); the stage still counts as cleared (`0x61948` 1 → 2 on N. Sanity Beach). A death before any checkpoint restarts the stage (every box back, the count at 0, the respawn count `0x618a1` at 1 through Stage Clear), and its clear shows Stage Clear as usual and hands out the gem for every box (seen with the count poked) |
 | A boss fight's exit | `0x6188d`, `0x618d1` | After the last hit the game state turns `03` and the fight goes **straight to the island map** (no Stage Clear screen; Papu Papu: last hit at frame 1066, game state `03` at 1354, `0a` → `19` at 1543; Ripper Roo: 1778, 2122, `17` → `19` at 2298), the cursor moving on to the next stage |
 
@@ -84,10 +84,10 @@ d0xH6188d=h0a_0xH6188d=h19_0xH618d1=3        (Papu Papu, level 0a; Ripper Roo is
 | `0xH6188d=h19_0xH618d1=3` | on this frame it is the title/map level, and the game state says the level was won (c1 `GAME_STATE_CONTINUE`) |
 
 The win is the fight's exit, the same alt 2 the stage clears use for a clear that skips Stage Clear. The boss's
-health reaching 0 is not enough: on Ripper Roo a TNT blast took the last health and Crash with it, and the
-respawn restarted the fight (`ripper-roo-death-after-last-hit`), so a condition on the health would fire on a
-fight that was then lost. A quit leaves with
-game state `04`, a game over with `02`, an attract demo of the fight with `06`; a death respawns inside the fight.
+health reaching 0 is not enough: on Ripper Roo the first searched win had Crash die near an exploding TNT
+about 260 frames after the last hit, and a death after the health is gone, before the fight leaves, restarts
+the fight (`ripper-roo-death-after-last-hit`); a condition on the health would fire on that lost fight. A quit
+leaves with game state `04`, a game over with `02`, an attract demo of the fight with `06`; a death respawns inside the fight.
 
 ### Look-alikes
 
@@ -156,7 +156,7 @@ both bosses: none of them fires a gem or a boss. Every scenario above is a test 
   and Native Fortress need a coloured gem's path first (blue, red). Win each
   gem and see its achievement, and only its achievement, pop.
 - **Papu Papu and Ripper Roo on DuckStation**: beat each and see the achievement pop when the map appears;
-  die with the boss at one health left (on Ripper Roo, in the same blast as his last hit if you can) and see
+  die with the boss at one health left (on Ripper Roo, also after his last hit, before the map appears) and see
   nothing.
 - **Bonus rounds inside a gem stage**: Jungle Rollers, The Great Gate and Upstream each have a Tawna bonus
   round (code notes, `0x6197c`), which no harness route entered. Win a gem through the bonus round and see its

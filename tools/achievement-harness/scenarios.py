@@ -421,8 +421,9 @@ def boss_death_after_last_hit(stage, plan_path):
     """The winning plan replayed until the boss's health is 0, then a death before the fight
     leaves: the respawn restarts the fight at full health, so the fight is not won.
 
-    A TNT blast can take the boss's last health and Crash together (measured on Ripper Roo); a
-    trigger on the health alone fires on that lost fight.
+    Crash can still die after the boss's last health is lost (on Ripper Roo the first searched win
+    died that way, near an exploding TNT, about 260 frames after it); a trigger on the health alone
+    fires on that lost fight.
     """
 
     def play(s):

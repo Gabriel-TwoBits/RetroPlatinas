@@ -157,7 +157,7 @@ while the others keep their hits, as in a live session.
 | `<boss>-quit` | `<boss>-start` | nothing | Standing in the boss fight, then pause -> SELECT |
 | `<boss>-boss` | `<boss>-start` | the boss achievement, once, when the won fight switches to the map (lid `0x19`) | Replays `plans/<boss>-boss.json`; then a state saved on the map is loaded, and the fight is entered again and quit |
 | `<boss>-deaths` | `<boss>-start` | nothing | The boss plan replayed until the boss has one health left, then a death; another death right after the respawn, which brings the boss back at full health |
-| `<boss>-death-after-last-hit` | `<boss>-start` | nothing | The boss plan replayed until the boss's health is 0, then a death before the fight leaves: the respawn restarts the fight. Only for a boss whose last hit can kill Crash too (`Stage.last_hit_can_kill`, Ripper Roo) |
+| `<boss>-death-after-last-hit` | `<boss>-start` | nothing | The boss plan replayed until the boss's health is 0, then a death before the fight leaves: the respawn restarts the fight. Only for a boss where Crash can die after its last health is lost (`Stage.last_hit_can_kill`, Ripper Roo) |
 | `<stage>-no-wumpa` | `<stage>-start` | the stage's achievement on Stage Clear and `Beach Diet` on the clear (lid of the stage) | Replays `plans/<stage>-no-wumpa.json`, a clear without a Wumpa; then as `<stage>-clear`. Only for the stage `Beach Diet` names |
 | `<stage>-aku` | the plan's start | `Mask Stack`, once, on the third mask (lid of the stage) | Replays `plans/<stage>-aku.json`; then a state saved after the event is loaded, and the stage is quit, re-entered with the masks committed and quit |
 | `<stage>-wumpa` | the plan's start | `Fruit Into Life`, once, on the wrap past 100 (lid of the stage) | Replays `plans/<stage>-wumpa.json`; then the same state load, quit, re-entry and quit |
@@ -249,7 +249,7 @@ Great Gate). The goal (`--goal`, `explore.GOALS`) decides when a rollout wins:
 | `aku` | Aku Aku holds three masks | the masks | farms |
 | `gem` | the stage is cleared and the Stage Clear screen then hands out its gem (the bit of the stage under the map cursor, within 900 frames) | the boxes broken | a clear without the gem ends the rollout |
 | `checkpoint` | a checkpoint crate is broken (`0x619A0` leaves -1) | none | |
-| `boss` | the fight is won: the game state turns `0x300`, the fight leaving for the map (health 0 is not enough: a blast can take Crash with the boss and restart the fight) | the health lost (`probes.BOSS_HEALTH_CHAINS`) | |
+| `boss` | the fight is won: the game state turns `0x300`, the fight leaving for the map (health 0 is not enough: a death before the fight leaves restarts it) | the health lost (`probes.BOSS_HEALTH_CHAINS`) | |
 
 A goal that farms also plays `quit-and-reenter` on about one segment in fifty: stand, pause, SELECT
 and enter the stage again, which commits the counts and brings the crates back. The frames it took

@@ -44,9 +44,9 @@ GEM_ACHIEVEMENTS = [
 
 # A boss fight won goes straight back to the island map, with no Stage Clear screen: the level
 # switches from the fight to the title/map level with game state 3 (c1 `GAME_STATE_CONTINUE`). The
-# boss's health reaching 0 is not the win: a TNT blast that takes Ripper Roo's last health can take
-# Crash too, and his respawn restarts the fight at full health (harness scenario
-# `ripper-roo-death-after-last-hit`).
+# boss's health reaching 0 is not the win: Crash can still die before the fight leaves (Ripper Roo's
+# arena keeps exploding TNT after his last hit), and the respawn restarts the fight at full health
+# (harness scenario `ripper-roo-death-after-last-hit`).
 BOSS_POINTS = 10
 
 

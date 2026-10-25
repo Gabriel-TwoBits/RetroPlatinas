@@ -185,7 +185,7 @@ GOALS = {
     ),
     "checkpoint": Goal("break a checkpoint crate", no_score, checkpoint_reached, clear_wins=False),
     # The fight won: it leaves for the map (game state 0x300). The boss's health reaching 0 is not
-    # enough, as a blast that ends Ripper Roo can take Crash with it and restart the fight.
+    # enough: a death before the fight leaves restarts it (scenario `<boss>-death-after-last-hit`).
     "boss": Goal("beat the boss", boss_hits, nothing_to_check, clear_wins=True),
 }
 

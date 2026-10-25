@@ -81,7 +81,7 @@ class Stage:
     map_state: str | None = None
     # False where Crash cannot stand still (Hog Wild's hog runs on by itself, into the hazards).
     can_idle: bool = True
-    # A boss fight whose last hit can kill Crash too (Ripper Roo's TNT), restarting the fight.
+    # A boss fight where Crash can die after the boss's last health is lost, restarting the fight.
     last_hit_can_kill: bool = False
 
     @property
