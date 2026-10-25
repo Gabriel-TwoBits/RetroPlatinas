@@ -49,6 +49,17 @@ Every condition is `build_mem_addr(level_id)`; only the stage's level id changes
 | Road to Nowhere | `14` | `0d` | `d0xH6188d=h14S0xH6188d=h2dS0xH6188d=h19_0xH618d1=3` |
 | Boulder Dash | `13` | `0e` | `d0xH6188d=h13S0xH6188d=h2dS0xH6188d=h19_0xH618d1=3` |
 | Sunset Vista | `23` | `0f` | `d0xH6188d=h23S0xH6188d=h2dS0xH6188d=h19_0xH618d1=3` |
+| Heavy Machinery | `06` | `11` | `d0xH6188d=h06S0xH6188d=h2dS0xH6188d=h19_0xH618d1=3` |
+| Cortex Power | `03` | `12` | `d0xH6188d=h03S0xH6188d=h2dS0xH6188d=h19_0xH618d1=3` |
+| Generator Room | `05` | `13` | `d0xH6188d=h05S0xH6188d=h2dS0xH6188d=h19_0xH618d1=3` |
+| Toxic Waste | `07` | `14` | `d0xH6188d=h07S0xH6188d=h2dS0xH6188d=h19_0xH618d1=3` |
+| The High Road | `16` | `16` | `d0xH6188d=h16S0xH6188d=h2dS0xH6188d=h19_0xH618d1=3` |
+| Slippery Climb | `2e` | `17` | `d0xH6188d=h2eS0xH6188d=h2dS0xH6188d=h19_0xH618d1=3` |
+| Lights Out | `28` | `18` | `d0xH6188d=h28S0xH6188d=h2dS0xH6188d=h19_0xH618d1=3` |
+| Jaws of Darkness | `1d` | `19` | `d0xH6188d=h1dS0xH6188d=h2dS0xH6188d=h19_0xH618d1=3` |
+| Castle Machinery | `37` | `1a` | `d0xH6188d=h37S0xH6188d=h2dS0xH6188d=h19_0xH618d1=3` |
+| The Lab | `29` | `1c` | `d0xH6188d=h29S0xH6188d=h2dS0xH6188d=h19_0xH618d1=3` |
+| The Great Hall | `2c` | `1d` | `d0xH6188d=h2cS0xH6188d=h2dS0xH6188d=h19_0xH618d1=3` |
 
 The level ids are the c1 `LID_*` constants; the harness measured each one by entering the stage from the
 map (`states.py` refuses a stage whose level id differs).
@@ -117,19 +128,20 @@ it), and nothing else may fire anything.
 Each scenario is a test in `tools/achievement-harness/test_achievement_harness.py` (skipped without the disc).
 
 Runs on `PCSX-ReARMed r26 ff81ed1` with the vendored rcheevos 12.3. Jungle Rollers to Rolling Stones are
-reached by poking the map's unlocked-stage count (`0x61948`) and walking the map cursor there. Hog Wild to
-Sunset Vista are reached with no write at all: the harness types the community's password for the
-Koala Kong save point, `XOOOXSXS` (the map up to Koala Kong, no gem, no key; measured in
-`crash-bandicoot-1-completion-inventory.md`), and walks the cursor back. Nothing writes a clear, a level id or
-a game state.
+reached by poking the map's unlocked-stage count (`0x61948`) and walking the map cursor there. Every later stage is
+reached with no write at all: the harness types a community password from the title menu and walks the cursor back
+from where the map opens (measured in `crash-bandicoot-1-completion-inventory.md`): the Koala Kong save point
+`XOOOXSXS` for Hog Wild to Sunset Vista, "skip to the third island" `TTTTOXTTXXTOSOXTTOSXXSTT` for Heavy Machinery
+to Slippery Climb, The Lab's save point `TTTSXXOXXSOXXXXOSTSOOSST` for Lights Out to The Lab, and the 100% password
+for The Great Hall. Nothing writes a clear, a level id or a game state.
 
 | Scenario | What is played | Result |
 | --- | --- | --- |
 | `cold-boot` | 3 minutes from power-on, no input | nothing fires |
 | `attract` | 15 minutes of attract demos from power-on (Jungle Rollers, The Great Gate, Boulders, Papu Papu, The Lost City, Jaws of Darkness, The Lab, and again) | nothing fires |
 | `game-over` | N. Sanity Beach: deaths down to the game over and the title screen | nothing fires |
-| `<stage>-deaths`, all fourteen stages | a death, a death with the achievements re-armed right after the respawn, a death after idling where the player respawned; each replays a plan first where one leads mid-stage | nothing fires |
-| `<stage>-quit`, all fourteen stages | pause → SELECT right after control, after running and standing, after standing | nothing fires |
+| `<stage>-deaths`, every stage | a death, a death with the achievements re-armed right after the respawn, a death after idling where the player respawned; each replays a plan first where one leads mid-stage | nothing fires |
+| `<stage>-quit`, every stage | pause → SELECT right after control, after running and standing, after standing | nothing fires |
 | `nsanity-beach-clear` | a real clear (`plans/nsanity-beach-clear.json`), then Stage Clear → map, Jungle Rollers entered and quit | N. Sanity Beach fires once, on the switch to `2d`; nothing else fires |
 | `jungle-rollers-clear` | a real clear (`plans/jungle-rollers-clear.json`), then Stage Clear → map, The Great Gate entered and quit | Jungle Rollers fires once, on the switch to `2d`; nothing else fires |
 | `nsanity-beach-checkpoint-death` | the checkpoint crate broken, a death, and a real clear from the checkpoint, which skips Stage Clear (game state `03`, `09` → `19`) | N. Sanity Beach fires once, on the switch to `19` (alt 2); no gem |
@@ -141,18 +153,26 @@ The Go-Explore search (`explore.py`) found no clear of The Great Gate, Boulders,
 within its time box of about 45 minutes of wall-clock search per stage or more, over two or three seeds. The
 deepest route kept, 383 segments of 16 frames into The Great Gate, is `plans/the-great-gate-deepest.json`; the
 search logs are not kept. For those four stages everything but the clear is validated: the level id the
-condition names is measured on entry, and deaths and quits fire nothing. Hog Wild to Sunset Vista were not
-searched for a clear (the user's decision: a stage clear ships on the builder proven on the first stages,
-its measured level id and the look-alike scenarios); the same holds for them. Native Fortress, The Lost City and
-Sunset Vista get their deaths mid-stage from a failed clear search's deepest route (`plans/<stage>-deepest.json`):
-random play from their start dies too rarely.
+condition names is measured on entry, and deaths and quits fire nothing. Hog Wild to The Lab were not searched for
+a clear (the user's decision: a stage clear ships on the builder proven on the first stages, its measured level id
+and the look-alike scenarios); the same holds for them. Native Fortress, The Lost City, Sunset Vista and Slippery
+Climb get their deaths mid-stage from a failed clear search's deepest route (`plans/<stage>-deepest.json`): random
+play from their start dies too rarely. Castle Machinery's start has extra lives in reach, so its deaths do not
+bring the count low.
+
+The Great Hall has no Stage Clear screen and no boxes: Crash walks up out through the balcony arch and the hall
+loads the map with game state `03`, so alt 2 of the condition fires (measured on the hall reached with the 100%
+password; then the map moves on to Dr. Neo Cortex). Its scenario `the-great-hall-clear` plays that exit: it waits
+out the hall's opening (walking up at once falls off the platform), walks up and jumps until the level changes;
+`The Great Hall` fires once, on the switch to the map (lid `19`). Its deaths walk sideways off the platform.
 
 ### Still for the in-game check (DuckStation)
 
-- **The Great Gate, Boulders, Upstream, Rolling Stones, Hog Wild, Native Fortress, Up the Creek, The Lost City,
-  Temple Ruins, Road to Nowhere, Boulder Dash, Sunset Vista:** finish each stage and confirm its achievement pops
-  on the Stage Clear screen, once. The harness never produced these clears.
-- **All fourteen, on DuckStation:** the popup appears on the Stage Clear screen (not earlier, on the stage's
+- **The Great Gate, Boulders, Upstream, Rolling Stones and every stage from Hog Wild to The Lab:** finish each
+  stage and confirm its achievement pops on the Stage Clear screen, once. The harness never produced these clears.
+- **The Great Hall with fewer than 26 gems:** the harness left it only with all 26 (the 100% password); leave it
+  through the arch with a normal save and see `The Great Hall` pop when the map appears.
+- **All of them, on DuckStation:** the popup appears on the Stage Clear screen (not earlier, on the stage's
   exit), and a death, a pause → quit, a game over and leaving Stage Clear for the map unlock nothing.
 - **A clear after a death past a checkpoint:** break a checkpoint crate, die, finish the stage; there is no
   Stage Clear screen, and the popup appears when the island map loads (alt 2). Seen in the harness on
