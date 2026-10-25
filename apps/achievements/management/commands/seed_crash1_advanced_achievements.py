@@ -65,6 +65,12 @@ BOSS_FIGHTS = (
         0x0A,
         "Defeat Papu Papu, the tribal chief guarding the way to Rolling Stones.",
     ),
+    BossFight(
+        "Kangaroo Court",
+        "Ripper Roo",
+        0x17,
+        "Defeat Ripper Roo, the kangaroo guarding the way to The Lost City.",
+    ),
 )
 
 
