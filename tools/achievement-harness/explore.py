@@ -57,6 +57,7 @@ from probes import (
 from provision import SHOTS_DIR
 
 CELL_SHIFT = 19
+BOSS_TIME_CELL_SEGMENTS = 8  # 128 frames
 FIXED_POINT_FRACTION = (1 << FIXED_POINT_SHIFT) - 1  # the fraction bits of a 24.8 value
 ROLLOUT_SEGMENTS = 40
 REPEAT_PROBABILITY = 0.7
@@ -100,6 +101,9 @@ class Goal:
     clear_wins: bool  # the stage's clear is the goal; otherwise it ends the rollout
     farms: bool = False  # QUIT_MOVE is played: the goal's items come back on re-entry
     confirm: Callable | None = None  # Runner -> bool, after a winning clear: whether it counts
+    # Segments per time cell, or None: a boss arena holds few positions, and its attacks come in
+    # timed waves, so the fight's progress is also how long Crash has lasted.
+    time_cell_segments: int | None = None
 
 
 def no_score(_runner):
@@ -195,7 +199,13 @@ GOALS = {
     "checkpoint": Goal("break a checkpoint crate", no_score, checkpoint_reached, clear_wins=False),
     # The fight won: it leaves for the map (game state 0x300). The boss's health reaching 0 is not
     # enough: a death before the fight leaves restarts it (scenario `<boss>-death-after-last-hit`).
-    "boss": Goal("beat the boss", boss_hits, nothing_to_check, clear_wins=True),
+    "boss": Goal(
+        "beat the boss",
+        boss_hits,
+        nothing_to_check,
+        clear_wins=True,
+        time_cell_segments=BOSS_TIME_CELL_SEGMENTS,
+    ),
 }
 
 
@@ -323,10 +333,16 @@ class Explorer:
         self.archive = {}
         self._store(self._cell(), b"", ())
 
-    def _cell(self):
-        """Position cell, then the goal's score: a higher score is a new cell at any position."""
+    def _cell(self, plan=b""):
+        """Position cell, the time cell when the goal has one, then the goal's score: a higher
+        score is a new cell at any position."""
         position = tuple(coordinate >> CELL_SHIFT for coordinate in self.runner.position())
-        return (*position, self.runner.goal.score(self.runner))
+        segments = self.runner.goal.time_cell_segments
+        if segments is None:
+            when = ()
+        else:
+            when = (len(plan) // segments,)
+        return (*position, *when, self.runner.goal.score(self.runner))
 
     def _rank(self, cell):
         """Frontier order: the goal's score (the cell key's last field), then the plan's depth."""
@@ -392,7 +408,7 @@ class Explorer:
             if outcome == DEAD:
                 outcome = self.runner.confirm()
             if outcome is None:
-                self._store(self._cell(), bytes(plan), quits)
+                self._store(self._cell(plan), bytes(plan), quits)
             elif self.runner.won(outcome):
                 return bytes(plan), quits
             elif outcome in (DEAD, ELSEWHERE, FORBIDDEN, CLEARED, STUCK):

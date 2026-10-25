@@ -249,7 +249,7 @@ Great Gate). The goal (`--goal`, `explore.GOALS`) decides when a rollout wins:
 | `aku` | Aku Aku holds three masks | the masks | farms |
 | `gem` | the stage is cleared and the Stage Clear screen then hands out its gem (the bit of the stage under the map cursor, within 900 frames) | the boxes broken | a clear without the gem ends the rollout |
 | `checkpoint` | a checkpoint crate is broken (`0x619A0` leaves -1) | none | |
-| `boss` | the fight is won: the game state turns `0x300`, the fight leaving for the map (health 0 is not enough: a death before the fight leaves restarts it) | the health lost (`probes.BOSS_HEALTH_CHAINS`) | |
+| `boss` | the fight is won: the game state turns `0x300`, the fight leaving for the map (health 0 is not enough: a death before the fight leaves restarts it) | the health lost (`probes.BOSS_HEALTH_CHAINS`) | a time cell every 8 segments: a boss arena holds few positions |
 
 A goal that farms also plays `quit-and-reenter` on about one segment in fifty: stand, pause, SELECT
 and enter the stage again, which commits the counts and brings the crates back. The frames it took
