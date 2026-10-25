@@ -7,7 +7,7 @@
 > **Validated** in the headless harness (`tools/achievement-harness/`) against `SCUS-94900 — Crash
 > Bandicoot (USA)`; see **Validation** for exactly what, and what still needs the in-game check.
 
-The first six "finish the level" achievements, 5 points each, created as `official` in the core set.
+The "finish the level" achievements, 5 points each, created as `official` in the core set.
 
 ## Seeding
 
@@ -41,6 +41,9 @@ Every condition is `build_mem_addr(level_id)`; only the stage's level id changes
 | Boulders | `0e` | `03` | `d0xH6188d=h0eS0xH6188d=h2dS0xH6188d=h19_0xH618d1=3` |
 | Upstream | `0f` | `04` | `d0xH6188d=h0fS0xH6188d=h2dS0xH6188d=h19_0xH618d1=3` |
 | Rolling Stones | `15` | `06` | `d0xH6188d=h15S0xH6188d=h2dS0xH6188d=h19_0xH618d1=3` |
+| Hog Wild | `11` | `07` | `d0xH6188d=h11S0xH6188d=h2dS0xH6188d=h19_0xH618d1=3` |
+| Native Fortress | `1a` | `08` | `d0xH6188d=h1aS0xH6188d=h2dS0xH6188d=h19_0xH618d1=3` |
+| Up the Creek | `18` | `09` | `d0xH6188d=h18S0xH6188d=h2dS0xH6188d=h19_0xH618d1=3` |
 
 The level ids are the c1 `LID_*` constants; the harness measured each one by entering the stage from the
 map (`states.py` refuses a stage whose level id differs).
@@ -99,26 +102,29 @@ The constants carry rcheevos' `h` prefix: a bare `0x2d` is a memory read, not th
 
 ## Validation
 
-Syntax: `scripts/check-mem-addr.sh` (the vendored rcheevos parser) accepts all six conditions; `pytest`
+Syntax: `scripts/check-mem-addr.sh` (the vendored rcheevos parser) accepts every condition; `pytest`
 runs it over every generated condition.
 
-Behaviour: the harness plays the real disc on `pcsx_rearmed` (interpreter, deterministic) with all six
-achievements active in the vendored rcheevos runtime, and judges every trigger: an expected achievement must
+Behaviour: the harness plays the real disc on `pcsx_rearmed` (interpreter, deterministic) with every
+achievement active in the vendored rcheevos runtime, and judges every trigger: an expected achievement must
 fire exactly once, while the game shows the Stage Clear level `2d` (the map level `19` on a clear that skips
 it), and nothing else may fire anything.
 Each scenario is a test in `tools/achievement-harness/test_achievement_harness.py` (skipped without the disc).
 
-Runs on `PCSX-ReARMed r26 ff81ed1` with the vendored rcheevos 12.3. Stages other than N. Sanity Beach are
-reached by poking the map's unlocked-stage count (`0x61948`) and walking the map cursor there; nothing
-writes a clear, a level id or a game state.
+Runs on `PCSX-ReARMed r26 ff81ed1` with the vendored rcheevos 12.3. Jungle Rollers to Rolling Stones are
+reached by poking the map's unlocked-stage count (`0x61948`) and walking the map cursor there. Hog Wild, Native
+Fortress and Up the Creek are reached with no write at all: the harness types the community's password for the
+Koala Kong save point, `XOOOXSXS` (the map up to Koala Kong, no gem, no key; measured in
+`crash-bandicoot-1-completion-inventory.md`), and walks the cursor back. Nothing writes a clear, a level id or
+a game state.
 
 | Scenario | What is played | Result |
 | --- | --- | --- |
 | `cold-boot` | 3 minutes from power-on, no input | nothing fires |
 | `attract` | 15 minutes of attract demos from power-on (Jungle Rollers, The Great Gate, Boulders, Papu Papu, The Lost City, Jaws of Darkness, The Lab, and again) | nothing fires |
 | `game-over` | N. Sanity Beach: deaths down to the game over and the title screen | nothing fires |
-| `<stage>-deaths`, all six stages | a death, a death with the achievements re-armed right after the respawn, a death after idling where the player respawned; each replays a plan first where one leads mid-stage | nothing fires |
-| `<stage>-quit`, all six stages | pause → SELECT right after control, after running and standing, after standing | nothing fires |
+| `<stage>-deaths`, all nine stages | a death, a death with the achievements re-armed right after the respawn, a death after idling where the player respawned; each replays a plan first where one leads mid-stage | nothing fires |
+| `<stage>-quit`, all nine stages | pause → SELECT right after control, after running and standing, after standing | nothing fires |
 | `nsanity-beach-clear` | a real clear (`plans/nsanity-beach-clear.json`), then Stage Clear → map, Jungle Rollers entered and quit | N. Sanity Beach fires once, on the switch to `2d`; nothing else fires |
 | `jungle-rollers-clear` | a real clear (`plans/jungle-rollers-clear.json`), then Stage Clear → map, The Great Gate entered and quit | Jungle Rollers fires once, on the switch to `2d`; nothing else fires |
 | `nsanity-beach-checkpoint-death` | the checkpoint crate broken, a death, and a real clear from the checkpoint, which skips Stage Clear (game state `03`, `09` → `19`) | N. Sanity Beach fires once, on the switch to `19` (alt 2); no gem |
@@ -130,13 +136,16 @@ The Go-Explore search (`explore.py`) found no clear of The Great Gate, Boulders,
 within its time box of about 45 minutes of wall-clock search per stage or more, over two or three seeds. The
 deepest route kept, 383 segments of 16 frames into The Great Gate, is `plans/the-great-gate-deepest.json`; the
 search logs are not kept. For those four stages everything but the clear is validated: the level id the
-condition names is measured on entry, and deaths and quits fire nothing.
+condition names is measured on entry, and deaths and quits fire nothing. Hog Wild, Native Fortress and Up the
+Creek were not searched (the user's decision: a stage clear ships on the builder proven on the first stages,
+its measured level id and the look-alike scenarios); the same holds for them.
 
 ### Still for the in-game check (DuckStation)
 
-- **The Great Gate, Boulders, Upstream, Rolling Stones:** finish each stage and confirm its achievement
-  pops on the Stage Clear screen, once. The harness never produced these clears.
-- **All six, on DuckStation:** the popup appears on the Stage Clear screen (not earlier, on the stage's
+- **The Great Gate, Boulders, Upstream, Rolling Stones, Hog Wild, Native Fortress, Up the Creek:** finish
+  each stage and confirm its achievement pops on the Stage Clear screen, once. The harness never produced
+  these clears.
+- **All nine, on DuckStation:** the popup appears on the Stage Clear screen (not earlier, on the stage's
   exit), and a death, a pause → quit, a game over and leaving Stage Clear for the map unlock nothing.
 - **A clear after a death past a checkpoint:** break a checkpoint crate, die, finish the stage; there is no
   Stage Clear screen, and the popup appears when the island map loads (alt 2). Seen in the harness on

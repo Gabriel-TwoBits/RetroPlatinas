@@ -23,6 +23,9 @@ LEVEL_ACHIEVEMENTS = [
     ("Boulders", 0x0E),
     ("Upstream", 0x0F),
     ("Rolling Stones", 0x15),
+    ("Hog Wild", 0x11),
+    ("Native Fortress", 0x1A),
+    ("Up the Creek", 0x18),
 ]
 
 
@@ -48,7 +51,7 @@ def build_description(title):
 
 class Command(BaseCommand):
     help = (
-        "Seed the first six Crash Bandicoot 1 level-completion achievements (idempotent); "
+        "Seed the Crash Bandicoot 1 level-completion achievements (idempotent); "
         "existing rows, matched by title, get the current condition, description and type."
     )
 
