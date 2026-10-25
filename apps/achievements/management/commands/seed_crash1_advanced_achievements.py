@@ -24,16 +24,22 @@ BITS_PER_BYTE = 8
 BIT_SIZES = ("0xM", "0xN", "0xO", "0xP", "0xQ", "0xR", "0xS", "0xT")
 
 GEM_POINTS = 10
-HARD_GEM_POINTS = 15  # the later stages of the first island
-CHASE_GEM_POINTS = 25  # Boulders: every box broken while the boulder rolls after Crash
+HARD_GEM_POINTS = 15  # the later stages of the first island and on
+# Boulders: every box broken while the boulder rolls after Crash. Native Fortress: its boxes include
+# the red-gem path, opened only by Slippery Climb's gem on the third island.
+HARDEST_GEM_POINTS = 25
 
 # (title, stage, map cursor `0x619c5`, points), in map order.
 GEM_ACHIEVEMENTS = [
     ("Shoreline Sparkle", "N. Sanity Beach", 0x00, GEM_POINTS),
     ("Rolled Clean", "Jungle Rollers", 0x01, GEM_POINTS),
     ("Gatekeeper's Gem", "The Great Gate", 0x02, HARD_GEM_POINTS),
-    ("Rock-Solid Gem", "Boulders", 0x03, CHASE_GEM_POINTS),
+    ("Rock-Solid Gem", "Boulders", 0x03, HARDEST_GEM_POINTS),
     ("Against the Current", "Upstream", 0x04, HARD_GEM_POINTS),
+    ("Rubble Rouser", "Rolling Stones", 0x06, HARD_GEM_POINTS),
+    ("Hog-Tied Treasure", "Hog Wild", 0x07, HARD_GEM_POINTS),
+    ("Fortress Plundered", "Native Fortress", 0x08, HARDEST_GEM_POINTS),
+    ("Creek Clearer", "Up the Creek", 0x09, HARD_GEM_POINTS),
 ]
 
 # A boss fight won goes straight back to the island map, with no Stage Clear screen: the level
