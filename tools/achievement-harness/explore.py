@@ -159,13 +159,13 @@ def checkpoint_reached(runner):
 def boss_hits(runner):
     """Whole health points the boss lost since the fight started; 0 while no boss object is
     allocated, on a frame whose health is not whole (Ripper Roo's reads 0x002 for one frame on a
-    hit that leaves him at 1), and while the health is read from another object than the fight's
-    first (Koala Kong's reads 0 for a frame as a respawn reallocates it, and while a boulder
-    crushes Crash).
+    hit that leaves him at 1), while the health is read from another object than the fight's
+    first (a respawn reallocates it), and at 0: Koala Kong's reads 0 for a frame as Crash dies,
+    while a fight really won is the goal itself, its exit to the map.
     """
     health = boss_health(runner.emu)
     if (
-        health is None
+        not health
         or runner.start_boss_health is None
         or health & FIXED_POINT_FRACTION
         or boss_object(runner.emu) != runner.start_boss_object
