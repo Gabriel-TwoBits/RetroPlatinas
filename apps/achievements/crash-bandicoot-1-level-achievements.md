@@ -149,9 +149,9 @@ random play from their start dies too rarely.
 
 ### Still for the in-game check (DuckStation)
 
-- **The Great Gate, Boulders, Upstream, Rolling Stones, Hog Wild, Native Fortress, Up the Creek, The Lost
-  City, Temple Ruins, Road to Nowhere, Boulder Dash, Sunset Vista:** finish each stage and confirm its achievement pops on the Stage Clear screen, once. The harness never produced
-  these clears.
+- **The Great Gate, Boulders, Upstream, Rolling Stones, Hog Wild, Native Fortress, Up the Creek, The Lost City,
+  Temple Ruins, Road to Nowhere, Boulder Dash, Sunset Vista:** finish each stage and confirm its achievement pops
+  on the Stage Clear screen, once. The harness never produced these clears.
 - **All fourteen, on DuckStation:** the popup appears on the Stage Clear screen (not earlier, on the stage's
   exit), and a death, a pause → quit, a game over and leaving Stage Clear for the map unlock nothing.
 - **A clear after a death past a checkpoint:** break a checkpoint crate, die, finish the stage; there is no

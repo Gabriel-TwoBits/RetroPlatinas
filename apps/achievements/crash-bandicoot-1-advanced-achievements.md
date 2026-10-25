@@ -144,11 +144,12 @@ the count is set before its last segment, and the Stage Clear screen decides.
 | `nsanity-beach-one-box-short-poked`, `jungle-rollers-one-box-short-poked` | 48, 37 | no gem, no gem achievement |
 | `nsanity-beach-early-death-gem-poked` | 49 boxes, on `plans/nsanity-beach-early-death-clear.json`, a clear searched from the restart after a death before any checkpoint (`explore.py nsanity-beach --from nsanity-beach-early-death-restart --seed 5`) | `Shoreline Sparkle` once, on the Stage Clear screen (lid `2d`): the early death does not stop the gem |
 
-**No-fire scenarios**, every one with these achievements active: `cold-boot`, `attract` (15 minutes of demos,
-Papu Papu's among them), `attract-then-new-game`, `game-over`, `<stage>-deaths` and `<stage>-quit` for every
-level-achievement stage, the level clears, the collectible scenarios, `password-all-gems` (the 100% password
-typed from the title menu sets all 26 gem bits on the title level) and `<boss>-quit` for every boss and `<boss>-deaths`
-for every boss with a searched win: none of them fires a gem or a boss. Every scenario above is a test in `tools/achievement-harness/test_achievement_harness.py`.
+**No-fire scenarios**, every one with these achievements active: `cold-boot`, `attract` (15 minutes of demos, Papu
+Papu's among them), `attract-then-new-game`, `game-over`, `<stage>-deaths` and `<stage>-quit` for every
+level-achievement stage, the level clears, the collectible scenarios, `password-all-gems` (the 100% password typed
+from the title menu sets all 26 gem bits on the title level) and `<boss>-quit` for every boss and `<boss>-deaths`
+for every boss with a searched win: none of them fires a gem or a boss. Every scenario above is a test in
+`tools/achievement-harness/test_achievement_harness.py`.
 
 ### Still for the in-game check (DuckStation)
 
@@ -165,9 +166,9 @@ for every boss with a searched win: none of them fires a gem or a boss. Every sc
   (it sets exactly these bits among the 26), and agree with the measured bits 1 and 2. Rolling Stones, Native
   Fortress, Road to Nowhere and Boulder Dash need a coloured gem's path first (blue, red, red, purple). Win each
   gem and see its achievement, and only its achievement, pop.
-- **Papu Papu, Ripper Roo, Koala Kong and Pinstripe on DuckStation**: beat each and see the achievement pop when the map appears;
-  die with the boss at one health left (on Ripper Roo, also after his last hit, before the map appears) and see
-  nothing.
+- **Papu Papu, Ripper Roo, Koala Kong and Pinstripe on DuckStation**: beat each and see the achievement pop when
+  the map appears; die with the boss at one health left (on Ripper Roo, also after his last hit, before the map
+  appears) and see nothing.
 - **Bonus rounds inside a gem stage**: Jungle Rollers, The Great Gate and Upstream each have a Tawna bonus
   round (code notes, `0x6197c`), which no harness route entered. Win a gem through the bonus round and see its
   achievement pop; fall out of the bonus round, finish the stage, and see the achievement pop only if the
