@@ -41,6 +41,9 @@ LEVEL_ACHIEVEMENTS = [
     ("Jaws of Darkness", 0x1D),
     ("Castle Machinery", 0x37),
     ("The Lab", 0x29),
+    # No Stage Clear screen: Crash walks out through the balcony arch and the hall loads the map
+    # with game state 3, the alt group of a clear after a death past a checkpoint (measured).
+    ("The Great Hall", 0x2C),
 ]
 
 
