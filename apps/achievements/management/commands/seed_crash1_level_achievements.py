@@ -26,6 +26,11 @@ LEVEL_ACHIEVEMENTS = [
     ("Hog Wild", 0x11),
     ("Native Fortress", 0x1A),
     ("Up the Creek", 0x18),
+    ("The Lost City", 0x20),
+    ("Temple Ruins", 0x1C),
+    ("Road to Nowhere", 0x14),
+    ("Boulder Dash", 0x13),
+    ("Sunset Vista", 0x23),
 ]
 
 
