@@ -10,6 +10,7 @@ Probe names: `rXXXXX` / `wXXXXX` are the raw 8-bit / 24-bit reads the repo's con
 """
 
 import achievements
+from harness import POINTER_BYTES
 
 FIXED_POINT_SHIFT = 8
 FIXED_POINT_BYTES = 4
@@ -154,6 +155,18 @@ def boss_health(emu):
         return None
     pointer, *offsets = chain
     return emu.deref(pointer, *offsets, size=FIXED_POINT_BYTES)
+
+
+def boss_object(emu):
+    """The address of the object holding the boss's health (the last pointer of its chain); None
+    outside a known boss fight or on a null hop."""
+    chain = BOSS_HEALTH_CHAINS.get(emu.u8(LEVEL_ID))
+    if chain is None:
+        return None
+    pointer, *offsets = chain
+    if len(offsets) == 1:
+        return emu.u24(pointer) or None
+    return emu.deref(pointer, *offsets[:-1], size=POINTER_BYTES) or None
 
 
 def has_gem(emu, map_index):

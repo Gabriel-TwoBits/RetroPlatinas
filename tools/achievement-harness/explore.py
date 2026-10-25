@@ -49,6 +49,7 @@ from probes import (
     STAGE_ID,
     aku_level,
     boss_health,
+    boss_object,
     box_count,
     has_gem,
     player_fruit,
@@ -158,14 +159,16 @@ def checkpoint_reached(runner):
 def boss_hits(runner):
     """Whole health points the boss lost since the fight started; 0 while no boss object is
     allocated, on a frame whose health is not whole (Ripper Roo's reads 0x002 for one frame on a
-    hit that leaves him at 1), and from a respawn on (Koala Kong's new object reads 0 for a frame).
+    hit that leaves him at 1), and while the health is read from another object than the fight's
+    first (Koala Kong's reads 0 for a frame as a respawn reallocates it, and while a boulder
+    crushes Crash).
     """
     health = boss_health(runner.emu)
     if (
         health is None
         or runner.start_boss_health is None
         or health & FIXED_POINT_FRACTION
-        or runner.emu.s32(RESPAWN_COUNT) != runner.respawns
+        or boss_object(runner.emu) != runner.start_boss_object
     ):
         return 0
     return (runner.start_boss_health - health) >> FIXED_POINT_SHIFT
@@ -218,6 +221,7 @@ class Runner:
         self.level_id = emu.u8(LEVEL_ID)
         self.start_fruit = player_fruit(emu)
         self.start_boss_health = boss_health(emu)
+        self.start_boss_object = boss_object(emu)
         self.fruit = self.previous_fruit = self.start_fruit
 
     def sync(self):
