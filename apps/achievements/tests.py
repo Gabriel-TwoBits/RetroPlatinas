@@ -20,6 +20,7 @@ from apps.achievements.management.commands.seed_crash1_advanced_achievements imp
     GEM_ACHIEVEMENTS,
     advanced_achievements,
     build_boss_mem_addr,
+    build_gem_description,
     build_gem_mem_addr,
     gem_bit,
 )
@@ -1247,6 +1248,13 @@ def test_advanced_mem_addrs_parse_in_rcheevos():
 )
 def test_gem_bit_of_map_stage_n_is_bit_n_plus_one_from_the_gem_bitfield(map_index, bit):
     assert gem_bit(map_index) == bit
+
+
+@pytest.mark.parametrize(
+    ("stage", "colour"), [("N. Sanity Beach", "clear"), ("The Lost City", "green")]
+)
+def test_gem_description_names_the_gem_colour(stage, colour):
+    assert build_gem_description(stage).endswith(f"win its {colour} gem.")
 
 
 def test_gem_mem_addr_fires_when_the_stage_clear_screen_sets_the_gem_bit():

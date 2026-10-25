@@ -48,6 +48,9 @@ GEM_ACHIEVEMENTS = [
     ("Dusk Collector", "Sunset Vista", 0x0F, HARDEST_GEM_POINTS),
 ]
 
+# Stages whose gem is coloured (community; the code notes agree): every other gem is clear.
+COLOURED_GEMS = {"The Lost City": "green"}
+
 # A boss fight won goes straight back to the island map, with no Stage Clear screen: the level
 # switches from the fight to the title/map level with game state 3 (c1 `GAME_STATE_CONTINUE`). The
 # boss's health reaching 0 is not the win: Crash can still die before the fight leaves (Ripper Roo's
@@ -123,7 +126,8 @@ def build_gem_mem_addr(map_index):
 
 
 def build_gem_description(stage):
-    return f"Break every box in {stage} without dying past a checkpoint and win its clear gem."
+    colour = COLOURED_GEMS.get(stage, "clear")
+    return f"Break every box in {stage} without dying past a checkpoint and win its {colour} gem."
 
 
 def build_boss_mem_addr(fight):
