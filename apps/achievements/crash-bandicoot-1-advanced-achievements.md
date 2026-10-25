@@ -1,4 +1,4 @@
-# Crash Bandicoot 1 — Advanced Achievements (Clear Gems, Papu Papu)
+# Crash Bandicoot 1 — Advanced Achievements (Clear Gems, Bosses)
 
 > **Addresses:** `apps/games/code-notes/crash-bandicoot-1.md` (RetroAchievements code notes for game 10434,
 > corrected and extended by measurement). Engine globals, level ids and the respawn code: the **wurlyfox/c1**
@@ -9,8 +9,8 @@
 > **Validated** in the headless harness (`tools/achievement-harness/`) against `SCUS-94900 — Crash
 > Bandicoot (USA)`; see **Validation** for exactly what, how, and what still needs the in-game check.
 
-Six achievements for completionist play, created as `official` in the core set: the clear gems and the boss
-are part of the game's own 100%. Titles and descriptions are our own.
+The clear gems and the bosses, created as `official` in the core set: both are part of the game's own 100%.
+Titles and descriptions are our own.
 
 | Title | Points | Unlocks when |
 | --- | --- | --- |
@@ -19,7 +19,12 @@ are part of the game's own 100%. Titles and descriptions are our own.
 | Gatekeeper's Gem | 15 | … of The Great Gate |
 | Rock-Solid Gem | 25 | … of Boulders |
 | Against the Current | 15 | … of Upstream |
-| Chief Toppled | 10 | Papu Papu takes his last hit |
+| Rubble Rouser | 15 | … of Rolling Stones |
+| Hog-Tied Treasure | 15 | … of Hog Wild |
+| Fortress Plundered | 25 | … of Native Fortress |
+| Creek Clearer | 15 | … of Up the Creek |
+| Chief Toppled | 10 | the fight won against Papu Papu returns to the map |
+| Kangaroo Court | 10 | the fight won against Ripper Roo returns to the map |
 
 **One achievement per stage, not two.** The roadmap asked for an "all boxes in one pass" achievement and a
 "gem: all boxes without dying" one. Each stage gets one, on the game's own gem, which is the "one pass" rule:
@@ -45,10 +50,10 @@ harness imports them.
 | --- | --- | --- |
 | Box count | `0x61984` (24.8, integer at `0x61985`), c1 `box_count` | `+1` per box broken in the stage. **A death sets it back to 0** (after a checkpoint the checkpoint crate then counts again: 9 → 0 → 1 on the committed N. Sanity Beach route). A quit or a new level load also zeroes it. On the Stage Clear screen (`2d`) it is reused to count the missed boxes up, one per 18 frames |
 | Boxes per stage | Stage Clear screen | N. Sanity Beach **49** (8 broken by the clearing plan + 41 missed), Jungle Rollers **38** (12 + 26). The other stages were not measured |
-| Gem bits | `0x61988`… (c1 `item_pool1`) | Bit *n* + 1 is map stage *n* (`0x619c5`): N. Sanity Beach bit 1, Jungle Rollers bit 2, The Great Gate bit 3, Boulders bit 4, Upstream bit 5. The **Stage Clear screen** sets the bit about 280 frames after it loads, when the box count reached the stage's boxes ("PERFECT"); one short leaves it clear. It persists through the map and the next stages |
-| Boss health | `0x60ddc` pointer, `+0x105` (24.8 at `+0x104`) | The boss object of a boss fight. Papu Papu starts at **3** and loses one per hit (3 → 2 → 1 → 0, then `ff` as the object winds down). A respawn allocates a new object at 3 (the pointer reads `0` for two frames). On other levels the pointer names other objects |
+| Gem bits | `0x61988`… (c1 `item_pool1`) | Bit *n* + 1 is map stage *n* (`0x619c5`): N. Sanity Beach bit 1, Jungle Rollers bit 2, The Great Gate bit 3, Boulders bit 4, Upstream bit 5, Rolling Stones bit 7; then `0x61989` bit 0 Hog Wild, bit 1 Native Fortress, bit 2 Up the Creek. The **Stage Clear screen** sets the bit about 280 frames after it loads, when the box count reached the stage's boxes ("PERFECT"); one short leaves it clear. It persists through the map and the next stages |
+| Boss health | `0x60ddc` pointer: Papu Papu's object, `+0x104` (24.8); Ripper Roo's is two pointers further (`+0x6c`, `+0x68`, then `+0x104`) | Papu Papu starts at **3** and loses one per hit (3 → 2 → 1 → 0, then `ff` as the object winds down). Ripper Roo starts at 3 too; his word holds `0x002` for one frame on each hit that does not end him. A TNT blast that takes his last health can take Crash with it: health `0x100` → `0`, then the respawn restarts the fight at 3 (scenario `ripper-roo-death-after-last-hit`). A respawn allocates a new object. On other levels the pointer names other objects |
 | A clear after a death past a checkpoint | `0x618d1`, `0x6188d` | The game state turns `03` instead of `05` and the stage goes **straight to the island map** (`09` → `19`, no Stage Clear screen, so no gem); the stage still counts as cleared (`0x61948` 1 → 2 on N. Sanity Beach). A death before any checkpoint restarts the stage (every box back, the count at 0, the respawn count `0x618a1` at 1 through Stage Clear), and its clear shows Stage Clear as usual and hands out the gem for every box (seen with the count poked) |
-| Papu Papu's exit | `0x6188d`, `0x618d1` | After the last hit the game state turns `03` and the fight goes **straight to the island map** (`0a` → `19`, no Stage Clear screen), the cursor moving on to Rolling Stones |
+| A boss fight's exit | `0x6188d`, `0x618d1` | After the last hit the game state turns `03` and the fight goes **straight to the island map** (no Stage Clear screen; Papu Papu: last hit at frame 1066, game state `03` at 1354, `0a` → `19` at 1543; Ripper Roo: 1778, 2122, `17` → `19` at 2298), the cursor moving on to the next stage |
 
 ## Logic
 
@@ -67,37 +72,39 @@ The bit is the event, so the condition fires once, on the frame the game awards 
 (`ra-developer-docs/why-delta.md`). The level guard keeps every other way of setting gem bits out: a memory
 card load and a password restore the gems on the title level (`19`).
 
-### Papu Papu
+### Bosses
 
 ```
-<in_play()>_0xH6188d=h0a_0xW60ddc!=0_0xW60ddc=d0xW60ddc_I:0xW60ddc_0xH105=0_I:0xW60ddc_d0xH105=1
+d0xH6188d=h0a_0xH6188d=h19_0xH618d1=3        (Papu Papu, level 0a; Ripper Roo is 17)
 ```
 
 | Part | Meaning |
 | --- | --- |
-| `in_play()` | the collectible achievements' guard (`crash-bandicoot-1-collectible-achievements.md`): the player in control, no attract demo (Papu Papu has one), the level settled for 60 frames |
-| `0xH6188d=h0a` | the level is the Papu Papu fight (c1 `LID_PAPUPAPU`) |
-| `0xW60ddc!=0_0xW60ddc=d0xW60ddc` | a boss object exists and is the same one as on the previous frame, so a respawn's new object never compares with the old one |
-| `I:0xW60ddc_0xH105=0_I:0xW60ddc_d0xH105=1` | its health went from 1 to 0: the last hit. AddAddress applies the pointer to both sides, so `d` reads the same object's previous value |
+| `d0xH6188d=h<fight>` | on the previous frame the loaded level was this boss fight |
+| `0xH6188d=h19_0xH618d1=3` | on this frame it is the title/map level, and the game state says the level was won (c1 `GAME_STATE_CONTINUE`) |
 
-The win is the hit itself, not the exit: the exit to the map (`0a` → `19`) looks like a quit or a game over
-apart from the game state, while the health reaching 0 happens nowhere else.
+The win is the fight's exit, the same alt 2 the stage clears use for a clear that skips Stage Clear. The boss's
+health reaching 0 is not enough: on Ripper Roo a TNT blast took the last health and Crash with it, and the
+respawn restarted the fight (`ripper-roo-death-after-last-hit`), so a condition on the health would fire on a
+fight that was then lost. A quit leaves with
+game state `04`, a game over with `02`, an attract demo of the fight with `06`; a death respawns inside the fight.
 
 ### Look-alikes
 
 | Look-alike | Why nothing fires |
 | --- | --- |
-| Power-on, title, map, attract demos | gems need the Stage Clear level; the boss needs `in_play()` and the Papu Papu level |
+| Power-on, title, map, attract demos | gems need the Stage Clear level; a boss needs its fight's level on the previous frame, and a demo returns to the title with game state `06` |
 | A clear with boxes missed | the Stage Clear screen leaves the gem bit clear |
 | A death after a checkpoint, then the clear | the clear skips the Stage Clear screen: no gem, and the death reset the box count anyway |
 | A stage whose gem is already won | the bit is already set: no edge |
 | A memory card load or a password | gem bits change on the title level |
-| A death in the boss fight with Papu Papu at 1 | the respawn brings a new boss object at 3 |
+| A death in a boss fight, the boss at 1 or taken down with Crash | the respawn stays in the fight: no level change |
+| Pause → quit or game over in a boss fight | the fight leaves for the map with game state `04` or `02`, not `03` |
 | A save state loaded after the event | every trigger is an edge |
 
 ## Validation
 
-Syntax: `scripts/check-mem-addr.sh` accepts all six conditions; `pytest` runs it over every seeded condition.
+Syntax: `scripts/check-mem-addr.sh` accepts every condition; `pytest` runs it over every seeded condition.
 
 Behaviour: the harness plays the real disc on `PCSX-ReARMed r26 ff81ed1` with every repo achievement active
 in the vendored rcheevos 12.3 and judges every trigger: an expected achievement fires exactly once, on its
@@ -107,7 +114,10 @@ level; nothing else fires.
 
 | Scenario | What is played | Result |
 | --- | --- | --- |
-| `papu-papu-boss` | `plans/papu-papu-boss.json`, found by the harness's search (`explore.py papu-papu --goal boss`): three hits on Papu Papu (frames 258, 606, 1066); then a state saved after the hit is loaded, the fight returns to the map, and the fight is entered again and quit | `Chief Toppled` fires once, on the last hit (frame 1066, lid `0a`); nothing else fires |
+| `papu-papu-boss` | `plans/papu-papu-boss.json`, found by the harness's search (`explore.py papu-papu --goal boss`): three hits on Papu Papu (frames 258, 606, 1066), the fight leaving for the map; then a state saved on the map is loaded, and the fight is entered again and quit | `Chief Toppled` fires once, on the switch to the map (lid `19`); nothing else fires |
+| `ripper-roo-boss` | `plans/ripper-roo-boss.json`, found by `explore.py ripper-roo --goal boss --seed 1` from `ripper-roo-start` (the map reached by the password `XOOOXSXS`, no RAM write): three hits (frames 206, 939, 1778), game state `03` at 2122, the switch to the map at 2298; then a state saved on the map is loaded, and the fight is entered again and quit | `Kangaroo Court` fires once, on the switch to the map (lid `19`); nothing else fires |
+| `ripper-roo-deaths` | the same plan up to Ripper Roo's last health, then a death; a second death right after the respawn | nothing fires |
+| `ripper-roo-death-after-last-hit` | the same plan until Ripper Roo's health is 0 (frame 1778), then seeded random play dies before the fight leaves (frame 1906): the respawn restarts the fight, Ripper Roo back at 3 | nothing fires (a condition on the health would have fired at 1778) |
 | `papu-papu-deaths` | the same plan up to Papu Papu's last health (frame 606), then a death; a second death right after the respawn | nothing fires |
 | `nsanity-beach-checkpoint-death` | `plans/nsanity-beach-checkpoint.json` breaks the checkpoint crate (9 boxes counted), a death by seeded random play, then `plans/nsanity-beach-checkpoint-clear.json`, a clear searched from the checkpoint respawn (`explore.py nsanity-beach --from nsanity-beach-checkpoint-respawn`) | the stage ends on game state `03` and goes straight to the map, no Stage Clear screen, gem bit clear; no gem or boss achievement fires (the level achievement and `Beach Diet` do, through their alt groups for this exit) |
 
@@ -124,10 +134,11 @@ the count is set before its last segment, and the Stage Clear screen decides.
 | `nsanity-beach-one-box-short-poked`, `jungle-rollers-one-box-short-poked` | 48, 37 | no gem, no gem achievement |
 | `nsanity-beach-early-death-gem-poked` | 49 boxes, on `plans/nsanity-beach-early-death-clear.json`, a clear searched from the restart after a death before any checkpoint (`explore.py nsanity-beach --from nsanity-beach-early-death-restart --seed 5`) | `Shoreline Sparkle` once, on the Stage Clear screen (lid `2d`): the early death does not stop the gem |
 
-**No-fire scenarios**, every one with these six achievements active: `cold-boot`, `attract` (15 minutes of demos,
-Papu Papu's among them), `attract-then-new-game`, `game-over`, `<stage>-deaths` and `<stage>-quit` for the six
-level-achievement stages, the level clears, the collectible scenarios and `papu-papu-quit`: none of them fires a
-gem or the boss. Every scenario above is a test in `tools/achievement-harness/test_achievement_harness.py`.
+**No-fire scenarios**, every one with these achievements active: `cold-boot`, `attract` (15 minutes of demos,
+Papu Papu's among them), `attract-then-new-game`, `game-over`, `<stage>-deaths` and `<stage>-quit` for every
+level-achievement stage, the level clears, the collectible scenarios, `password-all-gems` (the 100% password
+typed from the title menu sets all 26 gem bits on the title level) and `<boss>-quit` and `<boss>-deaths` for
+both bosses: none of them fires a gem or a boss. Every scenario above is a test in `tools/achievement-harness/test_achievement_harness.py`.
 
 ### Still for the in-game check (DuckStation)
 
@@ -139,14 +150,17 @@ gem or the boss. Every scenario above is a test in `tools/achievement-harness/te
 - **A death after the checkpoint**: break boxes, break the checkpoint crate, die, finish from the checkpoint;
   the stage goes straight to the map, no gem achievement pops, and the stage's level achievement does (the
   harness saw it on N. Sanity Beach).
-- **The Great Gate, Boulders and Upstream** were never cleared in the harness: their gem bits (3, 4, 5) come
-  from the code notes and DuckStation's all-gems cheat, which agree with the measured bits 1 and 2. Win each
+- **The Great Gate, Boulders, Upstream, Rolling Stones, Hog Wild, Native Fortress and Up the Creek** were
+  never cleared in the harness: their gem bits come from the bit-per-stage rule, which the 100% password
+  confirms (it sets exactly these bits among the 26), and agree with the measured bits 1 and 2. Rolling Stones
+  and Native Fortress need a coloured gem's path first (blue, red). Win each
   gem and see its achievement, and only its achievement, pop.
-- **Papu Papu on DuckStation**: beat him and see `Chief Toppled` on the last hit; die with him at one health
-  left and see nothing.
+- **Papu Papu and Ripper Roo on DuckStation**: beat each and see the achievement pop when the map appears;
+  die with the boss at one health left (on Ripper Roo, in the same blast as his last hit if you can) and see
+  nothing.
 - **Bonus rounds inside a gem stage**: Jungle Rollers, The Great Gate and Upstream each have a Tawna bonus
   round (code notes, `0x6197c`), which no harness route entered. Win a gem through the bonus round and see its
   achievement pop; fall out of the bonus round, finish the stage, and see the achievement pop only if the
   Stage Clear screen still hands out the gem.
-- **All six on DuckStation**, which runs rcheevos 12.4.0 with its own timing; the harness ran 12.3 on a
+- **All of them on DuckStation**, which runs rcheevos 12.4.0 with its own timing; the harness ran 12.3 on a
   libretro core.
