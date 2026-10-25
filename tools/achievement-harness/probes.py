@@ -92,10 +92,18 @@ LID_KOALA_KONG = 0x21
 LID_PINSTRIPE = 0x08
 LID_STAGE_CLEAR = 0x2D  # c1 `LID_LEVELEND`
 NON_STAGE_LIDS = (LID_TITLE, LID_STAGE_CLEAR)
-# A boss's 24.8 health word, from BOSS_POINTER, by fight: Papu Papu's object is the pointed one;
-# Ripper Roo's is its first child's sibling (c1 `children` +0x6C, `sibling` +0x68; code notes). The
-# boss achievements do not read it (they fire on the fight's exit): the search scores the hits.
-BOSS_HEALTH_CHAINS = {LID_PAPU_PAPU: (0x104,), LID_RIPPER_ROO: (0x6C, 0x68, 0x104)}
+# A boss's 24.8 health word, by fight: a pointer, then the offsets to the word. Papu Papu and
+# Pinstripe are the object BOSS_POINTER names; Ripper Roo is its first child's sibling (c1
+# `children` +0x6C, `sibling` +0x68); Koala Kong hangs off KOALA_KONG_POINTER (code notes). Full
+# health, measured: 3, 3, 4 and 6. The boss achievements do not read it (they fire on the fight's
+# exit): the search scores the hits.
+KOALA_KONG_POINTER = 0x61898
+BOSS_HEALTH_CHAINS = {
+    LID_PAPU_PAPU: (BOSS_POINTER, 0x104),
+    LID_RIPPER_ROO: (BOSS_POINTER, 0x6C, 0x68, 0x104),
+    LID_KOALA_KONG: (KOALA_KONG_POINTER, 0x6C, 0x104),
+    LID_PINSTRIPE: (BOSS_POINTER, 0x104),
+}
 # Game states (c1 `GAME_STATE_*`, src/globals.h).
 GAME_STATE_PLAYING = 0x100
 GAME_STATE_GAME_OVER = 0x200
@@ -144,7 +152,8 @@ def boss_health(emu):
     chain = BOSS_HEALTH_CHAINS.get(emu.u8(LEVEL_ID))
     if chain is None:
         return None
-    return emu.deref(BOSS_POINTER, *chain, size=FIXED_POINT_BYTES)
+    pointer, *offsets = chain
+    return emu.deref(pointer, *offsets, size=FIXED_POINT_BYTES)
 
 
 def has_gem(emu, map_index):
