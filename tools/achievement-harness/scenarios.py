@@ -44,6 +44,7 @@ from probes import (
     ITEM_POOL1,
     ITEM_POOL2,
     LID_STAGE_CLEAR,
+    LID_THE_GREAT_HALL,
     LID_TITLE,
     LIFE_HUD_POINTER,
     PAUSED,
@@ -99,13 +100,17 @@ _X_OFFSET, _Y_OFFSET, _Z_OFFSET = PLAYER_POSITION_OFFSETS
 GROUND_AXES_OFFSETS = (_X_OFFSET, _Z_OFFSET)
 MOVE_TIMEOUT_FRAMES = 2 * FRAMES_PER_SECOND
 STAND_BEFORE_PAUSE_FRAMES = 60
-# The community's 100% password, every stage, gem and key (crashbandicoot.fandom.com/wiki/Password,
-# psxdatacenter.com/games/U/C/SCUS-94900.html). Measured: it sets all 26 gem bits and both keys
-# while the title level is loaded.
-ALL_GEMS_PASSWORD = "TTTTXSTTTTSXTOTTTOSTXXXX"
+ALL_GEMS_PASSWORD = states.ALL_GEMS_PASSWORD
 # Its `item_pool1` and `item_pool2`: the 26 gems and both keys, the mask of DuckStation's all-gems
 # cheat for SCUS-94900.
 ALL_GEMS_POOLS = (0x2FBDF7BE, 0x00140500)
+# The Great Hall opens on Crash among the gems; walking up only leaves through the balcony arch once
+# that opening has played (measured: walking up at once falls off the platform). The arch's way out
+# is reached within about 400 frames of UP and a jump on the step.
+GREAT_HALL_OPENING_FRAMES = 3600
+GREAT_HALL_WALK_FRAMES = 600
+GREAT_HALL_JUMP_EVERY_FRAMES = 32
+GREAT_HALL_EXIT_TIMEOUT_FRAMES = 2400
 AFTER_PASSWORD_FRAMES = 600
 PAUSE_OPEN_FRAMES = 5 * FRAMES_PER_SECOND
 
@@ -302,6 +307,28 @@ def play_password_all_gems(s):
     s.note(f"password {ALL_GEMS_PASSWORD} loaded: gem bits {pools[0]:#010x} {pools[1]:#010x}")
     s.step(AFTER_PASSWORD_FRAMES)
     s.shot("map")
+
+
+def great_hall_clear(stage):
+    """The Great Hall left through its balcony arch: the hall loads the map with game state 3,
+    no Stage Clear screen; then the map settles and the cursor's next fight is left alone."""
+
+    def play(s):
+        s.note(f"standing through the hall's opening ({GREAT_HALL_OPENING_FRAMES} frames)")
+        s.step(GREAT_HALL_OPENING_FRAMES)
+        s.step(GREAT_HALL_WALK_FRAMES, [Btn.UP])
+        s.note("walking up to the arch, jumping now and then")
+        for _ in range(GREAT_HALL_EXIT_TIMEOUT_FRAMES // GREAT_HALL_JUMP_EVERY_FRAMES):
+            if navigation.level_id(s.emu) != stage.level_id:
+                break
+            s.step(navigation.PRESS_FRAMES, [Btn.UP, Btn.CROSS])
+            s.step(GREAT_HALL_JUMP_EVERY_FRAMES - navigation.PRESS_FRAMES, [Btn.UP])
+        else:
+            raise TimeoutError("the hall never loaded another level")
+        s.wait_until(navigation.on_the_map, navigation.LOAD_TIMEOUT_FRAMES, "map after the hall")
+        s.step(AFTER_LAST_QUIT_FRAMES)
+
+    return play
 
 
 def death_route(s, stage):
@@ -809,6 +836,15 @@ for _stage in STAGES:
         )
     else:
         pass  # No clearing plan committed: the clear stays for the in-game check.
+_hall = next(stage for stage in STAGES if stage.level_id == LID_THE_GREAT_HALL)
+SCENARIOS[f"{_hall.name}-clear"] = Scenario(
+    _hall.start,
+    {achievements.level_title(_hall.level_id): LID_TITLE},
+    "The Great Hall left through its balcony arch, straight to the map",
+    great_hall_clear(_hall),
+    (in_stage(achievements.level_title(_hall.level_id)), ISLAND_MAP),
+    never=(NO_LIVES,),
+)
 _collectibles = achievements.collectible_seed()
 _GOAL_TITLES = (("wumpa", _collectibles.WUMPA_TITLE), ("aku", _collectibles.AKU_TITLE))
 for _stage in STAGES:

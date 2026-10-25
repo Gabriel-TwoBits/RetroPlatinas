@@ -102,6 +102,7 @@ LID_JAWS_OF_DARKNESS = 0x1D
 LID_CASTLE_MACHINERY = 0x37
 LID_NITRUS_BRIO = 0x1B
 LID_THE_LAB = 0x29
+LID_THE_GREAT_HALL = 0x2C
 LID_STAGE_CLEAR = 0x2D  # c1 `LID_LEVELEND`
 NON_STAGE_LIDS = (LID_TITLE, LID_STAGE_CLEAR)
 # A boss's 24.8 health word, by fight: a pointer, then the offsets to the word. Papu Papu and

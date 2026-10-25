@@ -44,6 +44,7 @@ from probes import (
     LID_SUNSET_VISTA,
     LID_TEMPLE_RUINS,
     LID_THE_GREAT_GATE,
+    LID_THE_GREAT_HALL,
     LID_THE_HIGH_ROAD,
     LID_THE_LAB,
     LID_THE_LOST_CITY,
@@ -75,6 +76,11 @@ CORTEX_ISLAND_STAGES_UNLOCKED = 24
 # Measured: the map up to The Lab (29 stages), 21 gems, no key.
 THE_LAB_PASSWORD = "TTTSXXOXXSOXXXXOSTSOOSST"
 THE_LAB_STAGES_UNLOCKED = 29
+# The community's 100% password, every stage, gem and key (crashbandicoot.fandom.com/wiki/Password,
+# psxdatacenter.com/games/U/C/SCUS-94900.html). Measured: the map with all 31 stages and both
+# secret stages' paths, all 26 gems and both keys.
+ALL_GEMS_PASSWORD = "TTTTXSTTTTSXTOTTTOSTXXXX"
+ALL_GEMS_STAGES_UNLOCKED = 31
 # Farming N. Sanity Beach: its clearing plan, replayed up to a point, then a quit and a re-entry,
 # which commits what was collected and brings the crates back.
 # The plan breaks the stage's first Aku Aku crate at frame 2229.
@@ -177,6 +183,8 @@ STAGES = (
     Stage("jaws-of-darkness", LID_JAWS_OF_DARKNESS, 25, "up", map_state="map-password-lab"),
     Stage("castle-machinery", LID_CASTLE_MACHINERY, 26, "up", map_state="map-password-lab"),
     Stage("the-lab", LID_THE_LAB, 28, "up", map_state="map-password-lab"),
+    # Its deaths walk sideways off the platform: walking up leaves through the arch, a clear.
+    Stage("the-great-hall", LID_THE_GREAT_HALL, 29, "right", map_state="map-password-all"),
 )
 # Boss fights on the map path of STAGES, entered only to judge what they show and fire.
 BOSS_FIGHTS = (
@@ -376,6 +384,11 @@ RECIPES = {
         "map",
         _unlock_map,
         f"island map with {MAP_STAGES_UNLOCKED} stages unlocked by a RAM poke",
+    ),
+    "map-password-all": Recipe(
+        None,
+        _password_map(ALL_GEMS_PASSWORD, ALL_GEMS_STAGES_UNLOCKED),
+        f"island map with every stage, gem and key, loaded by the password {ALL_GEMS_PASSWORD}",
     ),
     "map-password-lab": Recipe(
         None,
