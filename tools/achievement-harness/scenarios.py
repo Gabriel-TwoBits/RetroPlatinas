@@ -29,7 +29,7 @@ import achievements
 import navigation
 import plan as plans
 import states
-from explore import QUIT_MOVE
+from explore import BOSS_HEALTH_HELD_FRAMES, QUIT_MOVE
 from harness import CORE_DEFAULTS, DEFAULT_CORE, FRAMES_PER_SECOND, SECONDS_PER_MINUTE, Btn
 from probes import (
     BOX_COUNT,
@@ -87,9 +87,6 @@ STAGE_CLEAR_SHOT_FRAMES = 60
 DEATH_SEED = 1
 PLAN_PREFIX_DIVISOR = 2  # deaths start halfway through a stage's clearing plan
 LAST_HIT_HEALTH = 1 << FIXED_POINT_SHIFT  # a boss one hit from defeat: 1.0 in 24.8
-# Koala Kong's health read flickers for single frames to other objects' words (measured: 0x300 and
-# 0x100 one frame each while he is at 3), so a boss's health counts once it holds this long.
-BOSS_HEALTH_HELD_FRAMES = 30
 # After a collectible event: the extra life of a Wumpa wrap lands about 110 frames later.
 AFTER_EVENT_FRAMES = 300
 # A held button moves Crash on the frame he gets control (after the spin-in) or 3 frames later

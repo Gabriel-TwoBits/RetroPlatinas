@@ -58,6 +58,9 @@ from provision import SHOTS_DIR
 
 CELL_SHIFT = 19
 BOSS_TIME_CELL_SEGMENTS = 8  # 128 frames
+# Koala Kong's health read flickers for single frames to other objects' words (measured: 0x300,
+# 0x100, 0x39001A while he is at 3), so a boss's health counts once it holds this long.
+BOSS_HEALTH_HELD_FRAMES = 30
 FIXED_POINT_FRACTION = (1 << FIXED_POINT_SHIFT) - 1  # the fraction bits of a 24.8 value
 ROLLOUT_SEGMENTS = 40
 REPEAT_PROBABILITY = 0.7
@@ -160,22 +163,27 @@ def checkpoint_reached(runner):
     return REACHED if runner.emu.s32(CHECKPOINT_ID) != NO_CHECKPOINT else None
 
 
-def boss_hits(runner):
-    """Whole health points the boss lost since the fight started; 0 while no boss object is
-    allocated, on a frame whose health is not whole (Ripper Roo's reads 0x002 for one frame on a
-    hit that leaves him at 1), while the health is read from another object than the fight's
-    first (a respawn reallocates it), and at 0: Koala Kong's reads 0 for a frame as Crash dies,
-    while a fight really won is the goal itself, its exit to the map.
-    """
+def boss_reading(runner):
+    """The boss's health this frame, or None when it is no reading: no boss object, a health
+    that is not whole (Ripper Roo's reads 0x002 for one frame on a hit that leaves him at 1), read
+    from another object than the fight's first (a respawn reallocates it), or 0 (Koala Kong's
+    reads 0 for a frame as Crash dies; a fight really won is the goal itself, its exit)."""
     health = boss_health(runner.emu)
     if (
         not health
-        or runner.start_boss_health is None
         or health & FIXED_POINT_FRACTION
         or boss_object(runner.emu) != runner.start_boss_object
     ):
+        return None
+    return health
+
+
+def boss_hits(runner):
+    """Whole health points the boss lost since the fight started, by the last health that held
+    BOSS_HEALTH_HELD_FRAMES frames: Koala Kong's read flickers to other objects' words."""
+    if runner.start_boss_health is None or runner.held_boss_health is None:
         return 0
-    return (runner.start_boss_health - health) >> FIXED_POINT_SHIFT
+    return (runner.start_boss_health - runner.held_boss_health) >> FIXED_POINT_SHIFT
 
 
 GOALS = {
@@ -232,11 +240,26 @@ class Runner:
         self.start_fruit = player_fruit(emu)
         self.start_boss_health = boss_health(emu)
         self.start_boss_object = boss_object(emu)
+        self.held_boss_health = self.boss_health_now = self.start_boss_health
+        self.boss_health_streak = 0
         self.fruit = self.previous_fruit = self.start_fruit
 
     def sync(self):
         """After a restore: the counters the goal compares frame to frame restart from here."""
         self.fruit = self.previous_fruit = player_fruit(self.emu)
+        self.held_boss_health = self.boss_health_now = boss_reading(self)
+        self.boss_health_streak = 0
+
+    def track_boss_health(self):
+        reading = boss_reading(self)
+        if reading is None or reading != self.boss_health_now:
+            self.boss_health_now, self.boss_health_streak = reading, 0
+        else:
+            self.boss_health_streak += 1
+        if self.boss_health_now is not None and self.boss_health_streak >= BOSS_HEALTH_HELD_FRAMES:
+            self.held_boss_health = self.boss_health_now
+        else:
+            pass  # Not held long enough: the last held health stands.
 
     def position(self):
         coordinates = []
@@ -261,6 +284,7 @@ class Runner:
         """Runs one frame; the outcome, or DEAD on the death camera's first frame."""
         self.emu.run(1, mask)
         self.previous_fruit, self.fruit = self.fruit, player_fruit(self.emu)
+        self.track_boss_health()
         outcome = self.outcome()
         if outcome is None and self.emu.u32(NEXT_DISPLAY_FLAGS) != DISPLAY_FLAGS_NORMAL:
             return DEAD
