@@ -147,11 +147,11 @@ STAGES = (
     Stage("hog-wild", LID_HOG_WILD, 7, "up", map_state="map-password", can_idle=False),
     Stage("native-fortress", LID_NATIVE_FORTRESS, 8, "up", map_state="map-password"),
     Stage("up-the-creek", LID_UP_THE_CREEK, 9, "up", map_state="map-password"),
-    Stage("the-lost-city", LID_THE_LOST_CITY, 0x0B, "up", map_state="map-password"),
-    Stage("temple-ruins", LID_TEMPLE_RUINS, 0x0C, "up", map_state="map-password"),
-    Stage("road-to-nowhere", LID_ROAD_TO_NOWHERE, 0x0D, "up", map_state="map-password"),
-    Stage("boulder-dash", LID_BOULDER_DASH, 0x0E, "down", map_state="map-password"),
-    Stage("sunset-vista", LID_SUNSET_VISTA, 0x0F, "up", map_state="map-password"),
+    Stage("the-lost-city", LID_THE_LOST_CITY, 11, "up", map_state="map-password"),
+    Stage("temple-ruins", LID_TEMPLE_RUINS, 12, "up", map_state="map-password"),
+    Stage("road-to-nowhere", LID_ROAD_TO_NOWHERE, 13, "up", map_state="map-password"),
+    Stage("boulder-dash", LID_BOULDER_DASH, 14, "down", map_state="map-password"),
+    Stage("sunset-vista", LID_SUNSET_VISTA, 15, "up", map_state="map-password"),
 )
 # Boss fights on the map path of STAGES, entered only to judge what they show and fire.
 BOSS_FIGHTS = (
@@ -164,8 +164,8 @@ BOSS_FIGHTS = (
         map_state="map-password",
         can_die_after_last_hit=True,
     ),
-    Stage("koala-kong", LID_KOALA_KONG, 0x10, "up", map_state="map-password"),
-    Stage("pinstripe", LID_PINSTRIPE, 0x15, "up", map_state="map-password-cortex"),
+    Stage("koala-kong", LID_KOALA_KONG, 16, "up", map_state="map-password"),
+    Stage("pinstripe", LID_PINSTRIPE, 21, "up", map_state="map-password-cortex"),
 )
 # Every file that decides what a derived state holds, clearing plans included.
 RECIPE_SOURCES = (
