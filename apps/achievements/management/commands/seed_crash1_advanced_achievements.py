@@ -77,6 +77,18 @@ BOSS_FIGHTS = (
         0x17,
         "Defeat Ripper Roo, the kangaroo guarding the way to The Lost City.",
     ),
+    BossFight(
+        "Koala Kayo",
+        "Koala Kong",
+        0x21,
+        "Defeat Koala Kong, the muscle-bound koala guarding the way to Cortex's island.",
+    ),
+    BossFight(
+        "Suit Pressed",
+        "Pinstripe",
+        0x08,
+        "Defeat Pinstripe Potoroo in his office at the power plant.",
+    ),
 )
 
 
