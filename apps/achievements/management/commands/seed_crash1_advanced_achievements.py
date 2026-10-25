@@ -112,7 +112,7 @@ BOSS_FIGHTS = (
     ),
     BossFight(
         "Formula Spilled",
-        "Nitrus Brio",
+        "Dr. Nitrus Brio",
         0x1B,
         "Defeat Dr. Nitrus Brio and the monster his potions make of him.",
     ),
