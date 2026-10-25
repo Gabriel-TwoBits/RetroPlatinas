@@ -25,8 +25,9 @@ BIT_SIZES = ("0xM", "0xN", "0xO", "0xP", "0xQ", "0xR", "0xS", "0xT")
 
 GEM_POINTS = 10
 HARD_GEM_POINTS = 15  # the later stages of the first island and on
-# Boulders: every box broken while the boulder rolls after Crash. Native Fortress: its boxes include
-# the red-gem path, opened only by Slippery Climb's gem on the third island.
+# A chase (Boulders, Boulder Dash), a coloured gem itself (The Lost City), boxes on a later coloured
+# gem's path (Native Fortress and Road to Nowhere: red; Boulder Dash: purple), or a stage the
+# community ranks among the hardest (Sunset Vista).
 HARDEST_GEM_POINTS = 25
 
 # (title, stage, map cursor `0x619c5`, points), in map order.
@@ -40,6 +41,11 @@ GEM_ACHIEVEMENTS = [
     ("Hog-Tied Treasure", "Hog Wild", 0x07, HARD_GEM_POINTS),
     ("Fortress Plundered", "Native Fortress", 0x08, HARDEST_GEM_POINTS),
     ("Creek Clearer", "Up the Creek", 0x09, HARD_GEM_POINTS),
+    ("Verdant Relic", "The Lost City", 0x0B, HARDEST_GEM_POINTS),
+    ("Relic Hunter", "Temple Ruins", 0x0C, HARD_GEM_POINTS),
+    ("Somewhere After All", "Road to Nowhere", 0x0D, HARDEST_GEM_POINTS),
+    ("Outran the Rock", "Boulder Dash", 0x0E, HARDEST_GEM_POINTS),
+    ("Dusk Collector", "Sunset Vista", 0x0F, HARDEST_GEM_POINTS),
 ]
 
 # A boss fight won goes straight back to the island map, with no Stage Clear screen: the level
