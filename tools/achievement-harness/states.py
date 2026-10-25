@@ -23,20 +23,31 @@ from probes import (
     LEVELS_UNLOCKED,
     LID_BOULDER_DASH,
     LID_BOULDERS,
+    LID_CASTLE_MACHINERY,
+    LID_CORTEX_POWER,
+    LID_GENERATOR_ROOM,
+    LID_HEAVY_MACHINERY,
     LID_HOG_WILD,
+    LID_JAWS_OF_DARKNESS,
     LID_JUNGLE_ROLLERS,
     LID_KOALA_KONG,
+    LID_LIGHTS_OUT,
     LID_NATIVE_FORTRESS,
+    LID_NITRUS_BRIO,
     LID_NSANITY_BEACH,
     LID_PAPU_PAPU,
     LID_PINSTRIPE,
     LID_RIPPER_ROO,
     LID_ROAD_TO_NOWHERE,
     LID_ROLLING_STONES,
+    LID_SLIPPERY_CLIMB,
     LID_SUNSET_VISTA,
     LID_TEMPLE_RUINS,
     LID_THE_GREAT_GATE,
+    LID_THE_HIGH_ROAD,
+    LID_THE_LAB,
     LID_THE_LOST_CITY,
+    LID_TOXIC_WASTE,
     LID_UP_THE_CREEK,
     LID_UPSTREAM,
     NO_CHECKPOINT,
@@ -60,6 +71,10 @@ WUMPA_ISLAND_STAGES_UNLOCKED = 17
 # Measured: the map up to Slippery Climb (24 stages), Heavy Machinery's gem, no key.
 CORTEX_ISLAND_PASSWORD = "TTTTOXTTXXTOSOXTTOSXXSTT"
 CORTEX_ISLAND_STAGES_UNLOCKED = 24
+# The community's password for The Lab's save point (crashbandicoot.fandom.com/wiki/The_Lab).
+# Measured: the map up to The Lab (29 stages), 21 gems, no key.
+THE_LAB_PASSWORD = "TTTSXXOXXSOXXXXOSTSOOSST"
+THE_LAB_STAGES_UNLOCKED = 29
 # Farming N. Sanity Beach: its clearing plan, replayed up to a point, then a quit and a re-entry,
 # which commits what was collected and brings the crates back.
 # The plan breaks the stage's first Aku Aku crate at frame 2229.
@@ -152,6 +167,16 @@ STAGES = (
     Stage("road-to-nowhere", LID_ROAD_TO_NOWHERE, 13, "up", map_state="map-password"),
     Stage("boulder-dash", LID_BOULDER_DASH, 14, "down", map_state="map-password"),
     Stage("sunset-vista", LID_SUNSET_VISTA, 15, "up", map_state="map-password"),
+    Stage("heavy-machinery", LID_HEAVY_MACHINERY, 17, "up", map_state="map-password-cortex"),
+    Stage("cortex-power", LID_CORTEX_POWER, 18, "up", map_state="map-password-cortex"),
+    Stage("generator-room", LID_GENERATOR_ROOM, 19, "up", map_state="map-password-cortex"),
+    Stage("toxic-waste", LID_TOXIC_WASTE, 20, "up", map_state="map-password-cortex"),
+    Stage("the-high-road", LID_THE_HIGH_ROAD, 22, "up", map_state="map-password-cortex"),
+    Stage("slippery-climb", LID_SLIPPERY_CLIMB, 23, "up", map_state="map-password-cortex"),
+    Stage("lights-out", LID_LIGHTS_OUT, 24, "up", map_state="map-password-lab"),
+    Stage("jaws-of-darkness", LID_JAWS_OF_DARKNESS, 25, "up", map_state="map-password-lab"),
+    Stage("castle-machinery", LID_CASTLE_MACHINERY, 26, "up", map_state="map-password-lab"),
+    Stage("the-lab", LID_THE_LAB, 28, "up", map_state="map-password-lab"),
 )
 # Boss fights on the map path of STAGES, entered only to judge what they show and fire.
 BOSS_FIGHTS = (
@@ -166,6 +191,7 @@ BOSS_FIGHTS = (
     ),
     Stage("koala-kong", LID_KOALA_KONG, 16, "up", map_state="map-password"),
     Stage("pinstripe", LID_PINSTRIPE, 21, "up", map_state="map-password-cortex"),
+    Stage("nitrus-brio", LID_NITRUS_BRIO, 27, "up", map_state="map-password-lab"),
 )
 # Every file that decides what a derived state holds, clearing plans included.
 RECIPE_SOURCES = (
@@ -350,6 +376,11 @@ RECIPES = {
         "map",
         _unlock_map,
         f"island map with {MAP_STAGES_UNLOCKED} stages unlocked by a RAM poke",
+    ),
+    "map-password-lab": Recipe(
+        None,
+        _password_map(THE_LAB_PASSWORD, THE_LAB_STAGES_UNLOCKED),
+        f"island map up to The Lab, loaded by the password {THE_LAB_PASSWORD}",
     ),
     "map-password-cortex": Recipe(
         None,
