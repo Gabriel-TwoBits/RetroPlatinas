@@ -308,13 +308,14 @@ def play_password_all_gems(s):
 
 def great_hall_clear(stage):
     """The Great Hall left through its balcony arch: the hall loads the map with game state 3,
-    no Stage Clear screen; then the map settles and the cursor's next fight is left alone."""
+    no Stage Clear screen; then a state saved on the map is loaded back, and the hall is entered
+    again and quit."""
 
     def play(s):
         s.note(f"standing through the hall's opening ({GREAT_HALL_OPENING_FRAMES} frames)")
         s.step(GREAT_HALL_OPENING_FRAMES)
-        s.step(GREAT_HALL_WALK_FRAMES, [Btn.UP])
         s.note("walking up to the arch, jumping now and then")
+        s.step(GREAT_HALL_WALK_FRAMES, [Btn.UP])
         for _ in range(GREAT_HALL_EXIT_TIMEOUT_FRAMES // GREAT_HALL_JUMP_EVERY_FRAMES):
             if navigation.level_id(s.emu) != stage.level_id:
                 break
@@ -322,8 +323,12 @@ def great_hall_clear(stage):
             s.step(GREAT_HALL_JUMP_EVERY_FRAMES - navigation.PRESS_FRAMES, [Btn.UP])
         else:
             raise TimeoutError("the hall never loaded another level")
-        s.wait_until(navigation.on_the_map, navigation.LOAD_TIMEOUT_FRAMES, "map after the hall")
-        s.step(AFTER_LAST_QUIT_FRAMES)
+        s.wait_until(
+            lambda e: navigation.level_id(e) == LID_TITLE,
+            navigation.LOAD_TIMEOUT_FRAMES,
+            "the map level after the hall",
+        )
+        reload_and_reenter(s, stage, "the hall")
 
     return play
 
@@ -489,20 +494,26 @@ def boss_win(stage, plan_path):
             navigation.LOAD_TIMEOUT_FRAMES,
             "the map level after the won fight",
         )
-        s.step(AFTER_EVENT_FRAMES)
-        s.note("save a state after the switch to the map and load it: every trigger to WAITING")
-        s.emu.restore(s.emu.snapshot())
-        s.wait_until(navigation.on_the_map, navigation.LOAD_TIMEOUT_FRAMES, "map after the boss")
-        s.step(navigation.MAP_SETTLE_FRAMES)
-        s.rearm("the boss fight entered again from the map and quit")
-        navigation.move_cursor_to(s.emu, stage.map_index)
-        entered = navigation.enter_stage(s.emu)
-        s.note(f"entered lid {entered:#x}")
-        s.step(QUIT_AFTER_CONTROL_FRAMES)
-        navigation.pause_and_quit(s.emu)
-        s.step(AFTER_LAST_QUIT_FRAMES)
+        reload_and_reenter(s, stage, "the boss fight")
 
     return play
+
+
+def reload_and_reenter(s, stage, what):
+    """After a level left for the map: a state saved there is loaded back, then `stage` is
+    entered again from the map and quit. Neither may fire again."""
+    s.step(AFTER_EVENT_FRAMES)
+    s.note("save a state after the switch to the map and load it: every trigger to WAITING")
+    s.emu.restore(s.emu.snapshot())
+    s.wait_until(navigation.on_the_map, navigation.LOAD_TIMEOUT_FRAMES, f"map after {what}")
+    s.step(navigation.MAP_SETTLE_FRAMES)
+    s.rearm(f"{what} entered again from the map and quit")
+    navigation.move_cursor_to(s.emu, stage.map_index)
+    entered = navigation.enter_stage(s.emu)
+    s.note(f"entered lid {entered:#x}")
+    s.step(QUIT_AFTER_CONTROL_FRAMES)
+    navigation.pause_and_quit(s.emu)
+    s.step(AFTER_LAST_QUIT_FRAMES)
 
 
 def boss_quit(s):
