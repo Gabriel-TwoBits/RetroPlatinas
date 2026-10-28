@@ -244,10 +244,12 @@ class Runner:
         self.boss_health_streak = 0
         self.fruit = self.previous_fruit = self.start_fruit
 
-    def sync(self):
-        """After a restore: the counters the goal compares frame to frame restart from here."""
+    def sync(self, held_boss_health):
+        """After a restore: the counters the goal compares frame to frame restart from here, and
+        the boss's held health is the one recorded with the state (a single read may flicker)."""
         self.fruit = self.previous_fruit = player_fruit(self.emu)
-        self.held_boss_health = self.boss_health_now = boss_reading(self)
+        self.boss_health_now = boss_reading(self)
+        self.held_boss_health = held_boss_health
         self.boss_health_streak = 0
 
     def track_boss_health(self):
@@ -342,7 +344,7 @@ class Runner:
         finally:
             self.emu.frame_hooks.remove(record)
         self.respawns = self.emu.s32(RESPAWN_COUNT)  # the map resets the count
-        self.sync()
+        self.sync(self.held_boss_health)
         return outcome, runs_of(masks)
 
 
@@ -387,6 +389,7 @@ class Explorer:
             "quits": quits,
             "chosen": chosen,
             "seen": seen,
+            "held_boss_health": self.runner.held_boss_health,
         }
         if len(self.archive) > MAX_CELLS_WITH_STATE:
             # TRADEOFF: evicts the most-chosen cell outright; a disk-backed archive keeps them all.
@@ -412,7 +415,7 @@ class Explorer:
         entry = self.archive[cell]
         entry["chosen"] += 1
         self.emu.restore(zlib.decompress(entry["state"]))
-        self.runner.sync()
+        self.runner.sync(entry["held_boss_health"])
         self.runner.respawns = self.emu.s32(RESPAWN_COUNT)
         plan = bytearray(entry["plan"])
         quits = entry["quits"]
