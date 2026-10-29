@@ -25,14 +25,15 @@ LIBRARY = CACHE_DIR / "build" / "libharness.so"
 PLANS_DIR = HARNESS_DIR / "plans"
 
 BUILD_SCRIPT = HARNESS_DIR / "build.sh"
+# Cores built from a pinned upstream commit: the build every committed plan was searched on.
+CORE_BUILD_SCRIPTS = {"pcsx_rearmed": HARNESS_DIR / "build-core.sh"}
 SHIM_SOURCE = HARNESS_DIR / "src" / "harness.c"
 RCHEEVOS_DIR = REPO_ROOT / "vendor" / "rcheevos"
 RCHEEVOS_COMMIT_FILE = RCHEEVOS_DIR / "UPSTREAM-COMMIT"
 
 DISC_ENV = "CRASH1_CUE"
 BIOS_DIR_ENV = "CRASH1_BIOS_DIR"
-# TRADEOFF: the buildbot serves only each core's latest nightly, so a fresh cache may get a build
-# the committed plans were not searched on (plan.replay warns); a pinned core mirror would fix it.
+# The other cores come from the buildbot, which serves only each core's latest nightly.
 CORE_URL = "https://buildbot.libretro.com/nightly/linux/x86_64/latest/{core}_libretro.so.zip"
 DOWNLOAD_TIMEOUT_SECONDS = 120
 
@@ -81,7 +82,12 @@ def bios_image(system_dir):
 
 
 def core(name):
-    """Path to `<name>_libretro.so`, downloaded from the libretro buildbot on first use."""
+    """Path to `<name>_libretro.so`: built from its pinned commit (CORE_BUILD_SCRIPTS), else
+    downloaded from the libretro buildbot on first use."""
+    script = CORE_BUILD_SCRIPTS.get(name)
+    if script is not None:
+        built = subprocess.run(["bash", str(script)], check=True, capture_output=True, text=True)
+        return Path(built.stdout.strip())
     path = CORES_DIR / f"{name}_libretro.so"
     if path.is_file():
         return path

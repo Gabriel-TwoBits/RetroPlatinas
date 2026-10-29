@@ -39,10 +39,14 @@ produces is committed: cores, the compiled shim, states, traces and screenshots 
 
 On first use the harness needs network access:
 
-- **Cores** come from `https://buildbot.libretro.com/nightly/linux/x86_64/latest/<core>_libretro.so.zip`
-  into `.cache/achievement-harness/cores/`, once. Delete the file to fetch a newer build. The
-  buildbot keeps only the latest nightly of each core, so the build is whatever is current on
-  first use; a plan replays frame-exactly only on the build it records (see *Caveats*).
+- **pcsx_rearmed** is built by `build-core.sh` from the pinned upstream commit `ff81ed1` (the
+  source tarball checked against its SHA-256) into
+  `.cache/achievement-harness/cores/pcsx_rearmed-ff81ed1_libretro.so`, once. Every committed plan
+  was searched on that build (`PCSX-ReARMed r26 ff81ed1`), and a plan replays frame-exactly only on
+  the build it records (see *Caveats*); the buildbot keeps only the latest nightly, so a download
+  would drift. To move to a newer core, change the pin and re-search every plan.
+- **swanstation** comes from `https://buildbot.libretro.com/nightly/linux/x86_64/latest/<core>_libretro.so.zip`
+  into `.cache/achievement-harness/cores/`, once: whatever nightly is current on first use.
 - **`libretro.h`** is fetched by `build.sh` from a pinned libretro-common commit and checked
   against its SHA-256. `build.sh` then compiles `src/harness.c` + `vendor/rcheevos` into
   `.cache/achievement-harness/build/libharness.so`; `harness.py` rebuilds it whenever a source is
@@ -89,7 +93,7 @@ green without the disc.
 No save state is hand-made or committed. Each is a recipe in `states.py`: a parent state (or a cold
 boot) plus scripted navigation from `navigation.py`, which waits on RAM values, never on fixed
 delays. `states.load(emu, name)` restores the cached file or derives the whole chain, so every
-scenario and plan replays on a fresh checkout that downloads the core build the plan records. A
+scenario and plan replays on a fresh checkout that builds the core build the plans record. A
 derived state is saved and loaded back before use, so a run behaves the same whether its state
 came from the cache or was derived moments earlier.
 
@@ -331,8 +335,9 @@ that open a stage before Crash can move.
   `scenarios.py` spawns one process per scenario, and a second `Emu()` in a process raises.
 - **Determinism is a property of the core build.** Plans replay only on the pcsx_rearmed
   interpreter (`pcsx_rearmed_drc=disabled`, the default): its lightrec dynarec is not bit-exact
-  after a state load. A new nightly core may change the emulation: when deriving
-  a `<stage>-clear` state then times out waiting for Stage Clear, re-search the plan.
+  after a state load. Another core build may change the emulation, which is why `build-core.sh`
+  pins one: after moving the pin, a `<stage>-clear` state that times out waiting for Stage Clear
+  needs its plan re-searched.
 - **swanstation** derives the navigation states but cannot replay pcsx_rearmed plans, so
   the `<stage>-clear` scenarios, and `the-great-gate-deaths` (whose deaths need its route), are
   pcsx_rearmed only.
@@ -350,5 +355,6 @@ that open a stage before Crash can move.
   CBHacks memory map (<https://wiki.cbhacks.com/w/Memory_Map>).
 - RetroAchievements code notes for game 10434, mirrored in `apps/games/code-notes/crash-bandicoot-1.md`.
 - **rcheevos** (MIT, RetroAchievements), vendored in `vendor/rcheevos/`.
-- **libretro** API header (MIT, the RetroArch team, libretro-common) and the **pcsx_rearmed** and
-  **swanstation** cores, downloaded from the libretro buildbot at run time.
+- **libretro** API header (MIT, the RetroArch team, libretro-common); the **pcsx_rearmed** core,
+  built from its upstream source at run time; the **swanstation** core, downloaded from the
+  libretro buildbot at run time.
