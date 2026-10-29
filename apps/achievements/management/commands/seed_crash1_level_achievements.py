@@ -44,6 +44,9 @@ LEVEL_ACHIEVEMENTS = [
     # No Stage Clear screen: Crash walks out through the balcony arch and the hall loads the map
     # with game state 3, the alt group of a clear after a death past a checkpoint (measured).
     ("The Great Hall", 0x2C),
+    # The secret stages, each behind a key won in a Cortex bonus round.
+    ("Fumbling in the Dark", 0x2A),
+    ("Whole Hog", 0x1E),
 ]
 
 

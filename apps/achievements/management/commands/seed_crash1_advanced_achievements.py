@@ -20,6 +20,11 @@ from apps.achievements.models import Achievement
 # the stage with every box back and the count at 0. So the boxes must all go in one run.
 GEM_BITS_ADDRESS = 0x61988
 BITS_PER_BYTE = 8
+# c1 `item_pool2`: the secret stages' gems are not at their bit-per-stage place but here, by map
+# cursor, next to the key bits (`0x619ad` bit 2, `0x619ae` bit 4). Measured: the 100% password
+# sets `0x619ad` = 05 and `0x619ae` = 14, the keys-only password 04 and 10; which gem is which
+# stage comes from the code notes.
+SECRET_GEM_BITS = {0x1F: (0x619AD, 0), 0x20: (0x619AE, 2)}
 # rcheevos single-bit reads, bit 0 to bit 7 of a byte.
 BIT_SIZES = ("0xM", "0xN", "0xO", "0xP", "0xQ", "0xR", "0xS", "0xT")
 
@@ -28,7 +33,7 @@ HARD_GEM_POINTS = 15  # the later stages of the first island and on
 # A chase (Boulders, Boulder Dash), a coloured gem in a hard stage (The Lost City, Slippery Climb,
 # Lights Out, The Lab), boxes on a later coloured gem's path (Native Fortress and Road to Nowhere:
 # red; Boulder Dash: purple), or a stage the community ranks among the hardest (Sunset Vista, The
-# High Road).
+# High Road), or a secret stage behind a key.
 HARDEST_GEM_POINTS = 25
 
 # (title, stage, map cursor `0x619c5`, points), in map order.
@@ -57,6 +62,8 @@ GEM_ACHIEVEMENTS = [
     ("Out of the Jaws", "Jaws of Darkness", 0x19, HARD_GEM_POINTS),
     ("Gears and Glitter", "Castle Machinery", 0x1A, HARD_GEM_POINTS),
     ("Golden Experiment", "The Lab", 0x1C, HARDEST_GEM_POINTS),
+    ("Found in the Dark", "Fumbling in the Dark", 0x1F, HARDEST_GEM_POINTS),
+    ("Whole Hoard", "Whole Hog", 0x20, HARDEST_GEM_POINTS),
 ]
 
 # Stages whose gem is coloured (community; the code notes agree): every other gem is clear.
@@ -121,6 +128,9 @@ BOSS_FIGHTS = (
 
 def gem_bit_position(map_index):
     """`(address, bit)` of the clear gem of map stage `map_index`, bit 0 the lowest."""
+    secret = SECRET_GEM_BITS.get(map_index)
+    if secret is not None:
+        return secret
     bit = map_index + 1
     return GEM_BITS_ADDRESS + bit // BITS_PER_BYTE, bit % BITS_PER_BYTE
 
