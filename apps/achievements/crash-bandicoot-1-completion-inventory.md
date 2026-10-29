@@ -125,14 +125,14 @@ and red gems; this inventory is the USA layout.
 | Boss | Level id | Hits (community) | Measured |
 | --- | --- | --- | --- |
 | Papu Papu | `0a` | 3 | 3: health `0x60DDC` → `+0x105` 3 → 0; the win goes straight to the map (game state `03`) |
-| Ripper Roo | `17` | 3 | level id only |
-| Koala Kong | `21` | 4 | level id only |
-| Pinstripe Potoroo | `08` | 6 | level id only |
-| Dr. Nitrus Brio | `1b` | 9 (6 on the blobs, then 3 on the monster; the code notes say 5) | level id only |
+| Ripper Roo | `17` | 3 | 3, beaten in the harness |
+| Koala Kong | `21` | 4 | 4, beaten in the harness |
+| Pinstripe Potoroo | `08` | 6 | 6, beaten in the harness |
+| Dr. Nitrus Brio | `1b` | 9 (6 on the blobs, then 3 on the monster; the code notes say 5) | 9, beaten in the harness |
 | Dr. Neo Cortex | `1f` | 5 | level id only |
 
-The code notes give health reads for each (`0x60DDC` chains, Koala Kong through `0x61898`); c1 puts the
-`fog_z` global at `0x61898`, so that chain needs a measurement before use.
+The code notes give health reads for each (`0x60DDC` chains, Koala Kong through `0x61898`); the measured
+chains and each win are in `crash-bandicoot-1-advanced-achievements.md`.
 
 ## Endings
 
@@ -180,7 +180,7 @@ exactly the gems of Up the Creek, Cortex Power, The High Road and the two secret
 - **The secret ending:** with all 26 gems, cross The Great Hall's bridge and watch which level the ending loads
   (expected c1 `LID_GAMEWIN`, `39`); the harness fell off.
 - **The normal ending:** beat Cortex and see the ending; nothing past entering his fight was played.
-- **Boss hit counts** other than Papu Papu's, Brio's above all (9 or 5).
+- **Neo Cortex's hit count** (5, community).
 - **Keys:** win each Cortex bonus round and see the key; the harness entered no bonus round.
 - **Whether a gem or key save shows a password that reloads the same gem and key bits.** Every password above
   was typed, none was read off the game's own save screen.

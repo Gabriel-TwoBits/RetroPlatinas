@@ -174,7 +174,8 @@ Climb), Purple (Lights Out), Yellow (The Lab). **Keys:** Sunset Vista → `0x619
    exact mask and verify the total lands at 26 in game.
 5. **Generator Room's Tawna bonus id.** The note lists `0B` for both Up the Creek and Generator Room; research
    against the c1 decompilation and the CBHacks map gives `02` for Generator Room. Unvalidated.
-6. **Boss hit counts.** The `0x60ddc` note caps Nitrus Brio at 5 hits; the Crash wiki says 9. Unvalidated.
+6. **Boss hit counts — measured:** Nitrus Brio has 9 health (the Crash wiki's count), not the note's 5
+   (`crash-bandicoot-1-advanced-achievements.md`).
 
 ## All code notes (113)
 
