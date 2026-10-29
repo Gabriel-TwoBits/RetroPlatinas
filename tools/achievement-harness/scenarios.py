@@ -392,6 +392,10 @@ def down_to_game_over(stage):
 
 
 def quits(stage):
+    # On a hog ride Crash cannot stand: the hog runs on into the stage's hazards (Whole Hog's
+    # first one at frame 539 after the spawn zone), and a pause during the death is ignored.
+    stand_frames = STAND_BEFORE_QUIT_FRAMES if stage.can_idle else 0
+
     def play(s):
         s.note("A: quit right after gaining control")
         s.step(QUIT_AFTER_CONTROL_FRAMES)
@@ -403,14 +407,14 @@ def quits(stage):
         navigation.move_cursor_to(s.emu, stage.map_index)
         navigation.enter_stage(s.emu)
         s.step(LEAVE_SPAWN_ZONE_FRAMES, [HEADING_BUTTONS[stage.heading]])
-        s.step(STAND_BEFORE_QUIT_FRAMES)
+        s.step(stand_frames)
         s.wait_until(player_in_control, navigation.LOAD_TIMEOUT_FRAMES, "control before B's quit")
         navigation.pause_and_quit(s.emu)
 
         s.rearm("C: re-enter, stand still for a while, quit")
         navigation.move_cursor_to(s.emu, stage.map_index)
         navigation.enter_stage(s.emu)
-        s.step(STAND_BEFORE_QUIT_FRAMES)
+        s.step(stand_frames)
         navigation.pause_and_quit(s.emu)
         s.step(AFTER_LAST_QUIT_FRAMES)
 

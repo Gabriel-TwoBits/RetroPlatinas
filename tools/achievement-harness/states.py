@@ -25,6 +25,7 @@ from probes import (
     LID_BOULDERS,
     LID_CASTLE_MACHINERY,
     LID_CORTEX_POWER,
+    LID_FUMBLING_IN_THE_DARK,
     LID_GENERATOR_ROOM,
     LID_HEAVY_MACHINERY,
     LID_HOG_WILD,
@@ -52,6 +53,7 @@ from probes import (
     LID_TOXIC_WASTE,
     LID_UP_THE_CREEK,
     LID_UPSTREAM,
+    LID_WHOLE_HOG,
     NO_CHECKPOINT,
     RESPAWN_COUNT,
     aku_level,
@@ -199,6 +201,10 @@ STAGES = (
     Stage("the-lab", LID_THE_LAB, 28, "up", map_state="map-password-lab"),
     # Its deaths walk sideways off the platform: walking up leaves through the arch, a clear.
     Stage("the-great-hall", LID_THE_GREAT_HALL, 29, "right", map_state="map-password-all"),
+    # The secret stages, off the path (navigation.SECRET_STAGE_BRANCHES); their keys come with the
+    # 100% password. Whole Hog is a hog ride, like Hog Wild.
+    Stage("fumbling-in-the-dark", LID_FUMBLING_IN_THE_DARK, 31, "up", map_state="map-password-all"),
+    Stage("whole-hog", LID_WHOLE_HOG, 32, "up", map_state="map-password-all", can_idle=False),
 )
 # Boss fights on the map path of STAGES, entered only to judge what they show and fire.
 BOSS_FIGHTS = (

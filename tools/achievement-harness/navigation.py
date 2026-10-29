@@ -43,6 +43,9 @@ ISLAND_CHANGE_SETTLE_FRAMES = 360
 # Wumpa Island's screen (map stages Up the Creek to Koala Kong) runs right to left: RIGHT moves the
 # cursor back along the path there.
 REVERSED_MAP_CURSORS = range(0x09, 0x11)
+# The secret stages hang off the path (measured): UP from Boulder Dash to Whole Hog, UP from Lights
+# Out to Fumbling in the Dark; the main path never passes through them.
+SECRET_STAGE_BRANCHES = {0x20: 0x0E, 0x1F: 0x18}
 ENTER_ATTEMPTS = 2
 # The main menu ignores the pad while it slides in (measured: a DOWN 60 frames after it shows is
 # lost, one 400 frames after is taken).
@@ -155,7 +158,29 @@ def enter_stage(emu):
 
 
 def move_cursor_to(emu, map_index):
-    """On the island map, walks the cursor along the path to stage `map_index` (`0x619C5`)."""
+    """On the island map, walks the cursor along the path to stage `map_index` (`0x619C5`); a
+    secret stage is reached with UP from the stage it branches off."""
+    cursor = emu.u8(STAGE_ID)
+    if cursor == map_index:
+        return
+    if cursor in SECRET_STAGE_BRANCHES:
+        press(emu, Btn.DOWN, release=CURSOR_MOVE_FRAMES)
+    else:
+        pass  # On the main path already.
+    branch = SECRET_STAGE_BRANCHES.get(map_index)
+    if branch is None:
+        _walk_path_to(emu, map_index)
+        return
+    _walk_path_to(emu, branch)
+    press(emu, Btn.UP, release=CURSOR_MOVE_FRAMES)
+    if emu.u8(STAGE_ID) != map_index:
+        raise TimeoutError(f"UP from stage {branch} left the cursor on {emu.u8(STAGE_ID)}")
+    else:
+        pass  # On the secret stage.
+
+
+def _walk_path_to(emu, map_index):
+    """Walks the cursor along the main path to stage `map_index`."""
     for _ in range(MENU_ATTEMPTS):
         cursor = emu.u8(STAGE_ID)
         if cursor == map_index:
