@@ -102,14 +102,19 @@ LID_JAWS_OF_DARKNESS = 0x1D
 LID_CASTLE_MACHINERY = 0x37
 LID_NITRUS_BRIO = 0x1B
 LID_THE_LAB = 0x29
+LID_NEO_CORTEX = 0x1F
 LID_THE_GREAT_HALL = 0x2C
 LID_STAGE_CLEAR = 0x2D  # c1 `LID_LEVELEND`
+LID_GAME_WON = 0x39  # c1 `LID_GAMEWIN`: the ending after Neo Cortex
 NON_STAGE_LIDS = (LID_TITLE, LID_STAGE_CLEAR)
 # A boss's 24.8 health word, by fight: a pointer, then the offsets to the word. Papu Papu and
 # Pinstripe are the object BOSS_POINTER names; Ripper Roo is its first child's sibling (c1
 # `children` +0x6C, `sibling` +0x68); Nitrus Brio is its first child; Koala Kong hangs off
-# KOALA_KONG_POINTER (code notes). Full health, measured: 3, 3, 4, 6 and 9. The boss achievements do
-# not read it (they fire on the fight's exit): the search scores the hits.
+# KOALA_KONG_POINTER (code notes). Full health, measured: 3, 3, 4, 6 and 9. Neo Cortex's word, on
+# the BOSS_POINTER object, counts his hits up instead (code notes: "a hit counter rather than a
+# countdown"; measured 0 -> 1 on a spun-back shot), so his health is NEO_CORTEX_HITS less it
+# (5: community). The boss achievements do not read it (they fire on the fight's exit): the search
+# scores the hits.
 KOALA_KONG_POINTER = 0x61898
 BOSS_HEALTH_CHAINS = {
     LID_PAPU_PAPU: (BOSS_POINTER, 0x104),
@@ -117,7 +122,10 @@ BOSS_HEALTH_CHAINS = {
     LID_KOALA_KONG: (KOALA_KONG_POINTER, 0x6C, 0x104),
     LID_PINSTRIPE: (BOSS_POINTER, 0x104),
     LID_NITRUS_BRIO: (BOSS_POINTER, 0x6C, 0x104),
+    LID_NEO_CORTEX: (BOSS_POINTER, 0x104),
 }
+NEO_CORTEX_HITS = 5
+BOSS_HIT_COUNTERS = {LID_NEO_CORTEX: NEO_CORTEX_HITS}
 # Game states (c1 `GAME_STATE_*`, src/globals.h).
 GAME_STATE_PLAYING = 0x100
 GAME_STATE_GAME_OVER = 0x200
@@ -161,13 +169,33 @@ def aku_level(emu):
 
 
 def boss_health(emu):
-    """The 24.8 health word of the loaded boss fight's boss (BOSS_HEALTH_CHAINS); None outside a
-    known boss fight or on a null hop."""
-    chain = BOSS_HEALTH_CHAINS.get(emu.u8(LEVEL_ID))
+    """The 24.8 health of the loaded boss fight's boss (BOSS_HEALTH_CHAINS; the hits left for a
+    BOSS_HIT_COUNTERS boss); None outside a known boss fight or on a null hop."""
+    level_id = emu.u8(LEVEL_ID)
+    chain = BOSS_HEALTH_CHAINS.get(level_id)
     if chain is None:
         return None
     pointer, *offsets = chain
-    return emu.deref(pointer, *offsets, size=FIXED_POINT_BYTES)
+    return _health(level_id, emu.deref(pointer, *offsets, size=FIXED_POINT_BYTES))
+
+
+def boss_health_at(emu, boss):
+    """The 24.8 health at `boss`, a boss_object read earlier in the fight; None outside a known
+    boss fight. The chain's middle hops can move to other objects: Nitrus Brio's falling pillars
+    become his root's first children in the monster phase (measured)."""
+    level_id = emu.u8(LEVEL_ID)
+    chain = BOSS_HEALTH_CHAINS.get(level_id)
+    if chain is None:
+        return None
+    return _health(level_id, emu.u32(boss + chain[-1]))
+
+
+def _health(level_id, word):
+    """A boss's health word as health: the hits left for a BOSS_HIT_COUNTERS boss."""
+    hits = BOSS_HIT_COUNTERS.get(level_id)
+    if word is None or hits is None:
+        return word
+    return (hits << FIXED_POINT_SHIFT) - word
 
 
 def boss_object(emu):

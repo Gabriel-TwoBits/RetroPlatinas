@@ -33,6 +33,7 @@ from probes import (
     LID_KOALA_KONG,
     LID_LIGHTS_OUT,
     LID_NATIVE_FORTRESS,
+    LID_NEO_CORTEX,
     LID_NITRUS_BRIO,
     LID_NSANITY_BEACH,
     LID_PAPU_PAPU,
@@ -100,6 +101,7 @@ CHECKPOINT_DEATH_SEED = 1
 # The Great Gate, so the restart state exists only for the stages given a seed.
 NSANITY_BEACH_EARLY_DEATH_SEED = 2
 DEATH_TIMEOUT_SEGMENTS = 900
+NITRUS_BRIO_DEATHS_HEALTH_LEFT = 2
 
 
 @dataclass(frozen=True)
@@ -117,6 +119,9 @@ class Stage:
     extra_lives_at_start: bool = False
     # A boss fight where Crash can die after the boss's last health is lost, restarting the fight.
     can_die_after_last_hit: bool = False
+    # The boss's whole health its deaths scenario dies at: one hit from defeat, but on Nitrus Brio
+    # the searched win's last stomp takes his last two 3 frames apart (one bounce).
+    deaths_health_left: int = 1
 
     @property
     def start(self):
@@ -208,7 +213,15 @@ BOSS_FIGHTS = (
     ),
     Stage("koala-kong", LID_KOALA_KONG, 16, "up", map_state="map-password"),
     Stage("pinstripe", LID_PINSTRIPE, 21, "up", map_state="map-password-cortex"),
-    Stage("nitrus-brio", LID_NITRUS_BRIO, 27, "up", map_state="map-password-lab"),
+    Stage(
+        "nitrus-brio",
+        LID_NITRUS_BRIO,
+        27,
+        "up",
+        map_state="map-password-lab",
+        deaths_health_left=NITRUS_BRIO_DEATHS_HEALTH_LEFT,
+    ),
+    Stage("neo-cortex", LID_NEO_CORTEX, 30, "up", map_state="map-password-all"),
 )
 # Every file that decides what a derived state holds, clearing plans included.
 RECIPE_SOURCES = (

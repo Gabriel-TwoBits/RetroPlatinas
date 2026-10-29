@@ -56,6 +56,8 @@ from probes import (
     PLAYER_POSITION_OFFSETS,
     RESPAWN_COUNT,
     boss_health,
+    boss_health_at,
+    boss_object,
     box_count,
     has_gem,
     hud_count_address,
@@ -86,7 +88,6 @@ STAGE_CLEAR_SHOTS = 8
 STAGE_CLEAR_SHOT_FRAMES = 60
 DEATH_SEED = 1
 PLAN_PREFIX_DIVISOR = 2  # deaths start halfway through a stage's clearing plan
-LAST_HIT_HEALTH = 1 << FIXED_POINT_SHIFT  # a boss one hit from defeat: 1.0 in 24.8
 # After a collectible event: the extra life of a Wumpa wrap lands about 110 frames later.
 AFTER_EVENT_FRAMES = 300
 # A held button moves Crash on the frame he gets control (after the spin-in) or 3 frames later
@@ -429,25 +430,27 @@ def replay_until(s, inputs, predicate, held=1):
     return predicate(s.emu) and streak + 1 >= held
 
 
-def boss_at_last_hit(emu):
-    return boss_health(emu) == LAST_HIT_HEALTH
-
-
 def boss_deaths(stage, plan_path):
-    """Deaths in a boss fight with the boss one hit from defeat, then right after the respawn.
+    """Deaths in a boss fight with the boss one hit from defeat (`stage.deaths_health_left`),
+    then right after the respawn.
 
-    The winning plan is replayed up to the boss's last health; a respawn allocates a new boss at
-    full health, so no death may pass for the final hit.
+    The winning plan is replayed up to that health, read at the fight's first boss object; a
+    respawn allocates a new boss at full health, so no death may pass for the final hit.
     """
 
     def play(s):
         rng = random.Random(DEATH_SEED)
         route = plans.load(plan_path).inputs
-        if not replay_until(s, route, boss_at_last_hit, held=BOSS_HEALTH_HELD_FRAMES):
-            raise RuntimeError(
-                f"{plan_path.name} never left the boss at {LAST_HIT_HEALTH:#x} health"
-            )
-        s.note(f"boss at {LAST_HIT_HEALTH:#x} health after replaying {plan_path.name}; dying")
+        boss = boss_object(s.emu)
+        health = stage.deaths_health_left << FIXED_POINT_SHIFT
+        if not replay_until(
+            s,
+            route,
+            lambda emu: boss_health_at(emu, boss) == health,
+            held=BOSS_HEALTH_HELD_FRAMES,
+        ):
+            raise RuntimeError(f"{plan_path.name} never left the boss at {health:#x} health")
+        s.note(f"boss at {health:#x} health after replaying {plan_path.name}; dying")
         die(s, stage, rng, "death 1", [])
         s.rearm("death 2: re-armed right after the respawn, the boss back at full health")
         die(s, stage, rng, "death 2", [])

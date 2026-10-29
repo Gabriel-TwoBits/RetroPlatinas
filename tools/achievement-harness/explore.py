@@ -40,6 +40,7 @@ from probes import (
     GAME_STATE_LEVEL_WON,
     GAME_STATE_STAGE_CLEARED,
     LEVEL_ID,
+    LID_GAME_WON,
     LID_STAGE_CLEAR,
     NEXT_DISPLAY_FLAGS,
     NO_CHECKPOINT,
@@ -95,6 +96,8 @@ QUIT_PROBABILITY = 0.02  # per segment: a quit costs about a thousand frames of 
 CLEAR_GOAL = "clear"
 # A clear shows Stage Clear, or goes straight to the map after a death past a checkpoint.
 CLEARED_STATES = (GAME_STATE_STAGE_CLEARED, GAME_STATE_LEVEL_WON)
+# Levels a clear loads: Stage Clear, and the ending a won Neo Cortex fight plays.
+CLEARED_LEVELS = (LID_STAGE_CLEAR, LID_GAME_WON)
 AKU_INVINCIBLE_LEVEL = achievements.collectible_seed().AKU_INVINCIBLE_LEVEL
 # From the clear to the gem landing on the Stage Clear screen: about 370 frames on N. Sanity Beach.
 GEM_AWARD_TIMEOUT_FRAMES = 900
@@ -281,7 +284,7 @@ class Runner:
         """CLEARED, DEAD (respawned), ELSEWHERE (another level loaded), the goal's REACHED or
         FORBIDDEN, or None."""
         level_id = self.emu.u8(LEVEL_ID)
-        if self.emu.u32(GAME_STATE) in CLEARED_STATES or level_id == LID_STAGE_CLEAR:
+        if self.emu.u32(GAME_STATE) in CLEARED_STATES or level_id in CLEARED_LEVELS:
             return CLEARED
         if self.emu.s32(RESPAWN_COUNT) != self.respawns:
             return DEAD
@@ -407,6 +410,17 @@ class Explorer:
             worst = max(self._evictable(), key=lambda c: self.archive[c]["chosen"])
             del self.archive[worst]
 
+    def _evictable(self):
+        """Cells below the best score, else every cell but the frontier: the frontier is the
+        most chosen, and evicting it threw a boss search's best hits away (measured: 6 hits on
+        Nitrus Brio fell back to 0 once the time cells filled the archive)."""
+        best = max(cell[-1] for cell in self.archive)
+        below = [cell for cell in self.archive if cell[-1] < best]
+        if below:
+            return below
+        ranked = sorted(self.archive, key=self._rank, reverse=True)
+        return ranked[FRONTIER_CELLS:]
+
     def _pick(self):
         cells = list(self.archive)
         if self.rng.random() < FRONTIER_PROBABILITY:
@@ -420,17 +434,6 @@ class Explorer:
             for c in cells
         ]
         return self.rng.choices(cells, weights)[0]
-
-    def _evictable(self):
-        """Cells below the best score, else every cell but the frontier: the frontier is the
-        most chosen, and evicting it threw a boss search's best hits away (measured: 6 hits on
-        Nitrus Brio fell back to 0 once the time cells filled the archive)."""
-        best = max(cell[-1] for cell in self.archive)
-        below = [cell for cell in self.archive if cell[-1] < best]
-        if below:
-            return below
-        ranked = sorted(self.archive, key=self._rank, reverse=True)
-        return ranked[FRONTIER_CELLS:]
 
     def rollout(self, cell):
         """Random moves from `cell`; returns the winning `(plan, quits)`, or None."""
