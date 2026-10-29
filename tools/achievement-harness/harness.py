@@ -295,8 +295,8 @@ class Emu:
             return None
         return int.from_bytes(self.read(address + last, size), "little")
 
-    def screenshot(self, path):
-        """PNG of the last rendered frame; a fade or a transition frame is often black."""
+    def framebuffer(self):
+        """`(rgb, width, height)` of the last rendered frame, packed RGB24."""
         width = ctypes.c_int()
         height = ctypes.c_int()
         pixels = self.lib.h_framebuffer_rgb(
@@ -304,8 +304,12 @@ class Emu:
         )
         if pixels < 0:
             raise RuntimeError(f"no framebuffer to capture ({pixels})")
-        rgb = self._fb.raw[: pixels * BYTES_PER_PIXEL]
-        return write_png(path, width.value, height.value, rgb)
+        return self._fb.raw[: pixels * BYTES_PER_PIXEL], width.value, height.value
+
+    def screenshot(self, path):
+        """PNG of the last rendered frame; a fade or a transition frame is often black."""
+        rgb, width, height = self.framebuffer()
+        return write_png(path, width, height, rgb)
 
     def snapshot(self):
         """In-memory save state (bytes)."""

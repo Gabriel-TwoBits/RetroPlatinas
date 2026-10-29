@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Crash harness: play and record</title>
+<style>
+  body { background: #111; color: #ddd; font: 14px sans-serif; margin: 16px; }
+  canvas { image-rendering: pixelated; width: 960px; border: 1px solid #444; }
+  code { color: #fc6; }
+</style>
+</head>
+<body>
+<canvas id="screen" width="320" height="240"></canvas>
+<p id="status">connecting…</p>
+<p>
+  Keyboard: arrows = D-pad, <code>X</code> = cross (jump), <code>S</code> = square (spin),
+  <code>C</code> = circle, <code>D</code> = triangle, <code>Enter</code> = start,
+  <code>Shift</code> = select, <code>Backspace</code> = restart the recording.
+  A gamepad works too (standard mapping; L2 restarts).
+</p>
+<script>
+// libretro joypad bits, as harness.Btn.
+const BIT = { CROSS: 0, SQUARE: 1, SELECT: 2, START: 3, UP: 4, DOWN: 5, LEFT: 6, RIGHT: 7,
+              CIRCLE: 8, TRIANGLE: 9 };
+const KEYS = { ArrowUp: "UP", ArrowDown: "DOWN", ArrowLeft: "LEFT", ArrowRight: "RIGHT",
+               x: "CROSS", s: "SQUARE", c: "CIRCLE", d: "TRIANGLE", Enter: "START",
+               Shift: "SELECT" };
+// Standard Gamepad API button indices.
+const PAD = { 0: "CROSS", 1: "CIRCLE", 2: "SQUARE", 3: "TRIANGLE", 8: "SELECT", 9: "START",
+              12: "UP", 13: "DOWN", 14: "LEFT", 15: "RIGHT" };
+const PAD_RESTART = 6;
+const held = new Set();
+let sentMask = -1;
+let restart = false;
+
+function keyName(event) {
+  return event.key.length === 1 ? event.key.toLowerCase() : event.key;
+}
+addEventListener("keydown", (event) => {
+  if (event.key === "Backspace") { restart = true; }
+  else if (KEYS[keyName(event)]) { held.add(KEYS[keyName(event)]); }
+  else { return; }
+  event.preventDefault();
+});
+addEventListener("keyup", (event) => { held.delete(KEYS[keyName(event)]); });
+
+function mask() {
+  const buttons = new Set(held);
+  for (const pad of navigator.getGamepads()) {
+    if (!pad) { continue; }
+    for (const [index, name] of Object.entries(PAD)) {
+      if (pad.buttons[index] && pad.buttons[index].pressed) { buttons.add(name); }
+    }
+    if (pad.buttons[PAD_RESTART] && pad.buttons[PAD_RESTART].pressed) { restart = true; }
+  }
+  let value = 0;
+  for (const name of buttons) { value |= 1 << BIT[name]; }
+  return value;
+}
+
+async function sendInput() {
+  const value = mask();
+  if (value === sentMask && !restart) { return; }
+  const body = JSON.stringify({ mask: value, restart });
+  restart = false;
+  sentMask = value;
+  await fetch("/input", { method: "POST", body });
+}
+
+const canvas = document.getElementById("screen");
+const context = canvas.getContext("2d");
+async function drawFrame() {
+  const response = await fetch("/frame");
+  const [width, height] = (response.headers.get("X-Size") || "0x0").split("x").map(Number);
+  const rgb = new Uint8Array(await response.arrayBuffer());
+  if (!width || rgb.length < width * height * 3) { return; }
+  if (canvas.width !== width || canvas.height !== height) {
+    canvas.width = width;
+    canvas.height = height;
+  }
+  const image = context.createImageData(width, height);
+  for (let source = 0, target = 0; source < width * height * 3; source += 3, target += 4) {
+    image.data[target] = rgb[source];
+    image.data[target + 1] = rgb[source + 1];
+    image.data[target + 2] = rgb[source + 2];
+    image.data[target + 3] = 255;
+  }
+  context.putImageData(image, 0, 0);
+}
+
+async function showStatus() {
+  const status = await (await fetch("/status")).json();
+  const text = status.saved
+    ? `plan written to ${status.saved.path} (won: ${status.saved.done}); close this page`
+    : `recording: ${status.frames} frames`;
+  document.getElementById("status").textContent = text;
+}
+
+async function loop() {
+  try {
+    await sendInput();
+    await drawFrame();
+  } catch (error) {
+    document.getElementById("status").textContent = `disconnected: ${error}`;
+  }
+  requestAnimationFrame(loop);
+}
+setInterval(() => showStatus().catch(() => {}), 500);
+loop();
+</script>
+</body>
+</html>

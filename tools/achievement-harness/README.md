@@ -80,6 +80,7 @@ Add `-v /path/to/bios:/bios:ro -e CRASH1_BIOS_DIR=/bios` for swanstation. Every 
 | `scenarios.py [--core C] NAME ... \| all` | Plays scenarios; prints `OK`/`FAIL` per scenario and exits non-zero on any `FAIL` |
 | `nav.py [--from STATE] "cmd; cmd"` | Drives the emulator by hand (see *Navigation DSL*) |
 | `explore.py STAGE [--goal G] [--from STATE] [--out PLAN] [--minutes M] [--seed N]` | Searches an input plan that reaches a goal in a stage: its clear by default |
+| `play.py STATE --out PLAN [--port P]` | Plays a state by hand in a browser (`http://localhost:P`, keyboard or gamepad) and records the inputs as a plan, for a fight the search cannot win; publish the port on the host's loopback only (`-p 127.0.0.1:8765:8765`) |
 | `analyze.py TRACE.csv [PROBE ...] [--timeline]` | Summarises a trace, or prints the frames where the probes changed |
 | `sheet.py OUT.png SHOT.png ...` | Tiles screenshots into one contact sheet |
 
