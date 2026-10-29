@@ -50,6 +50,7 @@ from probes import (
     STAGE_ID,
     aku_level,
     boss_health,
+    boss_health_at,
     boss_object,
     box_count,
     has_gem,
@@ -173,16 +174,13 @@ def checkpoint_reached(runner):
 
 
 def boss_reading(runner):
-    """The boss's health this frame, or None when it is no reading: no boss object, a health
-    that is not whole (Ripper Roo's reads 0x002 for one frame on a hit that leaves him at 1), read
-    from another object than the fight's first (a respawn reallocates it), or 0 (Koala Kong's
-    reads 0 for a frame as Crash dies; a fight really won is the goal itself, its exit)."""
-    health = boss_health(runner.emu)
-    if (
-        not health
-        or health & FIXED_POINT_FRACTION
-        or boss_object(runner.emu) != runner.start_boss_object
-    ):
+    """The boss's health this frame, read at the fight's first boss object (the chain loses
+    Nitrus Brio's monster to the falling pillars), or None when it is no reading: no boss object, a
+    health that is not whole (Ripper Roo's reads 0x002 for one frame on a hit that leaves him at
+    1), or 0 (a fight really won is the goal itself, its exit). A death ends the rollout before a
+    respawn reuses the object."""
+    health = boss_health_at(runner.emu, runner.start_boss_object)
+    if not health or health & FIXED_POINT_FRACTION:
         return None
     return health
 
