@@ -58,6 +58,10 @@ from provision import SHOTS_DIR
 
 CELL_SHIFT = 19
 BOSS_TIME_CELL_SEGMENTS = 8  # 128 frames
+# 128 units of 24.8 height: Crash on Nitrus Brio's fallen pillars, not on the floor, is a cell of
+# its own (CELL_SHIFT's 2048 units hold the whole climb).
+BOSS_HEIGHT_CELL_SHIFT = 15
+HEIGHT_AXIS = 1  # PLAYER_POSITION_OFFSETS: x, y, z
 # Koala Kong's health read flickers for single frames to other objects' words (measured: 0x300,
 # 0x100, 0x39001A while he is at 3), so a boss's health counts once it holds this long.
 BOSS_HEALTH_HELD_FRAMES = 30
@@ -107,6 +111,8 @@ class Goal:
     # Segments per time cell, or None: a boss arena holds few positions, and its attacks come in
     # timed waves, so the fight's progress is also how long Crash has lasted.
     time_cell_segments: int | None = None
+    # The height's cell shift: a boss is hit from a ledge a few units above the floor.
+    height_cell_shift: int = CELL_SHIFT
 
 
 def no_score(_runner):
@@ -213,6 +219,7 @@ GOALS = {
         nothing_to_check,
         clear_wins=True,
         time_cell_segments=BOSS_TIME_CELL_SEGMENTS,
+        height_cell_shift=BOSS_HEIGHT_CELL_SHIFT,
     ),
 }
 
@@ -362,7 +369,11 @@ class Explorer:
     def _cell(self, plan=b""):
         """Position cell, the time cell when the goal has one, then the goal's score: a higher
         score is a new cell at any position."""
-        position = tuple(coordinate >> CELL_SHIFT for coordinate in self.runner.position())
+        position = tuple(
+            coordinate
+            >> (self.runner.goal.height_cell_shift if axis == HEIGHT_AXIS else CELL_SHIFT)
+            for axis, coordinate in enumerate(self.runner.position())
+        )
         segments = self.runner.goal.time_cell_segments
         if segments is None:
             when = ()
