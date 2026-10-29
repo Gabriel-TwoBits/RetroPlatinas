@@ -60,6 +60,8 @@ Every condition is `build_mem_addr(level_id)`; only the stage's level id changes
 | Castle Machinery | `37` | `1a` | `d0xH6188d=h37S0xH6188d=h2dS0xH6188d=h19_0xH618d1=3` |
 | The Lab | `29` | `1c` | `d0xH6188d=h29S0xH6188d=h2dS0xH6188d=h19_0xH618d1=3` |
 | The Great Hall | `2c` | `1d` | `d0xH6188d=h2cS0xH6188d=h2dS0xH6188d=h19_0xH618d1=3` |
+| Fumbling in the Dark | `2a` | `1f` | `d0xH6188d=h2aS0xH6188d=h2dS0xH6188d=h19_0xH618d1=3` |
+| Whole Hog | `1e` | `20` | `d0xH6188d=h1eS0xH6188d=h2dS0xH6188d=h19_0xH618d1=3` |
 
 The level ids are the c1 `LID_*` constants; the harness measured each one by entering the stage from the
 map (`states.py` refuses a stage whose level id differs).
@@ -133,7 +135,8 @@ reached with no write at all: the harness types a community password from the ti
 from where the map opens (measured in `crash-bandicoot-1-completion-inventory.md`): the Koala Kong save point
 `XOOOXSXS` for Hog Wild to Sunset Vista, "skip to the third island" `TTTTOXTTXXTOSOXTTOSXXSTT` for Heavy Machinery
 to Slippery Climb, The Lab's save point `TTTSXXOXXSOXXXXOSTSOOSST` for Lights Out to The Lab, and the 100% password
-for The Great Hall. Nothing writes a clear, a level id or a game state.
+for The Great Hall and the two secret stages, which hang off the map path: UP from Boulder Dash to Whole Hog, UP
+from Lights Out to Fumbling in the Dark, DOWN back. Nothing writes a clear, a level id or a game state.
 
 | Scenario | What is played | Result |
 | --- | --- | --- |
@@ -155,7 +158,10 @@ deepest route kept, 383 segments of 16 frames into The Great Gate, is `plans/the
 search logs are not kept. For those four stages everything but the clear is validated: the level id the
 condition names is measured on entry, and deaths and quits fire nothing. Hog Wild to The Lab were not searched for
 a clear (the user's decision: a stage clear ships on the builder proven on the first stages, its measured level id
-and the look-alike scenarios); the same holds for them. Native Fortress, The Lost City, Sunset Vista and Slippery
+and the look-alike scenarios); the same holds for them and for the secret stages, Fumbling in the Dark and Whole
+Hog. On a hog ride (Hog Wild, Whole Hog) the quit scenario does not stand before its pause: the hog runs on into
+the stage's hazards, and Whole Hog's first one kills Crash 539 frames after the spawn zone, where a pause is
+ignored. Native Fortress, The Lost City, Sunset Vista and Slippery
 Climb get their deaths mid-stage from a failed clear search's deepest route (`plans/<stage>-deepest.json`): random
 play from their start dies too rarely. Castle Machinery's start has extra lives in reach, so its deaths do not
 bring the count low.
@@ -168,8 +174,9 @@ out the hall's opening (walking up at once falls off the platform), walks up and
 
 ### Still for the in-game check (DuckStation)
 
-- **The Great Gate, Boulders, Upstream, Rolling Stones and every stage from Hog Wild to The Lab:** finish each
-  stage and confirm its achievement pops on the Stage Clear screen, once. The harness never produced these clears.
+- **The Great Gate, Boulders, Upstream, Rolling Stones, every stage from Hog Wild to The Lab, Fumbling in the
+  Dark and Whole Hog:** finish each stage and confirm its achievement pops on the Stage Clear screen, once. The
+  harness never produced these clears.
 - **The Great Hall with fewer than 26 gems:** the harness left it only with all 26 (the 100% password); leave it
   through the arch with a normal save and see `The Great Hall` pop when the map appears.
 - **All of them, on DuckStation:** the popup appears on the Stage Clear screen (not earlier, on the stage's

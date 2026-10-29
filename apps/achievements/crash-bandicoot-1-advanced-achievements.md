@@ -38,6 +38,8 @@ Titles and descriptions are our own.
 | Out of the Jaws | 15 | … of Jaws of Darkness |
 | Gears and Glitter | 15 | … of Castle Machinery |
 | Golden Experiment | 25 | … of The Lab: the yellow gem |
+| Found in the Dark | 25 | … of Fumbling in the Dark, a secret stage |
+| Whole Hoard | 25 | … of Whole Hog, a secret stage |
 | Chief Toppled | 10 | the fight won against Papu Papu returns to the map |
 | Kangaroo Court | 10 | the fight won against Ripper Roo returns to the map |
 | Koala Kayo | 10 | the fight won against Koala Kong returns to the map |
@@ -68,7 +70,7 @@ harness imports them.
 | --- | --- | --- |
 | Box count | `0x61984` (24.8, integer at `0x61985`), c1 `box_count` | `+1` per box broken in the stage. **A death sets it back to 0** (after a checkpoint the checkpoint crate then counts again: 9 → 0 → 1 on the committed N. Sanity Beach route). A quit or a new level load also zeroes it. On the Stage Clear screen (`2d`) it is reused to count the missed boxes up, one per 18 frames |
 | Boxes per stage | Stage Clear screen | N. Sanity Beach **49** (8 broken by the clearing plan + 41 missed), Jungle Rollers **38** (12 + 26). The other stages were not measured |
-| Gem bits | `0x61988`… (c1 `item_pool1`) | Bit *n* + 1 is map stage *n* (`0x619c5`): N. Sanity Beach bit 1, Jungle Rollers bit 2, The Great Gate bit 3, Boulders bit 4, Upstream bit 5, Rolling Stones bit 7; then `0x61989` bit 0 Hog Wild, bit 1 Native Fortress, bit 2 Up the Creek, bit 4 The Lost City (green), bit 5 Temple Ruins, bit 6 Road to Nowhere, bit 7 Boulder Dash; `0x6198a` bit 0 Sunset Vista, bit 2 Heavy Machinery, bit 3 Cortex Power, bit 4 Generator Room (orange), bit 5 Toxic Waste (blue), bit 7 The High Road; `0x6198b` bit 0 Slippery Climb (red), bit 1 Lights Out (purple), bit 2 Jaws of Darkness, bit 3 Castle Machinery, bit 5 The Lab (yellow). The **Stage Clear screen** sets the bit about 280 frames after it loads, when the box count reached the stage's boxes ("PERFECT"); one short leaves it clear. It persists through the map and the next stages |
+| Gem bits | `0x61988`… (c1 `item_pool1`) | Bit *n* + 1 is map stage *n* (`0x619c5`): N. Sanity Beach bit 1, Jungle Rollers bit 2, The Great Gate bit 3, Boulders bit 4, Upstream bit 5, Rolling Stones bit 7; then `0x61989` bit 0 Hog Wild, bit 1 Native Fortress, bit 2 Up the Creek, bit 4 The Lost City (green), bit 5 Temple Ruins, bit 6 Road to Nowhere, bit 7 Boulder Dash; `0x6198a` bit 0 Sunset Vista, bit 2 Heavy Machinery, bit 3 Cortex Power, bit 4 Generator Room (orange), bit 5 Toxic Waste (blue), bit 7 The High Road; `0x6198b` bit 0 Slippery Climb (red), bit 1 Lights Out (purple), bit 2 Jaws of Darkness, bit 3 Castle Machinery, bit 5 The Lab (yellow). The secret stages break the rule: their gems sit next to the key bits in c1 `item_pool2`, `0x619ad` bit 0 Fumbling in the Dark and `0x619ae` bit 2 Whole Hog (the 100% password sets `0x619ad` = 05 and `0x619ae` = 14, the keys-only password 04 and 10; which gem is which stage comes from the code notes). The **Stage Clear screen** sets the bit about 280 frames after it loads, when the box count reached the stage's boxes ("PERFECT"); one short leaves it clear. It persists through the map and the next stages |
 | Boss health | `0x60ddc` pointer: Papu Papu's object, `+0x104` (24.8); Ripper Roo's is two pointers further (`+0x6c`, `+0x68`, then `+0x104`) | Papu Papu starts at **3** and loses one per hit (3 → 2 → 1 → 0, then `ff` as the object winds down). Ripper Roo starts at 3 too; his word holds `0x002` for one frame on each hit that does not end him. A death after his last health is lost, before the fight leaves (as when the arena's TNT catches Crash), restarts the fight at 3 (scenario `ripper-roo-death-after-last-hit`). A respawn allocates a new object. Koala Kong starts at **4**, read from `0x61898` → `+0x6c` → `+0x104` (code notes); the read flickers for single frames to other objects' words (`0x300`, `0x100`, `0x39001a`, `0` as Crash dies, garbage while the fight loads), so the harness counts a health once it holds 30 frames, in the deaths scenario and in the search's score. Pinstripe starts at **6**, the `0x60ddc` object's `+0x104`. Nitrus Brio starts at **9** (not the code notes' 5), at the `0x60ddc` object's first child (`+0x6c`, then `+0x104`): six hits on the potion blobs, then three on the monster. In the monster phase the falling pillars become the first children, so the chain loses him; the deaths scenario reads the health at the object the chain named when the fight opened. On other levels the pointers name other objects |
 | A clear after a death past a checkpoint | `0x618d1`, `0x6188d` | The game state turns `03` instead of `05` and the stage goes **straight to the island map** (`09` → `19`, no Stage Clear screen, so no gem); the stage still counts as cleared (`0x61948` 1 → 2 on N. Sanity Beach). A death before any checkpoint restarts the stage (every box back, the count at 0, the respawn count `0x618a1` at 1 through Stage Clear), and its clear shows Stage Clear as usual and hands out the gem for every box (seen with the count poked) |
 | A boss fight's exit | `0x6188d`, `0x618d1` | After the last hit the game state turns `03` and the fight goes **straight to the island map** (no Stage Clear screen; Papu Papu: last hit at frame 1066, game state `03` at 1354, `0a` → `19` at 1543; Ripper Roo: 1778, 2122, `17` → `19` at 2298; Pinstripe: 2712, 3084, `08` → `19` at 3275; Koala Kong: 4247, 4494, `21` → `19` at 4683; Nitrus Brio: 9392, 9641, `1b` → `19` at 9825), the cursor moving on to the next stage |
@@ -176,13 +178,14 @@ for every boss with a searched win: none of them fires a gem or a boss. Every sc
 - **A death after the checkpoint**: break boxes, break the checkpoint crate, die, finish from the checkpoint;
   the stage goes straight to the map, no gem achievement pops, and the stage's level achievement does (the
   harness saw it on N. Sanity Beach).
-- **The Great Gate to The Lab** (every gem stage but N. Sanity Beach and Jungle Rollers, the six coloured gems
-  among them) were never cleared in the harness: their gem bits come from the bit-per-stage rule, which the 100%
-  password confirms (it sets exactly these bits among the 26), and agree with the measured bits 1 and 2. A
-  coloured gem's path comes first in The Great Gate (yellow), Upstream (orange), Rolling Stones (blue), Native
-  Fortress (red), Road to Nowhere (red), Boulder Dash (purple), Cortex Power (blue), Lights Out (yellow) and Jaws
-  of Darkness (blue) (`crash-bandicoot-1-completion-inventory.md`). Win each gem and see its achievement, and
-  only its achievement, pop.
+- **The Great Gate to The Lab and the two secret stages** (every gem stage but N. Sanity Beach and Jungle
+  Rollers, the six coloured gems among them) were never cleared in the harness: their gem bits come from the
+  bit-per-stage rule, which the 100% password confirms (it sets exactly these bits among the 26), and agree with
+  the measured bits 1 and 2; the secret stages' bits come from the 100% and keys-only passwords and the code
+  notes. A coloured gem's path comes first in The Great Gate (yellow), Upstream (orange), Rolling Stones (blue),
+  Native Fortress (red), Road to Nowhere (red), Boulder Dash (purple), Cortex Power (blue), Lights Out (yellow)
+  and Jaws of Darkness (blue) (`crash-bandicoot-1-completion-inventory.md`). Win each gem and see its
+  achievement, and only its achievement, pop.
 - **Papu Papu, Ripper Roo, Koala Kong, Pinstripe and Nitrus Brio on DuckStation**: beat each and see the
   achievement pop when the map appears; die with the boss at one health left (on Ripper Roo, also after his last
   hit, before the map appears) and see nothing. The harness never held Nitrus Brio at one health: its win's last
