@@ -393,7 +393,7 @@ class Explorer:
         }
         if len(self.archive) > MAX_CELLS_WITH_STATE:
             # TRADEOFF: evicts the most-chosen cell outright; a disk-backed archive keeps them all.
-            worst = max(self.archive, key=lambda c: self.archive[c]["chosen"])
+            worst = max(self._evictable(), key=lambda c: self.archive[c]["chosen"])
             del self.archive[worst]
 
     def _pick(self):
@@ -409,6 +409,17 @@ class Explorer:
             for c in cells
         ]
         return self.rng.choices(cells, weights)[0]
+
+    def _evictable(self):
+        """Cells below the best score, else every cell but the frontier: the frontier is the
+        most chosen, and evicting it threw a boss search's best hits away (measured: 6 hits on
+        Nitrus Brio fell back to 0 once the time cells filled the archive)."""
+        best = max(cell[-1] for cell in self.archive)
+        below = [cell for cell in self.archive if cell[-1] < best]
+        if below:
+            return below
+        ranked = sorted(self.archive, key=self._rank, reverse=True)
+        return ranked[FRONTIER_CELLS:]
 
     def rollout(self, cell):
         """Random moves from `cell`; returns the winning `(plan, quits)`, or None."""
