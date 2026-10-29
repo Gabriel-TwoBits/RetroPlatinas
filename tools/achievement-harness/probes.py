@@ -181,11 +181,11 @@ def boss_health(emu):
 
 def boss_health_at(emu, boss):
     """The 24.8 health at `boss`, a boss_object read earlier in the fight; None outside a known
-    boss fight. The chain's middle hops can move to other objects: Nitrus Brio's falling pillars
-    become his root's first children in the monster phase (measured)."""
+    boss fight or without a boss object. The chain's middle hops can move to other objects: Nitrus
+    Brio's falling pillars become his root's first children in the monster phase (measured)."""
     level_id = emu.u8(LEVEL_ID)
     chain = BOSS_HEALTH_CHAINS.get(level_id)
-    if chain is None:
+    if chain is None or boss is None:
         return None
     return _health(level_id, emu.u32(boss + chain[-1]))
 

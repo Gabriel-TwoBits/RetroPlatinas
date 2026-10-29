@@ -1077,7 +1077,8 @@ for _fight in _advanced.BOSS_FIGHTS:
         SCENARIOS[f"{_boss.name}-deaths"] = Scenario(
             _boss.start,
             NOTHING_FIRES,
-            f"two deaths in the {_boss.name} fight, the first with the boss one hit from defeat",
+            f"two deaths in the {_boss.name} fight, the first with the boss at "
+            f"{_boss.deaths_health_left} health",
             boss_deaths(_boss, _boss_plan),
             (
                 fighting(_fight.boss, NEW_GAME_LIVES),
