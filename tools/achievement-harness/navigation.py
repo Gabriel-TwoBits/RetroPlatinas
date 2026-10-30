@@ -46,6 +46,9 @@ REVERSED_MAP_CURSORS = range(0x09, 0x11)
 # The secret stages hang off the path (measured): UP from Boulder Dash to Whole Hog, UP from Lights
 # Out to Fumbling in the Dark; the main path never passes through them.
 SECRET_STAGE_BRANCHES = {0x20: 0x0E, 0x1F: 0x18}
+# The main path has 31 map stages, so a walk takes at most 30 moves; a press the map ignores (one
+# landed while the camera still settled after an island change, measured) costs another, so twice.
+MAP_PATH_MOVES = 60
 ENTER_ATTEMPTS = 2
 # The main menu ignores the pad while it slides in (measured: a DOWN 60 frames after it shows is
 # lost, one 400 frames after is taken).
@@ -181,7 +184,7 @@ def move_cursor_to(emu, map_index):
 
 def _walk_path_to(emu, map_index):
     """Walks the cursor along the main path to stage `map_index`."""
-    for _ in range(MENU_ATTEMPTS):
+    for _ in range(MAP_PATH_MOVES):
         cursor = emu.u8(STAGE_ID)
         if cursor == map_index:
             return
@@ -196,8 +199,10 @@ def _walk_path_to(emu, map_index):
             emu.step(ISLAND_CHANGE_SETTLE_FRAMES)
         else:
             pass  # Same island: the move settles within CURSOR_MOVE_FRAMES.
+    if emu.u8(STAGE_ID) == map_index:
+        return
     raise TimeoutError(
-        f"map cursor on stage {emu.u8(STAGE_ID)}, not {map_index}, after {MENU_ATTEMPTS} moves"
+        f"map cursor on stage {emu.u8(STAGE_ID)}, not {map_index}, after {MAP_PATH_MOVES} moves"
     )
 
 
