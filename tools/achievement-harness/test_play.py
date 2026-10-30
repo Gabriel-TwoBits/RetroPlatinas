@@ -84,7 +84,15 @@ def post(port, body):
 
 @pytest.mark.parametrize(
     "body",
-    [b"not json", b"[]", b'{"mask": -1}', b'{"mask": "1"}', b'{"mask": 65536}', b"{}"],
+    [
+        b"not json",
+        b"[]",
+        b'{"mask": -1}',
+        b'{"mask": "1"}',
+        b'{"mask": true}',
+        b'{"mask": 65536}',
+        b"{}",
+    ],
 )
 def test_input_rejects_a_body_that_is_not_a_button_mask(server, body):
     shared, port = server

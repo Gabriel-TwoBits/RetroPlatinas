@@ -98,7 +98,7 @@ def handler(shared):
         def do_POST(self):
             body = self._json_body()
             mask = body.get("mask") if isinstance(body, dict) else None
-            if self.path != "/input" or not isinstance(mask, int) or not 0 <= mask <= ALL_BUTTONS:
+            if self.path != "/input" or type(mask) is not int or not 0 <= mask <= ALL_BUTTONS:
                 self.send_error(400)
                 return
             with shared.lock:
