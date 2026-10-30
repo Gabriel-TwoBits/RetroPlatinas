@@ -339,9 +339,11 @@ that open a stage before Crash can move.
   after a state load. Another core build may change the emulation, which is why `build-core.sh`
   pins one: after moving the pin, a `<stage>-clear` state that times out waiting for Stage Clear
   needs its plan re-searched.
-- **swanstation** derives the navigation states but cannot replay pcsx_rearmed plans, so
-  the `<stage>-clear` scenarios, and `the-great-gate-deaths` (whose deaths need its route), are
-  pcsx_rearmed only.
+- **swanstation** derives the cold-boot navigation states (`map`, `map-unlocked` and the stages
+  entered from them) but cannot replay pcsx_rearmed plans, and the password screen rejects the
+  typed password there ("title state 0x5, not the map"), so the `<stage>-clear` scenarios,
+  `the-great-gate-deaths` (whose deaths need its route) and every stage reached by a password
+  are pcsx_rearmed only.
 - **Re-arming is a harness device.** In DuckStation an achievement fires once per session.
   `rearm()` resets a fired one to WAITING with zeroed hits: the hits it would have carried had it
   not fired are unknowable. Unfired ones are left alone.
