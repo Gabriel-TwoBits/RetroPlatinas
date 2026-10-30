@@ -1,8 +1,13 @@
 """play.Recorder: the hand-played run's inputs and its end, without the emulator."""
 
+import http.server
+import threading
+import urllib.error
+import urllib.request
 from types import SimpleNamespace
 
-from play import RECORD_TAIL_FRAMES, Recorder
+import pytest
+from play import RECORD_TAIL_FRAMES, Recorder, Shared, handler
 from probes import (
     GAME_STATE_GAME_OVER,
     GAME_STATE_LEVEL_WON,
@@ -13,6 +18,9 @@ from probes import (
 )
 
 UP, CROSS = 1 << 4, 1 << 0
+LOOPBACK = "127.0.0.1"
+HTTP_OK = 200
+HTTP_BAD_REQUEST = 400
 EMU = SimpleNamespace(core_name="pcsx_rearmed", core_version="PCSX-ReARMed r26 ff81ed1")
 
 
@@ -54,3 +62,39 @@ def test_a_run_inside_the_start_level_never_ends():
     recorder = Recorder(LID_NEO_CORTEX)
 
     assert play_out(recorder, UP, LID_NEO_CORTEX, GAME_STATE_PLAYING) is None
+
+
+@pytest.fixture
+def server():
+    shared = Shared()
+    httpd = http.server.ThreadingHTTPServer((LOOPBACK, 0), handler(shared))
+    threading.Thread(target=httpd.serve_forever, daemon=True).start()
+    yield shared, httpd.server_address[1]
+    httpd.shutdown()
+
+
+def post(port, body):
+    request = urllib.request.Request(f"http://{LOOPBACK}:{port}/input", data=body, method="POST")
+    try:
+        with urllib.request.urlopen(request) as response:
+            return response.status
+    except urllib.error.HTTPError as error:
+        return error.code
+
+
+@pytest.mark.parametrize(
+    "body",
+    [b"not json", b"[]", b'{"mask": -1}', b'{"mask": "1"}', b'{"mask": 65536}', b"{}"],
+)
+def test_input_rejects_a_body_that_is_not_a_button_mask(server, body):
+    shared, port = server
+
+    assert post(port, body) == HTTP_BAD_REQUEST
+    assert shared.mask == 0
+
+
+def test_input_takes_a_button_mask_and_a_restart(server):
+    shared, port = server
+
+    assert post(port, b'{"mask": 17, "restart": true}') == HTTP_OK
+    assert (shared.mask, shared.restart) == (UP | CROSS, True)

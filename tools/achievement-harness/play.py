@@ -22,7 +22,7 @@ from pathlib import Path
 import plan as plans
 import states
 from explore import runs_of
-from harness import FRAMES_PER_SECOND, Emu
+from harness import FRAMES_PER_SECOND, Btn, Emu
 from probes import GAME_STATE, GAME_STATE_LEVEL_WON, LEVEL_ID, LID_GAME_WON
 
 DEFAULT_PORT = 8765
@@ -30,6 +30,8 @@ LISTEN_ADDRESS = "0.0.0.0"  # inside the container; publish the port on the host
 RECORD_TAIL_FRAMES = 2 * FRAMES_PER_SECOND
 FRAME_SECONDS = 1 / FRAMES_PER_SECOND
 PAGE = Path(__file__).with_name("play.html")
+ALL_BUTTONS = (1 << (Btn.R2 + 1)) - 1  # every pad button bit; Btn.R2 is the highest
+MAX_INPUT_BYTES = 256  # {"mask": n, "restart": true} with room to spare
 
 
 class Recorder:
@@ -94,16 +96,25 @@ def handler(shared):
                 self.send_error(404)
 
         def do_POST(self):
-            length = int(self.headers.get("Content-Length", "0"))
-            body = json.loads(self.rfile.read(length) or b"{}")
-            mask = body.get("mask")
-            if self.path != "/input" or not isinstance(mask, int) or mask < 0:
+            body = self._json_body()
+            mask = body.get("mask") if isinstance(body, dict) else None
+            if self.path != "/input" or not isinstance(mask, int) or not 0 <= mask <= ALL_BUTTONS:
                 self.send_error(400)
                 return
             with shared.lock:
                 shared.mask = mask
                 shared.restart = shared.restart or bool(body.get("restart"))
             self._send(b"{}", "application/json")
+
+        def _json_body(self):
+            """The request's JSON body, or None when it is missing, too long or not JSON."""
+            try:
+                length = int(self.headers.get("Content-Length", "0"))
+                if not 0 < length <= MAX_INPUT_BYTES:
+                    return None
+                return json.loads(self.rfile.read(length))
+            except ValueError:
+                return None
 
         def _send(self, body, content_type, headers=None):
             self.send_response(200)
