@@ -129,7 +129,7 @@ and red gems; this inventory is the USA layout.
 | Koala Kong | `21` | 4 | 4, beaten in the harness |
 | Pinstripe Potoroo | `08` | 6 | 6, beaten in the harness |
 | Dr. Nitrus Brio | `1b` | 9 (6 on the blobs, then 3 on the monster; the code notes say 5) | 9, beaten in the harness |
-| Dr. Neo Cortex | `1f` | 5 | level id only |
+| Dr. Neo Cortex | `1f` | 5 | 5 (a hit counter, `0x60DDC` → `+0x104` 0 → 5), beaten in the harness by a hand-played plan |
 
 The code notes give health reads for each (`0x60DDC` chains, Koala Kong through `0x61898`); the measured
 chains and each win are in `crash-bandicoot-1-advanced-achievements.md`.
@@ -138,7 +138,7 @@ chains and each win are in `crash-bandicoot-1-advanced-achievements.md`.
 
 | Ending | What triggers it (community) | What RAM shows |
 | --- | --- | --- |
-| Normal | Cortex beaten: he falls from the airship; Crash and Tawna fly off | c1 names `LID_GAMEWIN` (`39`) the ending level and `CoreObjectsCreate` treats it as a cutscene (no HUD); not reached in the harness |
+| Normal | Cortex beaten: he falls from the airship; Crash and Tawna fly off | **Measured:** the won fight loads the ending level `39` (c1 `LID_GAMEWIN`) straight from `1f`, game state `00`; the airship scene, "Crash Bandicoot...", then the credits |
 | Secret (100%) | The Great Hall entered with the gems: the clear gems form a bridge to the balcony, where Tawna waits; then the bosses' epilogue and the credits. Cortex is not fought | The hall is level `2c` (measured); the switch to the ending level is not measured |
 
 The in-game percentage tops out at 100%, which the 26th gem forces (community). The 100% password loads
@@ -179,8 +179,6 @@ exactly the gems of Up the Creek, Cortex Power, The High Road and the two secret
 
 - **The secret ending:** with all 26 gems, cross The Great Hall's bridge and watch which level the ending loads
   (expected c1 `LID_GAMEWIN`, `39`); the harness fell off.
-- **The normal ending:** beat Cortex and see the ending; nothing past entering his fight was played.
-- **Neo Cortex's hit count** (5, community).
 - **Keys:** win each Cortex bonus round and see the key; the harness entered no bonus round.
 - **Whether a gem or key save shows a password that reloads the same gem and key bits.** Every password above
   was typed, none was read off the game's own save screen.

@@ -89,8 +89,8 @@ game state does not leak into play.
 - **Bonus rounds** (`In a Tawna bonus round · …`, Brio, Cortex): the harness never collected three tokens. Their
   level ids (`24`, `33` Tawna, `25` Brio, `34` Cortex) are c1's, not measured.
 - **Stages and bosses the harness never entered**: every name but the six level-achievement stages, the demo
-  stages (The Lost City, Jaws of Darkness, The Lab) and Papu Papu comes from c1's `LID_*` table. So does the
-  ending (`39`), never reached.
+  stages (The Lost City, Jaws of Darkness, The Lab) and Papu Papu comes from c1's `LID_*` table. The ending
+  (`39`) is measured: `neo-cortex-boss` shows `Watching the ending` once Cortex is beaten.
 - **Loading a memory card save or a password** (title screens `0d`/`0e`) and the options screen: never opened.
 - **Lives above 9 and Wumpa rolling over at 100**: never reached.
 - **The Wumpa chain's inner hops** (`+0x6c`, `+0xe4`): only the HUD pointer itself is guarded; no trace showed
