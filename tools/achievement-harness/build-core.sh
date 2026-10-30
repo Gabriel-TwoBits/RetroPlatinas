@@ -34,6 +34,9 @@ make -C "${work}/pcsx_rearmed-${commit}" -f Makefile.libretro -j"${build_jobs}" 
     tail -n 40 "${work}/build.log" >&2
     exit 1
 }
-cp "${work}/pcsx_rearmed-${commit}/pcsx_rearmed_libretro.so" "${out}.$$"
-mv "${out}.$$" "${out}"
+# A unique name in the cores directory: containers have their own PID namespaces, so `$$` may
+# collide between two first uses at once.
+partial="$(mktemp -p "${cores_dir}" "pcsx_rearmed-${short_commit}.XXXXXX")"
+cp "${work}/pcsx_rearmed-${commit}/pcsx_rearmed_libretro.so" "${partial}"
+mv "${partial}" "${out}"
 echo "${out}"
