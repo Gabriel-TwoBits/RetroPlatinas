@@ -43,6 +43,7 @@ from probes import (
     HUD_COUNT_OFFSET,
     ITEM_POOL1,
     ITEM_POOL2,
+    LID_GAME_WON,
     LID_STAGE_CLEAR,
     LID_THE_GREAT_HALL,
     LID_TITLE,
@@ -90,6 +91,8 @@ DEATH_SEED = 1
 PLAN_PREFIX_DIVISOR = 2  # deaths start halfway through a stage's clearing plan
 # After a collectible event: the extra life of a Wumpa wrap lands about 110 frames later.
 AFTER_EVENT_FRAMES = 300
+# The ending's airship scene runs about 500 frames before the credits (measured).
+ENDING_WATCH_FRAMES = 900
 # A held button moves Crash on the frame he gets control (after the spin-in) or 3 frames later
 # (N. Sanity Beach's wake-up); more would mean the timer starts before he has control.
 MAX_INPUT_LAG_FRAMES = 4
@@ -125,6 +128,8 @@ INTRO = "Watching the intro"
 ISLAND_MAP = "On the island map"
 STAGE_CLEAR = "On the Stage Clear screen"
 GAME_OVER = "Game Over"
+ENDING = "Watching the ending"
+NEO_CORTEX = "Dr. Neo Cortex"
 ANY_COUNT = r"\d+"
 LOW_LIVES = "[0-3]"  # a new game's 4 lives after a death, extra lives picked up on the way aside
 NEW_GAME_LIVES = "4"
@@ -502,6 +507,27 @@ def boss_win(stage, plan_path):
             "the map level after the won fight",
         )
         reload_and_reenter(s, stage, "the boss fight")
+
+    return play
+
+
+def normal_ending(plan_path):
+    """Replays the plan that beats Neo Cortex up to the ending level, watches it for a while, then
+    loads back a state saved there: the ending's trigger must not fire again."""
+
+    def play(s):
+        plan = plans.load(plan_path)
+        s.note(f"replaying {plan_path.name}: {plan.frames} frames, Cortex beaten at its end")
+        plans.replay(s.emu, plan)
+        s.wait_until(
+            lambda e: navigation.level_id(e) == LID_GAME_WON,
+            navigation.LOAD_TIMEOUT_FRAMES,
+            "the ending level after the won fight",
+        )
+        s.step(ENDING_WATCH_FRAMES)
+        s.note("save a state in the ending and load it: every trigger to WAITING")
+        s.emu.restore(s.emu.snapshot())
+        s.step(ENDING_WATCH_FRAMES)
 
     return play
 
@@ -1058,6 +1084,36 @@ SCENARIOS["nsanity-beach-timed-game-over"] = Scenario(
     leaderboards=attempts_in(STAGES[0], CANCELED),
 )
 _BOSS_STAGES = {stage.level_id: stage for stage in BOSS_FIGHTS}
+# Neo Cortex has no boss achievement of his own: beating him is the normal ending's.
+_cortex = _BOSS_STAGES[_advanced.NEO_CORTEX_LEVEL_ID]
+SCENARIOS[f"{_cortex.name}-quit"] = Scenario(
+    _cortex.start,
+    NOTHING_FIRES,
+    "the Neo Cortex fight, quit with pause -> SELECT right after gaining control",
+    boss_quit,
+    (fighting(NEO_CORTEX, NEW_GAME_LIVES), ISLAND_MAP),
+    never=(NO_LIVES,),
+)
+_cortex_plan = _cortex.goal_plan_path("boss")
+if _cortex_plan.is_file():
+    SCENARIOS[f"{_cortex.name}-boss"] = Scenario(
+        _cortex.start,
+        {_advanced.NORMAL_ENDING_TITLE: LID_GAME_WON},
+        "Neo Cortex beaten by a hand-played plan (play.py), the ending, a state load in it",
+        normal_ending(_cortex_plan),
+        (fighting(NEO_CORTEX, NEW_GAME_LIVES), ENDING),
+        never=(NO_LIVES,),
+    )
+    SCENARIOS[f"{_cortex.name}-deaths"] = Scenario(
+        _cortex.start,
+        NOTHING_FIRES,
+        "two deaths in the Neo Cortex fight, the first with him one hit from defeat",
+        boss_deaths(_cortex, _cortex_plan),
+        (fighting(NEO_CORTEX, NEW_GAME_LIVES), fighting(NEO_CORTEX, LOW_LIVES)),
+        never=(NO_LIVES,),
+    )
+else:
+    pass  # No winning plan: the ending stays for the in-game check.
 for _fight in _advanced.BOSS_FIGHTS:
     _boss = _BOSS_STAGES[_fight.level_id]
     SCENARIOS[f"{_boss.name}-quit"] = Scenario(
