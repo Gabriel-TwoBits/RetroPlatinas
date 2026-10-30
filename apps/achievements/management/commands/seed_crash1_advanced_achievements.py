@@ -126,6 +126,16 @@ BOSS_FIGHTS = (
 )
 
 
+# Beating Neo Cortex is the normal ending, one achievement (the user's decision): the won fight
+# loads the ending level straight from the fight, c1 `LID_GAMEWIN`, with game state 0 (measured on
+# a hand-played win replayed in the harness: 1f -> 39, then the airship scene and the credits).
+NEO_CORTEX_LEVEL_ID = 0x1F
+ENDING_LEVEL_ID = 0x39
+NORMAL_ENDING_TITLE = "Bandicoot Triumphant"
+NORMAL_ENDING_DESCRIPTION = "Defeat Dr. Neo Cortex on his airship and see the ending."
+ENDING_POINTS = 25
+
+
 def gem_bit_position(map_index):
     """`(address, bit)` of the clear gem of map stage `map_index`, bit 0 the lowest."""
     secret = SECRET_GEM_BITS.get(map_index)
@@ -177,6 +187,15 @@ def build_boss_mem_addr(fight):
     )
 
 
+def build_ending_mem_addr(from_level_id):
+    """Fires on the frame the ending level loads straight from `from_level_id`. No quit, game
+    over or memory card load reaches the ending level; only a won fight leaves Cortex's for it."""
+    return (
+        f"d{LEVEL_ID_ADDRESS}={rcheevos_hex(from_level_id)}_"
+        f"{LEVEL_ID_ADDRESS}={rcheevos_hex(ENDING_LEVEL_ID)}"
+    )
+
+
 def advanced_achievements():
     """`(title, description, mem_addr, points, type)` of every advanced achievement."""
     gems = [
@@ -200,7 +219,14 @@ def advanced_achievements():
         )
         for fight in BOSS_FIGHTS
     ]
-    return [*gems, *bosses]
+    ending = (
+        NORMAL_ENDING_TITLE,
+        NORMAL_ENDING_DESCRIPTION,
+        build_ending_mem_addr(NEO_CORTEX_LEVEL_ID),
+        ENDING_POINTS,
+        Achievement.TYPE_WIN_CONDITION,
+    )
+    return [*gems, *bosses, ending]
 
 
 class Command(BaseCommand):

@@ -17,9 +17,13 @@ from apps.achievements.management.commands import seed_crash1_code_notes as seed
 from apps.achievements.management.commands.seed_crash1_advanced_achievements import (
     BOSS_FIGHTS,
     BOSS_POINTS,
+    ENDING_POINTS,
     GEM_ACHIEVEMENTS,
+    NEO_CORTEX_LEVEL_ID,
+    NORMAL_ENDING_TITLE,
     advanced_achievements,
     build_boss_mem_addr,
+    build_ending_mem_addr,
     build_gem_description,
     build_gem_mem_addr,
     gem_bit,
@@ -106,6 +110,7 @@ ADVANCED_COUNT = len(advanced_achievements())
 ADVANCED_POINTS = {
     **{title: points for title, _stage, _map_index, points in GEM_ACHIEVEMENTS},
     **{fight.title: BOSS_POINTS for fight in BOSS_FIGHTS},
+    NORMAL_ENDING_TITLE: ENDING_POINTS,
 }
 PAPU_PAPU = BOSS_FIGHTS[0]
 BOSS_TITLE = PAPU_PAPU.title
@@ -1228,6 +1233,7 @@ def test_seed_advanced_achievements_creates_official_set(advanced_game):
     assert {a.title: a.type for a in achievements} == {
         **{title: Achievement.TYPE_NONE for title, *_ in GEM_ACHIEVEMENTS},
         **{fight.title: Achievement.TYPE_PROGRESSION for fight in BOSS_FIGHTS},
+        NORMAL_ENDING_TITLE: Achievement.TYPE_WIN_CONDITION,
     }
     for achievement in achievements:
         assert achievement.status == Achievement.STATUS_OFFICIAL
@@ -1263,6 +1269,10 @@ def test_gem_mem_addr_fires_when_the_stage_clear_screen_sets_the_gem_bit():
 
 def test_boss_mem_addr_fires_when_the_won_fight_switches_to_the_map():
     assert build_boss_mem_addr(PAPU_PAPU) == "d0xH6188d=h0a_0xH6188d=h19_0xH618d1=3"
+
+
+def test_normal_ending_mem_addr_fires_when_cortex_s_fight_loads_the_ending_level():
+    assert build_ending_mem_addr(NEO_CORTEX_LEVEL_ID) == "d0xH6188d=h1f_0xH6188d=h39"
 
 
 @pytest.mark.django_db
