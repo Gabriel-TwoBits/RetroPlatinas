@@ -74,7 +74,7 @@ harness imports them.
 | Gem bits | `0x61988`… (c1 `item_pool1`) | Bit *n* + 1 is map stage *n* (`0x619c5`): N. Sanity Beach bit 1, Jungle Rollers bit 2, The Great Gate bit 3, Boulders bit 4, Upstream bit 5, Rolling Stones bit 7; then `0x61989` bit 0 Hog Wild, bit 1 Native Fortress, bit 2 Up the Creek, bit 4 The Lost City (green), bit 5 Temple Ruins, bit 6 Road to Nowhere, bit 7 Boulder Dash; `0x6198a` bit 0 Sunset Vista, bit 2 Heavy Machinery, bit 3 Cortex Power, bit 4 Generator Room (orange), bit 5 Toxic Waste (blue), bit 7 The High Road; `0x6198b` bit 0 Slippery Climb (red), bit 1 Lights Out (purple), bit 2 Jaws of Darkness, bit 3 Castle Machinery, bit 5 The Lab (yellow). The secret stages break the rule: their gems sit next to the key bits in c1 `item_pool2`, `0x619ad` bit 0 Fumbling in the Dark and `0x619ae` bit 2 Whole Hog (the 100% password sets `0x619ad` = 05 and `0x619ae` = 14, the keys-only password 04 and 10; which gem is which stage comes from the code notes). The **Stage Clear screen** sets the bit about 280 frames after it loads, when the box count reached the stage's boxes ("PERFECT"); one short leaves it clear. It persists through the map and the next stages |
 | Boss health | `0x60ddc` pointer: Papu Papu's object, `+0x104` (24.8); Ripper Roo's is two pointers further (`+0x6c`, `+0x68`, then `+0x104`) | Papu Papu starts at **3** and loses one per hit (3 → 2 → 1 → 0, then `ff` as the object winds down). Ripper Roo starts at 3 too; his word holds `0x002` for one frame on each hit that does not end him. A death after his last health is lost, before the fight leaves (as when the arena's TNT catches Crash), restarts the fight at 3 (scenario `ripper-roo-death-after-last-hit`). A respawn allocates a new object. Koala Kong starts at **4**, read from `0x61898` → `+0x6c` → `+0x104` (code notes); the read flickers for single frames to other objects' words (`0x300`, `0x100`, `0x39001a`, `0` as Crash dies, garbage while the fight loads), so the harness counts a health once it holds 30 frames, in the deaths scenario and in the search's score. Pinstripe starts at **6**, the `0x60ddc` object's `+0x104`. Nitrus Brio starts at **9** (not the code notes' 5), at the `0x60ddc` object's first child (`+0x6c`, then `+0x104`): six hits on the potion blobs, then three on the monster. In the monster phase the falling pillars become the first children, so the chain loses him; the deaths scenario reads the health at the object the chain named when the fight opened. On other levels the pointers name other objects |
 | A clear after a death past a checkpoint | `0x618d1`, `0x6188d` | The game state turns `03` instead of `05` and the stage goes **straight to the island map** (`09` → `19`, no Stage Clear screen, so no gem); the stage still counts as cleared (`0x61948` 1 → 2 on N. Sanity Beach). A death before any checkpoint restarts the stage (every box back, the count at 0, the respawn count `0x618a1` at 1 through Stage Clear), and its clear shows Stage Clear as usual and hands out the gem for every box (seen with the count poked) |
-| A boss fight's exit | `0x6188d`, `0x618d1` | After the last hit the game state turns `03` and the fight goes **straight to the island map** (no Stage Clear screen; Papu Papu: last hit at frame 1066, game state `03` at 1354, `0a` → `19` at 1543; Ripper Roo: 1778, 2122, `17` → `19` at 2298; Pinstripe: 2712, 3084, `08` → `19` at 3275; Koala Kong: 4247, 4494, `21` → `19` at 4683; Nitrus Brio: 9392, 9641, `1b` → `19` at 9825). Neo Cortex's fight is the exception: it goes straight to the ending level `39` (c1 `LID_GAMEWIN`) with game state `00`, no map (`1f` → `39` at 4523, then the airship scene and the credits), the cursor moving on to the next stage |
+| A boss fight's exit | `0x6188d`, `0x618d1` | After the last hit the game state turns `03` and the fight goes **straight to the island map** (no Stage Clear screen; Papu Papu: last hit at frame 1066, game state `03` at 1354, `0a` → `19` at 1543; Ripper Roo: 1778, 2122, `17` → `19` at 2298; Pinstripe: 2712, 3084, `08` → `19` at 3275; Koala Kong: 4247, 4494, `21` → `19` at 4683; Nitrus Brio: 9392, 9641, `1b` → `19` at 9825). Neo Cortex's fight is the exception: it goes straight to the ending level `39` (c1 `LID_GAMEWIN`) with game state `00`, no map (`1f` → `39` at 4523, then the airship scene and the credits). The other fights leave the cursor on the next stage |
 
 ## Logic
 
@@ -110,6 +110,31 @@ about 260 frames after the last hit, and a death after the health is gone, befor
 the fight (`ripper-roo-death-after-last-hit`); a condition on the health would fire on that lost fight. A quit
 leaves with game state `04`, a game over with `02`, an attract demo of the fight with `06`; a death respawns
 inside the fight.
+
+### The normal ending
+
+```
+d0xH6188d=h1f_0xH6188d=h39        (Bandicoot Triumphant)
+```
+
+| Part | Meaning |
+| --- | --- |
+| `d0xH6188d=h1f` | on the previous frame the loaded level was Neo Cortex's fight |
+| `0xH6188d=h39` | on this frame it is the ending level, c1 `LID_GAMEWIN` |
+
+Beating Cortex and the normal ending are one achievement (the user's decision). The won fight loads the ending
+straight from `1f`, game state `00`, no map: `1f` → `39` at frame 4523 of `neo-cortex-boss`, 612 frames after his
+fifth hit. His hit counter (the `0x60ddc` object's `+0x104`, 0 → 5) is not read: the condition only needs the
+level switch, which nothing but the won fight makes.
+
+| Look-alike | Why nothing fires |
+| --- | --- |
+| A death after Cortex's fifth hit, before the ending | the respawn stays in the fight with his health back at 5 (measured one frame after the hit); no level change |
+| Pause → quit after the fifth hit | the fight leaves for the map (`19`), not the ending (measured 30 frames after the hit) |
+| A game over in the fight | the fight leaves for the title level `19` |
+| The secret ending | it starts from The Great Hall (`2c`), never from `1f` (its own switch is not measured yet) |
+| Attract demos, power-on, a memory card load or a password | no demo plays the Cortex fight, and none of them loads `39` from `1f` |
+| A save state loaded in the ending | the trigger is an edge |
 
 ### Look-alikes
 
@@ -194,7 +219,9 @@ for every boss with a searched win: none of them fires a gem or a boss. Every sc
   hit, before the map appears) and see nothing. The harness never held Nitrus Brio at one health: its win's last
   stomp took two.
 - **Neo Cortex on DuckStation**: beat him and see `Bandicoot Triumphant` pop as the ending starts; die with him
-  one hit from defeat and see nothing. The harness did not try a death between his fifth hit and the ending.
+  one hit from defeat and see nothing. Beat him on a save with fewer than 26 gems too: the harness only won on
+  the 100% password's save. A death right after his fifth hit restarts the fight and fires nothing (measured);
+  in the 200 frames after the hit Crash did not die on his own before the ending.
 - **Bonus rounds inside a gem stage**: Jungle Rollers, The Great Gate and Upstream each have a Tawna bonus
   round (code notes, `0x6197c`), which no harness route entered. Win a gem through the bonus round and see its
   achievement pop; fall out of the bonus round, finish the stage, and see the achievement pop only if the
