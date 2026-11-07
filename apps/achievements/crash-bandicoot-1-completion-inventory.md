@@ -112,13 +112,15 @@ and red gems; this inventory is the USA layout.
 | Key | Won in | Opens | Bit |
 | --- | --- | --- | --- |
 | Sunset Vista key | Sunset Vista's Cortex bonus round | Whole Hog (UP from Boulder Dash) | `0xQ619ae` (bit 4) |
-| Jaws of Darkness key | Jaws of Darkness' Cortex bonus round | Fumbling in the Dark (UP from Lights Out) | `0xP619ad` (bit 2) |
+| Jaws of Darkness key | Jaws of Darkness' Cortex bonus round | Fumbling in the Dark (UP from Lights Out) | `0xO619ad` (bit 2) |
 
 - **Measured:** the 8-symbol password `SSSOTXXO` loads both keys and no gem: `0x619AC` = `0x00100400`, key count
   `0x61A14` = 2. So the key bits are `0x619AD` bit 2 and `0x619AE` bit 4; which key is which comes from the code
   notes. The secret stages' entry points were measured on the map (above).
-- **Community:** three Cortex tokens in a stage open its Cortex bonus round; the key is won in it, and the
-  game offers a "key save" there.
+- **Measured** (`sunset-vista-key`): the round is level `34`, bonus id `0x6197C` = 9, and the key's bit rises inside
+  it when Crash reaches the key. c1's Cortex counter `0x618F8` stayed 0 through the three tokens: it is not the
+  count a harness can read.
+- **Community:** three Cortex tokens in a stage open its Cortex bonus round; the game offers a "key save" there.
 
 ## Bosses
 
@@ -177,6 +179,5 @@ exactly the gems of Up the Creek, Cortex Power, The High Road and the two secret
 
 ## Still for the in-game check (DuckStation)
 
-- **Keys:** win each Cortex bonus round and see the key; the harness entered no bonus round.
 - **Whether a gem or key save shows a password that reloads the same gem and key bits.** Every password above
   was typed, none was read off the game's own save screen.

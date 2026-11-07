@@ -45,6 +45,7 @@ Titles and descriptions are our own.
 | Koala Kayo | 10 | the fight won against Koala Kong returns to the map |
 | Suit Pressed | 10 | the fight won against Pinstripe returns to the map |
 | Formula Spilled | 10 | the fight won against Dr. Nitrus Brio returns to the map |
+| Key to the Hog | 15 | the key is won in Sunset Vista's Cortex bonus round |
 | Bandicoot Triumphant | 25 | the fight won against Dr. Neo Cortex loads the ending (win condition) |
 | Bridge of Gems | 50 | Crash reaches Tawna over The Great Hall's gem bridge, the secret ending (win condition) |
 
@@ -111,6 +112,28 @@ about 260 frames after the last hit, and a death after the health is gone, befor
 the fight (`ripper-roo-death-after-last-hit`); a condition on the health would fire on that lost fight. A quit
 leaves with game state `04`, a game over with `02`, an attract demo of the fight with `06`; a death respawns
 inside the fight.
+
+### Keys
+
+```
+0xH6188d=h34_d0xH6188d=h34_0xQ619ae=1_d0xQ619ae=0        (Key to the Hog)
+```
+
+| Part | Meaning |
+| --- | --- |
+| `0xH6188d=h34_d0xH6188d=h34` | the Cortex bonus round (c1 `LID_BONUSCORTEX`) is loaded on this frame and the previous one |
+| `0xQ619ae=1_d0xQ619ae=0` | the key's bit rose on this frame |
+
+Key to the Dark (`0xO619ad`) is not seeded yet: a key ships with the event reached in the harness, and the Jaws of
+Darkness round has no played win. The bit rises the moment Crash reaches the key, inside the round: `sunset-vista-key` at frame 29222, 1209 frames
+after `23` → `34`. It stays when the round is left. A password or a memory card load sets the bit on the title
+level, where the condition cannot fire, and a key already won gives no edge.
+
+| Look-alike | Why nothing fires |
+| --- | --- |
+| The round entered and lost, short of the key | the bit never rises; the fall returns to the stage (`34` → `23`) |
+| A password holding the keys | the bit is set on the title level `19` |
+| A save state loaded in the round after the key | the trigger is an edge |
 
 ### The normal ending
 
@@ -202,6 +225,8 @@ level; nothing else fires.
 | `nitrus-brio-boss` | `plans/nitrus-brio-boss.json`, from `nitrus-brio-start` (the map reached by The Lab's password `TTTSXXOXXSOXXXXOSTSOOSST`, no RAM write): the boss search, its cells split by time and by Crash's height, reached six hits (frames 355, 1355, 1393, 3741, 3781, 3823), then a search of the monster phase alone from that route (seed 31) the last three (9077, 9389, 9392: the last stomp bounces for two); game state `03` at 9641, the switch to the map at 9825; then the state load on the map, a re-entry and a quit | `Formula Spilled` fires once, on the switch to the map (lid `19`); nothing else fires |
 | `neo-cortex-boss` | `plans/neo-cortex-boss.json`, **played by hand** with `play.py` from `neo-cortex-start` (the map reached by the 100% password, no RAM write) and replayed frame by frame: the search found no win (best 2 of 5 hits over four approaches). Five hits (frames 570, 1320, 3001, 3641, 3911; his word at the `0x60ddc` object's `+0x104` counts the hits up), `1f` → `39` at 4523; then a state saved in the ending is loaded back | `Bandicoot Triumphant` fires once, on the switch to `39`; nothing else fires |
 | `neo-cortex-deaths` | the same plan until four hits have held for 30 frames, then a death; a second death right after the respawn | nothing fires |
+| `sunset-vista-key` | `plans/sunset-vista-key.json`, **played by hand** with `play.py --until-bit 0x619AE:4` from `sunset-vista-start` (the map reached by the password `XOOOXSXS`, no RAM write): bonus id `0x6197c` = 9 at 27640, `23` → `34` at 28013, the key at 29222; then a state saved in the round is loaded and random play leaves it | `Key to the Hog` fires once, at 29222 on lid `34`; the run's 100 Wumpa fire `Fruit Into Life` at 26490; nothing else fires, and the bit stays |
+| `sunset-vista-key-round-lost` | the same plan up to the round, then random play falls out of it (`34` → `23`) | no key fires |
 | `the-great-hall-ending` | `plans/the-great-hall-ending.json`, from `the-great-hall-start` (the map reached by the 100% password, no RAM write): a route found by a one-off search over the gem bridge (its score, progress along the platforms, is not a goal of `explore.GOALS` and is not committed; resumed for the last leg), 23035 frames; game state `00` at 23130; then a state saved in the ending is loaded back | `Bridge of Gems` fires once, at 23130 on lid `2c`; nothing else fires |
 | `the-great-hall-bridge-deaths` | the same plan up to the bridge's last leg, a fall, then a death back at the hall's start | nothing fires |
 | `the-great-hall-bridge-quit` | the same plan up to the floor just before the balcony, then pause → SELECT | nothing fires |
@@ -260,6 +285,8 @@ for every boss with a searched win: none of them fires a gem or a boss. Every sc
   Gems` pop as the scene starts, once. The harness reached it on the 100% password's save only. Fall off the
   bridge, leave by the arch and see nothing from it. Leave the hall by the arch on a save with few gems and see
   `The Great Hall` pop (seen in the harness with the gem bits poked to zero).
+- **Key to the Hog on DuckStation**: win the key and see the achievement pop as Crash reaches it; save and reload
+  the game and see nothing.
 - **Bonus rounds inside a gem stage**: Jungle Rollers, The Great Gate and Upstream each have a Tawna bonus
   round (code notes, `0x6197c`), which no harness route entered. Win a gem through the bonus round and see its
   achievement pop; fall out of the bonus round, finish the stage, and see the achievement pop only if the

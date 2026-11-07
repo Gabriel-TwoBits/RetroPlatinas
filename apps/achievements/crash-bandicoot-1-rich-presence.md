@@ -87,8 +87,8 @@ game state does not leak into play.
 
 - **The site shows the string DuckStation pings**, every two minutes, on the user's page: the harness reads the
   runtime directly and never goes through `ping`.
-- **Bonus rounds** (`In a Tawna bonus round · …`, Brio, Cortex): the harness never collected three tokens. Their
-  level ids (`24`, `33` Tawna, `25` Brio, `34` Cortex) are c1's, not measured.
+- **Bonus rounds** (`In a Tawna bonus round · …`, Brio): the harness never collected three of their tokens. Their
+  level ids (`24`, `33` Tawna, `25` Brio) are c1's, not measured; `34` Cortex is measured (`sunset-vista-key`).
 - **Stages and bosses the harness never entered**: every name but the six level-achievement stages, the demo
   stages (The Lost City, Jaws of Darkness, The Lab) and Papu Papu comes from c1's `LID_*` table. The ending
   (`39`) is measured: `neo-cortex-boss` shows `Watching the ending` once Cortex is beaten.
