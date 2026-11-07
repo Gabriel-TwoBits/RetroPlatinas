@@ -1,6 +1,7 @@
 """play.Recorder: the hand-played run's inputs and its end, without the emulator."""
 
 import http.server
+import sys
 import threading
 import urllib.error
 import urllib.request
@@ -34,6 +35,7 @@ from probes import (
 
 UP, CROSS = 1 << 4, 1 << 0
 LID_BONUS_ROUND = 0x34
+LID_BONUS_TAWNA = 0x24
 LOOPBACK = "127.0.0.1"
 HTTP_OK = 200
 HTTP_BAD_REQUEST = 400
@@ -172,6 +174,18 @@ def test_a_key_run_restarts_from_the_bonus_round_keeping_the_inputs_before_it(
     assert restart_point.frames == emu.BONUS_FRAME
     assert not restart_point.done
     assert played.frames == emu.KEY_FRAME + RECORD_TAIL_FRAMES
+
+
+def test_a_tawna_bonus_round_does_not_move_the_restart_point(tmp_path, monkeypatch):
+    monkeypatch.setattr(play_module, "CHECKPOINTS_DIR", tmp_path)
+    monkeypatch.setattr(play_module.time, "sleep", lambda _seconds: None)
+    monkeypatch.setattr(sys.modules[__name__], "LID_BONUS_ROUND", LID_BONUS_TAWNA)
+    shared = Shared()
+    emu = ScriptedEmu(shared)
+
+    play(emu, "start", tmp_path / "key.json", shared, (emu.KEY_ADDRESS, emu.KEY_BIT))
+
+    assert not (tmp_path / f"key{play_module.RESTART_PLAN_SUFFIX}").exists()
 
 
 def test_a_resumed_key_run_keeps_the_saved_inputs_and_restarts_after_them(tmp_path, monkeypatch):

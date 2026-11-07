@@ -8,8 +8,8 @@ level leaves the start's level and RECORD_TAIL_FRAMES more have run, the plan is
 `done` when the level was won (game state 3, or the ending level loaded), else not. With
 `--until-bit ADDRESS:BIT` (a key: won in a bonus round, which is another level, with a save
 screen on the title level after it) the run goes on through other levels until that bit rises,
-`done`, or the run is lost (a game over, a quit, Stage Clear), not `done`. Such a run's first
-level change (the bonus round) becomes the restart point: Backspace returns there, the inputs
+`done`, or the run is lost (a game over, a quit, Stage Clear), not `done`. The Cortex bonus
+round's first frame becomes such a run's restart point: Backspace returns there, the inputs
 before it kept, and they are saved under CHECKPOINTS_DIR, for `--resume` to replay in a later
 session. A hard round is then retried without its stage's tokens, still as one real run.
 
@@ -36,6 +36,7 @@ from probes import (
     GAME_STATE_LEVEL_WON,
     GAME_STATE_QUIT,
     LEVEL_ID,
+    LID_BONUS_CORTEX,
     LID_GAME_WON,
     LID_STAGE_CLEAR,
 )
@@ -206,7 +207,7 @@ def play(emu, start, out, shared, until_bit=None, resumed=()):
             pass  # The run goes on.
         emu.run(1, mask)
         over = recorder.frame(mask, emu.u8(LEVEL_ID), emu.u32(GAME_STATE), bit_set())
-        if not restart_moved and emu.u8(LEVEL_ID) != start_level_id:
+        if not restart_moved and emu.u8(LEVEL_ID) == LID_BONUS_CORTEX:
             restart_moved = True
             restart_state, restart_masks = emu.snapshot(), list(recorder.masks)
             path = CHECKPOINTS_DIR / f"{Path(out).stem}{RESTART_PLAN_SUFFIX}"
@@ -237,11 +238,23 @@ def main():
     parser.add_argument("--until-bit", type=parse_bit, help="ADDRESS:BIT that ends the run, won")
     parser.add_argument("--resume", help="a saved restart point: replayed, then the run goes on")
     args = parser.parse_args()
+    if args.resume and args.until_bit is None:
+        parser.error("--resume continues a key run: it needs --until-bit")
+    else:
+        pass  # Arguments that go together.
     emu = Emu().load()
     states.load(emu, args.state)
-    resumed = masks_of(plans.load(args.resume).inputs) if args.resume else []
-    for mask in resumed:
-        emu.run(1, mask)
+    resumed = []
+    if args.resume:
+        restart_point = plans.load(args.resume)
+        if restart_point.start != args.state:
+            parser.error(f"{args.resume} starts from {restart_point.start}, not {args.state}")
+        else:
+            pass  # A restart point of this state.
+        plans.replay(emu, restart_point)
+        resumed = masks_of(restart_point.inputs)
+    else:
+        pass  # A run from the start.
     shared = Shared()
     server = http.server.ThreadingHTTPServer((LISTEN_ADDRESS, args.port), handler(shared))
     threading.Thread(target=server.serve_forever, daemon=True).start()
