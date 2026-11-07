@@ -95,10 +95,10 @@ AFTER_EVENT_FRAMES = 300
 # The ending's airship scene runs about 500 frames before the credits (measured).
 ENDING_WATCH_FRAMES = 900
 # Frames of the route left at the bridge's last leg (z 106982), where a fall kills; later Crash is
-# on solid floor before the balcony, where SELECT quits (on the last leg it left no map in 3000
-# frames).
+# on solid floor before the balcony, standing, where SELECT quits (it is ignored in mid-air).
 ROUTE_LEFT_ON_THE_BRIDGE_FRAMES = 2000
 ROUTE_LEFT_BEFORE_THE_BALCONY_FRAMES = 400
+SECRET_ENDING_TIMEOUT_FRAMES = 15000  # it plays for about 12100 frames (measured)
 # A held button moves Crash on the frame he gets control (after the spin-in) or 3 frames later
 # (N. Sanity Beach's wake-up); more would mean the timer starts before he has control.
 MAX_INPUT_LAG_FRAMES = 4
@@ -554,7 +554,11 @@ def great_hall_ending(plan_path):
         s.step(ENDING_WATCH_FRAMES)
         s.note("save a state in the ending and load it: every trigger to WAITING")
         s.emu.restore(s.emu.snapshot())
-        s.step(ENDING_WATCH_FRAMES)
+        s.wait_until(
+            lambda e: navigation.level_id(e) == LID_TITLE,
+            SECRET_ENDING_TIMEOUT_FRAMES,
+            "the title after the secret ending",
+        )
 
     return play
 
@@ -958,8 +962,8 @@ if _hall_ending_plan.is_file():
         {achievements.advanced_seed().SECRET_ENDING_TITLE: LID_THE_GREAT_HALL},
         "the gem bridge crossed to Tawna, the secret ending, a state load in it",
         great_hall_ending(_hall_ending_plan),
-        (in_stage(_hall_name),),
-        never=(NO_LIVES,),
+        (in_stage(_hall_name), ENDING),
+        never=(NO_LIVES, demo_of(_hall_name)),
     )
     SCENARIOS[f"{_hall.name}-bridge-deaths"] = Scenario(
         _hall.start,

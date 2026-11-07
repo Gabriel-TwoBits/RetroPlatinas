@@ -19,6 +19,8 @@ ENDING_LEVEL_ID = 0x39
 # (`GAME_STATE_TITLE`) only in the attract loop, from the end of a demo or the intro.
 GAME_STATE_GAME_OVER = 2
 GAME_STATE_ATTRACT = 6
+GAME_STATE_CUTSCENE = 0  # in The Great Hall: the secret ending, which plays inside the level
+THE_GREAT_HALL_LEVEL_ID = 0x2C
 # c1 `title_state`: the screen the title level shows (title.c `TitleLoadState`).
 TITLE_STATE_ADDRESS = "0xH618d4"
 TITLE_STATE_MAP = 0x0F
@@ -137,6 +139,8 @@ def build_rich_presence():
         f"?{level_is(STAGE_CLEAR_LEVEL_ID)}?On the Stage Clear screen",
         f"?{level_is(INTRO_LEVEL_ID)}?Watching the intro",
         f"?{level_is(ENDING_LEVEL_ID)}?Watching the ending",
+        f"?{level_is(THE_GREAT_HALL_LEVEL_ID)}S{GAME_STATE_ADDRESS}={GAME_STATE_CUTSCENE}"
+        f"S{GAME_STATE_ADDRESS}={GAME_STATE_ATTRACT}?Watching the ending",
         f"?S{DEMO_PLAYBACK_ADDRESS}!=0S{GAME_STATE_ADDRESS}={GAME_STATE_ATTRACT}?"
         f"Watching a demo of {level}",
         f"?{GAME_STATE_ADDRESS}={GAME_STATE_GAME_OVER}?Game Over",

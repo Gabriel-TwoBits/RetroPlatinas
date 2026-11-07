@@ -30,6 +30,7 @@ The first line whose condition holds is shown, in this order:
 | title level `19`, by title screen: `05` main menu, `06` options, `0d`/`0e` password and load game; `0c` game over; anything else (the Sony, Universal and Naughty Dog screens) | `At the title screen` · `Game Over` · `Starting up` |
 | level `2d` | `On the Stage Clear screen` |
 | level `38` / `39` | `Watching the intro` / `Watching the ending` |
+| level `2c` with game state `0x618d1` at `00` or `06`: the secret ending, which plays inside The Great Hall | `Watching the ending` |
 | demo playback `0x61a30` non-zero, or game state `0x618d1` is `06` | `Watching a demo of <level>` |
 | game state `0x618d1` is `02` (from the last fatal hit until the title level loads) | `Game Over` |
 | a boss fight (`08` Pinstripe, `0a` Papu Papu, `17` Ripper Roo, `1b` Dr. Nitrus Brio, `1f` Dr. Neo Cortex, `21` Koala Kong) | `Fighting <boss> · <n> lives` |
