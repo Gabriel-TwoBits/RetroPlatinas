@@ -21,11 +21,14 @@ from apps.achievements.management.commands.seed_crash1_advanced_achievements imp
     GEM_ACHIEVEMENTS,
     NEO_CORTEX_LEVEL_ID,
     NORMAL_ENDING_TITLE,
+    SECRET_ENDING_POINTS,
+    SECRET_ENDING_TITLE,
     advanced_achievements,
     build_boss_mem_addr,
     build_ending_mem_addr,
     build_gem_description,
     build_gem_mem_addr,
+    build_secret_ending_mem_addr,
     gem_bit,
 )
 from apps.achievements.management.commands.seed_crash1_code_notes import load_code_notes
@@ -111,6 +114,7 @@ ADVANCED_POINTS = {
     **{title: points for title, _stage, _map_index, points in GEM_ACHIEVEMENTS},
     **{fight.title: BOSS_POINTS for fight in BOSS_FIGHTS},
     NORMAL_ENDING_TITLE: ENDING_POINTS,
+    SECRET_ENDING_TITLE: SECRET_ENDING_POINTS,
 }
 PAPU_PAPU = BOSS_FIGHTS[0]
 BOSS_TITLE = PAPU_PAPU.title
@@ -1234,6 +1238,7 @@ def test_seed_advanced_achievements_creates_official_set(advanced_game):
         **{title: Achievement.TYPE_NONE for title, *_ in GEM_ACHIEVEMENTS},
         **{fight.title: Achievement.TYPE_PROGRESSION for fight in BOSS_FIGHTS},
         NORMAL_ENDING_TITLE: Achievement.TYPE_WIN_CONDITION,
+        SECRET_ENDING_TITLE: Achievement.TYPE_WIN_CONDITION,
     }
     for achievement in achievements:
         assert achievement.status == Achievement.STATUS_OFFICIAL
@@ -1273,6 +1278,10 @@ def test_boss_mem_addr_fires_when_the_won_fight_switches_to_the_map():
 
 def test_normal_ending_mem_addr_fires_when_cortex_s_fight_loads_the_ending_level():
     assert build_ending_mem_addr(NEO_CORTEX_LEVEL_ID) == "d0xH6188d=h1f_0xH6188d=h39"
+
+
+def test_secret_ending_mem_addr_fires_when_the_game_state_falls_in_the_great_hall():
+    assert build_secret_ending_mem_addr() == ("0xH6188d=h2c_d0xH6188d=h2c_d0xH618d1=1_0xH618d1=0")
 
 
 @pytest.mark.django_db

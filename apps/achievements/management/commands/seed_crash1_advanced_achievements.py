@@ -134,6 +134,18 @@ ENDING_LEVEL_ID = 0x39
 NORMAL_ENDING_TITLE = "Bandicoot Triumphant"
 NORMAL_ENDING_DESCRIPTION = "Defeat Dr. Neo Cortex on his airship and see the ending."
 ENDING_POINTS = 25
+# With all 26 gems the hall's bridge leads to Tawna on the balcony; Crash reaching her starts the
+# secret ending inside the hall's own level: `2c` stays loaded through the epilogues (about 12100
+# frames), the game state falling from 1 (playing) to 0 (cutscene) on its first frame (measured).
+# A quit (4), a game over (2), the arch's exit (3) and a respawn (stays 1) never go from 1 to 0.
+THE_GREAT_HALL_LEVEL_ID = 0x2C
+GAME_STATE_PLAYING = 1
+GAME_STATE_CUTSCENE = 0  # c1 `GAME_STATE_CUTSCENE`
+SECRET_ENDING_TITLE = "Bridge of Gems"
+SECRET_ENDING_DESCRIPTION = (
+    "With all 26 gems, cross their bridge in The Great Hall and reach Tawna on the balcony."
+)
+SECRET_ENDING_POINTS = 50
 
 
 def gem_bit_position(map_index):
@@ -196,6 +208,20 @@ def build_ending_mem_addr(from_level_id):
     )
 
 
+def build_secret_ending_mem_addr():
+    """Fires on the frame the secret ending starts: in the hall on this frame and the previous
+    one, the game state falling from playing to cutscene."""
+    hall = rcheevos_hex(THE_GREAT_HALL_LEVEL_ID)
+    return "_".join(
+        [
+            f"{LEVEL_ID_ADDRESS}={hall}",
+            f"d{LEVEL_ID_ADDRESS}={hall}",
+            f"d{GAME_STATE_ADDRESS}={GAME_STATE_PLAYING}",
+            f"{GAME_STATE_ADDRESS}={GAME_STATE_CUTSCENE}",
+        ]
+    )
+
+
 def advanced_achievements():
     """`(title, description, mem_addr, points, type)` of every advanced achievement."""
     gems = [
@@ -226,7 +252,14 @@ def advanced_achievements():
         ENDING_POINTS,
         Achievement.TYPE_WIN_CONDITION,
     )
-    return [*gems, *bosses, ending]
+    secret_ending = (
+        SECRET_ENDING_TITLE,
+        SECRET_ENDING_DESCRIPTION,
+        build_secret_ending_mem_addr(),
+        SECRET_ENDING_POINTS,
+        Achievement.TYPE_WIN_CONDITION,
+    )
+    return [*gems, *bosses, ending, secret_ending]
 
 
 class Command(BaseCommand):
