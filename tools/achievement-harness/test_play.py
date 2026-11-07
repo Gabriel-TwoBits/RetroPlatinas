@@ -9,6 +9,7 @@ from types import SimpleNamespace
 import pytest
 from play import RECORD_TAIL_FRAMES, BitRecorder, Recorder, Shared, handler, parse_bit
 from probes import (
+    GAME_STATE_CUTSCENE,
     GAME_STATE_GAME_OVER,
     GAME_STATE_LEVEL_WON,
     GAME_STATE_PLAYING,
@@ -79,7 +80,13 @@ def test_a_key_run_goes_on_through_a_bonus_round_until_the_bit_rises():
     assert recorder.plan("sunset-vista-start", EMU).done
 
 
-def test_a_key_run_back_on_the_map_ends_without_a_win():
+def test_a_key_run_goes_on_through_a_save_screen_on_the_title_level():
+    recorder = BitRecorder(LID_SUNSET_VISTA)
+
+    assert play_out(recorder, 0, LID_TITLE, GAME_STATE_CUTSCENE) is None
+
+
+def test_a_game_over_ends_a_key_run_without_a_win():
     recorder = BitRecorder(LID_SUNSET_VISTA)
 
     frames = play_out(recorder, 0, LID_TITLE, GAME_STATE_GAME_OVER)

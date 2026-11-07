@@ -6,8 +6,9 @@ the page at http://localhost:PORT shows each frame and sends the keyboard or a g
 The run is recorded from the start state; Backspace (or the gamepad's L2) restarts it. Once the
 level leaves the start's level and RECORD_TAIL_FRAMES more have run, the plan is written:
 `done` when the level was won (game state 3, or the ending level loaded), else not. With
-`--until-bit ADDRESS:BIT` (a key: won in a bonus round, which is another level) the run goes on
-through other levels until that bit rises, `done`, or the title/map level loads, not `done`.
+`--until-bit ADDRESS:BIT` (a key: won in a bonus round, which is another level, with a save
+screen on the title level after it) the run goes on through other levels until that bit rises,
+`done`, or the run is lost (a game over, a quit, Stage Clear), not `done`.
 
     python tools/achievement-harness/play.py STATE --out PLAN [--port PORT] [--until-bit A:B]
 
@@ -25,7 +26,15 @@ import plan as plans
 import states
 from explore import runs_of
 from harness import FRAMES_PER_SECOND, Btn, Emu
-from probes import GAME_STATE, GAME_STATE_LEVEL_WON, LEVEL_ID, LID_GAME_WON, LID_TITLE
+from probes import (
+    GAME_STATE,
+    GAME_STATE_GAME_OVER,
+    GAME_STATE_LEVEL_WON,
+    GAME_STATE_QUIT,
+    LEVEL_ID,
+    LID_GAME_WON,
+    LID_STAGE_CLEAR,
+)
 
 DEFAULT_PORT = 8765
 LISTEN_ADDRESS = "0.0.0.0"  # inside the container; publish the port on the host's loopback only
@@ -33,6 +42,7 @@ RECORD_TAIL_FRAMES = 2 * FRAMES_PER_SECOND
 FRAME_SECONDS = 1 / FRAMES_PER_SECOND
 PAGE = Path(__file__).with_name("play.html")
 ALL_BUTTONS = (1 << (Btn.R2 + 1)) - 1  # every pad button bit; Btn.R2 is the highest
+LOST_GAME_STATES = (GAME_STATE_GAME_OVER, GAME_STATE_QUIT)
 MAX_INPUT_BYTES = 256  # {"mask": n, "restart": true} with room to spare
 
 
@@ -70,12 +80,14 @@ class Recorder:
 
 
 class BitRecorder(Recorder):
-    """A run that ends on a RAM bit rising, whatever level it rises on, or back on the map."""
+    """A run that ends on a RAM bit rising, whatever level it rises on, or lost: a game over, a
+    quit, or the stage finished without it."""
 
-    def frame(self, mask, level_id, _game_state, bit_set=False):
+    def frame(self, mask, level_id, game_state, bit_set=False):
         self.masks.append(mask)
         self.won = self.won or bit_set
-        if self.left_at is None and (bit_set or level_id == LID_TITLE):
+        lost = game_state in LOST_GAME_STATES or level_id == LID_STAGE_CLEAR
+        if self.left_at is None and (bit_set or lost):
             self.left_at = len(self.masks)
         else:
             pass  # Still playing, or already in the tail.
