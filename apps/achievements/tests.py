@@ -1287,10 +1287,12 @@ def test_normal_ending_mem_addr_fires_when_cortex_s_fight_loads_the_ending_level
 
 @pytest.mark.parametrize(
     ("key", "mem_addr"),
-    zip(
-        KEY_ACHIEVEMENTS,
-        ("0xH6188d=h34_d0xH6188d=h34_0xQ619ae=1_d0xQ619ae=0",),
-        strict=True,
+    list(
+        zip(
+            KEY_ACHIEVEMENTS,
+            ("0xH6188d=h34_d0xH6188d=h34_0xQ619ae=1_d0xQ619ae=0",),
+            strict=True,
+        )
     ),
 )
 def test_key_mem_addr_fires_when_the_bit_rises_in_the_cortex_bonus_round(key, mem_addr):

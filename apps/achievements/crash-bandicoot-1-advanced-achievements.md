@@ -125,9 +125,10 @@ inside the fight.
 | `0xQ619ae=1_d0xQ619ae=0` | the key's bit rose on this frame |
 
 Key to the Dark (`0xO619ad`) is not seeded yet: a key ships with the event reached in the harness, and the Jaws of
-Darkness round has no played win. The bit rises the moment Crash reaches the key, inside the round: `sunset-vista-key` at frame 29222, 1209 frames
-after `23` → `34`. It stays when the round is left. A password or a memory card load sets the bit on the title
-level, where the condition cannot fire, and a key already won gives no edge.
+Darkness round has no played win. The bit rises the moment Crash reaches the key, inside the round:
+`sunset-vista-key` at frame 29222, 1209 frames after `23` → `34`. It stays when the round is left. A password or a
+memory card load sets the bit on the title level, where the condition cannot fire, and a key already won gives no
+edge.
 
 | Look-alike | Why nothing fires |
 | --- | --- |
@@ -171,12 +172,13 @@ level switch, which nothing but the won fight makes.
 | `0xH6188d=h2c_d0xH6188d=h2c` | The Great Hall is loaded on this frame and the previous one |
 | `d0xH618d1=1_0xH618d1=0` | the game state fell from playing to cutscene (c1 `GAME_STATE_CUTSCENE`) on this frame |
 
-With every clear gem the hall's bridge runs right from Crash's start, away from the arch (platform positions read from
-RAM: x 11198 to 20400 along z 124798, into the screen along x 20400, right to x 32400, into the screen to z
+With every clear gem the hall's bridge runs right from Crash's start, away from the arch (platform positions read
+from RAM: x 11198 to 20400 along z 124798, into the screen along x 20400, right to x 32400, into the screen to z
 102797), then solid floor leads to the balcony. Crash reaching Tawna there starts the ending **inside the hall's
-own level**: no level loads, `2c` stays through the bosses' epilogues, and only the game state tells it apart: `01` → `00` at frame
-23130 of `the-great-hall-ending`, `06` at 35262, then `2c` → `19` and the title at 35312, the attract demos after
-it. So the condition cannot be a level switch: the ending level `39` is the normal ending's alone.
+own level**: no level loads, `2c` stays through the bosses' epilogues, and only the game state tells it apart: `01`
+→ `00` at frame 23130 of `the-great-hall-ending`, `06` at 35262, then `2c` → `19` and the title at 35312, the
+attract demos after it. So the condition cannot be a level switch: the ending level `39` is the normal ending's
+alone.
 
 | Look-alike | Why nothing fires |
 | --- | --- |
