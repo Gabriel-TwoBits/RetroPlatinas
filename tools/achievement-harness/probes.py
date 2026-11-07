@@ -107,6 +107,7 @@ LID_THE_GREAT_HALL = 0x2C
 LID_FUMBLING_IN_THE_DARK = 0x2A
 LID_WHOLE_HOG = 0x1E
 LID_STAGE_CLEAR = 0x2D  # c1 `LID_LEVELEND`
+LID_BONUS_CORTEX = 0x34  # c1 `LID_BONUSCORTEX`
 LID_GAME_WON = 0x39  # c1 `LID_GAMEWIN`: the ending after Neo Cortex
 NON_STAGE_LIDS = (LID_TITLE, LID_STAGE_CLEAR)
 # A boss's 24.8 health word, by fight: a pointer, then the offsets to the word. Papu Papu and

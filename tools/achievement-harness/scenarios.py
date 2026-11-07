@@ -44,8 +44,10 @@ from probes import (
     HUD_COUNT_OFFSET,
     ITEM_POOL1,
     ITEM_POOL2,
+    LID_BONUS_CORTEX,
     LID_GAME_WON,
     LID_STAGE_CLEAR,
+    LID_SUNSET_VISTA,
     LID_THE_GREAT_HALL,
     LID_TITLE,
     LIFE_HUD_POINTER,
@@ -98,6 +100,7 @@ ENDING_WATCH_FRAMES = 900
 # on solid floor before the balcony, standing, where SELECT quits (it is ignored in mid-air).
 ROUTE_LEFT_ON_THE_BRIDGE_FRAMES = 2000
 ROUTE_LEFT_BEFORE_THE_BALCONY_FRAMES = 400
+ROUND_LEFT_TIMEOUT_SEGMENTS = 2000
 SECRET_ENDING_TIMEOUT_FRAMES = 15000  # it plays for about 12100 frames (measured)
 # A held button moves Crash on the frame he gets control (after the spin-in) or 3 frames later
 # (N. Sanity Beach's wake-up); more would mean the timer starts before he has control.
@@ -136,6 +139,7 @@ STAGE_CLEAR = "On the Stage Clear screen"
 GAME_OVER = "Game Over"
 ENDING = "Watching the ending"
 NEO_CORTEX = "Dr. Neo Cortex"
+CORTEX_BONUS_ROUND = r"In a Cortex bonus round · \d+ li(fe|ves) · \d+ Wumpa"
 ANY_COUNT = r"\d+"
 LOW_LIVES = "[0-3]"  # a new game's 4 lives after a death, extra lives picked up on the way aside
 NEW_GAME_LIVES = "4"
@@ -593,6 +597,56 @@ def bridge_quit(plan_path):
         s.step(QUIT_AFTER_CONTROL_FRAMES)
         navigation.pause_and_quit(s.emu)
         s.step(AFTER_LAST_QUIT_FRAMES)
+
+    return play
+
+
+def key_won(key, plan_path):
+    """Replays the plan that wins the key, then a state saved in the bonus round is loaded back
+    and Crash plays on until the round is left: no second trigger, and the key stays."""
+
+    def play(s):
+        plan = plans.load(plan_path)
+        s.note(f"replaying {plan_path.name}: {plan.frames} frames, the key at its end")
+        plans.replay(s.emu, plan)
+        s.step(AFTER_EVENT_FRAMES)
+        s.note("save a state in the bonus round and load it: every trigger to WAITING")
+        s.emu.restore(s.emu.snapshot())
+        leave_the_bonus_round(s)
+        if not s.emu.u8(key.address) >> key.bit & 1:
+            raise RuntimeError(f"leaving the round took {key.title} away")
+        else:
+            pass  # The key stays.
+
+    return play
+
+
+def leave_the_bonus_round(s):
+    """Random play until the Cortex bonus round's level is left. Pause -> SELECT does not quit
+    a bonus round (measured)."""
+    rng = random.Random(DEATH_SEED)
+    names = plans.HEADINGS["right"]
+    for _ in range(ROUND_LEFT_TIMEOUT_SEGMENTS):
+        if navigation.level_id(s.emu) != LID_BONUS_CORTEX:
+            break
+        for frames, buttons in plans.MACROS[rng.choice(names)]:
+            s.step(frames, buttons)
+    else:
+        raise TimeoutError("random play never left the bonus round")
+    s.note(f"left the round for lid {navigation.level_id(s.emu):#x}")
+    s.step(AFTER_DEATH_FRAMES)
+
+
+def key_round_lost(plan_path):
+    """Replays the plan into the Cortex bonus round, then random play until Crash leaves it or
+    dies, short of the key: entering the round is not winning it."""
+
+    def play(s):
+        route = plans.load(plan_path).inputs
+        if not replay_until(s, route, lambda e: navigation.level_id(e) == LID_BONUS_CORTEX):
+            raise RuntimeError(f"{plan_path.name} never entered the bonus round")
+        s.note("in the Cortex bonus round; playing at random until it is lost")
+        leave_the_bonus_round(s)
 
     return play
 
@@ -1188,6 +1242,32 @@ SCENARIOS[f"{_cortex.name}-quit"] = Scenario(
     (fighting(NEO_CORTEX, NEW_GAME_LIVES), ISLAND_MAP),
     never=(NO_LIVES,),
 )
+# The hand-played runs also collect 100 Wumpa on the way, a real event.
+KEY_RUN_ALSO_FIRES = {"Key to the Hog": {_collectibles.WUMPA_TITLE: LID_SUNSET_VISTA}}
+for _key in _advanced.KEY_ACHIEVEMENTS:
+    _key_stage = next(
+        stage for stage in STAGES if achievements.level_title(stage.level_id) == _key.stage
+    )
+    _key_plan = _key_stage.goal_plan_path("key")
+    if _key_plan.is_file():
+        SCENARIOS[f"{_key_stage.name}-key"] = Scenario(
+            _key_stage.start,
+            {_key.title: LID_BONUS_CORTEX, **KEY_RUN_ALSO_FIRES.get(_key.title, {})},
+            f"{_key.title} won by a hand-played plan (play.py), a state load, the round left",
+            key_won(_key, _key_plan),
+            (in_stage(_key.stage), CORTEX_BONUS_ROUND),
+            never=(NO_LIVES,),
+        )
+        SCENARIOS[f"{_key_stage.name}-key-round-lost"] = Scenario(
+            _key_stage.start,
+            KEY_RUN_ALSO_FIRES.get(_key.title, NOTHING_FIRES),
+            f"the Cortex bonus round of {_key.stage} entered and lost, short of the key",
+            key_round_lost(_key_plan),
+            (in_stage(_key.stage),),
+            never=(NO_LIVES,),
+        )
+    else:
+        pass  # No played key: the key stays for the in-game check.
 _cortex_plan = _cortex.goal_plan_path("boss")
 if _cortex_plan.is_file():
     SCENARIOS[f"{_cortex.name}-boss"] = Scenario(
