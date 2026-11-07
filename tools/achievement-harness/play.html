@@ -33,6 +33,10 @@ const KEYS = { ArrowUp: "UP", ArrowDown: "DOWN", ArrowLeft: "LEFT", ArrowRight: 
 const PAD = { 0: "CROSS", 1: "CIRCLE", 2: "SQUARE", 3: "TRIANGLE", 8: "SELECT", 9: "START",
               12: "UP", 13: "DOWN", 14: "LEFT", 15: "RIGHT" };
 const PAD_RESTART = 6;
+// How far the left stick must lean to count as a D-pad press; it records the same digital mask.
+const STICK_DEADZONE = 0.5;
+const STICK_X_AXIS = 0;
+const STICK_Y_AXIS = 1;
 const held = new Set();
 let sentMask = -1;
 let restart = false;
@@ -68,6 +72,12 @@ function mask() {
       if (pad.buttons[index] && pad.buttons[index].pressed) { buttons.add(name); }
     }
     if (pad.buttons[PAD_RESTART] && pad.buttons[PAD_RESTART].pressed) { restart = true; }
+    const stickX = pad.axes[STICK_X_AXIS] || 0;
+    const stickY = pad.axes[STICK_Y_AXIS] || 0;
+    if (stickX <= -STICK_DEADZONE) { buttons.add("LEFT"); }
+    if (stickX >= STICK_DEADZONE) { buttons.add("RIGHT"); }
+    if (stickY <= -STICK_DEADZONE) { buttons.add("UP"); }
+    if (stickY >= STICK_DEADZONE) { buttons.add("DOWN"); }
   }
   let value = 0;
   for (const name of buttons) { value |= 1 << BIT[name]; }
@@ -109,7 +119,9 @@ async function showStatus() {
   const text = status.saved
     ? `plan written to ${status.saved.path} (won: ${status.saved.done}); close this page`
     : `recording: ${status.frames} frames`;
-  document.getElementById("status").textContent = text;
+  const pads = [...navigator.getGamepads()].filter(Boolean)
+    .map((pad) => `${pad.id} (mapping: ${pad.mapping || "none"}, ${pad.axes.length} axes)`);
+  document.getElementById("status").textContent = [text, ...pads].join(" · ");
 }
 
 async function loop() {
