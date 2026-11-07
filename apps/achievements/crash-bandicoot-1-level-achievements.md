@@ -177,8 +177,9 @@ out the hall's opening (walking up at once falls off the platform), walks up and
 - **The Great Gate, Boulders, Upstream, Rolling Stones, every stage from Hog Wild to The Lab, Fumbling in the
   Dark and Whole Hog:** finish each stage and confirm its achievement pops on the Stage Clear screen, once. The
   harness never produced these clears.
-- **The Great Hall with fewer than 26 gems:** the harness left it only with all 26 (the 100% password); leave it
-  through the arch with a normal save and see `The Great Hall` pop when the map appears.
+- **The Great Hall with fewer than 26 gems:** the harness played it only with all 26 (the 100% password) and with
+  the gem bits poked to zero; leave it through the arch with a normal save and see `The Great Hall` pop when the
+  map appears.
 - **All of them, on DuckStation:** the popup appears on the Stage Clear screen (not earlier, on the stage's
   exit), and a death, a pause → quit, a game over and leaving Stage Clear for the map unlock nothing.
 - **A clear after a death past a checkpoint:** break a checkpoint crate, die, finish the stage; there is no

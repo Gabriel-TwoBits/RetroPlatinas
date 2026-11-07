@@ -134,7 +134,8 @@ ENDING_LEVEL_ID = 0x39
 NORMAL_ENDING_TITLE = "Bandicoot Triumphant"
 NORMAL_ENDING_DESCRIPTION = "Defeat Dr. Neo Cortex on his airship and see the ending."
 ENDING_POINTS = 25
-# With all 26 gems the hall's bridge leads to Tawna on the balcony; Crash reaching her starts the
+# With the 20 clear gems the hall's bridge leads to Tawna on the balcony (each clear gem is a
+# platform; the coloured ones add none, measured with poked gem bits); reaching her starts the
 # secret ending inside the hall's own level: `2c` stays loaded through the epilogues (about 12100
 # frames), the game state falling from 1 (playing) to 0 (cutscene) on its first frame (measured).
 # A quit (4), a game over (2), the arch's exit (3) and a respawn (stays 1) never go from 1 to 0.

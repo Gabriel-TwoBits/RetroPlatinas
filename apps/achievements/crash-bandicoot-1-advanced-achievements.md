@@ -148,10 +148,10 @@ level switch, which nothing but the won fight makes.
 | `0xH6188d=h2c_d0xH6188d=h2c` | The Great Hall is loaded on this frame and the previous one |
 | `d0xH618d1=1_0xH618d1=0` | the game state fell from playing to cutscene (c1 `GAME_STATE_CUTSCENE`) on this frame |
 
-With all 26 gems the hall's bridge runs right from Crash's start, away from the arch (platform positions read from
+With every clear gem the hall's bridge runs right from Crash's start, away from the arch (platform positions read from
 RAM: x 11198 to 20400 along z 124798, into the screen along x 20400, right to x 32400, into the screen to z
-102797), then solid floor leads to the balcony. Crash reaching Tawna there starts the ending **inside the hall's own level**: no
-level loads, `2c` stays through the bosses' epilogues, and only the game state tells it apart: `01` → `00` at frame
+102797), then solid floor leads to the balcony. Crash reaching Tawna there starts the ending **inside the hall's
+own level**: no level loads, `2c` stays through the bosses' epilogues, and only the game state tells it apart: `01` → `00` at frame
 23130 of `the-great-hall-ending`, `06` at 35262, then `2c` → `19` and the title at 35312, the attract demos after
 it. So the condition cannot be a level switch: the ending level `39` is the normal ending's alone.
 
@@ -162,7 +162,8 @@ it. So the condition cannot be a level switch: the ending level `39` is the norm
 | Pause → quit | game state `01` → `04` |
 | A game over in the hall | game state `01` → `02` |
 | The end of the ending | `00` → `06`, after the trigger's frame; an edge from `01` only |
-| Attract demos | none plays the hall; a demo's game state is `06` or `00` on other levels |
+| Attract demos | none plays the hall; a demo plays in game state `01` on its own level and ends in `06` |
+| The hall without every clear gem | the bridge is short: Crash falls at x 31764, z 112976 and never reaches Tawna (measured with a clear gem's bit poked out, secondary evidence; without one of the six coloured gems, or all six, the bridge is whole and the ending plays, and a player needs them for the clear gems' boxes anyway: `crash-bandicoot-1-completion-inventory.md`) |
 | A memory card load or a password | game state and level change on the title level |
 | A save state loaded in the ending | the trigger is an edge |
 
@@ -201,7 +202,7 @@ level; nothing else fires.
 | `nitrus-brio-boss` | `plans/nitrus-brio-boss.json`, from `nitrus-brio-start` (the map reached by The Lab's password `TTTSXXOXXSOXXXXOSTSOOSST`, no RAM write): the boss search, its cells split by time and by Crash's height, reached six hits (frames 355, 1355, 1393, 3741, 3781, 3823), then a search of the monster phase alone from that route (seed 31) the last three (9077, 9389, 9392: the last stomp bounces for two); game state `03` at 9641, the switch to the map at 9825; then the state load on the map, a re-entry and a quit | `Formula Spilled` fires once, on the switch to the map (lid `19`); nothing else fires |
 | `neo-cortex-boss` | `plans/neo-cortex-boss.json`, **played by hand** with `play.py` from `neo-cortex-start` (the map reached by the 100% password, no RAM write) and replayed frame by frame: the search found no win (best 2 of 5 hits over four approaches). Five hits (frames 570, 1320, 3001, 3641, 3911; his word at the `0x60ddc` object's `+0x104` counts the hits up), `1f` → `39` at 4523; then a state saved in the ending is loaded back | `Bandicoot Triumphant` fires once, on the switch to `39`; nothing else fires |
 | `neo-cortex-deaths` | the same plan until four hits have held for 30 frames, then a death; a second death right after the respawn | nothing fires |
-| `the-great-hall-ending` | `plans/the-great-hall-ending.json`, from `the-great-hall-start` (the map reached by the 100% password, no RAM write): the search's route over the gem bridge (a score counting progress along the platforms, resumed for the last leg), 23035 frames; game state `00` at 23130; then a state saved in the ending is loaded back | `Bridge of Gems` fires once, at 23130 on lid `2c`; nothing else fires |
+| `the-great-hall-ending` | `plans/the-great-hall-ending.json`, from `the-great-hall-start` (the map reached by the 100% password, no RAM write): a route found by a one-off search over the gem bridge (its score, progress along the platforms, is not a goal of `explore.GOALS` and is not committed; resumed for the last leg), 23035 frames; game state `00` at 23130; then a state saved in the ending is loaded back | `Bridge of Gems` fires once, at 23130 on lid `2c`; nothing else fires |
 | `the-great-hall-bridge-deaths` | the same plan up to the bridge's last leg, a fall, then a death back at the hall's start | nothing fires |
 | `the-great-hall-bridge-quit` | the same plan up to the floor just before the balcony, then pause → SELECT | nothing fires |
 | `nitrus-brio-deaths` | the same plan until Nitrus Brio's health has held at 2 for 30 frames (his last two go 3 frames apart), then a death; a second death right after the respawn, the fight back at 9 | nothing fires |
@@ -257,7 +258,8 @@ for every boss with a searched win: none of them fires a gem or a boss. Every sc
   in the 200 frames after the hit Crash did not die on his own before the ending.
 - **The secret ending on DuckStation**: with a real 26-gem save, cross the bridge, reach Tawna and see `Bridge of
   Gems` pop as the scene starts, once. The harness reached it on the 100% password's save only. Fall off the
-  bridge, leave by the arch and see nothing from it.
+  bridge, leave by the arch and see nothing from it. Leave the hall by the arch on a save with few gems and see
+  `The Great Hall` pop (seen in the harness with the gem bits poked to zero).
 - **Bonus rounds inside a gem stage**: Jungle Rollers, The Great Gate and Upstream each have a Tawna bonus
   round (code notes, `0x6197c`), which no harness route entered. Win a gem through the bonus round and see its
   achievement pop; fall out of the bonus round, finish the stage, and see the achievement pop only if the
