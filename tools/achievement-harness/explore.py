@@ -12,7 +12,8 @@ farming them would. The winning plan starts from a derivable state (the stage's 
 `--from`), so it replays on any checkout running the core build it records (a quit is kept as the
 inputs it took).
 Progress is logged every LOG_EVERY iterations, with a screenshot of the best cell (highest score,
-then deepest).
+then deepest), and that cell's route is saved every CHECKPOINT_SECONDS under
+CHECKPOINTS_DIR (`done: false`), so a shutdown does not lose a long search's progress.
 
     python tools/achievement-harness/explore.py STAGE [--goal G] [--from STATE] [--out PLAN]
         [--minutes M] [--seed N]
@@ -56,7 +57,7 @@ from probes import (
     has_gem,
     player_fruit,
 )
-from provision import SHOTS_DIR
+from provision import CHECKPOINTS_DIR, SHOTS_DIR
 
 CELL_SHIFT = 19
 BOSS_TIME_CELL_SEGMENTS = 8  # 128 frames
@@ -76,6 +77,7 @@ DEFAULT_ITERATIONS = 20000
 DEFAULT_MINUTES = 45
 DEFAULT_SEED = 1
 LOG_EVERY = 50
+CHECKPOINT_SECONDS = 300  # a shutdown loses at most this much of a search
 ITERATION_DIGITS = 5
 COMPRESSION_LEVEL = 1
 POSITION_BYTES = 4
@@ -357,8 +359,10 @@ class Runner:
 
 
 class Explorer:
-    def __init__(self, emu, goal, seed, macro_names, shot_dir):
+    def __init__(self, emu, goal, seed, macro_names, shot_dir, checkpoint=None):
+        """`checkpoint(plan, quits)`, if any, gets the deepest route every CHECKPOINT_SECONDS."""
         self.emu = emu
+        self.checkpoint = checkpoint
         self.runner = Runner(emu, goal)
         self.rng = random.Random(seed)
         self.macro_names = macro_names
@@ -469,7 +473,7 @@ class Explorer:
 
     def run(self, iterations, seconds):
         """Rollouts until one reaches the goal (`(plan, quits)`), or None when out of budget."""
-        started = time.time()
+        started = saved_at = time.time()
         for iteration in range(iterations):
             won = self.rollout(self._pick())
             if won is not None:
@@ -480,7 +484,14 @@ class Explorer:
                     flush=True,
                 )
                 return won
-            elapsed = time.time() - started
+            now = time.time()
+            elapsed = now - started
+            if self.checkpoint is not None and now - saved_at >= CHECKPOINT_SECONDS:
+                deepest = self.archive[self.deepest()]
+                self.checkpoint(deepest["plan"], deepest["quits"])
+                saved_at = now
+            else:
+                pass  # No checkpoint asked for, or not due yet.
             if iteration % LOG_EVERY == 0:
                 self._report(iteration, elapsed)
             if elapsed > seconds:
@@ -541,7 +552,24 @@ def main():
     states.load(emu, start)
     macro_names = plans.HEADINGS[stage.heading]
     shot_dir = SHOTS_DIR / "explore" / f"{stage.name}-{args.goal}"
-    explorer = Explorer(emu, GOALS[args.goal], args.seed, macro_names, shot_dir)
+
+    def plan_of(moves, quits, done):
+        names, inputs = explorer.inputs(moves, quits)
+        return plans.Plan(
+            start=start,
+            core=emu.core_name,
+            core_version=emu.core_version,
+            done=done,
+            macros=names,
+            inputs=inputs,
+        )
+
+    checkpoint_path = CHECKPOINTS_DIR / f"{stage.name}-{args.goal}-s{args.seed}.json"
+
+    def checkpoint(moves, quits):
+        plans.save(plan_of(moves, quits, False), checkpoint_path)
+
+    explorer = Explorer(emu, GOALS[args.goal], args.seed, macro_names, shot_dir, checkpoint)
     won = explorer.run(args.iterations, args.minutes * SECONDS_PER_MINUTE)
     out = Path(args.out) if args.out else stage.goal_plan_path(args.goal)
     if won is not None:
@@ -553,15 +581,7 @@ def main():
     else:
         print(f"{GOALS[args.goal].about}: not reached; no plan written", flush=True)
         return 1
-    names, inputs = explorer.inputs(best, quits)
-    plan = plans.Plan(
-        start=start,
-        core=emu.core_name,
-        core_version=emu.core_version,
-        done=won is not None,
-        macros=names,
-        inputs=inputs,
-    )
+    plan = plan_of(best, quits, won is not None)
     print(f"plan written to {plans.save(plan, out)}; done={plan.done}", flush=True)
     return 0 if plan.done else 1
 

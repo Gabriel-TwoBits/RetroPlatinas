@@ -17,6 +17,7 @@ HARNESS_DIR = Path(__file__).resolve().parent
 REPO_ROOT = HARNESS_DIR.parents[1]
 CACHE_DIR = REPO_ROOT / ".cache" / "achievement-harness"
 CORES_DIR = CACHE_DIR / "cores"
+CHECKPOINTS_DIR = CACHE_DIR / "checkpoints"  # the running searches' deepest routes
 SYSTEM_DIR = CACHE_DIR / "system"
 STATES_DIR = CACHE_DIR / "states"
 TRACES_DIR = CACHE_DIR / "traces"

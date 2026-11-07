@@ -146,7 +146,10 @@ def load(path):
 def save(plan, path):
     target = Path(path)
     target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(json.dumps(asdict(plan)) + "\n")
+    # Written aside and moved: a search killed mid-write keeps its previous checkpoint.
+    partial = target.with_name(f"{target.name}.partial")
+    partial.write_text(json.dumps(asdict(plan)) + "\n")
+    partial.replace(target)
     return target
 
 

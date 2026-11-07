@@ -244,7 +244,10 @@ and plays random macros from the stage's start state (or `--from` another deriva
 of the rollouts start from one of the best cells (the frontier: highest score, then deepest, where
 a timed obstacle is passed), the others from rarely chosen cells. The macros are the stage's
 `plan.HEADINGS` set (`up`, `down` for Boulders, which runs towards the camera, `right` for The
-Great Gate). The goal (`--goal`, `explore.GOALS`) decides when a rollout wins:
+Great Gate). Every 5 minutes the best cell's route goes to
+`.cache/achievement-harness/checkpoints/<stage>-<goal>-s<seed>.json` (`done: false`), so a shutdown
+loses at most that much of a long search. The goal (`--goal`, `explore.GOALS`) decides when a
+rollout wins:
 
 | Goal | Wins when | Score | Also |
 | --- | --- | --- | --- |
