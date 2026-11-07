@@ -37,6 +37,7 @@ from probes import (
     FIXED_POINT_SHIFT,
     FRUIT_HUD_POINTER,
     GAME_STATE,
+    GAME_STATE_CUTSCENE,
     GAME_STATE_GAME_OVER,
     GAME_STATE_PLAYING,
     GAME_STATE_QUIT,
@@ -93,6 +94,11 @@ PLAN_PREFIX_DIVISOR = 2  # deaths start halfway through a stage's clearing plan
 AFTER_EVENT_FRAMES = 300
 # The ending's airship scene runs about 500 frames before the credits (measured).
 ENDING_WATCH_FRAMES = 900
+# Frames of the route left at the bridge's last leg (z 106982), where a fall kills; later Crash is
+# on solid floor before the balcony, where SELECT quits (on the last leg it left no map in 3000
+# frames).
+ROUTE_LEFT_ON_THE_BRIDGE_FRAMES = 2000
+ROUTE_LEFT_BEFORE_THE_BALCONY_FRAMES = 400
 # A held button moves Crash on the frame he gets control (after the spin-in) or 3 frames later
 # (N. Sanity Beach's wake-up); more would mean the timer starts before he has control.
 MAX_INPUT_LAG_FRAMES = 4
@@ -532,6 +538,61 @@ def normal_ending(plan_path):
     return play
 
 
+def great_hall_ending(plan_path):
+    """Replays the plan over the gem bridge to Tawna, up to the game state falling to cutscene,
+    watches the secret ending, then loads back a state saved in it: no second trigger."""
+
+    def play(s):
+        plan = plans.load(plan_path)
+        s.note(f"replaying {plan_path.name}: {plan.frames} frames, the balcony at its end")
+        plans.replay(s.emu, plan)
+        s.wait_until(
+            lambda e: e.u32(GAME_STATE) == GAME_STATE_CUTSCENE,
+            navigation.LOAD_TIMEOUT_FRAMES,
+            "the secret ending",
+        )
+        s.step(ENDING_WATCH_FRAMES)
+        s.note("save a state in the ending and load it: every trigger to WAITING")
+        s.emu.restore(s.emu.snapshot())
+        s.step(ENDING_WATCH_FRAMES)
+
+    return play
+
+
+def route_short_of_the_end(plan_path, frames_left):
+    """The plan's inputs but its last `frames_left` frames."""
+    plan = plans.load(plan_path)
+    route, _rest = split_inputs(plan.inputs, plan.frames - frames_left)
+    return route
+
+
+def bridge_deaths(stage, plan_path):
+    """A death on the gem bridge, then one back at the hall's start: neither is the ending."""
+
+    def play(s):
+        rng = random.Random(DEATH_SEED)
+        route = route_short_of_the_end(plan_path, ROUTE_LEFT_ON_THE_BRIDGE_FRAMES)
+        die(s, stage, rng, "death on the bridge", route)
+        s.rearm("death 2: re-armed right after the respawn")
+        die(s, stage, rng, "death 2", [])
+        s.step(AFTER_DEATH_FRAMES)
+
+    return play
+
+
+def bridge_quit(plan_path):
+    """Pause -> SELECT past the gem bridge, on the floor just before the balcony."""
+
+    def play(s):
+        for frames, mask in route_short_of_the_end(plan_path, ROUTE_LEFT_BEFORE_THE_BALCONY_FRAMES):
+            s.emu.run(frames, mask)
+        s.step(QUIT_AFTER_CONTROL_FRAMES)
+        navigation.pause_and_quit(s.emu)
+        s.step(AFTER_LAST_QUIT_FRAMES)
+
+    return play
+
+
 def reload_and_reenter(s, stage, what):
     """After a level left for the map: a state saved there is loaded back, then `stage` is
     entered again from the map and quit. Neither may fire again."""
@@ -889,6 +950,35 @@ SCENARIOS[f"{_hall.name}-clear"] = Scenario(
     (in_stage(achievements.level_title(_hall.level_id)), ISLAND_MAP),
     never=(NO_LIVES,),
 )
+_hall_ending_plan = _hall.goal_plan_path("ending")
+if _hall_ending_plan.is_file():
+    _hall_name = achievements.level_title(_hall.level_id)
+    SCENARIOS[f"{_hall.name}-ending"] = Scenario(
+        _hall.start,
+        {achievements.advanced_seed().SECRET_ENDING_TITLE: LID_THE_GREAT_HALL},
+        "the gem bridge crossed to Tawna, the secret ending, a state load in it",
+        great_hall_ending(_hall_ending_plan),
+        (in_stage(_hall_name),),
+        never=(NO_LIVES,),
+    )
+    SCENARIOS[f"{_hall.name}-bridge-deaths"] = Scenario(
+        _hall.start,
+        NOTHING_FIRES,
+        "a death on the gem bridge's last leg, then one at the hall's start",
+        bridge_deaths(_hall, _hall_ending_plan),
+        (in_stage(_hall_name),),
+        never=(NO_LIVES,),
+    )
+    SCENARIOS[f"{_hall.name}-bridge-quit"] = Scenario(
+        _hall.start,
+        NOTHING_FIRES,
+        "pause -> SELECT past the gem bridge, just before the balcony",
+        bridge_quit(_hall_ending_plan),
+        (in_stage(_hall_name), ISLAND_MAP),
+        never=(NO_LIVES,),
+    )
+else:
+    pass  # No route over the bridge: the secret ending stays for the in-game check.
 _collectibles = achievements.collectible_seed()
 _GOAL_TITLES = (("wumpa", _collectibles.WUMPA_TITLE), ("aku", _collectibles.AKU_TITLE))
 for _stage in STAGES:

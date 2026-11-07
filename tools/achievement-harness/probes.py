@@ -129,6 +129,7 @@ BOSS_HEALTH_CHAINS = {
 NEO_CORTEX_HITS = 5
 BOSS_HIT_COUNTERS = {LID_NEO_CORTEX: NEO_CORTEX_HITS}
 # Game states (c1 `GAME_STATE_*`, src/globals.h).
+GAME_STATE_CUTSCENE = 0  # the map, and The Great Hall's secret ending
 GAME_STATE_PLAYING = 0x100
 GAME_STATE_GAME_OVER = 0x200
 # c1 `GAME_STATE_CONTINUE`: leaving the Stage Clear screen, or a level won straight to the map
