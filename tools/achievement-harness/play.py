@@ -8,9 +8,13 @@ level leaves the start's level and RECORD_TAIL_FRAMES more have run, the plan is
 `done` when the level was won (game state 3, or the ending level loaded), else not. With
 `--until-bit ADDRESS:BIT` (a key: won in a bonus round, which is another level, with a save
 screen on the title level after it) the run goes on through other levels until that bit rises,
-`done`, or the run is lost (a game over, a quit, Stage Clear), not `done`.
+`done`, or the run is lost (a game over, a quit, Stage Clear), not `done`. Such a run's first
+level change (the bonus round) becomes the restart point: Backspace returns there, the inputs
+before it kept, and they are saved under CHECKPOINTS_DIR, for `--resume` to replay in a later
+session. A hard round is then retried without its stage's tokens, still as one real run.
 
     python tools/achievement-harness/play.py STATE --out PLAN [--port PORT] [--until-bit A:B]
+        [--resume PLAN]
 
 Run in the container with the port published, e.g. `podman run -p 127.0.0.1:8765:8765 ...`.
 """
@@ -35,12 +39,14 @@ from probes import (
     LID_GAME_WON,
     LID_STAGE_CLEAR,
 )
+from provision import CHECKPOINTS_DIR
 
 DEFAULT_PORT = 8765
 LISTEN_ADDRESS = "0.0.0.0"  # inside the container; publish the port on the host's loopback only
 RECORD_TAIL_FRAMES = 2 * FRAMES_PER_SECOND
 FRAME_SECONDS = 1 / FRAMES_PER_SECOND
 PAGE = Path(__file__).with_name("play.html")
+RESTART_PLAN_SUFFIX = "-restart.json"
 ALL_BUTTONS = (1 << (Btn.R2 + 1)) - 1  # every pad button bit; Btn.R2 is the highest
 LOST_GAME_STATES = (GAME_STATE_GAME_OVER, GAME_STATE_QUIT)
 MAX_INPUT_BYTES = 256  # {"mask": n, "restart": true} with room to spare
@@ -49,9 +55,9 @@ MAX_INPUT_BYTES = 256  # {"mask": n, "restart": true} with room to spare
 class Recorder:
     """The button mask of every frame since the start state; decides when the run ended."""
 
-    def __init__(self, start_level_id):
+    def __init__(self, start_level_id, masks=()):
         self.start_level_id = start_level_id
-        self.masks = []
+        self.masks = list(masks)
         self.left_at = None  # frame index the level first left the start's level
         self.won = False
 
@@ -103,7 +109,7 @@ class Shared:
         self.restart = False
         self.frame = b""
         self.size = (0, 0)
-        self.status = {"frames": 0, "saved": None}
+        self.status = {"frames": 0, "restart": 0, "saved": None}
 
 
 def handler(shared):
@@ -164,36 +170,55 @@ def parse_bit(text):
     return int(address, 0), int(bit)
 
 
-def play(emu, start, out, shared, until_bit=None):
-    """Runs the emulator at 60 Hz on the page's buttons until a run ends; writes its plan."""
+def masks_of(inputs):
+    """`[frames, button_mask]` runs -> the mask of every frame."""
+    return [mask for frames, mask in inputs for _ in range(frames)]
+
+
+def play(emu, start, out, shared, until_bit=None, resumed=()):
+    """Runs the emulator at 60 Hz on the page's buttons until a run ends; writes its plan.
+
+    `resumed`: the masks already played on `emu`, a restart point saved by an earlier session.
+    """
 
     def bit_set():
         return until_bit is not None and bool(emu.u8(until_bit[0]) >> until_bit[1] & 1)
 
-    def new_recorder():
+    def new_recorder(masks):
         kind = Recorder if until_bit is None else BitRecorder
-        return kind(emu.u8(LEVEL_ID))
+        return kind(start_level_id, masks)
 
     if bit_set():
         raise ValueError(f"{start} already has the bit {until_bit}: nothing to win")
-    start_state = emu.snapshot()
-    recorder = new_recorder()
+    start_level_id = emu.u8(LEVEL_ID)
+    restart_state, restart_masks = emu.snapshot(), list(resumed)
+    restart_moved = bool(resumed) or until_bit is None  # a plain run restarts from its start
+    recorder = new_recorder(restart_masks)
     next_frame = time.monotonic()
     while True:
         with shared.lock:
             mask, restart = shared.mask, shared.restart
             shared.restart = False
         if restart:
-            emu.restore(start_state)
-            recorder = new_recorder()
+            emu.restore(restart_state)
+            recorder = new_recorder(restart_masks)
         else:
             pass  # The run goes on.
         emu.run(1, mask)
         over = recorder.frame(mask, emu.u8(LEVEL_ID), emu.u32(GAME_STATE), bit_set())
+        if not restart_moved and emu.u8(LEVEL_ID) != start_level_id:
+            restart_moved = True
+            restart_state, restart_masks = emu.snapshot(), list(recorder.masks)
+            path = CHECKPOINTS_DIR / f"{Path(out).stem}{RESTART_PLAN_SUFFIX}"
+            print(f"restart point at frame {len(restart_masks)}: {path}", flush=True)
+            plans.save(recorder.plan(start, emu), path)
+        else:
+            pass  # The restart point stands.
         rgb, width, height = emu.framebuffer()
         with shared.lock:
             shared.frame, shared.size = rgb, (width, height)
             shared.status["frames"] = len(recorder.masks)
+            shared.status["restart"] = len(restart_masks)
         if over:
             target = plans.save(recorder.plan(start, emu), out)
             with shared.lock:
@@ -210,14 +235,18 @@ def main():
     parser.add_argument("--out", required=True, help="plan to write")
     parser.add_argument("--port", type=int, default=DEFAULT_PORT)
     parser.add_argument("--until-bit", type=parse_bit, help="ADDRESS:BIT that ends the run, won")
+    parser.add_argument("--resume", help="a saved restart point: replayed, then the run goes on")
     args = parser.parse_args()
     emu = Emu().load()
     states.load(emu, args.state)
+    resumed = masks_of(plans.load(args.resume).inputs) if args.resume else []
+    for mask in resumed:
+        emu.run(1, mask)
     shared = Shared()
     server = http.server.ThreadingHTTPServer((LISTEN_ADDRESS, args.port), handler(shared))
     threading.Thread(target=server.serve_forever, daemon=True).start()
     print(f"open http://localhost:{args.port} and play; Backspace restarts", flush=True)
-    won = play(emu, args.state, args.out, shared, args.until_bit)
+    won = play(emu, args.state, args.out, shared, args.until_bit, resumed)
     server.shutdown()
     return 0 if won else 1
 

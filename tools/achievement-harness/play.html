@@ -118,7 +118,7 @@ async function showStatus() {
   const status = await (await fetch("/status")).json();
   const text = status.saved
     ? `plan written to ${status.saved.path} (won: ${status.saved.done}); close this page`
-    : `recording: ${status.frames} frames`;
+    : `recording: ${status.frames} frames (Backspace returns to frame ${status.restart})`;
   const pads = [...navigator.getGamepads()].filter(Boolean)
     .map((pad) => `${pad.id} (mapping: ${pad.mapping || "none"}, ${pad.axes.length} axes)`);
   document.getElementById("status").textContent = [text, ...pads].join(" · ");

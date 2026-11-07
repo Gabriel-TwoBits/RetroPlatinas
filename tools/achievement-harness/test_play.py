@@ -6,13 +6,26 @@ import urllib.error
 import urllib.request
 from types import SimpleNamespace
 
+import plan as plans
+import play as play_module
 import pytest
-from play import RECORD_TAIL_FRAMES, BitRecorder, Recorder, Shared, handler, parse_bit
+from play import (
+    RECORD_TAIL_FRAMES,
+    BitRecorder,
+    Recorder,
+    Shared,
+    handler,
+    masks_of,
+    parse_bit,
+    play,
+)
 from probes import (
+    GAME_STATE,
     GAME_STATE_CUTSCENE,
     GAME_STATE_GAME_OVER,
     GAME_STATE_LEVEL_WON,
     GAME_STATE_PLAYING,
+    LEVEL_ID,
     LID_GAME_WON,
     LID_NEO_CORTEX,
     LID_SUNSET_VISTA,
@@ -97,6 +110,86 @@ def test_a_game_over_ends_a_key_run_without_a_win():
 
 def test_a_bit_argument_is_an_address_and_a_bit():
     assert parse_bit("0x619AE:4") == (0x619AE, 4)
+
+
+class ScriptedEmu:
+    """A game that enters the bonus round at BONUS_FRAME and gets the bit at KEY_FRAME; the emulator
+    surface `play.play` uses, its one state the frame count."""
+
+    BONUS_FRAME = 3
+    KEY_FRAME = 7
+    KEY_ADDRESS, KEY_BIT = 0x619AE, 4
+    core_name, core_version = EMU.core_name, EMU.core_version
+
+    def __init__(self, shared):
+        self.frame = 0
+        self.shared = shared
+        self.restarted = False
+
+    def snapshot(self):
+        return self.frame
+
+    def restore(self, frame):
+        self.frame = frame
+
+    def run(self, _frames, _mask):
+        self.frame += 1
+        if self.frame == self.KEY_FRAME - 1 and not self.restarted:
+            self.restarted = True
+            self.shared.restart = True
+        else:
+            pass  # The run goes on.
+
+    def framebuffer(self):
+        return b"", 0, 0
+
+    def u8(self, address):
+        if address == LEVEL_ID:
+            return LID_BONUS_ROUND if self.frame >= self.BONUS_FRAME else LID_SUNSET_VISTA
+        if address == self.KEY_ADDRESS:
+            return (self.frame >= self.KEY_FRAME and self.restarted) << self.KEY_BIT
+        raise ValueError(f"unexpected read of {address:#x}")
+
+    def u32(self, address):
+        assert address == GAME_STATE
+        return GAME_STATE_PLAYING
+
+
+def test_a_key_run_restarts_from_the_bonus_round_keeping_the_inputs_before_it(
+    tmp_path, monkeypatch
+):
+    monkeypatch.setattr(play_module, "CHECKPOINTS_DIR", tmp_path)
+    monkeypatch.setattr(play_module.time, "sleep", lambda _seconds: None)
+    shared = Shared()
+    emu = ScriptedEmu(shared)
+    out = tmp_path / "key.json"
+
+    won = play(emu, "start", out, shared, (emu.KEY_ADDRESS, emu.KEY_BIT))
+
+    played = plans.load(out)
+    restart_point = plans.load(tmp_path / f"key{play_module.RESTART_PLAN_SUFFIX}")
+    assert won
+    assert restart_point.frames == emu.BONUS_FRAME
+    assert not restart_point.done
+    assert played.frames == emu.KEY_FRAME + RECORD_TAIL_FRAMES
+
+
+def test_a_resumed_key_run_keeps_the_saved_inputs_and_restarts_after_them(tmp_path, monkeypatch):
+    monkeypatch.setattr(play_module, "CHECKPOINTS_DIR", tmp_path)
+    monkeypatch.setattr(play_module.time, "sleep", lambda _seconds: None)
+    shared = Shared()
+    emu = ScriptedEmu(shared)
+    emu.frame = emu.BONUS_FRAME
+    out = tmp_path / "key.json"
+
+    play(emu, "start", out, shared, (emu.KEY_ADDRESS, emu.KEY_BIT), [0] * emu.BONUS_FRAME)
+
+    assert plans.load(out).frames == emu.KEY_FRAME + RECORD_TAIL_FRAMES
+    assert not (tmp_path / f"key{play_module.RESTART_PLAN_SUFFIX}").exists()
+
+
+def test_masks_of_expands_input_runs():
+    assert masks_of([[2, UP], [1, CROSS]]) == [UP, UP, CROSS]
 
 
 @pytest.fixture
