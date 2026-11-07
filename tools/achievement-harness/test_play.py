@@ -7,17 +7,19 @@ import urllib.request
 from types import SimpleNamespace
 
 import pytest
-from play import RECORD_TAIL_FRAMES, Recorder, Shared, handler
+from play import RECORD_TAIL_FRAMES, BitRecorder, Recorder, Shared, handler, parse_bit
 from probes import (
     GAME_STATE_GAME_OVER,
     GAME_STATE_LEVEL_WON,
     GAME_STATE_PLAYING,
     LID_GAME_WON,
     LID_NEO_CORTEX,
+    LID_SUNSET_VISTA,
     LID_TITLE,
 )
 
 UP, CROSS = 1 << 4, 1 << 0
+LID_BONUS_ROUND = 0x34
 LOOPBACK = "127.0.0.1"
 HTTP_OK = 200
 HTTP_BAD_REQUEST = 400
@@ -62,6 +64,32 @@ def test_a_run_inside_the_start_level_never_ends():
     recorder = Recorder(LID_NEO_CORTEX)
 
     assert play_out(recorder, UP, LID_NEO_CORTEX, GAME_STATE_PLAYING) is None
+
+
+def test_a_key_run_goes_on_through_a_bonus_round_until_the_bit_rises():
+    recorder = BitRecorder(LID_SUNSET_VISTA)
+
+    assert not recorder.frame(0, LID_BONUS_ROUND, GAME_STATE_PLAYING)
+    for _ in range(RECORD_TAIL_FRAMES):
+        assert not recorder.frame(0, LID_BONUS_ROUND, GAME_STATE_PLAYING)
+    for _ in range(RECORD_TAIL_FRAMES):
+        assert not recorder.frame(0, LID_BONUS_ROUND, GAME_STATE_PLAYING, True)
+
+    assert recorder.frame(0, LID_BONUS_ROUND, GAME_STATE_PLAYING, True)
+    assert recorder.plan("sunset-vista-start", EMU).done
+
+
+def test_a_key_run_back_on_the_map_ends_without_a_win():
+    recorder = BitRecorder(LID_SUNSET_VISTA)
+
+    frames = play_out(recorder, 0, LID_TITLE, GAME_STATE_GAME_OVER)
+
+    assert frames == RECORD_TAIL_FRAMES + 1
+    assert not recorder.plan("sunset-vista-start", EMU).done
+
+
+def test_a_bit_argument_is_an_address_and_a_bit():
+    assert parse_bit("0x619AE:4") == (0x619AE, 4)
 
 
 @pytest.fixture

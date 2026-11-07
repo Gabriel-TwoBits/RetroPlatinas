@@ -5,9 +5,11 @@ by frame like a searched one, from the same derivable start. The emulator runs h
 the page at http://localhost:PORT shows each frame and sends the keyboard or a gamepad's buttons.
 The run is recorded from the start state; Backspace (or the gamepad's L2) restarts it. Once the
 level leaves the start's level and RECORD_TAIL_FRAMES more have run, the plan is written:
-`done` when the level was won (game state 3, or the ending level loaded), else not.
+`done` when the level was won (game state 3, or the ending level loaded), else not. With
+`--until-bit ADDRESS:BIT` (a key: won in a bonus round, which is another level) the run goes on
+through other levels until that bit rises, `done`, or the title/map level loads, not `done`.
 
-    python tools/achievement-harness/play.py STATE --out PLAN [--port PORT]
+    python tools/achievement-harness/play.py STATE --out PLAN [--port PORT] [--until-bit A:B]
 
 Run in the container with the port published, e.g. `podman run -p 127.0.0.1:8765:8765 ...`.
 """
@@ -23,7 +25,7 @@ import plan as plans
 import states
 from explore import runs_of
 from harness import FRAMES_PER_SECOND, Btn, Emu
-from probes import GAME_STATE, GAME_STATE_LEVEL_WON, LEVEL_ID, LID_GAME_WON
+from probes import GAME_STATE, GAME_STATE_LEVEL_WON, LEVEL_ID, LID_GAME_WON, LID_TITLE
 
 DEFAULT_PORT = 8765
 LISTEN_ADDRESS = "0.0.0.0"  # inside the container; publish the port on the host's loopback only
@@ -43,7 +45,7 @@ class Recorder:
         self.left_at = None  # frame index the level first left the start's level
         self.won = False
 
-    def frame(self, mask, level_id, game_state):
+    def frame(self, mask, level_id, game_state, _bit_set=False):
         """Records one frame's mask and what it led to; returns whether the run is over."""
         self.masks.append(mask)
         if game_state == GAME_STATE_LEVEL_WON or level_id == LID_GAME_WON:
@@ -65,6 +67,19 @@ class Recorder:
             macros=["played-by-hand"],
             inputs=runs_of(self.masks),
         )
+
+
+class BitRecorder(Recorder):
+    """A run that ends on a RAM bit rising, whatever level it rises on, or back on the map."""
+
+    def frame(self, mask, level_id, _game_state, bit_set=False):
+        self.masks.append(mask)
+        self.won = self.won or bit_set
+        if self.left_at is None and (bit_set or level_id == LID_TITLE):
+            self.left_at = len(self.masks)
+        else:
+            pass  # Still playing, or already in the tail.
+        return self.left_at is not None and len(self.masks) - self.left_at >= RECORD_TAIL_FRAMES
 
 
 class Shared:
@@ -131,10 +146,26 @@ def handler(shared):
     return Handler
 
 
-def play(emu, start, out, shared):
+def parse_bit(text):
+    """`ADDRESS:BIT` -> `(address, bit)`; the address may be hex."""
+    address, bit = text.split(":")
+    return int(address, 0), int(bit)
+
+
+def play(emu, start, out, shared, until_bit=None):
     """Runs the emulator at 60 Hz on the page's buttons until a run ends; writes its plan."""
+
+    def bit_set():
+        return until_bit is not None and bool(emu.u8(until_bit[0]) >> until_bit[1] & 1)
+
+    def new_recorder():
+        kind = Recorder if until_bit is None else BitRecorder
+        return kind(emu.u8(LEVEL_ID))
+
+    if bit_set():
+        raise ValueError(f"{start} already has the bit {until_bit}: nothing to win")
     start_state = emu.snapshot()
-    recorder = Recorder(emu.u8(LEVEL_ID))
+    recorder = new_recorder()
     next_frame = time.monotonic()
     while True:
         with shared.lock:
@@ -142,11 +173,11 @@ def play(emu, start, out, shared):
             shared.restart = False
         if restart:
             emu.restore(start_state)
-            recorder = Recorder(emu.u8(LEVEL_ID))
+            recorder = new_recorder()
         else:
             pass  # The run goes on.
         emu.run(1, mask)
-        over = recorder.frame(mask, emu.u8(LEVEL_ID), emu.u32(GAME_STATE))
+        over = recorder.frame(mask, emu.u8(LEVEL_ID), emu.u32(GAME_STATE), bit_set())
         rgb, width, height = emu.framebuffer()
         with shared.lock:
             shared.frame, shared.size = rgb, (width, height)
@@ -166,6 +197,7 @@ def main():
     parser.add_argument("state", choices=sorted(states.RECIPES))
     parser.add_argument("--out", required=True, help="plan to write")
     parser.add_argument("--port", type=int, default=DEFAULT_PORT)
+    parser.add_argument("--until-bit", type=parse_bit, help="ADDRESS:BIT that ends the run, won")
     args = parser.parse_args()
     emu = Emu().load()
     states.load(emu, args.state)
@@ -173,7 +205,7 @@ def main():
     server = http.server.ThreadingHTTPServer((LISTEN_ADDRESS, args.port), handler(shared))
     threading.Thread(target=server.serve_forever, daemon=True).start()
     print(f"open http://localhost:{args.port} and play; Backspace restarts", flush=True)
-    won = play(emu, args.state, args.out, shared)
+    won = play(emu, args.state, args.out, shared, args.until_bit)
     server.shutdown()
     return 0 if won else 1
 
