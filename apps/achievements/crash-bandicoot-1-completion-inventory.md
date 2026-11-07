@@ -74,8 +74,8 @@ player had control. Every level id agrees with c1's `LID_*` name. The gem bit fo
   `0x61988` = `0x2FBDF7BE` and `0x619AC` = `0x00140500` (**measured**), the mask of DuckStation's all-gems cheat;
   the colours come from the code notes and the community.
 - **The Great Hall (c1, measured, community).** c1's `CoreObjectsCreate` loads no box code there; entered with
-  26 gems it opens on a clear gem on a pedestal (screenshot). Holding UP from the entrance ended in a game over,
-  so neither its exit nor the bridge was reached.
+  26 gems it opens on a clear gem on a pedestal (screenshot). The arch's exit and the gem bridge are measured in
+  `crash-bandicoot-1-advanced-achievements.md`.
 - **Stormy Ascent** (c1 `LID_STORMYASCENT` `22`) is on the disc but on no map path (community: cut from every
   retail release); the map graph above never reaches it.
 - **Bonus levels (c1).** `24` Tawna 1, `25` Brio, `26` bonus, `33` Tawna 2, `34` Cortex. Not entered by the
@@ -139,7 +139,7 @@ chains and each win are in `crash-bandicoot-1-advanced-achievements.md`.
 | Ending | What triggers it (community) | What RAM shows |
 | --- | --- | --- |
 | Normal | Cortex beaten: he falls from the airship; Crash and Tawna fly off | **Measured:** the won fight loads the ending level `39` (c1 `LID_GAMEWIN`) straight from `1f`, game state `00`; the airship scene, "Crash Bandicoot...", then the credits |
-| Secret (100%) | The Great Hall entered with the gems: the clear gems form a bridge to the balcony, where Tawna waits; then the bosses' epilogue and the credits. Cortex is not fought | The hall is level `2c` (measured); the switch to the ending level is not measured |
+| Secret (100%) | The Great Hall entered with the gems: the clear gems form a bridge to the balcony, where Tawna waits; then the bosses' epilogue and the credits. Cortex is not fought | **Measured:** the bridge runs right from the start, not through the arch, which goes to the map; reaching Tawna drops the game state `0x618D1` from `01` to `00` with level `2c` still loaded, through the epilogues; then `06`, `2c` → `19` and the title. `39` is never loaded |
 
 The in-game percentage tops out at 100%, which the 26th gem forces (community). The 100% password loads
 `0x61974` (c1 `percent_complete`) = 100 (**measured**).
@@ -177,8 +177,6 @@ exactly the gems of Up the Creek, Cortex Power, The High Road and the two secret
 
 ## Still for the in-game check (DuckStation)
 
-- **The secret ending:** with all 26 gems, cross The Great Hall's bridge and watch which level the ending loads
-  (expected c1 `LID_GAMEWIN`, `39`); the harness fell off.
 - **Keys:** win each Cortex bonus round and see the key; the harness entered no bonus round.
 - **Whether a gem or key save shows a password that reloads the same gem and key bits.** Every password above
   was typed, none was read off the game's own save screen.
