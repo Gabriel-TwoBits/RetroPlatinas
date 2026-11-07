@@ -7,15 +7,19 @@
   body { background: #111; color: #ddd; font: 14px sans-serif; margin: 16px; }
   canvas { image-rendering: pixelated; width: 960px; border: 1px solid #444; }
   code { color: #fc6; }
+  button { margin: 8px 0; }
+  canvas:fullscreen { width: 100vw; height: 100vh; object-fit: contain; border: 0; background: #000; }
 </style>
 </head>
 <body>
 <canvas id="screen" width="320" height="240"></canvas>
+<p><button id="fullscreen" type="button" tabindex="-1">Fullscreen</button></p>
 <p id="status">connecting…</p>
 <p>
   Keyboard: arrows = D-pad, <code>X</code> = cross (jump), <code>S</code> = square (spin),
   <code>C</code> = circle, <code>D</code> = triangle, <code>Enter</code> = start,
-  <code>Shift</code> = select, <code>Backspace</code> = restart the recording.
+  <code>Shift</code> = select, <code>Backspace</code> = restart the recording,
+  <code>F</code> = fullscreen.
   A gamepad works too (standard mapping; L2 restarts).
 </p>
 <script>
@@ -36,8 +40,20 @@ let restart = false;
 function keyName(event) {
   return event.key.length === 1 ? event.key.toLowerCase() : event.key;
 }
+function toggleFullscreen() {
+  if (document.fullscreenElement) { document.exitFullscreen(); }
+  else { document.getElementById("screen").requestFullscreen(); }
+}
+const fullscreenButton = document.getElementById("fullscreen");
+// The mouse must not leave the focus here: Enter and Space would press the button mid-game.
+fullscreenButton.addEventListener("mousedown", (event) => event.preventDefault());
+fullscreenButton.addEventListener("click", () => {
+  toggleFullscreen();
+  fullscreenButton.blur();
+});
 addEventListener("keydown", (event) => {
   if (event.key === "Backspace") { restart = true; }
+  else if (keyName(event) === "f") { if (!event.repeat) { toggleFullscreen(); } }
   else if (KEYS[keyName(event)]) { held.add(KEYS[keyName(event)]); }
   else { return; }
   event.preventDefault();
