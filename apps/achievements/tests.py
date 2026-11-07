@@ -19,6 +19,8 @@ from apps.achievements.management.commands.seed_crash1_advanced_achievements imp
     BOSS_POINTS,
     ENDING_POINTS,
     GEM_ACHIEVEMENTS,
+    KEY_ACHIEVEMENTS,
+    KEY_POINTS,
     NEO_CORTEX_LEVEL_ID,
     NORMAL_ENDING_TITLE,
     SECRET_ENDING_POINTS,
@@ -28,6 +30,7 @@ from apps.achievements.management.commands.seed_crash1_advanced_achievements imp
     build_ending_mem_addr,
     build_gem_description,
     build_gem_mem_addr,
+    build_key_mem_addr,
     build_secret_ending_mem_addr,
     gem_bit,
 )
@@ -113,6 +116,7 @@ ADVANCED_COUNT = len(advanced_achievements())
 ADVANCED_POINTS = {
     **{title: points for title, _stage, _map_index, points in GEM_ACHIEVEMENTS},
     **{fight.title: BOSS_POINTS for fight in BOSS_FIGHTS},
+    **{key.title: KEY_POINTS for key in KEY_ACHIEVEMENTS},
     NORMAL_ENDING_TITLE: ENDING_POINTS,
     SECRET_ENDING_TITLE: SECRET_ENDING_POINTS,
 }
@@ -1237,6 +1241,7 @@ def test_seed_advanced_achievements_creates_official_set(advanced_game):
     assert {a.title: a.type for a in achievements} == {
         **{title: Achievement.TYPE_NONE for title, *_ in GEM_ACHIEVEMENTS},
         **{fight.title: Achievement.TYPE_PROGRESSION for fight in BOSS_FIGHTS},
+        **{key.title: Achievement.TYPE_NONE for key in KEY_ACHIEVEMENTS},
         NORMAL_ENDING_TITLE: Achievement.TYPE_WIN_CONDITION,
         SECRET_ENDING_TITLE: Achievement.TYPE_WIN_CONDITION,
     }
@@ -1278,6 +1283,18 @@ def test_boss_mem_addr_fires_when_the_won_fight_switches_to_the_map():
 
 def test_normal_ending_mem_addr_fires_when_cortex_s_fight_loads_the_ending_level():
     assert build_ending_mem_addr(NEO_CORTEX_LEVEL_ID) == "d0xH6188d=h1f_0xH6188d=h39"
+
+
+@pytest.mark.parametrize(
+    ("key", "mem_addr"),
+    zip(
+        KEY_ACHIEVEMENTS,
+        ("0xH6188d=h34_d0xH6188d=h34_0xQ619ae=1_d0xQ619ae=0",),
+        strict=True,
+    ),
+)
+def test_key_mem_addr_fires_when_the_bit_rises_in_the_cortex_bonus_round(key, mem_addr):
+    assert build_key_mem_addr(key) == mem_addr
 
 
 def test_secret_ending_mem_addr_fires_when_the_game_state_falls_in_the_great_hall():

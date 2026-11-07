@@ -149,6 +149,30 @@ SECRET_ENDING_DESCRIPTION = (
 SECRET_ENDING_POINTS = 50
 
 
+@dataclass(frozen=True)
+class KeyAchievement:
+    title: str
+    stage: str
+    address: int  # c1 `item_pool2`, next to the secret stages' gems
+    bit: int
+    description: str
+
+
+# A key is won by reaching it in the stage's Cortex bonus round: the bit rises on the round's own
+# level, c1 `LID_BONUSCORTEX` (measured on hand-played rounds, with Crash still in the round).
+CORTEX_BONUS_LEVEL_ID = 0x34
+KEY_POINTS = 15
+KEY_ACHIEVEMENTS = (
+    KeyAchievement(
+        "Key to the Hog",
+        "Sunset Vista",
+        0x619AE,
+        4,
+        "Win the key in Sunset Vista's Cortex bonus round, the way to Whole Hog.",
+    ),
+)
+
+
 def gem_bit_position(map_index):
     """`(address, bit)` of the clear gem of map stage `map_index`, bit 0 the lowest."""
     secret = SECRET_GEM_BITS.get(map_index)
@@ -200,6 +224,21 @@ def build_boss_mem_addr(fight):
     )
 
 
+def build_key_mem_addr(key):
+    """Fires on the frame the key's bit rises in the Cortex bonus round: a password or a memory
+    card load sets it on the title level, where the edge cannot fire."""
+    bonus = rcheevos_hex(CORTEX_BONUS_LEVEL_ID)
+    bit = f"{BIT_SIZES[key.bit]}{key.address:x}"
+    return "_".join(
+        [
+            f"{LEVEL_ID_ADDRESS}={bonus}",
+            f"d{LEVEL_ID_ADDRESS}={bonus}",
+            f"{bit}=1",
+            f"d{bit}=0",
+        ]
+    )
+
+
 def build_ending_mem_addr(from_level_id):
     """Fires on the frame the ending level loads straight from `from_level_id`. No quit, game
     over or memory card load reaches the ending level; only a won fight leaves Cortex's for it."""
@@ -246,6 +285,10 @@ def advanced_achievements():
         )
         for fight in BOSS_FIGHTS
     ]
+    keys = [
+        (key.title, key.description, build_key_mem_addr(key), KEY_POINTS, Achievement.TYPE_NONE)
+        for key in KEY_ACHIEVEMENTS
+    ]
     ending = (
         NORMAL_ENDING_TITLE,
         NORMAL_ENDING_DESCRIPTION,
@@ -260,7 +303,7 @@ def advanced_achievements():
         SECRET_ENDING_POINTS,
         Achievement.TYPE_WIN_CONDITION,
     )
-    return [*gems, *bosses, ending, secret_ending]
+    return [*gems, *bosses, *keys, ending, secret_ending]
 
 
 class Command(BaseCommand):
